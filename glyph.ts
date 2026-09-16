@@ -77,16 +77,16 @@ function getPrefersReducedMotion(): boolean {
 }
 
 // Animation durations in milliseconds
-export const MAXIMIZE_DURATION_MS = 450;  // Base duration for dot → form
-export const MINIMIZE_DURATION_MS = 350;  // Base duration for form → dot
+export const OPEN_DURATION_MS = 450;  // Base duration for dot → form
+export const REST_DURATION_MS = 350;  // Base duration for form → dot
 
 // Get actual durations considering reduced motion preference
-export function getMaximizeDuration(): number {
-    return getPrefersReducedMotion() ? 0 : MAXIMIZE_DURATION_MS;
+export function getOpenDuration(): number {
+    return getPrefersReducedMotion() ? 0 : OPEN_DURATION_MS;
 }
 
-export function getMinimizeDuration(): number {
-    return getPrefersReducedMotion() ? 0 : MINIMIZE_DURATION_MS;
+export function getRestDuration(): number {
+    return getPrefersReducedMotion() ? 0 : REST_DURATION_MS;
 }
 
 /**

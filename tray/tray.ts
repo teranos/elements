@@ -30,7 +30,7 @@
 
 import { getLogger, getLogSegment, getPersistence } from '../config';
 import { GlyphProximity, applyRestingDotGeometry } from './proximity';
-import { type Glyph, getMaximizeDuration, DEFAULT_GLYPH_COLOR } from '../glyph';
+import { type Glyph, getOpenDuration, DEFAULT_GLYPH_COLOR } from '../glyph';
 import { readPaint, wearPaint } from '../paint';
 import { getForm, setGlyphId, setGlyphSymbol } from '../dataset';
 import { morphDotToWindow } from '../forms/window';
@@ -226,7 +226,7 @@ class Tray {
 
         setTimeout(() => {
             this.isRestoring = false;
-        }, getMaximizeDuration());
+        }, getOpenDuration());
     }
 
 
@@ -259,10 +259,10 @@ class Tray {
 
     /**
      * Load tray state from persistence
-     * Returns array of glyph IDs that were minimized
+     * Returns the ids of the glyphs that were resting in the tray
      */
     public loadState(): string[] {
-        return getPersistence().getMinimizedGlyphs();
+        return getPersistence().getResting();
     }
 
     /**
@@ -315,7 +315,7 @@ class Tray {
 
         // Only save state if not skipping (skip during restore from persistence)
         if (!skipSave) {
-            getPersistence().addMinimizedGlyph(item.id);
+            getPersistence().addResting(item.id);
         }
     }
 
@@ -357,7 +357,7 @@ class Tray {
         // Add to tray
         this.indicatorContainer!.appendChild(element);
         this.element.setAttribute('data-empty', 'false');
-        getPersistence().addMinimizedGlyph(item.id);
+        getPersistence().addResting(item.id);
     }
 
     /**
@@ -415,7 +415,7 @@ class Tray {
         }
 
         // Remove from persistence
-        getPersistence().removeMinimizedGlyph(id);
+        getPersistence().removeResting(id);
     }
 
     /**

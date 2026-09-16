@@ -147,15 +147,14 @@ export function beginMorphToDot(
 /**
  * Begin a morph transaction that ends at a box.
  *
- * Not renamed with the others, because it is the one with no single
- * destination: its five callers end at window, panel, workspace and
- * canvasExpanded. It reads the element's computed radius and opacity as its
- * starting frame, so it can begin from a dot, a proximity-expanded dot, or a
- * glyph already placed on the canvas.
+ * Named for the only thing its callers share: window, panel, workspace and
+ * canvasExpanded all end at a box. It reads the element's computed radius and
+ * opacity as its starting frame, so it can begin from a dot, a
+ * proximity-expanded dot, or a glyph already placed on the canvas.
  *
  * The glyph takes the new state on finish, or the attempt is abandoned.
  */
-export function beginMaximizeMorph(
+export function beginMorphToBox(
     element: HTMLElement,
     fromRect: DOMRect,
     toPosition: { x: number; y: number; width: number; height: number },
@@ -191,7 +190,7 @@ export function beginMaximizeMorph(
         }
     ];
 
-    return createMorphAnimation(element, keyframes, duration, 'Maximize');
+    return createMorphAnimation(element, keyframes, duration, 'ToBox');
 }
 
 

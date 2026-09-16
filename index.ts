@@ -19,11 +19,11 @@ export type { GlyphConfig, GlyphLogger, GlyphPersistence, GlyphDotGeometry, Canv
 
 // Glyph primitive — interface + constants
 export {
-    MAXIMIZE_DURATION_MS,
-    MINIMIZE_DURATION_MS,
+    OPEN_DURATION_MS,
+    REST_DURATION_MS,
     CONTENT_DEADLINE_MS,
-    getMaximizeDuration,
-    getMinimizeDuration,
+    getOpenDuration,
+    getRestDuration,
     DEFAULT_WINDOW_WIDTH,
     DEFAULT_WINDOW_HEIGHT,
     WINDOW_BORDER_RADIUS,
@@ -99,7 +99,7 @@ export {
     beginMorphToDot,
     /** @deprecated Renamed to `beginMorphToDot`. */
     beginMinimizeMorph,
-    beginMaximizeMorph,
+    beginMorphToBox,
     beginMorphToCanvasPlaced,
     /** @deprecated Renamed to `beginMorphToCanvasPlaced`. */
     beginRestoreMorph,

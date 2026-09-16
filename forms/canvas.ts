@@ -12,8 +12,8 @@
 
 import { getLogger, getLogSegment } from '../config';
 import { type Glyph, DEFAULT_GLYPH_COLOR, DEFAULT_GLYPH_TEXT_COLOR } from '../glyph';
-import { beginMaximizeMorph, beginMorphToDot } from '../morph-transaction';
-import { getMaximizeDuration, getMinimizeDuration } from '../glyph';
+import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
+import { getOpenDuration, getRestDuration } from '../glyph';
 import { prepareMorphTo, calculateTrayTarget, resetGlyphElement } from './morphology';
 
 /**
@@ -37,11 +37,11 @@ export function morphDotToWorkspace(
     const targetHeight = window.innerHeight;
 
     // BEGIN TRANSACTION: Start the morph animation
-    beginMaximizeMorph(
+    beginMorphToBox(
         glyphElement,
         glyphRect,
         { x: targetX, y: targetY, width: targetWidth, height: targetHeight },
-        getMaximizeDuration()
+        getOpenDuration()
     ).then(() => {
         // COMMIT PHASE: Animation completed successfully
         log.debug(seg, `[Canvas] Animation committed for ${glyph.id}`);
@@ -135,7 +135,7 @@ export function morphWorkspaceToDot(
 
     const trayTarget = calculateTrayTarget(glyph.id);
 
-    beginMorphToDot(canvasElement, currentRect, trayTarget, getMinimizeDuration())
+    beginMorphToDot(canvasElement, currentRect, trayTarget, getRestDuration())
         .then(() => {
             resetGlyphElement(canvasElement, glyph, 'Canvas', onMorphComplete);
         })

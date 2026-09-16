@@ -18,12 +18,12 @@ export interface GlyphLogger {
 }
 
 export interface GlyphPersistence {
-    /** Get list of minimized glyph IDs */
-    getMinimizedGlyphs(): string[];
-    /** Persist a glyph as minimized */
-    addMinimizedGlyph(id: string): void;
-    /** Remove a glyph from minimized list */
-    removeMinimizedGlyph(id: string): void;
+    /** Ids of the glyphs resting in the tray */
+    getResting(): string[];
+    /** A glyph has come to rest in the tray */
+    addResting(id: string): void;
+    /** A glyph has left the tray for good */
+    removeResting(id: string): void;
 }
 
 /** Glyph position and dimensions on a canvas. */
@@ -105,9 +105,9 @@ const noopLogger: GlyphLogger = {
 
 // Default no-op persistence
 const noopPersistence: GlyphPersistence = {
-    getMinimizedGlyphs: () => [],
-    addMinimizedGlyph() {},
-    removeMinimizedGlyph() {},
+    getResting: () => [],
+    addResting() {},
+    removeResting() {},
 };
 
 // Default no-op canvas host

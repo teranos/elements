@@ -2,7 +2,7 @@
  * Panel Form - Full-width resizable workspace panel
  *
  * The glyph element morphs from its tray dot into a full-width panel
- * via beginMaximizeMorph. The panel's target position is the OPPOSITE
+ * via beginMorphToBox. The panel's target position is the OPPOSITE
  * edge of the system drawer (#system-drawer):
  * - Desktop: system drawer at bottom -> panel anchored to top
  * - Mobile: system drawer at top -> panel anchored to bottom
@@ -28,10 +28,10 @@ import {
     setGlyphId
 } from '../dataset';
 import { prepareMorphTo, calculateTrayTarget, resetGlyphElement } from './morphology';
-import { beginMaximizeMorph, beginMorphToDot } from '../morph-transaction';
+import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import {
-    getMaximizeDuration,
-    getMinimizeDuration,
+    getOpenDuration,
+    getRestDuration,
     PANEL_Z_INDEX
 } from '../glyph';
 
@@ -183,11 +183,11 @@ export function morphDotToPanel(
     document.addEventListener('keydown', escapeHandler);
     escapeHandlers.set(glyphElement, escapeHandler);
 
-    beginMaximizeMorph(
+    beginMorphToBox(
         glyphElement,
         glyphRect,
         { x: targetX, y: targetY, width: panelWidth, height: panelHeight },
-        getMaximizeDuration()
+        getOpenDuration()
     ).then(() => {
         log.debug(seg, `[Panel] Animation committed for ${glyph.id}`);
 
@@ -293,7 +293,7 @@ export function morphPanelToDot(
 
     const trayTarget = calculateTrayTarget(glyph.id);
 
-    beginMorphToDot(panelElement, currentRect, trayTarget, getMinimizeDuration())
+    beginMorphToDot(panelElement, currentRect, trayTarget, getRestDuration())
         .then(() => {
             minimizing.delete(panelElement);
             resetGlyphElement(panelElement, glyph, 'Panel', onMorphComplete);

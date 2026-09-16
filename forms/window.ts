@@ -24,10 +24,10 @@ import {
 } from '../dataset';
 import { prepareMorphTo, calculateTrayTarget, resetGlyphElement } from './morphology';
 import { settleWindow } from './settle-window';
-import { beginMaximizeMorph, beginMorphToDot } from '../morph-transaction';
+import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import {
-    getMaximizeDuration,
-    getMinimizeDuration,
+    getOpenDuration,
+    getRestDuration,
     TITLE_BAR_HEIGHT,
     CANVAS_GLYPH_CONTENT_PADDING,
     MORPHING_Z_INDEX,
@@ -122,11 +122,11 @@ export function morphDotToWindow(
     }, viewport);
 
     // BEGIN TRANSACTION: Start the morph animation
-    beginMaximizeMorph(
+    beginMorphToBox(
         glyphElement,
         glyphRect,
         { x: targetX, y: targetY, width: windowWidth, height: windowHeight },
-        getMaximizeDuration()
+        getOpenDuration()
     ).then(() => {
         // COMMIT PHASE: Animation completed successfully
         log.debug(seg, `[Window] Animation committed for ${glyph.id}`);
@@ -232,7 +232,7 @@ export function morphWindowToDot(
 
     const trayTarget = calculateTrayTarget(glyph.id);
 
-    beginMorphToDot(windowElement, currentRect, trayTarget, getMinimizeDuration())
+    beginMorphToDot(windowElement, currentRect, trayTarget, getRestDuration())
         .then(() => {
             resetGlyphElement(windowElement, glyph, 'Window', onMorphComplete);
         })

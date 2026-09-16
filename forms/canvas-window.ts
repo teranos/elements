@@ -24,10 +24,10 @@ import {
 import { settleWindow } from './settle-window';
 import { watchContent, disarmContentWatch } from '../content-watch';
 import { createSymbolSpan } from '../symbol-span';
-import { beginMaximizeMorph, beginMorphToDot, beginMorphToCanvasPlaced } from '../morph-transaction';
+import { beginMorphToBox, beginMorphToDot, beginMorphToCanvasPlaced } from '../morph-transaction';
 import {
-    getMaximizeDuration,
-    getMinimizeDuration,
+    getOpenDuration,
+    getRestDuration,
 } from '../glyph';
 import { addWindowControls, removeWindowControls } from './title-bar-controls';
 import { setupWindowDrag, teardownWindowDrag } from '../window-drag';
@@ -205,11 +205,11 @@ export function morphCanvasPlacedToWindow(
     }, viewport);
 
     // 11. Animate
-    beginMaximizeMorph(
+    beginMorphToBox(
         element,
         fromRect,
         { x: targetX, y: targetY, width: targetW, height: targetH },
-        getMaximizeDuration(),
+        getOpenDuration(),
     ).then(() => {
         // What a window is, wherever it came from (forms/settle-window.ts).
         // This path used to write its own version of that block, and the two
@@ -308,7 +308,7 @@ export function morphWindowToCanvasPlaced(
     };
 
     // 4. Animate back to canvas rect
-    beginMorphToCanvasPlaced(element, windowRect, toRect, getMinimizeDuration())
+    beginMorphToCanvasPlaced(element, windowRect, toRect, getRestDuration())
         .then(() => {
             // 5. Unwrap window content
             unwrapWindowContent(element);
@@ -374,7 +374,7 @@ function minimizeCanvasWindowToTray(
     const trayTarget = calculateTrayTarget(element.dataset.glyphId);
 
     // 4. Animate toward tray
-    beginMorphToDot(element, windowRect, trayTarget, getMinimizeDuration())
+    beginMorphToDot(element, windowRect, trayTarget, getRestDuration())
         .then(() => {
             // 5. Stash content, clear state, pass element through
             stashContent(element);
@@ -458,7 +458,7 @@ export function placeWindowOnCanvas(
     };
 
     // 7. Animate
-    beginMorphToCanvasPlaced(element, windowRect, toRect, getMinimizeDuration())
+    beginMorphToCanvasPlaced(element, windowRect, toRect, getRestDuration())
         .then(() => {
             // 8. Unwrap window content
             unwrapWindowContent(element);
