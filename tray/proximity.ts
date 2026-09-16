@@ -14,9 +14,9 @@
  * The element persists through: dot → proximity → window → dot
  */
 
-import { type Glyph, DEFAULT_GLYPH_COLOR } from './glyph';
-import { hasProximityText, setProximityText } from './dataset';
-import { getDotGeometry } from './config';
+import { type Glyph, DEFAULT_GLYPH_COLOR } from '../glyph';
+import { hasProximityText, setProximityText } from '../dataset';
+import { getDotGeometry } from '../config';
 
 /**
  * Apply the resting (proximity 0) geometry to a dot element.

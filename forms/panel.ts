@@ -17,7 +17,7 @@
  */
 
 import { getLogger, getLogSegment } from '../config';
-import { applyRestingDotGeometry } from '../proximity';
+import { applyRestingDotGeometry } from '../tray/proximity';
 import { type Glyph, DEFAULT_GLYPH_COLOR, DEFAULT_GLYPH_TEXT_COLOR } from '../glyph';
 import { addWindowControls } from './title-bar-controls';
 import { disarmContentWatch } from '../content-watch';

@@ -13,11 +13,11 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll, afterEach } from 'bun:test';
-import { configureGlyphs, getDotGeometry } from './config';
+import { configureGlyphs, getDotGeometry } from '../config';
 import { GlyphProximity, applyRestingDotGeometry } from './proximity';
 import { tray } from './tray';
-import { resetGlyphElement } from './forms/morphology';
-import type { Glyph } from './glyph';
+import { resetGlyphElement } from '../forms/morphology';
+import type { Glyph } from '../glyph';
 
 /** The geometry the hardcoded constants had. Changing these is a breaking change. */
 const HISTORICAL = {

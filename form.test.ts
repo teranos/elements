@@ -33,7 +33,7 @@ describe('Tim: the table', () => {
         ]);
     });
 
-    test('holds the sequence proximity.ts documents: dot to proximity to window to dot', () => {
+    test('holds the sequence tray/proximity.ts documents: dot to proximity to window to dot', () => {
         for (const name of ['dot', 'proximity', 'window'] as const) {
             expect(names).toContain(name);
         }

@@ -1,5 +1,5 @@
 import { configureGlyphs } from '../config';
-import { tray } from '../tray';
+import { tray } from '../tray/tray';
 import { renderPlacementSpecimen } from './placement';
 import { renderBorderSpecimen } from './border';
 

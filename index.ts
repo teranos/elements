@@ -89,7 +89,7 @@ export {
 } from './content-watch';
 
 // Proximity engine
-export { GlyphProximity, applyRestingDotGeometry } from './proximity';
+export { GlyphProximity, applyRestingDotGeometry } from './tray/proximity';
 
 // Symbol rendering — the one way glyph.symbol becomes DOM
 export { createSymbolSpan, settleSymbolSpan } from './symbol-span';
@@ -175,7 +175,7 @@ export { canvasPlaced } from './forms/canvas-placed';
 export type { CanvasPlacedConfig, CanvasPlacedResult } from './forms/canvas-placed';
 
 // The tray singleton
-export { tray } from './tray';
+export { tray } from './tray/tray';
 
 // Composition types — canonical, package-owned (CTYPE)
 export type { CompositionEdge, CompositionState, EdgeDirection } from './composition';
@@ -191,8 +191,8 @@ export {
 } from './edge-graph';
 
 // Touch browse
-export { setupTouchBrowse, findPeakedGlyph } from './touch-browse';
-export type { TouchBrowseHost } from './touch-browse';
+export { setupTouchBrowse, findPeakedGlyph } from './tray/touch-browse';
+export type { TouchBrowseHost } from './tray/touch-browse';
 
 // Meld system
 export {

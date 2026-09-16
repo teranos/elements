@@ -10,7 +10,7 @@ import { readPaint, wearPaint } from '../paint';
 import type { Form } from '../form';
 import { setForm, setProximityText, hasProximityText } from '../dataset';
 import { getLogger, getLogSegment } from '../config';
-import { applyRestingDotGeometry } from '../proximity';
+import { applyRestingDotGeometry } from '../tray/proximity';
 
 /**
  * On the element for the length of a morph, and nothing else. Which morph is

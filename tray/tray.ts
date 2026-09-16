@@ -28,19 +28,19 @@
  * All Glyph DOM elements MUST be created through createGlyphElement factory.
  */
 
-import { getLogger, getLogSegment, getPersistence } from './config';
+import { getLogger, getLogSegment, getPersistence } from '../config';
 import { GlyphProximity, applyRestingDotGeometry } from './proximity';
-import { type Glyph, getMaximizeDuration, DEFAULT_GLYPH_COLOR } from './glyph';
-import { readPaint, wearPaint } from './paint';
-import { getForm, setGlyphId, setGlyphSymbol } from './dataset';
-import { morphDotToWindow } from './forms/window';
-import { morphDotToWorkspace } from './forms/canvas';
-import { morphDotToPanel } from './forms/panel';
+import { type Glyph, getMaximizeDuration, DEFAULT_GLYPH_COLOR } from '../glyph';
+import { readPaint, wearPaint } from '../paint';
+import { getForm, setGlyphId, setGlyphSymbol } from '../dataset';
+import { morphDotToWindow } from '../forms/window';
+import { morphDotToWorkspace } from '../forms/canvas';
+import { morphDotToPanel } from '../forms/panel';
 import { setupTouchBrowse } from './touch-browse';
-import { suppressSelectionUntilRelease } from './morph-transaction';
+import { suppressSelectionUntilRelease } from '../morph-transaction';
 
 // Re-export Glyph interface for external use
-export type { Glyph } from './glyph';
+export type { Glyph } from '../glyph';
 
 
 class Tray {

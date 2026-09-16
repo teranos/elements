@@ -8,7 +8,7 @@
 
 import { getLogger, getLogSegment, removeCanvasGlyph } from './config';
 import { getForm } from './dataset';
-import { getTray } from './tray';
+import { getTray } from './tray/tray';
 import type { Glyph } from './glyph';
 import {
     morphCanvasPlacedToWindow,

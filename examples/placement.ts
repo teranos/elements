@@ -5,7 +5,7 @@
  * passes a position, so every open goes through morphDotToWindow → findPlacement.
  */
 
-import { tray } from '../tray';
+import { tray } from '../tray/tray';
 import type { Glyph } from '../glyph';
 
 const WINDOW_WIDTH = 380;

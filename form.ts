@@ -31,14 +31,14 @@
 export interface FormTable {
     /**
      * Resting in the tray. `applyRestingDotGeometry()` puts a glyph here at birth
-     * and when an existing element joins the tray (tray.ts), and on the way back
+     * and when an existing element joins the tray (tray/tray.ts), and on the way back
      * from panel (forms/panel.ts) and window (forms/morphology.ts).
      * Where a morph starts, never where one ends.
      */
     readonly dot: { readonly opensFromTray: false };
 
     /**
-     * The dot expanded by pointer nearness. proximity.ts calls itself "Proximity
+     * The dot expanded by pointer nearness. tray/proximity.ts calls itself "Proximity
      * morphing" and states the sequence this list follows: "The element persists
      * through: dot → proximity → window → dot". A way there, not a destination.
      */

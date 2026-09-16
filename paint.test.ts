@@ -11,7 +11,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { tray } from './tray';
+import { tray } from './tray/tray';
 import { canvasPlaced } from './forms/canvas-placed';
 import { resetGlyphElement } from './forms/morphology';
 import { readPaint, wearPaint } from './paint';

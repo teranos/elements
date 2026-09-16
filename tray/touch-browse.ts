@@ -5,9 +5,9 @@
  * concern with its own state (suppressNextClick, activation zone).
  */
 
-import { getLogger, getLogSegment } from './config';
+import { getLogger, getLogSegment } from '../config';
 import type { GlyphProximity } from './proximity';
-import type { Glyph } from './glyph';
+import type { Glyph } from '../glyph';
 
 // How close to the tray's edge the touch must land (px)
 const TOUCH_ACTIVATION_MARGIN = 44;
