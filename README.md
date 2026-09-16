@@ -58,7 +58,7 @@ Tests live with the package source. The web copies that duplicated them are gone
 
 ## Boundary
 
-Where Glyphs ends and QNTX begins — settled by the same test each time: does it express a glyph, or does it orchestrate host state?
+Where this package ends and QNTX begins. The test that settles each line is in [CLAUDE.md](CLAUDE.md).
 
 - **Canvas workspace orchestration is QNTX.** Pan, zoom, selection, spawn, and thread state are wired to QNTX persistence, sync, and the glyph registry. The package owns the interaction layer the workspace consumes: drag, resize, meld, placement, z-order, touch browse.
 - **GlyphUI's I/O is QNTX.** `pluginFetch`, `pluginWebSocket`, `onMeld`, and config persistence belong to the host factory. The DOM building blocks (`createInput`, `createButton`, `createStatusLine`) are package-owned in `ui-primitives.ts`; the host factory delegates to them.
