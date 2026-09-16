@@ -29,7 +29,7 @@ Browser-only. Assumes `document`, `DOMParser`, Web Animations API, and `ResizeOb
 
 ## Configuration
 
-Host apps call `configureGlyphs()` at startup to inject logger, persistence, canvas coordinate bridge, `CanvasHost`, and cleanup callbacks. `CanvasHost` bridges canvas interaction (drag, resize, meld) to host-specific state — persistence, selection, composition CRUD, and sync. See `web/ts/main.ts` for the canonical wiring. Without configuration, safe defaults apply: no-op logger, no-op persistence, no-op canvas host, identity coordinate transforms.
+Host apps call `configureGlyphs()` at startup to inject logger, persistence, canvas coordinate bridge, `CanvasHost`, and cleanup callbacks. `CanvasHost` bridges canvas interaction (drag, resize, meld) to host-specific state — persistence, selection, composition CRUD, and sync. The canonical wiring is `web/ts/main.ts` in `teranos/QNTX`. Without configuration, safe defaults apply: no-op logger, no-op persistence, no-op canvas host, identity coordinate transforms.
 
 `dotGeometry` is the exception to "host-specific concerns": it is geometry, not a dependency. The proximity engine writes the dot's width, height and border-radius inline on every frame, so no stylesheet can reach it — a host that wants a bigger or smaller dot sets it here.
 
@@ -46,7 +46,6 @@ configureGlyphs({
 ## Testing
 
 ```bash
-cd packages/glyphs
 bun test                     # happy-dom (local)
 USE_JSDOM=1 bun test         # JSDOM (CI)
 ```
@@ -55,7 +54,7 @@ Tests live with the package source. The web copies that duplicated them are gone
 
 ## Publishing
 
-Published to [JSR](https://jsr.io/@qntx/glyphs) via GitHub Actions. Tests gate the publish — if tests fail, the package is not published. To release: bump `version` in `jsr.json` and merge to main. The workflow runs on any change to `packages/glyphs/` but JSR skips versions that already exist.
+[JSR](https://jsr.io/@qntx/glyphs) holds what `teranos/QNTX` published from its own GitHub Actions workflow, tests gating the publish. This repository has no publish workflow yet, so nothing committed here reaches JSR until one exists. JSR skips a version that already exists, so a change without a bump to `version` in `jsr.json` never ships.
 
 ## Boundary
 
@@ -68,4 +67,4 @@ Where Glyphs ends and QNTX begins — settled by the same test each time: does i
 
 ## Morph classes
 
-A morph class (`glyph-morphing-to-window`, `-to-panel`, `-to-canvas`) belongs to the morph: `prepareMorphTo` adds it beside the glyph's own classes, and the transaction ends it — commit swaps it for the settled class (`glyph-window`, `glyph-panel …`, `canvas-fullscreen-adjusted`), rollback restores exactly the classes the glyph had. Position and stacking during a morph are inline, and `raise()` writes a plain z-index.
+One morph class, `glyph-morphing`, belongs to the morph: `prepareMorphTo` adds it beside the glyph's own classes, and the transaction ends it — commit swaps it for the settled classes (`glyph-panel …`, `canvas-fullscreen-adjusted`; a window settles into none, `[data-manifestation="window"]` is its only hook), rollback restores exactly the classes the glyph had. Which manifestation is in flight is `data-manifestation`'s to say, written at morph start. Position and stacking during a morph are inline, and `raise()` writes a plain z-index.
