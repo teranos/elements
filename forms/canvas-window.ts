@@ -5,7 +5,7 @@
  * and rebuilds via renderContent(), this path wraps/unwraps existing children so
  * DOM state (scroll position, textarea content, rendered markdown) is preserved.
  *
- * Canvas coordinate transforms are injected via configureGlyphs({ canvas }).
+ * Canvas coordinate transforms are injected via configureElements({ canvas }).
  */
 
 import { getLogger, getLogSegment, getCanvasBridge } from '../config';
@@ -28,7 +28,7 @@ import { beginMorphToBox, beginMorphToDot, beginMorphToCanvasPlaced } from '../m
 import {
     getOpenDuration,
     getRestDuration,
-} from '../glyph';
+} from '../element';
 import { addWindowControls, removeWindowControls } from './title-bar-controls';
 import { setupWindowDrag, teardownWindowDrag } from '../window-drag';
 import { calculateTrayTarget } from './morphology';
@@ -68,7 +68,7 @@ const SUPPRESSED_STYLE_KEY = '__canvasInlineStyles';
 const SUPPRESSED_STYLE_PROPS = ['minHeight'] as const;
 
 /** Exported for tests — the morph paths call this pair. */
-export function suppressGlyphStyles(element: HTMLElement): void {
+export function suppressElementStyles(element: HTMLElement): void {
     const suppressed: Record<string, string> = {};
     for (const prop of SUPPRESSED_STYLE_PROPS) {
         suppressed[prop] = element.style[prop];
@@ -78,7 +78,7 @@ export function suppressGlyphStyles(element: HTMLElement): void {
 }
 
 /** Exported for tests — the morph paths call this pair. */
-export function restoreGlyphStyles(element: HTMLElement): void {
+export function restoreElementStyles(element: HTMLElement): void {
     const suppressed = (element as any)[SUPPRESSED_STYLE_KEY] as Record<string, string> | undefined;
     delete (element as any)[SUPPRESSED_STYLE_KEY];
     if (!suppressed) return;
@@ -221,7 +221,7 @@ export function morphCanvasPlacedToWindow(
         // The window owns its box — suspend minHeight, given back on return.
         // Everything else the glyph wrote on itself (border, background) is
         // inherently part of the element and stays untouched.
-        suppressGlyphStyles(element);
+        suppressElementStyles(element);
 
         // Set up window dragging
         setupWindowDrag(element, titleBar);
@@ -251,7 +251,7 @@ function unwrapWindowContent(element: HTMLElement): void {
         if ((titleBar as HTMLElement).dataset.windowCreated) {
             titleBar.remove(); // Form-created: remove entirely
         } else {
-            removeWindowControls(titleBar as HTMLElement); // Glyph-owned: just strip controls
+            removeWindowControls(titleBar as HTMLElement); // Element-owned: just strip controls
         }
     }
     if (contentDiv) {
@@ -323,7 +323,7 @@ export function morphWindowToCanvasPlaced(
             for (const prop of WINDOW_STYLE_PROPS) {
                 (element.style as any)[prop] = '';
             }
-            restoreGlyphStyles(element);
+            restoreElementStyles(element);
 
             // 8. Restore canvas layout from origin
             element.style.position = 'absolute';
@@ -443,7 +443,7 @@ export function placeWindowOnCanvas(
         ? bridge.fromScreen(canvasId, relX, relY)
         : { x: relX, y: relY };
 
-    // 5. Glyph dimensions (from stored origin or default)
+    // 5. Element dimensions (from stored origin or default)
     const origin = getCanvasOrigin(element);
     const glyphW = origin?.width ?? 400;
     const glyphH = origin?.height ?? 250;
@@ -473,7 +473,7 @@ export function placeWindowOnCanvas(
             for (const prop of WINDOW_STYLE_PROPS) {
                 (element.style as any)[prop] = '';
             }
-            restoreGlyphStyles(element);
+            restoreElementStyles(element);
 
             // 11. Place at computed canvas-local position
             element.style.position = 'absolute';

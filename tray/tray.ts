@@ -1,28 +1,28 @@
 /**
  * Tray - where glyphs rest
  *
- * Design: Glyphs are visual entities that morph between three states:
+ * Design: Elements are visual entities that morph between three states:
  * 1. Collapsed (8px square) - minimal visual footprint
  * 2. Proximity expanded (220px) - reveals title text on hover
  * 3. Window state - full application window with content
  *
  * The same DOM element transforms through all states via animation.
  *
- * AXIOM: A Glyph is exactly ONE DOM element for its entire lifetime.
+ * AXIOM: An element is exactly ONE DOM element for its entire lifetime.
  *
  * FORBIDDEN OPERATIONS (will throw errors):
- * - cloneNode on a Glyph element
- * - document.createElement to represent an existing Glyph
- * - Re-rendering a Glyph via renderItems, add, remove, or diffing logic
+ * - cloneNode on an element
+ * - document.createElement to represent an existing element
+ * - Re-rendering an element via renderItems, add, remove, or diffing logic
  * - Having two elements with the same data-element-id
  * - "Fading out" one element while "fading in" another
- * - Recreating a Glyph to "simplify animation"
+ * - Recreating an element to "simplify animation"
  *
  * ALLOWED OPERATIONS:
  * - Reparenting the same DOM element (body ↔ indicator container)
  * - Changing position, transform, top/left, width/height
  * - Changing border-radius, background, opacity
- * - Temporarily detaching a Glyph from layout flow
+ * - Temporarily detaching an element from layout flow
  * - Delaying content mount until after morph completion
  *
  * Every element MUST be created through the createElement factory.
@@ -30,7 +30,7 @@
 
 import { getLogger, getLogSegment, getPersistence } from '../config';
 import { Proximity, applyRestingDotGeometry } from './proximity';
-import { type Glyph, getOpenDuration, DEFAULT_COLOR } from '../glyph';
+import { type Element, getOpenDuration, DEFAULT_COLOR } from '../element';
 import { readPaint, wearPaint } from '../paint';
 import { getForm, setElementId, setSymbol } from '../dataset';
 import { morphDotToWindow } from '../forms/window';
@@ -39,8 +39,8 @@ import { morphDotToPanel } from '../forms/panel';
 import { setupTouchBrowse } from './touch-browse';
 import { suppressSelectionUntilRelease } from '../morph-transaction';
 
-// Re-export Glyph interface for external use
-export type { Glyph } from '../glyph';
+// Re-export Element interface for external use
+export type { Element } from '../element';
 
 
 class Tray {
@@ -68,7 +68,7 @@ class Tray {
      *
      * The glyph's DOM element IS its identity, not a representation of it.
      */
-    private createElement(item: Glyph): HTMLElement {
+    private createElement(item: Element): HTMLElement {
         const log = getLogger();
         const seg = getLogSegment();
 
@@ -79,7 +79,7 @@ class Tray {
 
         const existing = document.querySelector(`[data-element-id="${item.id}"]`);
         if (existing) {
-            throw new Error(`AXIOM VIOLATION: Glyph element ${item.id} already exists in DOM`);
+            throw new Error(`AXIOM VIOLATION: Element ${item.id} already exists in DOM`);
         }
 
         // CREATE THE ELEMENT - ONCE AND ONLY ONCE
@@ -97,8 +97,8 @@ class Tray {
         // Attach click handler that will persist with the element forever
         const clickHandler = (e: MouseEvent) => {
             e.stopPropagation();
-            log.debug(seg, `[Glyph ${item.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
-            this.morphGlyph(element, item);
+            log.debug(seg, `[Element ${item.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
+            this.morphElement(element, item);
         };
 
         // Store handler in WeakMap for proper cleanup
@@ -112,14 +112,14 @@ class Tray {
         return element;
     }
     // Deferred items to add after init
-    private deferredItems: Glyph[] = [];
+    private deferredItems: Element[] = [];
     private readonly MAX_DEFERRED_ITEMS = 100; // Prevent unbounded growth
     private deferredItemsTimeout: ReturnType<typeof setTimeout> | null = null;
 
     // Component state
     private element: HTMLElement | null = null;
     private indicatorContainer: HTMLElement | null = null;
-    private items: Map<string, Glyph> = new Map();
+    private items: Map<string, Element> = new Map();
     private isRestoring: boolean = false; // Disable proximity morphing during restore
 
     /**
@@ -180,7 +180,7 @@ class Tray {
             get proximity() { return tray.proximity; },
             get items() { return tray.items; },
             updateProximity: () => this.updateProximity(),
-            morphGlyph: (el, item) => this.morphGlyph(el, item),
+            morphElement: (el, item) => this.morphElement(el, item),
         });
     }
 
@@ -188,7 +188,7 @@ class Tray {
      * Morph a glyph from dot to its form (window, panel or workspace).
      * Shared by click handler and touch browse release.
      */
-    private morphGlyph(element: HTMLElement, item: Glyph): void {
+    private morphElement(element: HTMLElement, item: Element): void {
         // Already open — don't open it again. isInWindowState() answered this
         // for every form prepareMorphTo() reparents to document.body:
         // all three tray destinations, and canvasExpanded alongside them.
@@ -205,14 +205,14 @@ class Tray {
                 item,
                 (id, element) => this.verifyElementTracking(id, element),
                 (id) => this.remove(id),
-                (element, g) => this.reattachGlyphToIndicator(element, g)
+                (element, g) => this.reattachElementToIndicator(element, g)
             );
         } else if (opensAs === 'workspace') {
             morphDotToWorkspace(
                 element,
                 item,
                 (id, element) => this.verifyElementTracking(id, element),
-                (element, g) => this.reattachGlyphToIndicator(element, g)
+                (element, g) => this.reattachElementToIndicator(element, g)
             );
         } else {
             morphDotToWindow(
@@ -220,7 +220,7 @@ class Tray {
                 item,
                 (id, element) => this.verifyElementTracking(id, element),
                 (id) => this.remove(id),
-                (element, g) => this.reattachGlyphToIndicator(element, g)
+                (element, g) => this.reattachElementToIndicator(element, g)
             );
         }
 
@@ -254,7 +254,7 @@ class Tray {
             log.warn(seg, `[Tray] open: glyph ${id} not found`);
             return;
         }
-        this.morphGlyph(element, item);
+        this.morphElement(element, item);
     }
 
     /**
@@ -269,7 +269,7 @@ class Tray {
      * Add a minimized window to the tray
      * Creates the glyph DOM element ONCE via factory - this element persists forever
      */
-    public add(item: Glyph, skipSave: boolean = false): void {
+    public add(item: Element, skipSave: boolean = false): void {
         const log = getLogger();
         const seg = getLogSegment();
         // Try to initialize, but if it fails, defer the item
@@ -324,7 +324,7 @@ class Tray {
      * Used when a canvas-placed glyph is minimized to tray — the same
      * DOM element transitions from canvas/window to tray dot.
      */
-    public adopt(element: HTMLElement, item: Glyph): void {
+    public adopt(element: HTMLElement, item: Element): void {
         const log = getLogger();
         const seg = getLogSegment();
         this.init();
@@ -348,8 +348,8 @@ class Tray {
         // Attach click handler
         const clickHandler = (e: MouseEvent) => {
             e.stopPropagation();
-            log.debug(seg, `[Glyph ${item.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
-            this.morphGlyph(element, item);
+            log.debug(seg, `[Element ${item.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
+            this.morphElement(element, item);
         };
         this.glyphClickHandlers.set(element, clickHandler);
         element.addEventListener('click', clickHandler);
@@ -481,7 +481,7 @@ class Tray {
     /**
      * Re-attach a morphed glyph back to the indicator container
      */
-    private reattachGlyphToIndicator(element: HTMLElement, glyph: Glyph): void {
+    private reattachElementToIndicator(element: HTMLElement, glyph: Element): void {
         const log = getLogger();
         const seg = getLogSegment();
         if (!this.indicatorContainer) return;
@@ -496,8 +496,8 @@ class Tray {
         // (Event listeners can be lost during certain DOM manipulations)
         const clickHandler = (e: MouseEvent) => {
             e.stopPropagation();
-            log.debug(seg, `[Glyph ${glyph.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
-            this.morphGlyph(element, glyph);
+            log.debug(seg, `[Element ${glyph.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
+            this.morphElement(element, glyph);
         };
 
         this.glyphClickHandlers.set(element, clickHandler);
@@ -528,7 +528,7 @@ class Tray {
      * Verify the structural invariant: Each glyph is exactly ONE DOM element
      * Call this to ensure the system maintains coherence
      *
-     * The Glyph must remain the same DOM element across dot → proximity → window → dot.
+     * The Element must remain the same DOM element across dot → proximity → window → dot.
      * Any implementation that violates this, even invisibly, is incorrect.
      */
     public verifyInvariant(): void {

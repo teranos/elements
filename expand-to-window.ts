@@ -6,10 +6,10 @@
  * passes a config object and gets the full bidirectional morph for free.
  */
 
-import { getLogger, getLogSegment, removeCanvasGlyph } from './config';
+import { getLogger, getLogSegment, removeCanvasElement } from './config';
 import { getForm } from './dataset';
 import { getTray } from './tray/tray';
-import type { Glyph } from './glyph';
+import type { Element } from './element';
 import {
     morphCanvasPlacedToWindow,
     placeWindowOnCanvas,
@@ -22,7 +22,7 @@ export interface ExpandToWindowConfig {
     element: HTMLElement;
     /** The expand/collapse button. */
     expandBtn: HTMLElement;
-    /** Glyph identity. */
+    /** Element identity. */
     elementId: string;
     /** Window title and tray label. */
     title: string;
@@ -30,7 +30,7 @@ export interface ExpandToWindowConfig {
     symbol: string;
     /** Factory for tray content when minimized. */
     renderContent: () => HTMLElement;
-    /** Log label prefix (e.g. 'AsGlyph', 'NoteGlyph'). */
+    /** Log label prefix (e.g. 'AsElement', 'NoteElement'). */
     logLabel?: string;
     /** Visual identity for tray dot. */
     color?: string;
@@ -39,7 +39,7 @@ export interface ExpandToWindowConfig {
     /** Called after restoring to canvas — re-apply visual identity, save dims, etc. */
     onRestoreToCanvas?: (element: HTMLElement) => void;
     /** Extra fields forwarded to tray.adopt() (e.g. renderTitleBar, opensAs). */
-    adoptExtras?: Partial<Glyph>;
+    adoptExtras?: Partial<Element>;
     /** Whether to stopPropagation on click (needed for cloned buttons). */
     stopPropagation?: boolean;
 }
@@ -67,7 +67,7 @@ export function wireExpandToWindow(config: ExpandToWindowConfig): void {
         stopPropagation,
     } = config;
 
-    const label = logLabel ?? 'Glyph';
+    const label = logLabel ?? 'Element';
 
     expandBtn.addEventListener('click', (e) => {
         if (stopPropagation) e.stopPropagation();
@@ -99,7 +99,7 @@ export function wireExpandToWindow(config: ExpandToWindowConfig): void {
             canvasId,
             onClose: () => {
                 element.remove();
-                removeCanvasGlyph(elementId);
+                removeCanvasElement(elementId);
                 log.debug(seg, `[${label}] Closed from window ${elementId}`);
             },
             onMinimize: (el: HTMLElement) => {

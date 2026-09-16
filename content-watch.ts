@@ -24,12 +24,12 @@
  */
 
 import { getLogger, getLogSegment } from './config';
-import { CONTENT_DEADLINE_MS } from './glyph';
+import { CONTENT_DEADLINE_MS } from './element';
 import { setContentState, getContentState } from './dataset';
 import { isSettled, type ContentState } from './content-state';
 
 /**
- * Who the body belongs to. A `Glyph` satisfies it, and so does a path that has
+ * Who the body belongs to. A `Element` satisfies it, and so does a path that has
  * only the element and a title — canvas-window.ts lifts a glyph it was never
  * handed the data for.
  */
@@ -163,14 +163,14 @@ export function isWatched(element: HTMLElement): boolean {
  * showing data and showing that there is none.
  */
 export function declareContent(node: Node, state: ContentState): void {
-    const element = owningGlyph(node);
+    const element = owningElement(node);
     if (!element) return;
     if (isSettled(state)) disarmContentWatch(element);
     setContentState(element, state);
 }
 
 /** The glyph element a node sits inside, or null if it sits in no glyph. */
-function owningGlyph(node: Node): HTMLElement | null {
+function owningElement(node: Node): HTMLElement | null {
     const start = node.nodeType === 1 ? (node as HTMLElement) : node.parentElement;
     return start?.closest('[data-element-id]') as HTMLElement | null ?? null;
 }

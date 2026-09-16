@@ -23,7 +23,7 @@ export interface PortRule {
 }
 
 /** All glyph classes that participate in melding */
-const ALL_GLYPH_CLASSES = [
+const ALL_ELEMENT_CLASSES = [
     'canvas-ax-glyph', 'canvas-se-glyph', 'canvas-py-glyph',
     'canvas-prompt-glyph', 'canvas-doc-glyph', 'canvas-note-glyph',
     'canvas-result-glyph', 'canvas-subcanvas-glyph',
@@ -62,9 +62,9 @@ export const MELDABILITY: Record<string, readonly PortRule[]> = {
         { direction: 'bottom', targets: ['canvas-result-glyph', 'canvas-subcanvas-glyph'] }
     ],
     'canvas-subcanvas-glyph': [
-        { direction: 'right', targets: ALL_GLYPH_CLASSES },
-        { direction: 'bottom', targets: ALL_GLYPH_CLASSES },
-        { direction: 'top', targets: ALL_GLYPH_CLASSES },
+        { direction: 'right', targets: ALL_ELEMENT_CLASSES },
+        { direction: 'bottom', targets: ALL_ELEMENT_CLASSES },
+        { direction: 'top', targets: ALL_ELEMENT_CLASSES },
     ],
 } as const;
 
@@ -154,7 +154,7 @@ export function getCompositionElementIds(composition: HTMLElement): string[] {
 /**
  * Extract the canonical glyph class (e.g. 'canvas-py-glyph') from an element's classList
  */
-export function getGlyphClass(element: HTMLElement): string | null {
+export function getElementClass(element: HTMLElement): string | null {
     for (const cls of element.classList) {
         if (cls.startsWith('canvas-') && cls.endsWith('-glyph')) return cls;
     }
@@ -206,7 +206,7 @@ export function getMeldOptions(
     for (const elementId of allIds) {
         const el = compositionElement.querySelector(`[data-element-id="${elementId}"]`) as HTMLElement | null;
         if (!el) continue;
-        const cls = getGlyphClass(el);
+        const cls = getElementClass(el);
         if (!cls) continue;
 
         // 1. Append: this glyph sends to the incoming glyph (outgoing port)

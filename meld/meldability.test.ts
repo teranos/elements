@@ -13,7 +13,7 @@ import {
     getInitiatorClasses,
     getTargetClasses,
     getCompatibleTargets,
-    getGlyphClass,
+    getElementClass,
     getMeldOptions,
     selectPreferredMeldOption,
 } from './meldability';
@@ -157,17 +157,17 @@ describe('Port-aware MELDABILITY registry', () => {
         });
     });
 
-    describe('getGlyphClass', () => {
+    describe('getElementClass', () => {
         test('extracts glyph class from element', () => {
             const el = document.createElement('div');
             el.className = 'canvas-py-glyph canvas-glyph extra-class';
-            expect(getGlyphClass(el)).toBe('canvas-py-glyph');
+            expect(getElementClass(el)).toBe('canvas-py-glyph');
         });
 
         test('returns null when no glyph class found', () => {
             const el = document.createElement('div');
             el.className = 'some-other-class';
-            expect(getGlyphClass(el)).toBe(null);
+            expect(getElementClass(el)).toBe(null);
         });
     });
 

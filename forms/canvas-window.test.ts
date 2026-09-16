@@ -12,7 +12,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { suppressGlyphStyles, restoreGlyphStyles } from './canvas-window';
+import { suppressElementStyles, restoreElementStyles } from './canvas-window';
 
 let element: HTMLElement;
 
@@ -29,11 +29,11 @@ describe('Tim: the border is inherently part of the element', () => {
         element.style.border = '1px solid red';
         element.style.backgroundColor = 'rgb(212, 197, 154)';
 
-        suppressGlyphStyles(element);
+        suppressElementStyles(element);
         expect(element.style.border).toBe('1px solid red');
         expect(element.style.backgroundColor).toBe('rgb(212, 197, 154)');
 
-        restoreGlyphStyles(element);
+        restoreElementStyles(element);
         expect(element.style.border).toBe('1px solid red');
         expect(element.style.backgroundColor).toBe('rgb(212, 197, 154)');
     });
@@ -43,25 +43,25 @@ describe('Tim: the border is inherently part of the element', () => {
     test('minHeight is suspended in window state and restored after', () => {
         element.style.minHeight = '120px';
 
-        suppressGlyphStyles(element);
+        suppressElementStyles(element);
         expect(element.style.minHeight).toBe('');
 
-        restoreGlyphStyles(element);
+        restoreElementStyles(element);
         expect(element.style.minHeight).toBe('120px');
     });
 });
 
 describe('Spike: nothing inline stays nothing', () => {
     test('a glyph with no inline styles round-trips clean', () => {
-        suppressGlyphStyles(element);
-        restoreGlyphStyles(element);
+        suppressElementStyles(element);
+        restoreElementStyles(element);
         expect(element.style.border).toBe('');
         expect(element.style.minHeight).toBe('');
     });
 
     test('restore without suppress changes nothing', () => {
         element.style.minHeight = '80px';
-        restoreGlyphStyles(element);
+        restoreElementStyles(element);
         expect(element.style.minHeight).toBe('80px');
     });
 });

@@ -9,7 +9,7 @@
  */
 
 import { getLogger, getLogSegment } from '../config';
-import { type Glyph, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../glyph';
+import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { addWindowControls } from './title-bar-controls';
 import { disarmContentWatch } from '../content-watch';
 import { stashContent } from './stash';
@@ -29,19 +29,19 @@ import {
     getOpenDuration,
     getRestDuration,
     TITLE_BAR_HEIGHT,
-    CANVAS_GLYPH_CONTENT_PADDING,
+    CANVAS_ELEMENT_CONTENT_PADDING,
     MORPHING_Z_INDEX,
-} from '../glyph';
+} from '../element';
 
 /**
  * Morph a glyph to window with chrome (title bar, buttons)
  */
 export function morphDotToWindow(
     element: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
     onRemove: (id: string) => void,
-    onMinimize: (element: HTMLElement, glyph: Glyph) => void
+    onMinimize: (element: HTMLElement, glyph: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();
@@ -65,7 +65,7 @@ export function morphDotToWindow(
         measurer.style.left = '-99999px';
         measurer.style.top = '0';
         measurer.style.visibility = 'hidden';
-        measurer.style.padding = `${CANVAS_GLYPH_CONTENT_PADDING}px`;
+        measurer.style.padding = `${CANVAS_ELEMENT_CONTENT_PADDING}px`;
         measurer.appendChild(preRenderedContent);
         document.body.appendChild(measurer);
         measuredWidth = measurer.scrollWidth;
@@ -209,9 +209,9 @@ export function morphDotToWindow(
  */
 export function morphWindowToDot(
     windowElement: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
-    onMorphComplete: (element: HTMLElement, glyph: Glyph) => void
+    onMorphComplete: (element: HTMLElement, glyph: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();

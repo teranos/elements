@@ -1,23 +1,23 @@
 /**
- * @qntx/glyphs — Glyph runtime and type definitions.
+ * @qntx/glyphs — Element runtime and type definitions.
  *
  * The glyph is the universal UI primitive. This package provides the core
  * runtime (tray, proximity engine, morph transactions, forms) and
  * type definitions for glyph development.
  *
- * Host apps call configureGlyphs() at startup to wire in their logger
+ * Host apps call configureElements() at startup to wire in their logger
  * and persistence. Without configuration, safe defaults apply.
  *
  * Usage:
- *   import { configureGlyphs, Proximity } from '@qntx/glyphs';
- *   import type { Glyph, GlyphUI, RenderFn } from '@qntx/glyphs';
+ *   import { configureElements, Proximity } from '@qntx/glyphs';
+ *   import type { Element, ElementUI, RenderFn } from '@qntx/glyphs';
  */
 
 // Configuration / dependency injection
-export { configureGlyphs, getLogger, getLogSegment, getPersistence, getCanvasHost, getCanvasBridge, getDotGeometry, removeCanvasGlyph } from './config';
-export type { GlyphConfig, Logger, Persistence, DotGeometry, CanvasGlyphData, CanvasHost, CanvasCoordinateBridge } from './config';
+export { configureElements, getLogger, getLogSegment, getPersistence, getCanvasHost, getCanvasBridge, getDotGeometry, removeCanvasElement } from './config';
+export type { ElementConfig, Logger, Persistence, DotGeometry, CanvasElementData, CanvasHost, CanvasCoordinateBridge } from './config';
 
-// Glyph primitive — interface + constants
+// Element primitive — interface + constants
 export {
     OPEN_DURATION_MS,
     REST_DURATION_MS,
@@ -35,8 +35,8 @@ export {
     PANEL_BORDER_RADIUS_BOTTOM,
     PANEL_OVERLAY_BG,
     PANEL_Z_INDEX,
-    CANVAS_GLYPH_TITLE_BAR_HEIGHT,
-    CANVAS_GLYPH_CONTENT_PADDING,
+    CANVAS_ELEMENT_TITLE_BAR_HEIGHT,
+    CANVAS_ELEMENT_CONTENT_PADDING,
     CONTENT_INNER_PADDING,
     MAX_VIEWPORT_HEIGHT_RATIO,
     MAX_VIEWPORT_WIDTH_RATIO,
@@ -44,8 +44,8 @@ export {
     MIN_WINDOW_WIDTH,
     DEFAULT_COLOR,
     DEFAULT_TEXT_COLOR,
-} from './glyph';
-export type { Glyph } from './glyph';
+} from './element';
+export type { Element } from './element';
 
 // The forms a glyph can take — the list the type, the stylesheets and
 // the morph functions all read from. AXIOMAS.md names the noun; this names them.
@@ -191,7 +191,7 @@ export {
 } from './edge-graph';
 
 // Touch browse
-export { setupTouchBrowse, findPeakedGlyph } from './tray/touch-browse';
+export { setupTouchBrowse, findPeakedElement } from './tray/touch-browse';
 export type { TouchBrowseHost } from './tray/touch-browse';
 
 // Meld system
@@ -210,7 +210,7 @@ export {
     reconstructMeld,
     isMeldedComposition,
     unmeldComposition,
-    detachGlyph,
+    detachElement,
 } from './meld/meld-composition';
 export {
     MELDABILITY,
@@ -220,7 +220,7 @@ export {
     getCompatibleDirections,
     areClassesCompatible,
     getCompositionElementIds,
-    getGlyphClass,
+    getElementClass,
     getMeldOptions,
     selectPreferredMeldOption,
 } from './meld/meldability';
@@ -229,41 +229,41 @@ export type { PortRule, MeldOption } from './meld/meldability';
 // Canvas drag interaction (DRAGR)
 export {
     makeDraggable,
-    applyCanvasGlyphLayout,
+    applyCanvasElementLayout,
     preventDrag,
 } from './canvas-drag';
-export type { CanvasGlyphLayoutOptions } from './canvas-drag';
+export type { CanvasElementLayoutOptions } from './canvas-drag';
 
 // Canvas resize interaction
 export { makeResizable } from './canvas-resize';
 export type { MakeResizableOptions } from './canvas-resize';
 
-// Glyph element lifecycle cleanup
+// Element lifecycle cleanup
 export {
     storeCleanup,
     runCleanup,
     cleanupResizeObserver,
-    setupGlyphResizeObserver,
+    setupElementResizeObserver,
 } from './canvas-cleanup';
 
 // Where a dragged window sits and how wide it is
 export { reflowBox } from './window-reflow';
 export type { Box } from './window-reflow';
 
-// GlyphUI DOM primitives — the pure half of the GlyphUI factory
+// ElementUI DOM primitives — the pure half of the ElementUI factory
 export { createInput, createButton, createStatusLine } from './ui-primitives';
 
-// GlyphUI interface and related types
+// ElementUI interface and related types
 export type {
-    GlyphUI,
-    GlyphModule,
-    GlyphDef,
+    ElementUI,
+    ElementModule,
+    ElementDef,
     RenderFn,
-    GlyphOpts,
+    ElementOpts,
     FetchOpts,
     MeldEvent,
     SpawnResultDetail,
     MakeDraggableOptions,
     AttestationQuery,
     Attestation,
-} from './glyph-ui';
+} from './element-ui';

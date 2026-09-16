@@ -6,8 +6,8 @@
  * selection, and composition state.
  */
 
-import type { Glyph } from './glyph';
-import type { MakeDraggableOptions } from './glyph-ui';
+import type { Element } from './element';
+import type { MakeDraggableOptions } from './element-ui';
 import { getForm } from './dataset';
 import { getLogger, getLogSegment, getCanvasHost } from './config';
 import {
@@ -27,7 +27,7 @@ import {
 import {
     getMeldOptions,
     selectPreferredMeldOption,
-    getGlyphClass,
+    getElementClass,
     getCompatibleDirections,
     isPortFree,
     type EdgeDirection,
@@ -55,7 +55,7 @@ function findBestAnchorInComposition(
     edges: Array<{ from: string; to: string; direction: string }>,
 ): { anchorId: string; direction: EdgeDirection; role: 'from' | 'to' } | null {
     const standaloneRect = standaloneElement.getBoundingClientRect();
-    const standaloneClass = getGlyphClass(standaloneElement);
+    const standaloneClass = getElementClass(standaloneElement);
     if (!standaloneClass) return null;
 
     let bestId: string | null = null;
@@ -69,7 +69,7 @@ function findBestAnchorInComposition(
         const elementId = glyphEl.dataset.elementId;
         if (!elementId) continue;
 
-        const glyphClass = getGlyphClass(glyphEl);
+        const glyphClass = getElementClass(glyphEl);
         if (!glyphClass) continue;
 
         const glyphRect = glyphEl.getBoundingClientRect();
@@ -107,9 +107,9 @@ function findBestAnchorInComposition(
 
 export type { MakeDraggableOptions };
 
-// ── applyCanvasGlyphLayout ──────────────────────────────────────────
+// ── applyCanvasElementLayout ──────────────────────────────────────────
 
-export interface CanvasGlyphLayoutOptions {
+export interface CanvasElementLayoutOptions {
     x: number;
     y: number;
     width: number;
@@ -125,7 +125,7 @@ export interface CanvasGlyphLayoutOptions {
  * defaults (background, border, border-radius, overflow). This function
  * handles the instance-specific values that can't live in CSS (x/y/size).
  */
-export function applyCanvasGlyphLayout(el: HTMLElement, opts: CanvasGlyphLayoutOptions): void {
+export function applyCanvasElementLayout(el: HTMLElement, opts: CanvasElementLayoutOptions): void {
     el.style.left = `${opts.x}px`;
     el.style.top = `${opts.y}px`;
     el.style.width = `${opts.width}px`;
@@ -175,10 +175,10 @@ export function preventDrag(...elements: HTMLElement[]): void {
 export function makeDraggable(
     element: HTMLElement,
     handle: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     opts: MakeDraggableOptions = {},
 ): () => void {
-    const { ignoreButtons = false, logLabel = 'Glyph' } = opts;
+    const { ignoreButtons = false, logLabel = 'Element' } = opts;
     const log = getLogger();
     const seg = getLogSegment();
     const canvasHost = getCanvasHost();
@@ -198,7 +198,7 @@ export function makeDraggable(
 
     // Multi-selection drag support
     let isMultiDrag = false;
-    let multiDragElements: Array<{ element: HTMLElement; startX: number; startY: number; glyph: Glyph }> = [];
+    let multiDragElements: Array<{ element: HTMLElement; startX: number; startY: number; glyph: Element }> = [];
 
     const handleMouseMove = (e: MouseEvent) => {
         if (!isDragging) return;
@@ -268,9 +268,9 @@ export function makeDraggable(
                 const nearbyElement = meldInfo.target;
                 const nearbyElementId = nearbyElement.dataset.elementId || 'glyph-unknown';
 
-                const nearbyGlyph: Glyph = {
+                const nearbyItem: Element = {
                     id: nearbyElementId,
-                    title: 'Glyph',
+                    title: 'Element',
                     renderContent: () => nearbyElement
                 };
 
@@ -283,9 +283,9 @@ export function makeDraggable(
                 setupController.abort();
                 dragController?.abort();
 
-                const [meldInitiator, meldTarget, meldInitiatorGlyph, meldTargetGlyph] = meldInfo.reversed
-                    ? [nearbyElement, element, nearbyGlyph, glyph]
-                    : [element, nearbyElement, glyph, nearbyGlyph];
+                const [meldInitiator, meldTarget, meldInitiatorItem, meldTargetItem] = meldInfo.reversed
+                    ? [nearbyElement, element, nearbyItem, glyph]
+                    : [element, nearbyElement, glyph, nearbyItem];
 
                 const targetComp = meldTarget.closest('.melded-composition') as HTMLElement | null;
                 const initiatorComp = meldInitiator.closest('.melded-composition') as HTMLElement | null;
@@ -294,9 +294,9 @@ export function makeDraggable(
                     const compositionElement = (targetComp || initiatorComp)!;
                     const standaloneElement = targetComp ? meldInitiator : meldTarget;
                     const standaloneId = standaloneElement.dataset.elementId || '';
-                    const standaloneClass = getGlyphClass(standaloneElement);
+                    const standaloneClass = getElementClass(standaloneElement);
                     const fallbackAnchorId = (targetComp ? meldTarget : meldInitiator).dataset.elementId || '';
-                    const existingComp = canvasHost.findCompositionByGlyph(fallbackAnchorId);
+                    const existingComp = canvasHost.findCompositionByElement(fallbackAnchorId);
 
                     if (existingComp && standaloneClass) {
                         const selectedIds = canvasHost.getSelectedElementIds(dragCanvasId);
@@ -324,12 +324,12 @@ export function makeDraggable(
                             extendComposition(compositionElement, standaloneElement, standaloneId, option.elementId, option.direction, option.incomingRole);
 
                             const updatedId = compositionElement.getAttribute('data-element-id') || '';
-                            const compositionGlyph: Glyph = {
+                            const compositionItem: Element = {
                                 id: updatedId,
                                 title: 'Melded Composition',
                                 renderContent: () => compositionElement
                             };
-                            makeDraggable(compositionElement, compositionElement, compositionGlyph, {
+                            makeDraggable(compositionElement, compositionElement, compositionItem, {
                                 logLabel: 'MeldedComposition'
                             });
 
@@ -342,19 +342,19 @@ export function makeDraggable(
                 }
 
                 // Neither is in a composition — create new 2-glyph composition
-                const composition = performMeld(meldInitiator, meldTarget, meldInitiatorGlyph, meldTargetGlyph, meldInfo.direction);
+                const composition = performMeld(meldInitiator, meldTarget, meldInitiatorItem, meldTargetItem, meldInfo.direction);
 
-                const compositionGlyph: Glyph = {
-                    id: composition.getAttribute('data-element-id') || `melded-${meldInitiatorGlyph.id}-${meldTargetGlyph.id}`,
+                const compositionItem: Element = {
+                    id: composition.getAttribute('data-element-id') || `melded-${meldInitiatorItem.id}-${meldTargetItem.id}`,
                     title: 'Melded Composition',
                     renderContent: () => composition
                 };
 
-                makeDraggable(composition, composition, compositionGlyph, {
+                makeDraggable(composition, composition, compositionItem, {
                     logLabel: 'MeldedComposition'
                 });
 
-                log.info(seg, `[${logLabel}] Melded ${meldInitiatorGlyph.id} → ${meldTargetGlyph.id} (${meldInfo.direction}${meldInfo.reversed ? ', reversed' : ''})`);
+                log.info(seg, `[${logLabel}] Melded ${meldInitiatorItem.id} → ${meldTargetItem.id} (${meldInfo.direction}${meldInfo.reversed ? ', reversed' : ''})`);
                 return;
             }
         }
@@ -370,7 +370,7 @@ export function makeDraggable(
             const compositionId = element.getAttribute('data-element-id') || '';
             const firstChild = element.querySelector('[data-element-id]');
             const childId = firstChild?.getAttribute('data-element-id') || '';
-            const existingComp = canvasHost.findCompositionByGlyph(childId);
+            const existingComp = canvasHost.findCompositionByElement(childId);
             if (existingComp) {
                 canvasHost.saveComposition({ ...existingComp, x, y });
                 log.debug(seg, `[${logLabel}] Updated composition position`, { compositionId, x, y });
@@ -384,8 +384,8 @@ export function makeDraggable(
                 g.x = x;
                 g.y = y;
                 if (g.symbol) {
-                    const existing = canvasHost.getCanvasGlyphs().find(cg => cg.id === g.id);
-                    canvasHost.saveCanvasGlyph({
+                    const existing = canvasHost.getCanvasElements().find(cg => cg.id === g.id);
+                    canvasHost.saveCanvasElement({
                         ...existing,
                         id: g.id,
                         symbol: g.symbol,
@@ -405,8 +405,8 @@ export function makeDraggable(
             glyph.x = x;
             glyph.y = y;
             if (glyph.symbol) {
-                const existing = canvasHost.getCanvasGlyphs().find(g => g.id === glyph.id);
-                canvasHost.saveCanvasGlyph({
+                const existing = canvasHost.getCanvasElements().find(g => g.id === glyph.id);
+                canvasHost.saveCanvasElement({
                     ...existing,
                     id: glyph.id,
                     symbol: glyph.symbol,
@@ -453,7 +453,7 @@ export function makeDraggable(
         const canvasId = (element.closest('[data-canvas-id]') as HTMLElement | null)?.dataset?.canvasId ?? 'canvas-workspace';
         dragCanvasId = canvasId;
         const selectedIds = canvasHost.getSelectedElementIds(canvasId);
-        if (selectedIds.length > 1 && canvasHost.isGlyphSelected(canvasId, glyph.id)) {
+        if (selectedIds.length > 1 && canvasHost.isElementSelected(canvasId, glyph.id)) {
             isMultiDrag = true;
             const canvas = element.parentElement;
             if (canvas) {
@@ -461,9 +461,9 @@ export function makeDraggable(
                     const el = canvas.querySelector(`[data-element-id="${id}"]`) as HTMLElement | null;
                     if (el) {
                         const elRect = el.getBoundingClientRect();
-                        const glyphData: Glyph = {
+                        const glyphData: Element = {
                             id,
-                            title: el.dataset.glyphTitle || 'Glyph',
+                            title: el.dataset.glyphTitle || 'Element',
                             symbol: el.dataset.symbol,
                             width: Math.round(elRect.width),
                             height: Math.round(elRect.height),

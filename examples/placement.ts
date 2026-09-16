@@ -6,7 +6,7 @@
  */
 
 import { tray } from '../tray/tray';
-import type { Glyph } from '../glyph';
+import type { Element } from '../element';
 
 const WINDOW_WIDTH = 380;
 
@@ -22,12 +22,12 @@ const SYMBOLS = [
 ];
 const TRAY_SIZE = SYMBOLS.length;
 
-function specimenGlyph(index: number): Glyph {
+function specimenElement(index: number): Element {
     return {
         id: `placement-${index}`,
         title: `glyph ${index}`,
         symbol: SYMBOLS[index - 1],
-        // Glyph 1 carries a border and its own background as visual identity —
+        // Element 1 carries a border and its own background as visual identity —
         // like color, the dot, the window, and the dot it minimizes back into
         // all wear them.
         border: index === 1 ? '2px dashed #ffd43b' : undefined,
@@ -45,12 +45,12 @@ function specimenGlyph(index: number): Glyph {
             el.textContent = `glyph ${index}`;
             return el;
         },
-    } as Glyph;
+    } as Element;
 }
 
 /** Fills the tray. Opening is done by hand from the tray. */
 export function renderPlacementSpecimen(): void {
     for (let i = 1; i <= TRAY_SIZE; i++) {
-        tray.add(specimenGlyph(i));
+        tray.add(specimenElement(i));
     }
 }

@@ -1,11 +1,11 @@
 /**
- * Glyph element lifecycle cleanup.
+ * Element lifecycle cleanup.
  *
  * Cleanup registry for teardown functions stored on glyph elements,
  * and ResizeObserver management for content-driven auto-sizing.
  */
 
-import { CANVAS_GLYPH_TITLE_BAR_HEIGHT, MAX_VIEWPORT_HEIGHT_RATIO } from './glyph';
+import { CANVAS_ELEMENT_TITLE_BAR_HEIGHT, MAX_VIEWPORT_HEIGHT_RATIO } from './element';
 import { getLogger, getLogSegment } from './config';
 
 // ── Cleanup registry ────────────────────────────────────────────────
@@ -63,9 +63,9 @@ export function cleanupResizeObserver(element: HTMLElement, elementId?: string):
  * @param glyphElement - The glyph DOM element whose minHeight is adjusted
  * @param contentElement - The inner element to observe for size changes
  * @param label - Log label (e.g. "AX abc123")
- * @param heightOffset - Pixels to add to content height (default: CANVAS_GLYPH_TITLE_BAR_HEIGHT)
+ * @param heightOffset - Pixels to add to content height (default: CANVAS_ELEMENT_TITLE_BAR_HEIGHT)
  */
-export function setupGlyphResizeObserver(
+export function setupElementResizeObserver(
     glyphElement: HTMLElement,
     contentElement: HTMLElement,
     label: string,
@@ -76,7 +76,7 @@ export function setupGlyphResizeObserver(
 
     cleanupResizeObserver(glyphElement, label);
 
-    const offset = heightOffset ?? CANVAS_GLYPH_TITLE_BAR_HEIGHT;
+    const offset = heightOffset ?? CANVAS_ELEMENT_TITLE_BAR_HEIGHT;
     const maxHeight = window.innerHeight * MAX_VIEWPORT_HEIGHT_RATIO;
 
     const resizeObserver = new ResizeObserver(entries => {

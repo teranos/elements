@@ -2,7 +2,7 @@
  * @qntx/glyphs configuration
  *
  * Dependency injection for host-specific implementations.
- * Call configureGlyphs() at startup to wire in your app's logger
+ * Call configureElements() at startup to wire in your app's logger
  * and persistence layer.
  *
  * Defaults are safe no-ops so the package works standalone.
@@ -26,8 +26,8 @@ export interface Persistence {
     removeResting(id: string): void;
 }
 
-/** Glyph position and dimensions on a canvas. */
-export interface CanvasGlyphData {
+/** Element position and dimensions on a canvas. */
+export interface CanvasElementData {
     id: string;
     symbol: string;
     x: number;
@@ -40,14 +40,14 @@ export interface CanvasGlyphData {
 
 /** Host-provided canvas state — persistence, transform, selection, sync. */
 export interface CanvasHost {
-    saveCanvasGlyph(glyph: CanvasGlyphData): void;
-    getCanvasGlyphs(canvasId?: string): CanvasGlyphData[];
+    saveCanvasElement(glyph: CanvasElementData): void;
+    getCanvasElements(canvasId?: string): CanvasElementData[];
     getTransform(canvasId: string): { panX: number; panY: number; scale: number };
     getSelectedElementIds(canvasId: string): string[];
-    isGlyphSelected(canvasId: string, elementId: string): boolean;
+    isElementSelected(canvasId: string, elementId: string): boolean;
     saveComposition(composition: CompositionState): void;
     removeComposition(id: string): void;
-    findCompositionByGlyph(elementId: string): CompositionState | null;
+    findCompositionByElement(elementId: string): CompositionState | null;
     flushSync(): void;
 }
 
@@ -79,7 +79,7 @@ export interface DotGeometry {
     borderRadiusMax?: number;
 }
 
-export interface GlyphConfig {
+export interface ElementConfig {
     logger?: Logger;
     logSegment?: string;
     persistence?: Persistence;
@@ -88,7 +88,7 @@ export interface GlyphConfig {
     /** Canvas host — persistence, transform, selection, composition CRUD. */
     canvasHost?: CanvasHost;
     /** Called when a glyph is removed from the canvas (close/minimize). */
-    removeCanvasGlyph?: (elementId: string) => void;
+    removeCanvasElement?: (elementId: string) => void;
     /** Dot and expanded-state dimensions used by the proximity engine. */
     dotGeometry?: DotGeometry;
     /** Corner radius of an opened window. Written inline, so CSS cannot reach it. */
@@ -112,14 +112,14 @@ const noopPersistence: Persistence = {
 
 // Default no-op canvas host
 const noopCanvasHost: CanvasHost = {
-    saveCanvasGlyph() {},
-    getCanvasGlyphs: () => [],
+    saveCanvasElement() {},
+    getCanvasElements: () => [],
     getTransform: () => ({ panX: 0, panY: 0, scale: 1 }),
     getSelectedElementIds: () => [],
-    isGlyphSelected: () => false,
+    isElementSelected: () => false,
     saveComposition() {},
     removeComposition() {},
-    findCompositionByGlyph: () => null,
+    findCompositionByElement: () => null,
     flushSync() {},
 };
 
@@ -139,16 +139,16 @@ let config: {
     persistence: Persistence;
     canvas: CanvasCoordinateBridge | null;
     canvasHost: CanvasHost;
-    removeCanvasGlyph: ((elementId: string) => void) | null;
+    removeCanvasElement: ((elementId: string) => void) | null;
     dotGeometry: Required<DotGeometry>;
     windowBorderRadius: string;
 } = {
     logger: noopLogger,
-    logSegment: 'GLYPH',
+    logSegment: 'ELEMENT',
     persistence: noopPersistence,
     canvas: null,
     canvasHost: noopCanvasHost,
-    removeCanvasGlyph: null,
+    removeCanvasElement: null,
     dotGeometry: defaultDotGeometry,
     windowBorderRadius: '8px',
 };
@@ -157,13 +157,13 @@ let config: {
  * Configure the glyph package with host-specific implementations.
  * Call once at app startup.
  */
-export function configureGlyphs(opts: GlyphConfig): void {
+export function configureElements(opts: ElementConfig): void {
     if (opts.logger) config.logger = opts.logger;
     if (opts.logSegment) config.logSegment = opts.logSegment;
     if (opts.persistence) config.persistence = opts.persistence;
     if (opts.canvas) config.canvas = opts.canvas;
     if (opts.canvasHost) config.canvasHost = opts.canvasHost;
-    if (opts.removeCanvasGlyph) config.removeCanvasGlyph = opts.removeCanvasGlyph;
+    if (opts.removeCanvasElement) config.removeCanvasElement = opts.removeCanvasElement;
     if (opts.windowBorderRadius !== undefined) config.windowBorderRadius = opts.windowBorderRadius;
     if (opts.dotGeometry) {
         // Field by field, so a partial geometry merges instead of replacing, and
@@ -215,6 +215,6 @@ export function getCanvasBridge(): CanvasCoordinateBridge | null {
 }
 
 /** Remove a glyph from canvas state. No-op if not configured. */
-export function removeCanvasGlyph(elementId: string): void {
-    config.removeCanvasGlyph?.(elementId);
+export function removeCanvasElement(elementId: string): void {
+    config.removeCanvasElement?.(elementId);
 }

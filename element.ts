@@ -1,5 +1,5 @@
 /**
- * Glyph - The universal primitive
+ * Element - The universal primitive
  *
  * A glyph is exactly ONE DOM element for its entire lifetime.
  * It morphs between forms through smooth animations, but the element
@@ -7,18 +7,18 @@
  *
  * All glyphs are container glyphs - they can hold child glyphs in various layout strategies.
  *
- * This file contains just the Glyph interface and shared constants.
+ * This file contains just the Element interface and shared constants.
  * Form logic lives in ./forms/*
  */
 
 import type { TrayDestination } from './form';
 
-export interface Glyph {
+export interface Element {
     id: string;
     title: string;                       // Plain text — strip any markup before passing
     symbol?: string;                     // Symbol — rendered natively by title bars and the proximity engine
     renderContent: () => HTMLElement;    // Function to render content
-    renderTitleBar?: () => HTMLElement;   // Glyph-specific title bar, enhanced by forms with window controls
+    renderTitleBar?: () => HTMLElement;   // Element-specific title bar, enhanced by forms with window controls
 
     // Form configuration
     opensAs?: TrayDestination;  // What this opens as from the tray. Default: 'window'
@@ -32,7 +32,7 @@ export interface Glyph {
     onClose?: () => void;
 
     // Fractal container support - all glyphs can contain children
-    children?: Glyph[];                  // Child glyphs this glyph contains
+    children?: Element[];                  // Child glyphs this glyph contains
     layoutStrategy?: 'flow' | 'grid' | 'custom';  // How to layout children (default: flow)
     onSpawnMenu?: () => string[];        // Symbols that can be spawned inside (right-click)
 
@@ -44,7 +44,7 @@ export interface Glyph {
     width?: number;                      // Custom width in pixels
     height?: number;                     // Custom height in pixels
 
-    // Glyph content: source code, markdown, template, or JSON result
+    // Element content: source code, markdown, template, or JSON result
     content?: string;
 
     // Visual identity — every form (dot, window, panel) reads these.
@@ -117,8 +117,8 @@ export const PANEL_Z_INDEX = '10003';  // Above system drawer (10002)
 export const MORPHING_Z_INDEX = '10004';  // Above panels while a morph animates
 
 // Canvas glyph dimensions
-export const CANVAS_GLYPH_TITLE_BAR_HEIGHT = 32; // Title bar height for canvas-placed glyphs
-export const CANVAS_GLYPH_CONTENT_PADDING = 8; // Content element padding (reduced from CONTENT_PADDING)
+export const CANVAS_ELEMENT_TITLE_BAR_HEIGHT = 32; // Title bar height for canvas-placed glyphs
+export const CANVAS_ELEMENT_CONTENT_PADDING = 8; // Content element padding (reduced from CONTENT_PADDING)
 export const CONTENT_INNER_PADDING = 4; // .glyph-content CSS padding
 
 // ResizeObserver constraints

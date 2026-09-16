@@ -15,7 +15,7 @@
  *
  * What is deliberately NOT here: what the glyph wears. Its colour, its border,
  * its padding are data on the glyph and never a property of a form
- * (VISION.md) — the tray path reads them off the Glyph, the canvas path leaves
+ * (VISION.md) — the tray path reads them off the Element, the canvas path leaves
  * the element wearing what it already wore, and both are the same intent
  * reached by different routes. Nor the content: one path rebuilds from
  * renderContent(), the other wraps the children it already has so a scroll
@@ -27,7 +27,7 @@ import {
     WINDOW_BOX_SHADOW,
     MAX_VIEWPORT_WIDTH_RATIO,
     MAX_VIEWPORT_HEIGHT_RATIO,
-} from '../glyph';
+} from '../element';
 import { setNaturalWidth } from '../window-drag';
 import { raise, raiseOnInteract } from '../z-order';
 

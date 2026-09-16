@@ -1,5 +1,5 @@
 /**
- * GlyphUI DOM primitives — the pure half of the GlyphUI factory (GLYUI).
+ * ElementUI DOM primitives — the pure half of the ElementUI factory (GLYUI).
  *
  * Personas:
  * - Tim: happy path — the building blocks build what plugins expect

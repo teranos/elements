@@ -5,11 +5,11 @@
  * Final dimensions are persisted via CanvasHost.
  */
 
-import type { Glyph } from './glyph';
+import type { Element } from './element';
 import { getLogger, getLogSegment, getCanvasHost } from './config';
 
 export interface MakeResizableOptions {
-    /** Label used in log messages, e.g. "PyGlyph". */
+    /** Label used in log messages, e.g. "PyElement". */
     logLabel?: string;
     /** Minimum width in pixels (default: 200). */
     minWidth?: number;
@@ -28,10 +28,10 @@ export interface MakeResizableOptions {
 export function makeResizable(
     element: HTMLElement,
     handle: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     opts: MakeResizableOptions = {},
 ): () => void {
-    const { logLabel = 'Glyph', minWidth = 200, minHeight = 120 } = opts;
+    const { logLabel = 'Element', minWidth = 200, minHeight = 120 } = opts;
     const log = getLogger();
     const seg = getLogSegment();
     const canvasHost = getCanvasHost();
@@ -72,8 +72,8 @@ export function makeResizable(
         glyph.height = finalHeight;
 
         if (glyph.symbol && glyph.x !== undefined && glyph.y !== undefined) {
-            const existing = canvasHost.getCanvasGlyphs().find(g => g.id === glyph.id);
-            canvasHost.saveCanvasGlyph({
+            const existing = canvasHost.getCanvasElements().find(g => g.id === glyph.id);
+            canvasHost.saveCanvasElement({
                 ...existing,
                 id: glyph.id,
                 symbol: glyph.symbol,

@@ -6,7 +6,7 @@
  * what is already on the canvas and takes the emptiest.
  */
 
-import { MAX_VIEWPORT_WIDTH_RATIO, MAX_VIEWPORT_HEIGHT_RATIO } from './glyph';
+import { MAX_VIEWPORT_WIDTH_RATIO, MAX_VIEWPORT_HEIGHT_RATIO } from './element';
 
 export interface Rect {
     x: number;

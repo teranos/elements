@@ -5,7 +5,7 @@
  * Bidirectional: checks both forward (dragged→nearby) and reverse (nearby→dragged).
  */
 
-import { getInitiatorClasses, getTargetClasses, getCompatibleDirections, getGlyphClass, isPortFree, type EdgeDirection } from './meldability';
+import { getInitiatorClasses, getTargetClasses, getCompatibleDirections, getElementClass, isPortFree, type EdgeDirection } from './meldability';
 import { getCanvasHost } from '../config';
 
 // Configuration
@@ -35,8 +35,8 @@ export function canReceiveMeld(element: HTMLElement): boolean {
  * Get all compatible meld directions between two elements
  */
 function getCompatible(initiator: HTMLElement, target: HTMLElement): EdgeDirection[] {
-    const initiatorClass = getGlyphClass(initiator);
-    const targetClass = getGlyphClass(target);
+    const initiatorClass = getElementClass(initiator);
+    const targetClass = getElementClass(target);
     if (!initiatorClass || !targetClass) return [];
     return getCompatibleDirections(initiatorClass, targetClass);
 }
@@ -166,7 +166,7 @@ export function findMeldTarget(draggedElement: HTMLElement): {
                     if (targetComp) {
                         const targetId = targetElement.dataset.elementId;
                         if (targetId) {
-                            const comp = canvasHost.findCompositionByGlyph(targetId);
+                            const comp = canvasHost.findCompositionByElement(targetId);
                             if (comp && !isPortFree(targetId, direction, 'incoming', comp.edges)) continue;
                         }
                     }
@@ -206,7 +206,7 @@ export function findMeldTarget(draggedElement: HTMLElement): {
                     if (nearbyComp) {
                         const nearbyId = nearbyElement.dataset.elementId;
                         if (nearbyId) {
-                            const comp = canvasHost.findCompositionByGlyph(nearbyId);
+                            const comp = canvasHost.findCompositionByElement(nearbyId);
                             if (comp && !isPortFree(nearbyId, direction, 'outgoing', comp.edges)) continue;
                         }
                     }

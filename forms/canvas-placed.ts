@@ -11,19 +11,19 @@
  *   titleBar?.appendChild(extraButton);    // optional: extend the title bar
  */
 
-import type { Glyph } from '../glyph';
-import { DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../glyph';
+import type { Element } from '../element';
+import { DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { setSymbol } from '../dataset';
 import { createSymbolSpan, settleSymbolSpan } from '../symbol-span';
-import { applyCanvasGlyphLayout, makeDraggable, preventDrag } from '../canvas-drag';
+import { applyCanvasElementLayout, makeDraggable, preventDrag } from '../canvas-drag';
 import { makeResizable } from '../canvas-resize';
 import { storeCleanup } from '../canvas-cleanup';
-import type { MakeDraggableOptions } from '../glyph-ui';
+import type { MakeDraggableOptions } from '../element-ui';
 
 // ── Config ──────────────────────────────────────────────────────────
 
 export interface CanvasPlacedConfig {
-    glyph: Glyph;
+    glyph: Element;
     /** Type-specific CSS class (e.g. 'canvas-py-glyph'). Joined with 'canvas-glyph'. */
     className: string;
     /** Default position and size when glyph has no saved layout. */
@@ -38,7 +38,7 @@ export interface CanvasPlacedConfig {
     resizable?: boolean | { minWidth?: number; minHeight?: number };
     /** Extra CSS class(es) for the resize handle (e.g. 'glyph-resize-handle--small'). */
     resizeHandleClass?: string;
-    /** Label for drag/resize log messages (e.g. 'PyGlyph'). */
+    /** Label for drag/resize log messages (e.g. 'PyElement'). */
     logLabel: string;
     /** Use minHeight instead of height (for auto-sizing glyphs). */
     useMinHeight?: boolean;
@@ -67,7 +67,7 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
     element.style.backdropFilter = 'blur(2px)';
 
     // Layout
-    applyCanvasGlyphLayout(element, {
+    applyCanvasElementLayout(element, {
         x: glyph.x ?? defaults.x,
         y: glyph.y ?? defaults.y,
         width: glyph.width ?? defaults.width,

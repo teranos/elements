@@ -2,7 +2,7 @@
 
 ## Element Axioma
 
-A glyph is exactly one DOM element for its entire lifetime. Glyphs are reparented, never cloned. Everything about it survives every transition between forms.
+A glyph is exactly one DOM element for its entire lifetime. Elements are reparented, never cloned. Everything about it survives every transition between forms.
 
 ## Morph Axioma
 

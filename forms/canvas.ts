@@ -3,7 +3,7 @@
  *
  * Its row in FORMS is `workspace`: `canvas` sat one suffix from
  * `canvasPlaced` and meant the opposite thing, the surface rather than a glyph
- * on it. canvas-glyph.ts already gives this one `id: 'canvas-workspace'`.
+ * on it. QNTX's canvas-glyph.ts already gives this one `id: 'canvas-workspace'`.
  *
  * The canvas form morphs a glyph to fill the entire viewport
  * with no window chrome, title bar, or padding. Used for spatial workspaces,
@@ -11,9 +11,9 @@
  */
 
 import { getLogger, getLogSegment } from '../config';
-import { type Glyph, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../glyph';
+import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
-import { getOpenDuration, getRestDuration } from '../glyph';
+import { getOpenDuration, getRestDuration } from '../element';
 import { prepareMorphTo, calculateTrayTarget, resetElement } from './morphology';
 
 /**
@@ -21,9 +21,9 @@ import { prepareMorphTo, calculateTrayTarget, resetElement } from './morphology'
  */
 export function morphDotToWorkspace(
     element: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
-    onMinimize: (element: HTMLElement, glyph: Glyph) => void
+    onMinimize: (element: HTMLElement, glyph: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();
@@ -117,9 +117,9 @@ export function morphDotToWorkspace(
  */
 export function morphWorkspaceToDot(
     canvasElement: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
-    onMorphComplete: (element: HTMLElement, glyph: Glyph) => void
+    onMorphComplete: (element: HTMLElement, glyph: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();

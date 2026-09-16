@@ -17,16 +17,16 @@
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { prepareMorphTo } from './morphology';
 import { setElementId, getForm } from '../dataset';
-import type { Glyph } from '../glyph';
+import type { Element } from '../element';
 
 const noVerify = () => {};
 
-function trayDot(ownClasses: string[] = []): { element: HTMLElement; glyph: Glyph } {
+function trayDot(ownClasses: string[] = []): { element: HTMLElement; glyph: Element } {
     const element = document.createElement('div');
     element.className = ['glyph-run-glyph', ...ownClasses].join(' ');
     setElementId(element, 'morph-test-1');
     document.body.appendChild(element);
-    const glyph: Glyph = {
+    const glyph: Element = {
         id: 'morph-test-1',
         title: 'Morph Test',
         renderContent: () => document.createElement('div'),

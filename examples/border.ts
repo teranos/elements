@@ -1,7 +1,7 @@
 /**
  * Border specimen — a canvas-placed glyph whose border is visual identity.
  *
- * Like color, the border lives on the Glyph datum and every form
+ * Like color, the border lives on the Element datum and every form
  * wears it: ⬆ expands to a window that keeps the dashed border; the window's
  * − places it back unchanged. Everything about a glyph survives every
  * transition (Element Axioma).
@@ -10,7 +10,7 @@
 import { canvasPlaced } from '../forms/canvas-placed';
 import { morphCanvasPlacedToWindow } from '../forms/canvas-window';
 import { getForm } from '../dataset';
-import type { Glyph } from '../glyph';
+import type { Element } from '../element';
 
 const OWNED_BORDER = '2px dashed #ffd43b';
 
@@ -24,7 +24,7 @@ export function renderBorderSpecimen(): void {
     area.dataset.canvasId = 'border-canvas';
     root.appendChild(area);
 
-    const glyph: Glyph = {
+    const glyph: Element = {
         id: 'border-specimen',
         title: 'Border',
         symbol: '▣',

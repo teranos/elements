@@ -15,7 +15,7 @@
  * Every form, in the order a glyph meets them, and whether a tray dot
  * opens as it.
  *
- * `opensFromTray` is what Tray.morphGlyph() dispatches on: exactly the
+ * `opensFromTray` is what Tray.morphElement() dispatches on: exactly the
  * entries marked true; the rest are reached another way, or are where a morph
  * begins. It is written as a literal `true`/`false` rather than `boolean` so
  * TrayDestination can derive from it.
@@ -60,7 +60,7 @@ export interface FormTable {
      * Named for what it is rather than for its file, the one row where those
      * differ. `canvas` sat one suffix from `canvasPlaced` while meaning the
      * opposite thing — the surface, not a glyph on it. The word was already
-     * here: canvas-glyph.ts:81 gives it `id: 'canvas-workspace'`, and
+     * here: QNTX's canvas-glyph.ts:81 gives it `id: 'canvas-workspace'`, and
      * canvas-placed.ts calls its subjects "glyphs on the canvas workspace".
      */
     readonly workspace: { readonly opensFromTray: true };

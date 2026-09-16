@@ -7,17 +7,17 @@
  * the config surface that replaced them.
  *
  * Personas:
- * - Tim: defaults and overrides through configureGlyphs
+ * - Tim: defaults and overrides through configureElements
  * - Spike: config arrives after the proximity engine already exists
  * - Jenny: the expanded dot renders glyph.symbol natively (SYMRD)
  */
 
 import { describe, test, expect, beforeAll, afterAll, afterEach } from 'bun:test';
-import { configureGlyphs, getDotGeometry } from '../config';
+import { configureElements, getDotGeometry } from '../config';
 import { Proximity, applyRestingDotGeometry } from './proximity';
 import { tray } from './tray';
 import { resetElement } from '../forms/morphology';
-import type { Glyph } from '../glyph';
+import type { Element } from '../element';
 
 /** The geometry the hardcoded constants had. Changing these is a breaking change. */
 const HISTORICAL = {
@@ -49,7 +49,7 @@ afterAll(() => {
 // Config is module-global — hand it back to the historical values so test order
 // and other test files are unaffected.
 afterEach(() => {
-    configureGlyphs({ dotGeometry: HISTORICAL });
+    configureElements({ dotGeometry: HISTORICAL });
     document.body.innerHTML = '';
 });
 
@@ -63,60 +63,60 @@ function makeTray(): { container: HTMLElement; dot: HTMLElement } {
     return { container, dot };
 }
 
-const NO_ITEMS = new Map<string, Glyph>();
+const NO_ITEMS = new Map<string, Element>();
 
 // ── Tim (happy path) ────────────────────────────────────────────────
 
 describe('Tim: dot geometry config', () => {
-    // MUST stay first: proves the untouched defaults, before any configureGlyphs call.
+    // MUST stay first: proves the untouched defaults, before any configureElements call.
     test('defaults match the previously hardcoded constants', () => {
         expect(getDotGeometry()).toEqual(HISTORICAL);
     });
 
     test('minWidth overridable, rest fall back to defaults', () => {
-        configureGlyphs({ dotGeometry: { minWidth: 16 } });
+        configureElements({ dotGeometry: { minWidth: 16 } });
         expect(getDotGeometry()).toEqual({ ...HISTORICAL, minWidth: 16 });
     });
 
     test('minHeight overridable, rest fall back to defaults', () => {
-        configureGlyphs({ dotGeometry: { minHeight: 18 } });
+        configureElements({ dotGeometry: { minHeight: 18 } });
         expect(getDotGeometry()).toEqual({ ...HISTORICAL, minHeight: 18 });
     });
 
     test('maxWidth overridable, rest fall back to defaults', () => {
-        configureGlyphs({ dotGeometry: { maxWidth: 400 } });
+        configureElements({ dotGeometry: { maxWidth: 400 } });
         expect(getDotGeometry()).toEqual({ ...HISTORICAL, maxWidth: 400 });
     });
 
     test('maxHeight overridable, rest fall back to defaults', () => {
-        configureGlyphs({ dotGeometry: { maxHeight: 48 } });
+        configureElements({ dotGeometry: { maxHeight: 48 } });
         expect(getDotGeometry()).toEqual({ ...HISTORICAL, maxHeight: 48 });
     });
 
     test('borderRadiusMax overridable, rest fall back to defaults', () => {
-        configureGlyphs({ dotGeometry: { borderRadiusMax: 6 } });
+        configureElements({ dotGeometry: { borderRadiusMax: 6 } });
         expect(getDotGeometry()).toEqual({ ...HISTORICAL, borderRadiusMax: 6 });
     });
 
     test('zero is a literal value, not "unset"', () => {
-        configureGlyphs({ dotGeometry: { borderRadiusMax: 0 } });
+        configureElements({ dotGeometry: { borderRadiusMax: 0 } });
         expect(getDotGeometry().borderRadiusMax).toBe(0);
     });
 
     test('a second call merges, it does not replace', () => {
-        configureGlyphs({ dotGeometry: { minWidth: 16 } });
-        configureGlyphs({ dotGeometry: { maxWidth: 400 } });
+        configureElements({ dotGeometry: { minWidth: 16 } });
+        configureElements({ dotGeometry: { maxWidth: 400 } });
         expect(getDotGeometry()).toEqual({ ...HISTORICAL, minWidth: 16, maxWidth: 400 });
     });
 
-    test('configureGlyphs without dotGeometry leaves geometry untouched', () => {
-        configureGlyphs({ dotGeometry: { minWidth: 16 } });
-        configureGlyphs({ logSegment: 'TEST' });
+    test('configureElements without dotGeometry leaves geometry untouched', () => {
+        configureElements({ dotGeometry: { minWidth: 16 } });
+        configureElements({ logSegment: 'TEST' });
         expect(getDotGeometry().minWidth).toBe(16);
     });
 
     test('resting geometry is applied to an element from config', () => {
-        configureGlyphs({ dotGeometry: { minWidth: 16, minHeight: 18, borderRadiusMax: 6 } });
+        configureElements({ dotGeometry: { minWidth: 16, minHeight: 18, borderRadiusMax: 6 } });
         const el = document.createElement('div');
         applyRestingDotGeometry(el);
         expect(el.style.width).toBe('16px');
@@ -128,11 +128,11 @@ describe('Tim: dot geometry config', () => {
 // ── Spike (edge cases) ──────────────────────────────────────────────
 
 describe('Spike: geometry is read at use time', () => {
-    test('an engine built before configureGlyphs still uses the new geometry', () => {
+    test('an engine built before configureElements still uses the new geometry', () => {
         // Engine exists first — it must not capture geometry at construction.
         const proximity = new Proximity();
 
-        configureGlyphs({
+        configureElements({
             dotGeometry: { minWidth: 16, minHeight: 18, maxWidth: 400, maxHeight: 48, borderRadiusMax: 6 },
         });
 
@@ -148,7 +148,7 @@ describe('Spike: geometry is read at use time', () => {
     });
 
     test('proximity 1 expands to the configured max', () => {
-        configureGlyphs({
+        configureElements({
             dotGeometry: { minWidth: 16, minHeight: 18, maxWidth: 400, maxHeight: 48, borderRadiusMax: 6 },
         });
 
@@ -166,9 +166,9 @@ describe('Spike: geometry is read at use time', () => {
     });
 
     test('a dot is born at the configured resting size, not the CSS size', () => {
-        configureGlyphs({ dotGeometry: { minWidth: 16, minHeight: 18, borderRadiusMax: 6 } });
+        configureElements({ dotGeometry: { minWidth: 16, minHeight: 18, borderRadiusMax: 6 } });
 
-        const item: Glyph = { id: 'dot-geometry-1', title: 'Dot Geometry', symbol: 'ax' };
+        const item: Element = { id: 'dot-geometry-1', title: 'Dot Geometry', symbol: 'ax' };
         tray.add(item, true);
         const dot = document.querySelector('[data-element-id="dot-geometry-1"]') as HTMLElement;
 
@@ -180,9 +180,9 @@ describe('Spike: geometry is read at use time', () => {
     });
 
     test('a dot returning to rest is re-sized from config after its styles are wiped', () => {
-        configureGlyphs({ dotGeometry: { minWidth: 16, minHeight: 18, borderRadiusMax: 6 } });
+        configureElements({ dotGeometry: { minWidth: 16, minHeight: 18, borderRadiusMax: 6 } });
 
-        const item: Glyph = { id: 'dot-geometry-2', title: 'Dot Geometry', symbol: 'ax' };
+        const item: Element = { id: 'dot-geometry-2', title: 'Dot Geometry', symbol: 'ax' };
         const el = document.createElement('div');
         el.style.width = '600px';
         el.style.height = '400px';
@@ -217,7 +217,7 @@ describe('Spike: geometry is read at use time', () => {
 
 describe('Jenny: the expanded dot shows the symbol', () => {
     /** A tray with one dot bound to an item, as the engine finds them. */
-    function trayWithItem(item: Glyph): { container: HTMLElement; dot: HTMLElement; items: Map<string, Glyph> } {
+    function trayWithItem(item: Element): { container: HTMLElement; dot: HTMLElement; items: Map<string, Element> } {
         const { container, dot } = makeTray();
         dot.dataset.elementId = item.id;
         return { container, dot, items: new Map([[item.id, item]]) };

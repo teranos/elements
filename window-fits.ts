@@ -9,7 +9,7 @@
  * a window there.
  */
 
-import { MAX_VIEWPORT_WIDTH_RATIO } from './glyph';
+import { MAX_VIEWPORT_WIDTH_RATIO } from './element';
 
 /**
  * `contentWidth` is what the glyph's content measured. Zero is a glyph that

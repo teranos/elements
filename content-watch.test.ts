@@ -13,7 +13,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import type { Glyph } from './glyph';
+import type { Element } from './element';
 import {
     watchContent,
     disarmContentWatch,
@@ -28,7 +28,7 @@ const DEADLINE = 20;
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-function glyphFixture(id: string = 'tokens-glyph'): Glyph {
+function glyphFixture(id: string = 'tokens-glyph'): Element {
     return {
         id,
         title: 'Access Tokens',

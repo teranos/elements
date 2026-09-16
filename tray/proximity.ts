@@ -3,7 +3,7 @@
  *
  * Handles the smooth transformation of glyphs from resting dot to expanded state
  * based on pointer proximity (mouse cursor or touch position). The two ends of
- * that morph are host-configurable: configureGlyphs({ dotGeometry }).
+ * that morph are host-configurable: configureElements({ dotGeometry }).
  * This modifies the SAME DOM element in place.
  *
  * Desktop: mousemove drives proximity continuously.
@@ -14,7 +14,7 @@
  * The element persists through: dot → proximity → window → dot
  */
 
-import { type Glyph, DEFAULT_COLOR } from '../glyph';
+import { type Element, DEFAULT_COLOR } from '../element';
 import { hasProximityText, setProximityText } from '../dataset';
 import { getDotGeometry } from '../config';
 
@@ -53,7 +53,7 @@ export class Proximity {
     private readonly VERTICAL_EASE_EARLY = 0.8; // Transform 80% by breakpoint
     private readonly VERTICAL_EASE_LATE = 0.2; // Remaining 20% in final stretch
 
-    // Morphing dimensions come from configureGlyphs({ dotGeometry }) — read per
+    // Morphing dimensions come from configureElements({ dotGeometry }) — read per
     // frame, never cached, because a host may configure after this engine exists.
 
     private mouseX: number = 0;
@@ -146,7 +146,7 @@ export class Proximity {
      */
     public updateProximity(
         indicatorContainer: HTMLElement | null,
-        items: Map<string, Glyph>,
+        items: Map<string, Element>,
         isRestoring: boolean
     ): void {
         if (this.proximityRAF) {

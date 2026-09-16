@@ -18,7 +18,7 @@
 
 import { getLogger, getLogSegment } from '../config';
 import { applyRestingDotGeometry } from '../tray/proximity';
-import { type Glyph, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../glyph';
+import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { addWindowControls } from './title-bar-controls';
 import { disarmContentWatch } from '../content-watch';
 import { stashContent } from './stash';
@@ -33,7 +33,7 @@ import {
     getOpenDuration,
     getRestDuration,
     PANEL_Z_INDEX
-} from '../glyph';
+} from '../element';
 
 // Type-safe element state — avoids `as any` on DOM elements
 const escapeHandlers = new WeakMap<HTMLElement, (e: KeyboardEvent) => void>();
@@ -150,10 +150,10 @@ function attachResizeHandle(
  */
 export function morphDotToPanel(
     element: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
     onRemove: (id: string) => void,
-    onMinimize: (element: HTMLElement, glyph: Glyph) => void,
+    onMinimize: (element: HTMLElement, glyph: Element) => void,
     // Content already rendered by a caller that measured it before deciding
     // this is a panel. Rendering again would build the glyph's content twice.
     preRenderedContent?: HTMLElement,
@@ -263,9 +263,9 @@ function cleanupResize(element: HTMLElement): void {
  */
 export function morphPanelToDot(
     panelElement: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
-    onMorphComplete: (element: HTMLElement, glyph: Glyph) => void
+    onMorphComplete: (element: HTMLElement, glyph: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();

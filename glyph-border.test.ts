@@ -4,7 +4,7 @@
  * "When I pick up note glyph as window and minimise it, it never loses
  *  color, i want the border to be treated similarly"
  *
- * Like color, the border lives on the Glyph datum and every form
+ * Like color, the border lives on the Element datum and every form
  * wears it — the dot a glyph minimizes into included.
  *
  * Personas:
@@ -17,11 +17,11 @@ import { describe, test, expect, beforeEach } from 'bun:test';
 import { tray } from './tray/tray';
 import { canvasPlaced } from './forms/canvas-placed';
 import { resetElement } from './forms/morphology';
-import type { Glyph } from './glyph';
+import type { Element } from './element';
 
 const BORDER = '2px dashed red';
 
-function makeGlyph(id: string, overrides: Partial<Glyph> = {}): Glyph {
+function makeElement(id: string, overrides: Partial<Element> = {}): Element {
     return {
         id,
         title: 'Note',
@@ -36,7 +36,7 @@ beforeEach(() => {
 
 describe('Tim: every form wears the border', () => {
     test('a dot born in the tray wears it', () => {
-        const item = makeGlyph('border-dot-1', { border: BORDER });
+        const item = makeElement('border-dot-1', { border: BORDER });
         tray.add(item, true);
         const dot = document.querySelector('[data-element-id="border-dot-1"]') as HTMLElement;
 
@@ -47,7 +47,7 @@ describe('Tim: every form wears the border', () => {
 
     test('a canvas-placed glyph wears it', () => {
         const { element } = canvasPlaced({
-            glyph: makeGlyph('border-canvas-1', { border: BORDER }),
+            glyph: makeElement('border-canvas-1', { border: BORDER }),
             className: 'canvas-test-glyph',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             logLabel: 'Test',
@@ -59,7 +59,7 @@ describe('Tim: every form wears the border', () => {
     // The minimize reset wipes cssText — identity comes back from the datum,
     // exactly the way color does.
     test('the dot a glyph resets into wears it', () => {
-        const item = makeGlyph('border-reset-1', { border: BORDER, color: '#221100' });
+        const item = makeElement('border-reset-1', { border: BORDER, color: '#221100' });
         const el = document.createElement('div');
         el.style.cssText = 'width: 600px; border: 1px solid red;';
         document.body.appendChild(el);
@@ -73,7 +73,7 @@ describe('Tim: every form wears the border', () => {
 
 describe('Spike: no border on the datum', () => {
     test('a dot without one carries no inline border — CSS decides', () => {
-        const item = makeGlyph('border-none-1');
+        const item = makeElement('border-none-1');
         tray.add(item, true);
         const dot = document.querySelector('[data-element-id="border-none-1"]') as HTMLElement;
 
@@ -89,7 +89,7 @@ describe('Jenny: window → tray, the border never leaves', () => {
         // already wiped — adopt dresses it from the datum.
         const el = document.createElement('div');
         document.body.appendChild(el);
-        const item = makeGlyph('border-adopt-1', { border: BORDER, color: '#221100' });
+        const item = makeElement('border-adopt-1', { border: BORDER, color: '#221100' });
 
         tray.adopt(el, item);
 

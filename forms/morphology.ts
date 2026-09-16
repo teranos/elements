@@ -1,11 +1,11 @@
 /**
- * Glyph Morphology — shared helpers for form transitions.
+ * Element Morphology — shared helpers for form transitions.
  *
  * Extracted from window.ts, panel.ts, canvas.ts to eliminate duplication
  * in the morph lifecycle (axiom verification, tray targeting, element reset).
  */
 
-import { type Glyph } from '../glyph';
+import { type Element } from '../element';
 import { readPaint, wearPaint } from '../paint';
 import type { Form } from '../form';
 import { setForm, setProximityText, hasProximityText } from '../dataset';
@@ -75,7 +75,7 @@ export interface MorphPreparation {
  */
 export function prepareMorphTo(
     element: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
     form: Form,
     zIndex: string
@@ -84,7 +84,7 @@ export function prepareMorphTo(
 
     const glyphRect = element.getBoundingClientRect();
 
-    // THE GLYPH ITSELF TAKES THE FORM - NO CLONING
+    // THE ELEMENT ITSELF TAKES THE FORM - NO CLONING
     element.remove();
 
     if (hasProximityText(element)) {
@@ -160,9 +160,9 @@ export function calculateTrayTarget(elementId?: string): { x: number; y: number 
  */
 export function resetElement(
     element: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     label: string,
-    onMorphComplete: (element: HTMLElement, glyph: Glyph) => void
+    onMorphComplete: (element: HTMLElement, glyph: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();

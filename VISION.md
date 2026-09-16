@@ -1,4 +1,4 @@
-# Glyphs
+# Elements
 
 The glyph is the universal UI primitive: exactly one DOM element for its
 entire lifetime, morphing between forms while its identity never
@@ -60,7 +60,7 @@ different states.
 
 ## Melding
 
-Glyphs compose by touch. Dragged close enough, they fuse into spatial
+Elements compose by touch. Dragged close enough, they fuse into spatial
 compositions with typed, directed edges — data flows along the geometry the
 user built by hand. Each side of a glyph accepts one connection; the
 composition is a graph the user can see because it is the layout itself.

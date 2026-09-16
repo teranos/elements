@@ -7,7 +7,7 @@
 
 import { getLogger, getLogSegment } from '../config';
 import type { Proximity } from './proximity';
-import type { Glyph } from '../glyph';
+import type { Element } from '../element';
 
 // How close to the tray's edge the touch must land (px)
 const TOUCH_ACTIVATION_MARGIN = 44;
@@ -19,16 +19,16 @@ export interface TouchBrowseHost {
     readonly element: HTMLElement | null;
     readonly indicatorContainer: HTMLElement | null;
     readonly proximity: Proximity;
-    readonly items: Map<string, Glyph>;
+    readonly items: Map<string, Element>;
     updateProximity(): void;
-    morphGlyph(element: HTMLElement, item: Glyph): void;
+    morphElement(element: HTMLElement, item: Element): void;
 }
 
 /**
  * Find the glyph dot with the highest proximity factor.
- * Returns the element and its Glyph data, or null if nothing is close enough.
+ * Returns the element and its Element data, or null if nothing is close enough.
  */
-export function findPeakedGlyph(host: TouchBrowseHost): { element: HTMLElement; item: Glyph } | null {
+export function findPeakedElement(host: TouchBrowseHost): { element: HTMLElement; item: Element } | null {
     if (!host.indicatorContainer) return null;
 
     const glyphs = Array.from(
@@ -122,7 +122,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
 
         host.proximity.isTouchBrowsing = false;
 
-        const peaked = findPeakedGlyph(host);
+        const peaked = findPeakedElement(host);
 
         host.proximity.setPointerPosition(-9999, -9999);
         host.updateProximity();
@@ -130,7 +130,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         if (peaked) {
             suppressNextClick = true;
             log.debug(seg, `[Tray] Touch browse selected ${peaked.item.id}`);
-            host.morphGlyph(peaked.element, peaked.item);
+            host.morphElement(peaked.element, peaked.item);
         } else {
             log.debug(seg, '[Tray] Touch browse ended with no selection');
         }

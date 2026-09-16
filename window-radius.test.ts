@@ -6,12 +6,12 @@
  */
 
 import { describe, test, expect, afterEach } from 'bun:test';
-import { configureGlyphs, getWindowBorderRadius } from './config';
+import { configureElements, getWindowBorderRadius } from './config';
 
 const HISTORICAL = '8px';
 
 afterEach(() => {
-    configureGlyphs({ windowBorderRadius: HISTORICAL });
+    configureElements({ windowBorderRadius: HISTORICAL });
 });
 
 describe('Tim: window corner radius', () => {
@@ -19,21 +19,21 @@ describe('Tim: window corner radius', () => {
     // --border-radius: 0 in the example's own stylesheet, which the package
     // overrides inline.
     test('a host can square them', () => {
-        configureGlyphs({ windowBorderRadius: '0' });
+        configureElements({ windowBorderRadius: '0' });
         expect(getWindowBorderRadius()).toBe('0');
     });
 
     // "i guess i dont even want rounded corners for the highres black white
     //  example"
     test('any css length works, not only zero', () => {
-        configureGlyphs({ windowBorderRadius: '2px' });
+        configureElements({ windowBorderRadius: '2px' });
         expect(getWindowBorderRadius()).toBe('2px');
     });
 
     // A host that says nothing keeps what every window had before this was
     // configurable.
     test('unset leaves the historical radius', () => {
-        configureGlyphs({});
+        configureElements({});
         expect(getWindowBorderRadius()).toBe(HISTORICAL);
     });
 });

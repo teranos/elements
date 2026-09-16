@@ -11,7 +11,7 @@ import { describe, test, expect, beforeEach } from 'bun:test';
 import { createSymbolSpan, settleSymbolSpan } from './symbol-span';
 import { canvasPlaced } from './forms/canvas-placed';
 import { renderContent } from './forms/render-content';
-import type { Glyph } from './glyph';
+import type { Element } from './element';
 
 beforeEach(() => {
     document.body.innerHTML = '';
@@ -51,7 +51,7 @@ describe('Spike: symbol carried across a cursor morph', () => {
 });
 
 describe('Jenny: native renderers display glyph.symbol', () => {
-    function makeGlyph(overrides: Partial<Glyph> = {}): Glyph {
+    function makeElement(overrides: Partial<Element> = {}): Element {
         return {
             id: 'sym-test-1',
             title: 'Self',
@@ -65,7 +65,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
     // themselves. glyph.symbol is enough now.
     test('canvasPlaced renders glyph.symbol when no symbolElement is carried', () => {
         const { titleBar } = canvasPlaced({
-            glyph: makeGlyph({ symbol: '⍟' }),
+            glyph: makeElement({ symbol: '⍟' }),
             className: 'canvas-test-glyph',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             titleBar: { label: 'Self' },
@@ -83,7 +83,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
         carried.textContent = 'ax';
 
         const { titleBar } = canvasPlaced({
-            glyph: makeGlyph({ symbol: 'ax', symbolElement: carried }),
+            glyph: makeElement({ symbol: 'ax', symbolElement: carried }),
             className: 'canvas-test-glyph',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             titleBar: { label: 'AX' },
@@ -99,7 +99,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
         const element = document.createElement('div');
         document.body.appendChild(element);
 
-        const { titleBar } = renderContent(element, makeGlyph({ symbol: '⍟' }), 'Test');
+        const { titleBar } = renderContent(element, makeElement({ symbol: '⍟' }), 'Test');
 
         const symbol = titleBar.querySelector('.glyph-symbol');
         expect(symbol).not.toBeNull();
@@ -111,7 +111,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
         const element = document.createElement('div');
         document.body.appendChild(element);
 
-        const { titleBar } = renderContent(element, makeGlyph(), 'Test');
+        const { titleBar } = renderContent(element, makeElement(), 'Test');
 
         expect(titleBar.querySelector('.glyph-symbol')).toBeNull();
         expect(titleBar.textContent).toContain('Self');

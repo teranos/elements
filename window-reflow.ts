@@ -5,7 +5,7 @@
  * are asked, because a fixed box measures its own room from the left alone.
  */
 
-import { MIN_WINDOW_WIDTH } from './glyph';
+import { MIN_WINDOW_WIDTH } from './element';
 
 export interface Box {
     left: number;

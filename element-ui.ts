@@ -1,23 +1,23 @@
 /**
- * GlyphUI — type definitions for building glyphs.
+ * ElementUI — type definitions for building glyphs.
  */
 
-import type { Glyph } from './glyph';
+import type { Element } from './element';
 
 // ── Render contract ──────────────────────────────────────────────────
 
 /** The render function a plugin module must export. */
-export type RenderFn = (glyph: Glyph, ui: GlyphUI) => HTMLElement | Promise<HTMLElement>;
+export type RenderFn = (glyph: Element, ui: ElementUI) => HTMLElement | Promise<HTMLElement>;
 
 // "in the true QNTX vision, i wanted plugins to be able to provide their own ui easily"
 // This is the whole of it: a module that exports these two.
-export interface GlyphModule {
+export interface ElementModule {
     render: RenderFn;
-    glyphDef?: GlyphDef;
+    glyphDef?: ElementDef;
 }
 
 /** Self-describing metadata exported by pure TS plugin modules. */
-export interface GlyphDef {
+export interface ElementDef {
     symbol: string;
     title: string;
     label: string;
@@ -31,13 +31,13 @@ export interface GlyphDef {
 // ── UI interface ─────────────────────────────────────────────────────
 
 /** UI interface injected into glyph render functions. */
-export interface GlyphUI {
+export interface ElementUI {
     /**
      * Create a canvas-placed glyph with title bar, drag, and resize.
      * Returns a content area — the scrollable body below the title bar.
      * Append plugin content into `content`, not `element`.
      */
-    glyph(opts: GlyphOpts): { element: HTMLElement; titleBar: HTMLElement | null; content: HTMLElement };
+    glyph(opts: ElementOpts): { element: HTMLElement; titleBar: HTMLElement | null; content: HTMLElement };
 
     /** Prevent drag from starting on interactive children. */
     preventDrag(...elements: HTMLElement[]): void;
@@ -182,7 +182,7 @@ export interface MeldEvent {
     content: string;
 }
 
-export interface GlyphOpts {
+export interface ElementOpts {
     defaults: { x: number; y: number; width: number; height: number };
     titleBar?: { label: string; actions?: HTMLElement[]; color?: string; labelColor?: string };
     resizable?: boolean | { minWidth?: number; minHeight?: number };
@@ -211,8 +211,8 @@ export interface FetchOpts {
 export interface MakeDraggableOptions {
     /** When true the drag is cancelled if the mousedown target is a <button>. */
     ignoreButtons?: boolean;
-    /** Label used in log messages, e.g. "PyGlyph". */
+    /** Label used in log messages, e.g. "PyElement". */
     logLabel?: string;
     /** The prompt glyph object (if this is a prompt being made draggable) */
-    promptGlyph?: Glyph;
+    promptElement?: Element;
 }

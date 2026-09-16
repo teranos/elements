@@ -5,7 +5,7 @@
  * and everything about it survives every transition. Inline styles are wiped on
  * a morph because geometry is the form's — a tray dot is not laid out
  * like a canvas frame. Paint is not the form's, so wiping it and then
- * re-reading it from the Glyph datum makes the datum authoritative over the
+ * re-reading it from the Element datum makes the datum authoritative over the
  * element, which is the thing the axiom denies. A glyph whose datum names no
  * colour used to lose what it was painted and come back as the default.
  */
@@ -15,12 +15,12 @@ import { tray } from './tray/tray';
 import { canvasPlaced } from './forms/canvas-placed';
 import { resetElement } from './forms/morphology';
 import { readPaint, wearPaint } from './paint';
-import { DEFAULT_COLOR } from './glyph';
-import type { Glyph } from './glyph';
+import { DEFAULT_COLOR } from './element';
+import type { Element } from './element';
 
 const PAINTED = 'rgb(5, 16, 11)';
 
-function glyph(id: string, overrides: Partial<Glyph> = {}): Glyph {
+function glyph(id: string, overrides: Partial<Element> = {}): Element {
     return {
         id,
         title: 'CRIER',

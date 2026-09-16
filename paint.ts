@@ -8,12 +8,12 @@
  * form. A glyph is the colour it is in the tray, in a window and on
  * the canvas.
  *
- * So it is read off the element before the wipe and worn again after. The Glyph
+ * So it is read off the element before the wipe and worn again after. The Element
  * datum is not where the colour lives: a datum that names one is asking to
  * change it, and one that names none is not asking for the default.
  */
 
-import { DEFAULT_COLOR } from './glyph';
+import { DEFAULT_COLOR } from './element';
 
 /** What an element is wearing now. */
 export interface Paint {

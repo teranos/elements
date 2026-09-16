@@ -1,7 +1,7 @@
 /**
- * GlyphUI DOM primitives — the pure half of the GlyphUI factory.
+ * ElementUI DOM primitives — the pure half of the ElementUI factory.
  *
- * These build DOM and nothing else. The I/O half of GlyphUI (pluginFetch,
+ * These build DOM and nothing else. The I/O half of ElementUI (pluginFetch,
  * pluginWebSocket, onMeld, config persistence, logging) is host-coupled by
  * nature and stays in the host factory, which delegates the DOM building
  * blocks to these.

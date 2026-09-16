@@ -11,7 +11,7 @@
   },
   "include": [
     "config.ts",
-    "glyph.ts",
+    "element.ts",
     "dataset.ts",
     "tray/proximity.ts",
     "morph-transaction.ts",
@@ -26,7 +26,7 @@
     "tray/tray.ts",
     "composition.ts",
     "edge-graph.ts",
-    "glyph-ui.ts",
+    "element-ui.ts",
     "tray/touch-browse.ts",
     "meld/meldability.ts",
     "meld/meld-detect.ts",

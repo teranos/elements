@@ -6,8 +6,8 @@
  */
 
 import { getLogger, getLogSegment } from '../config';
-import type { Glyph } from '../glyph';
-import { CANVAS_GLYPH_CONTENT_PADDING } from '../glyph';
+import type { Element } from '../element';
+import { CANVAS_ELEMENT_CONTENT_PADDING } from '../element';
 import { createSymbolSpan } from '../symbol-span';
 import { restoreContent } from './stash';
 import { setContentState } from '../dataset';
@@ -20,7 +20,7 @@ export interface RenderContentResult {
 
 export function renderContent(
     element: HTMLElement,
-    glyph: Glyph,
+    glyph: Element,
     logLabel: string,
     preRenderedContent?: HTMLElement,
 ): RenderContentResult {
@@ -83,7 +83,7 @@ export function renderContent(
             const content = preRenderedContent ?? glyph.renderContent();
             const contentArea = document.createElement('div');
             contentArea.classList.add('glyph-content-area');
-            contentArea.style.padding = `${CANVAS_GLYPH_CONTENT_PADDING}px`;
+            contentArea.style.padding = `${CANVAS_ELEMENT_CONTENT_PADDING}px`;
             contentArea.appendChild(content);
             element.appendChild(contentArea);
             contentElement = contentArea;
@@ -117,7 +117,7 @@ export function renderContent(
     return { titleBar, contentElement };
 }
 
-function createGenericTitleBar(glyph: Glyph): HTMLElement {
+function createGenericTitleBar(glyph: Element): HTMLElement {
     const titleBar = document.createElement('div');
     titleBar.className = 'glyph-title-bar';
     if (glyph.symbol) {

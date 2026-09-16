@@ -13,8 +13,8 @@ import {
     commitCursorPlacement,
 } from './cursor';
 import { canvasPlaced } from './canvas-placed';
-import { applyCanvasGlyphLayout } from '../canvas-drag';
-import type { Glyph } from '../glyph';
+import { applyCanvasElementLayout } from '../canvas-drag';
+import type { Element } from '../element';
 
 let el: HTMLElement;
 
@@ -61,8 +61,8 @@ describe('Spike: full cursor → canvas-placed lifecycle', () => {
         const symbolSpan = prepareCursorForPlacement(el);
         expect(symbolSpan).not.toBeNull();
 
-        // 3. spawnGlyph creates glyph with cursorElement + symbolElement
-        const glyph: Glyph = {
+        // 3. spawnElement creates glyph with cursorElement + symbolElement
+        const glyph: Element = {
             id: 'test-ax-001',
             title: 'AX Query',
             symbol: 'ax',
@@ -77,7 +77,7 @@ describe('Spike: full cursor → canvas-placed lifecycle', () => {
             glyph,
             className: 'canvas-ax-glyph',
             defaults: { x: 200, y: 200, width: 400, height: 200 },
-            logLabel: 'AxGlyph',
+            logLabel: 'AxElement',
         });
 
         // canvasPlaced MUST return the same DOM element
@@ -87,7 +87,7 @@ describe('Spike: full cursor → canvas-placed lifecycle', () => {
         expect(element.classList.contains('canvas-glyph')).toBe(true);
         expect(element.classList.contains('glyph-cursor')).toBe(false);
 
-        // applyCanvasGlyphLayout set canvas coordinates
+        // applyCanvasElementLayout set canvas coordinates
         expect(element.style.left).toBe('120px');
         expect(element.style.top).toBe('80px');
 
