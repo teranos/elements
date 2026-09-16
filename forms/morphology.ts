@@ -20,16 +20,16 @@ const MORPHING_CLASS = 'glyph-morphing';
 
 /**
  * Verify the glyph axiom: exactly one DOM element for this glyph.
- * Calls the tracking verifier, then checks for duplicate data-glyph-id attributes.
+ * Calls the tracking verifier, then checks for duplicate data-element-id attributes.
  */
-export function verifyGlyphAxiom(
+export function verifyElementAxiom(
     id: string,
     element: HTMLElement,
     verifyElement: (id: string, element: HTMLElement) => void
 ): void {
     verifyElement(id, element);
 
-    const elements = document.querySelectorAll(`[data-glyph-id="${id}"]`);
+    const elements = document.querySelectorAll(`[data-element-id="${id}"]`);
     if (elements.length !== 1) {
         throw new Error(
             `AXIOM VIOLATION: Expected exactly 1 element for ${id}, found ${elements.length}`
@@ -74,59 +74,59 @@ export interface MorphPreparation {
  * finish, rollbackClass() on cancel.
  */
 export function prepareMorphTo(
-    glyphElement: HTMLElement,
+    element: HTMLElement,
     glyph: Glyph,
     verifyElement: (id: string, element: HTMLElement) => void,
     form: Form,
     zIndex: string
 ): MorphPreparation {
-    verifyGlyphAxiom(glyph.id, glyphElement, verifyElement);
+    verifyElementAxiom(glyph.id, element, verifyElement);
 
-    const glyphRect = glyphElement.getBoundingClientRect();
+    const glyphRect = element.getBoundingClientRect();
 
     // THE GLYPH ITSELF TAKES THE FORM - NO CLONING
-    glyphElement.remove();
+    element.remove();
 
-    if (hasProximityText(glyphElement)) {
-        glyphElement.textContent = '';
-        setProximityText(glyphElement, false);
+    if (hasProximityText(element)) {
+        element.textContent = '';
+        setProximityText(element, false);
     }
 
-    const previousClassName = glyphElement.className;
-    glyphElement.classList.remove('glyph-run-glyph');
-    glyphElement.classList.add(MORPHING_CLASS);
-    glyphElement.style.position = 'fixed';
-    glyphElement.style.zIndex = zIndex;
+    const previousClassName = element.className;
+    element.classList.remove('glyph-run-glyph');
+    element.classList.add(MORPHING_CLASS);
+    element.style.position = 'fixed';
+    element.style.zIndex = zIndex;
 
-    document.body.appendChild(glyphElement);
-    setForm(glyphElement, form);
+    document.body.appendChild(element);
+    setForm(element, form);
 
     return {
         rect: glyphRect,
         commitClass(settledClasses?: string): void {
-            glyphElement.classList.remove(MORPHING_CLASS);
+            element.classList.remove(MORPHING_CLASS);
             const settled = (settledClasses ?? '').split(' ').filter(c => c !== '');
-            if (settled.length > 0) glyphElement.classList.add(...settled);
+            if (settled.length > 0) element.classList.add(...settled);
         },
         rollbackClass(): void {
-            glyphElement.className = previousClassName;
+            element.className = previousClassName;
         },
     };
 }
 
 /**
  * Calculate the target position for minimizing to the glyph tray.
- * If glyphId is provided, targets that dot's position.
+ * If elementId is provided, targets that dot's position.
  * Otherwise targets the end of the tray (where new dots append).
  */
-export function calculateTrayTarget(glyphId?: string): { x: number; y: number } {
+export function calculateTrayTarget(elementId?: string): { x: number; y: number } {
     const trayElement = document.querySelector('.glyph-run');
     if (!trayElement) {
         return { x: window.innerWidth - 50, y: window.innerHeight / 2 };
     }
 
-    if (glyphId) {
-        const dot = trayElement.querySelector(`[data-glyph-id="${glyphId}"]`);
+    if (elementId) {
+        const dot = trayElement.querySelector(`[data-element-id="${elementId}"]`);
         if (dot) {
             const dotRect = dot.getBoundingClientRect();
             return {
@@ -158,7 +158,7 @@ export function calculateTrayTarget(glyphId?: string): { x: number; y: number } 
  * Clears state flags, removes from DOM, wipes inline styles, restores base class,
  * and hands back to the tray via onMorphComplete.
  */
-export function resetGlyphElement(
+export function resetElement(
     element: HTMLElement,
     glyph: Glyph,
     label: string,

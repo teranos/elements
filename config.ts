@@ -43,11 +43,11 @@ export interface CanvasHost {
     saveCanvasGlyph(glyph: CanvasGlyphData): void;
     getCanvasGlyphs(canvasId?: string): CanvasGlyphData[];
     getTransform(canvasId: string): { panX: number; panY: number; scale: number };
-    getSelectedGlyphIds(canvasId: string): string[];
-    isGlyphSelected(canvasId: string, glyphId: string): boolean;
+    getSelectedElementIds(canvasId: string): string[];
+    isGlyphSelected(canvasId: string, elementId: string): boolean;
     saveComposition(composition: CompositionState): void;
     removeComposition(id: string): void;
-    findCompositionByGlyph(glyphId: string): CompositionState | null;
+    findCompositionByGlyph(elementId: string): CompositionState | null;
     flushSync(): void;
 }
 
@@ -88,7 +88,7 @@ export interface GlyphConfig {
     /** Canvas host — persistence, transform, selection, composition CRUD. */
     canvasHost?: CanvasHost;
     /** Called when a glyph is removed from the canvas (close/minimize). */
-    removeCanvasGlyph?: (glyphId: string) => void;
+    removeCanvasGlyph?: (elementId: string) => void;
     /** Dot and expanded-state dimensions used by the proximity engine. */
     dotGeometry?: DotGeometry;
     /** Corner radius of an opened window. Written inline, so CSS cannot reach it. */
@@ -115,7 +115,7 @@ const noopCanvasHost: CanvasHost = {
     saveCanvasGlyph() {},
     getCanvasGlyphs: () => [],
     getTransform: () => ({ panX: 0, panY: 0, scale: 1 }),
-    getSelectedGlyphIds: () => [],
+    getSelectedElementIds: () => [],
     isGlyphSelected: () => false,
     saveComposition() {},
     removeComposition() {},
@@ -139,7 +139,7 @@ let config: {
     persistence: Persistence;
     canvas: CanvasCoordinateBridge | null;
     canvasHost: CanvasHost;
-    removeCanvasGlyph: ((glyphId: string) => void) | null;
+    removeCanvasGlyph: ((elementId: string) => void) | null;
     dotGeometry: Required<DotGeometry>;
     windowBorderRadius: string;
 } = {
@@ -215,6 +215,6 @@ export function getCanvasBridge(): CanvasCoordinateBridge | null {
 }
 
 /** Remove a glyph from canvas state. No-op if not configured. */
-export function removeCanvasGlyph(glyphId: string): void {
-    config.removeCanvasGlyph?.(glyphId);
+export function removeCanvasGlyph(elementId: string): void {
+    config.removeCanvasGlyph?.(elementId);
 }

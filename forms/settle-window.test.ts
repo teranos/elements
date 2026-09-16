@@ -29,7 +29,7 @@ beforeEach(() => {
 
 function windowEl(): HTMLElement {
     const el = document.createElement('div');
-    el.dataset.glyphId = 'tokens-glyph';
+    el.dataset.elementId = 'tokens-glyph';
     document.body.appendChild(el);
     return el;
 }

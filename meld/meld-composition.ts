@@ -16,7 +16,7 @@ import { getLogger, getLogSegment, getCanvasHost } from '../config';
 import type { Glyph } from '../glyph';
 import type { CompositionEdge, EdgeDirection } from '../composition';
 import { computeGridPositions, isConnectedGraph } from '../edge-graph';
-import { extractGlyphIds } from '../composition';
+import { extractElementIds } from '../composition';
 import { clearMeldFeedback, clearFeedbackShadow } from './meld-feedback';
 
 const UNMELD_OFFSET = 20; // px - spacing between glyphs when unmelding
@@ -77,7 +77,7 @@ function applyColumnLayout(
     // Build a map of element by id for quick lookup
     const elementById = new Map<string, HTMLElement>();
     for (const el of elements) {
-        const id = el.getAttribute('data-glyph-id') || '';
+        const id = el.getAttribute('data-element-id') || '';
         elementById.set(id, el);
     }
 
@@ -86,7 +86,7 @@ function applyColumnLayout(
     let maxRow = 0;
     let maxCol = 0;
     for (const el of elements) {
-        const id = el.getAttribute('data-glyph-id') || '';
+        const id = el.getAttribute('data-element-id') || '';
         const pos = positions.get(id);
         if (!pos) {
             log.warn(seg, `[MeldSystem] No grid position computed for glyph ${id}`);
@@ -204,7 +204,7 @@ export function performMeld(
     const composition = document.createElement('div');
     composition.className = 'melded-composition';
     composition.setAttribute('data-melded', 'true');
-    composition.setAttribute('data-glyph-id', compositionId);
+    composition.setAttribute('data-element-id', compositionId);
 
     // Position at initiator location
     composition.style.position = 'absolute';
@@ -258,7 +258,7 @@ export function performMeld(
     log.info(seg, '[MeldSystem] Meld complete - elements reparented and persisted', {
         compositionId,
         edges: edges.length,
-        glyphs: extractGlyphIds(edges)
+        glyphs: extractElementIds(edges)
     });
 
     return composition;
@@ -273,8 +273,8 @@ export function performMeld(
 export function extendComposition(
     compositionElement: HTMLElement,
     incomingElement: HTMLElement,
-    incomingGlyphId: string,
-    anchorGlyphId: string,
+    incomingElementId: string,
+    anchorElementId: string,
     direction: EdgeDirection,
     incomingRole: 'from' | 'to'
 ): HTMLElement {
@@ -283,17 +283,17 @@ export function extendComposition(
     const canvasHost = getCanvasHost();
 
     // Look up existing composition state
-    const existingComp = canvasHost.findCompositionByGlyph(anchorGlyphId);
+    const existingComp = canvasHost.findCompositionByGlyph(anchorElementId);
     if (!existingComp) {
-        throw new Error(`Cannot extend composition: no composition found for glyph ${anchorGlyphId}`);
+        throw new Error(`Cannot extend composition: no composition found for glyph ${anchorElementId}`);
     }
 
     const oldId = existingComp.id;
 
     // Build new edge based on role
     const newEdge: CompositionEdge = incomingRole === 'to'
-        ? { from: anchorGlyphId, to: incomingGlyphId, direction, position: existingComp.edges.length }
-        : { from: incomingGlyphId, to: anchorGlyphId, direction, position: existingComp.edges.length };
+        ? { from: anchorElementId, to: incomingElementId, direction, position: existingComp.edges.length }
+        : { from: incomingElementId, to: anchorElementId, direction, position: existingComp.edges.length };
 
     // Regenerate composition ID from the new edge
     const newId = `melded-${newEdge.from}-${newEdge.to}`;
@@ -301,8 +301,8 @@ export function extendComposition(
     log.info(seg, '[MeldSystem] Extending composition', {
         oldId,
         newId,
-        anchor: anchorGlyphId,
-        incoming: incomingGlyphId,
+        anchor: anchorElementId,
+        incoming: incomingElementId,
         direction,
         incomingRole
     });
@@ -314,7 +314,7 @@ export function extendComposition(
     clearMeldFeedback(incomingElement);
 
     // Clear feedback on all existing glyphs in the composition (anchor glyph may still glow)
-    compositionElement.querySelectorAll('[data-glyph-id]').forEach(el => {
+    compositionElement.querySelectorAll('[data-element-id]').forEach(el => {
         clearFeedbackShadow(el as HTMLElement);
     });
 
@@ -322,7 +322,7 @@ export function extendComposition(
     compositionElement.appendChild(incomingElement);
 
     // Update composition ID on DOM
-    compositionElement.setAttribute('data-glyph-id', newId);
+    compositionElement.setAttribute('data-element-id', newId);
 
     // Update storage: remove old, add new with all edges
     const allEdges = [...existingComp.edges, newEdge];
@@ -337,14 +337,14 @@ export function extendComposition(
 
     // Rebuild grid positions for all children
     const allChildren = Array.from(
-        compositionElement.querySelectorAll('[data-glyph-id]')
+        compositionElement.querySelectorAll('[data-element-id]')
     ) as HTMLElement[];
     applyColumnLayout(compositionElement, allChildren, allEdges);
 
     log.info(seg, '[MeldSystem] Composition extended', {
         newId,
         edges: allEdges.length,
-        glyphs: extractGlyphIds(allEdges)
+        glyphs: extractElementIds(allEdges)
     });
 
     return compositionElement;
@@ -382,7 +382,7 @@ export function reconstructMeld(
     const composition = document.createElement('div');
     composition.className = 'melded-composition';
     composition.setAttribute('data-melded', 'true');
-    composition.setAttribute('data-glyph-id', compositionId);
+    composition.setAttribute('data-element-id', compositionId);
 
     // Position at saved location
     composition.style.position = 'absolute';
@@ -420,7 +420,7 @@ export function reconstructMeld(
  *
  * Returns the detached element and remaining composition (null if fully unmelded).
  */
-export function detachGlyph(glyphId: string, composition: HTMLElement): {
+export function detachGlyph(elementId: string, composition: HTMLElement): {
     detachedElement: HTMLElement;
     remainingComposition: HTMLElement | null;
 } | null {
@@ -439,22 +439,22 @@ export function detachGlyph(glyphId: string, composition: HTMLElement): {
         return null;
     }
 
-    const compositionId = composition.getAttribute('data-glyph-id') || '';
-    const storedComp = canvasHost.findCompositionByGlyph(glyphId);
+    const compositionId = composition.getAttribute('data-element-id') || '';
+    const storedComp = canvasHost.findCompositionByGlyph(elementId);
     if (!storedComp) {
-        log.warn(seg, `[MeldSystem] detachGlyph: no stored composition for glyph ${glyphId}`);
+        log.warn(seg, `[MeldSystem] detachGlyph: no stored composition for glyph ${elementId}`);
         return null;
     }
 
-    const allGlyphIds = extractGlyphIds(storedComp.edges);
+    const allElementIds = extractElementIds(storedComp.edges);
 
     // 2-glyph composition → full unmeld
-    if (allGlyphIds.length <= 2) {
+    if (allElementIds.length <= 2) {
         log.info(seg, '[MeldSystem] detachGlyph: 2-glyph composition, delegating to full unmeld');
         const result = unmeldComposition(composition);
         if (!result) return null;
         const detached = result.glyphElements.find(
-            el => (el.getAttribute('data-glyph-id') || el.dataset.glyphId) === glyphId
+            el => (el.getAttribute('data-element-id') || el.dataset.elementId) === elementId
         );
         if (!detached) return null;
         return { detachedElement: detached, remainingComposition: null };
@@ -462,25 +462,25 @@ export function detachGlyph(glyphId: string, composition: HTMLElement): {
 
     // Filter edges: remove all edges involving this glyph
     const remainingEdges = storedComp.edges.filter(
-        e => e.from !== glyphId && e.to !== glyphId
+        e => e.from !== elementId && e.to !== elementId
     );
 
     // Check if remaining edges form a connected graph
     if (!isConnectedGraph(remainingEdges)) {
-        log.info(seg, `[MeldSystem] detachGlyph: removing ${glyphId} disconnects graph, delegating to full unmeld`);
+        log.info(seg, `[MeldSystem] detachGlyph: removing ${elementId} disconnects graph, delegating to full unmeld`);
         const result = unmeldComposition(composition);
         if (!result) return null;
         const detached = result.glyphElements.find(
-            el => (el.getAttribute('data-glyph-id') || el.dataset.glyphId) === glyphId
+            el => (el.getAttribute('data-element-id') || el.dataset.elementId) === elementId
         );
         if (!detached) return null;
         return { detachedElement: detached, remainingComposition: null };
     }
 
     // Partial detach: reparent detached element to canvas
-    const detachedEl = composition.querySelector(`[data-glyph-id="${glyphId}"]`) as HTMLElement | null;
+    const detachedEl = composition.querySelector(`[data-element-id="${elementId}"]`) as HTMLElement | null;
     if (!detachedEl) {
-        log.error(seg, `[MeldSystem] detachGlyph: element not found for glyph ${glyphId}`);
+        log.error(seg, `[MeldSystem] detachGlyph: element not found for glyph ${elementId}`);
         return null;
     }
 
@@ -511,12 +511,12 @@ export function detachGlyph(glyphId: string, composition: HTMLElement): {
     animatePosition(detachedEl, startX, startY, targetX, targetY);
 
     // Persist detached glyph's new position
-    const detachedSymbol = detachedEl.dataset.glyphSymbol || '';
+    const detachedSymbol = detachedEl.dataset.symbol || '';
     if (detachedSymbol) {
-        const existing = canvasHost.getCanvasGlyphs().find(g => g.id === glyphId);
+        const existing = canvasHost.getCanvasGlyphs().find(g => g.id === elementId);
         canvasHost.saveCanvasGlyph({
             ...existing,
-            id: glyphId,
+            id: elementId,
             symbol: detachedSymbol,
             x: targetX,
             y: targetY,
@@ -526,7 +526,7 @@ export function detachGlyph(glyphId: string, composition: HTMLElement): {
     // Update storage: remove old composition, add new with remaining edges
     const newId = `melded-${remainingEdges[0].from}-${remainingEdges[0].to}`;
     canvasHost.removeComposition(storedComp.id);
-    composition.setAttribute('data-glyph-id', newId);
+    composition.setAttribute('data-element-id', newId);
     canvasHost.saveComposition({
         id: newId,
         edges: remainingEdges,
@@ -537,15 +537,15 @@ export function detachGlyph(glyphId: string, composition: HTMLElement): {
 
     // Rebuild layout for remaining elements
     const remainingElements = Array.from(
-        composition.querySelectorAll('[data-glyph-id]')
+        composition.querySelectorAll('[data-element-id]')
     ) as HTMLElement[];
     applyColumnLayout(composition, remainingElements, remainingEdges);
 
-    log.info(seg, `[MeldSystem] Detached glyph ${glyphId} from composition`, {
+    log.info(seg, `[MeldSystem] Detached glyph ${elementId} from composition`, {
         oldId: compositionId,
         newId,
         remainingEdges: remainingEdges.length,
-        remainingGlyphs: extractGlyphIds(remainingEdges)
+        remainingGlyphs: extractElementIds(remainingEdges)
     });
 
     return { detachedElement: detachedEl, remainingComposition: composition };
@@ -583,10 +583,10 @@ export function unmeldComposition(composition: HTMLElement): {
     }
 
     // Get composition ID for storage removal
-    const compositionId = composition.getAttribute('data-glyph-id') || '';
+    const compositionId = composition.getAttribute('data-element-id') || '';
 
     // Find all child glyphs in composition
-    const glyphElements = Array.from(composition.querySelectorAll('[data-glyph-id]')) as HTMLElement[];
+    const glyphElements = Array.from(composition.querySelectorAll('[data-element-id]')) as HTMLElement[];
 
     if (glyphElements.length === 0) {
         log.error(seg, '[MeldSystem] No glyphs found in composition - removing corrupted composition');
@@ -638,13 +638,13 @@ export function unmeldComposition(composition: HTMLElement): {
         animatePosition(element, startX, startY, targetX, targetY);
 
         // Persist new position so it survives refresh
-        const glyphIdAttr = element.getAttribute('data-glyph-id') || element.dataset.glyphId || '';
-        const symbol = element.dataset.glyphSymbol || '';
-        if (glyphIdAttr && symbol) {
-            const existing = canvasHost.getCanvasGlyphs().find(g => g.id === glyphIdAttr);
+        const elementIdAttr = element.getAttribute('data-element-id') || element.dataset.elementId || '';
+        const symbol = element.dataset.symbol || '';
+        if (elementIdAttr && symbol) {
+            const existing = canvasHost.getCanvasGlyphs().find(g => g.id === elementIdAttr);
             canvasHost.saveCanvasGlyph({
                 ...existing,
-                id: glyphIdAttr,
+                id: elementIdAttr,
                 symbol,
                 x: targetX,
                 y: targetY,

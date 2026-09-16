@@ -22,7 +22,7 @@ import {
     getLastPosition,
     setLastPosition,
 } from '../dataset';
-import { prepareMorphTo, calculateTrayTarget, resetGlyphElement } from './morphology';
+import { prepareMorphTo, calculateTrayTarget, resetElement } from './morphology';
 import { settleWindow } from './settle-window';
 import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import {
@@ -37,7 +37,7 @@ import {
  * Morph a glyph to window with chrome (title bar, buttons)
  */
 export function morphDotToWindow(
-    glyphElement: HTMLElement,
+    element: HTMLElement,
     glyph: Glyph,
     verifyElement: (id: string, element: HTMLElement) => void,
     onRemove: (id: string) => void,
@@ -79,12 +79,12 @@ export function morphDotToWindow(
     // Asked before a transaction opens, because which form this is
     // cannot be decided halfway through becoming one (Morph Axioma).
     if (!fitsAsWindow(measuredWidth, window.innerWidth)) {
-        morphDotToPanel(glyphElement, glyph, verifyElement, onRemove, onMinimize, preRenderedContent ?? undefined);
+        morphDotToPanel(element, glyph, verifyElement, onRemove, onMinimize, preRenderedContent ?? undefined);
         return;
     }
 
     // settleWindow() hands out the settled stacking value on commit.
-    const morph = prepareMorphTo(glyphElement, glyph, verifyElement, 'window', MORPHING_Z_INDEX);
+    const morph = prepareMorphTo(element, glyph, verifyElement, 'window', MORPHING_Z_INDEX);
     const glyphRect = morph.rect;
 
     const titleBarHeight = parseInt(TITLE_BAR_HEIGHT);
@@ -101,7 +101,7 @@ export function morphDotToWindow(
     const windowHeight = sized.height;
 
     // Check if we have a remembered position on the element
-    const rememberedPos = getLastPosition(glyphElement);
+    const rememberedPos = getLastPosition(element);
 
     // Remembered position, then a declared default, then the emptiest place
     // we can find. Centring every glyph put each new one on top of the last.
@@ -109,7 +109,7 @@ export function morphDotToWindow(
         ? null
         : findPlacement(
             { width: windowWidth, height: windowHeight },
-            occupiedRects(glyphElement),
+            occupiedRects(element),
             { width: window.innerWidth, height: window.innerHeight },
         );
 
@@ -123,7 +123,7 @@ export function morphDotToWindow(
 
     // BEGIN TRANSACTION: Start the morph animation
     beginMorphToBox(
-        glyphElement,
+        element,
         glyphRect,
         { x: targetX, y: targetY, width: windowWidth, height: windowHeight },
         getOpenDuration()
@@ -142,7 +142,7 @@ export function morphDotToWindow(
         // shadow, the column that clips, its place in the stack
         // (forms/settle-window.ts). Per-axis size ownership is this
         // path's alone, so the style each axis takes is passed in.
-        settleWindow(glyphElement, {
+        settleWindow(element, {
             x: targetX,
             y: targetY,
             width: windowWidth,
@@ -154,18 +154,18 @@ export function morphDotToWindow(
         // What the glyph wears is data on the glyph and never a property of a
         // form (VISION.md). The canvas path reaches the same place by
         // leaving on the element what it already wore.
-        glyphElement.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
-        if (glyph.border) glyphElement.style.border = glyph.border;
-        glyphElement.style.backdropFilter = 'blur(2px)';
-        glyphElement.style.padding = '0';
-        glyphElement.style.opacity = '1';
-        glyphElement.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
+        element.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
+        if (glyph.border) element.style.border = glyph.border;
+        element.style.backdropFilter = 'blur(2px)';
+        element.style.padding = '0';
+        element.style.opacity = '1';
+        element.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
 
         // Restore stashed content or render fresh (shared with panel.ts).
         // preRenderedContent is populated when we measured for fit-content
         // sizing above; passing it in avoids a second renderContent() call.
         const { titleBar } = renderContent(
-            glyphElement,
+            element,
             glyph,
             'Window',
             preRenderedContent ?? undefined,
@@ -173,13 +173,13 @@ export function morphDotToWindow(
 
         // Add window controls (minimize/close) to the title bar
         addWindowControls(titleBar, {
-            onMinimize: () => morphWindowToDot(glyphElement, glyph, verifyElement, onMinimize),
+            onMinimize: () => morphWindowToDot(element, glyph, verifyElement, onMinimize),
             onClose: glyph.onClose ? () => {
-                teardownWindowDrag(glyphElement);
+                teardownWindowDrag(element);
                 // A closed glyph is not a glyph that failed to draw.
-                disarmContentWatch(glyphElement);
+                disarmContentWatch(element);
                 onRemove(glyph.id);
-                glyphElement.remove();
+                element.remove();
                 try {
                     glyph.onClose!();
                 } catch (error) {
@@ -194,7 +194,7 @@ export function morphDotToWindow(
 
         // Make window draggable. The width a drag reflows from was recorded by
         // the settle, which is the one place that knows the box.
-        setupWindowDrag(glyphElement, titleBar);
+        setupWindowDrag(element, titleBar);
     }).catch(error => {
         // ROLLBACK: Animation was cancelled or failed
         log.warn(seg, `[Window] Animation failed for ${glyph.id}: ${error instanceof Error ? error.message : String(error)}`);
@@ -234,7 +234,7 @@ export function morphWindowToDot(
 
     beginMorphToDot(windowElement, currentRect, trayTarget, getRestDuration())
         .then(() => {
-            resetGlyphElement(windowElement, glyph, 'Window', onMorphComplete);
+            resetElement(windowElement, glyph, 'Window', onMorphComplete);
         })
         .catch(error => {
             // Animation was cancelled or failed

@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'bun:test';
 import {
-    getRootGlyphIds,
-    getLeafGlyphIds,
+    getRootElementIds,
+    getLeafElementIds,
     isPortFree,
     isConnectedGraph,
     computeGridPositions,
@@ -10,13 +10,13 @@ import {
 // ── Tim (happy path) ────────────────────────────────────────────────
 
 describe('Tim: edge-graph basics', () => {
-    describe('getRootGlyphIds', () => {
+    describe('getRootElementIds', () => {
         test('single chain: first node is root', () => {
             const edges = [
                 { from: 'ax1', to: 'py1', direction: 'right' },
                 { from: 'py1', to: 'prompt1', direction: 'right' },
             ];
-            expect(getRootGlyphIds(edges)).toEqual(['ax1']);
+            expect(getRootElementIds(edges)).toEqual(['ax1']);
         });
 
         test('fan-in: multiple roots converge', () => {
@@ -24,7 +24,7 @@ describe('Tim: edge-graph basics', () => {
                 { from: 'py1', to: 'prompt1', direction: 'right' },
                 { from: 'py2', to: 'prompt1', direction: 'right' },
             ];
-            const roots = getRootGlyphIds(edges);
+            const roots = getRootElementIds(edges);
             expect(roots).toContain('py1');
             expect(roots).toContain('py2');
             expect(roots.length).toBe(2);
@@ -32,17 +32,17 @@ describe('Tim: edge-graph basics', () => {
 
         test('single edge', () => {
             const edges = [{ from: 'a', to: 'b', direction: 'right' }];
-            expect(getRootGlyphIds(edges)).toEqual(['a']);
+            expect(getRootElementIds(edges)).toEqual(['a']);
         });
     });
 
-    describe('getLeafGlyphIds', () => {
+    describe('getLeafElementIds', () => {
         test('single chain: last node is leaf', () => {
             const edges = [
                 { from: 'ax1', to: 'py1', direction: 'right' },
                 { from: 'py1', to: 'prompt1', direction: 'right' },
             ];
-            expect(getLeafGlyphIds(edges)).toEqual(['prompt1']);
+            expect(getLeafElementIds(edges)).toEqual(['prompt1']);
         });
 
         test('fan-out: multiple leaves', () => {
@@ -50,7 +50,7 @@ describe('Tim: edge-graph basics', () => {
                 { from: 'ax1', to: 'py1', direction: 'right' },
                 { from: 'ax1', to: 'py2', direction: 'bottom' },
             ];
-            const leaves = getLeafGlyphIds(edges);
+            const leaves = getLeafElementIds(edges);
             expect(leaves).toContain('py1');
             expect(leaves).toContain('py2');
             expect(leaves.length).toBe(2);
@@ -261,9 +261,9 @@ describe('Jenny: composition-shaped graphs', () => {
             { from: 'py1', to: 'result1', direction: 'bottom' },
         ];
 
-        expect(getRootGlyphIds(edges)).toEqual(['ax1']);
-        expect(getLeafGlyphIds(edges)).toContain('prompt1');
-        expect(getLeafGlyphIds(edges)).toContain('result1');
+        expect(getRootElementIds(edges)).toEqual(['ax1']);
+        expect(getLeafElementIds(edges)).toContain('prompt1');
+        expect(getLeafElementIds(edges)).toContain('result1');
 
         // py1's right outgoing is taken (→ prompt1)
         expect(isPortFree('py1', 'right', 'outgoing', edges)).toBe(false);

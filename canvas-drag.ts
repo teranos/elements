@@ -63,11 +63,11 @@ function findBestAnchorInComposition(
     let bestRole: 'from' | 'to' = 'to';
     let bestDistance = Infinity;
 
-    const glyphElements = compositionElement.querySelectorAll('[data-glyph-id]');
+    const glyphElements = compositionElement.querySelectorAll('[data-element-id]');
     for (const el of glyphElements) {
         const glyphEl = el as HTMLElement;
-        const glyphId = glyphEl.dataset.glyphId;
-        if (!glyphId) continue;
+        const elementId = glyphEl.dataset.elementId;
+        if (!elementId) continue;
 
         const glyphClass = getGlyphClass(glyphEl);
         if (!glyphClass) continue;
@@ -76,11 +76,11 @@ function findBestAnchorInComposition(
 
         // Append: composition glyph → standalone (outgoing port)
         for (const dir of getCompatibleDirections(glyphClass, standaloneClass)) {
-            if (!isPortFree(glyphId, dir, 'outgoing', edges)) continue;
+            if (!isPortFree(elementId, dir, 'outgoing', edges)) continue;
             const dist = checkDirectionalProximity(glyphRect, standaloneRect, dir);
             if (dist < bestDistance) {
                 bestDistance = dist;
-                bestId = glyphId;
+                bestId = elementId;
                 bestDirection = dir;
                 bestRole = 'to';
             }
@@ -88,11 +88,11 @@ function findBestAnchorInComposition(
 
         // Prepend: standalone → composition glyph (incoming port)
         for (const dir of getCompatibleDirections(standaloneClass, glyphClass)) {
-            if (!isPortFree(glyphId, dir, 'incoming', edges)) continue;
+            if (!isPortFree(elementId, dir, 'incoming', edges)) continue;
             const dist = checkDirectionalProximity(standaloneRect, glyphRect, dir);
             if (dist < bestDistance) {
                 bestDistance = dist;
-                bestId = glyphId;
+                bestId = elementId;
                 bestDirection = dir;
                 bestRole = 'from';
             }
@@ -266,10 +266,10 @@ export function makeDraggable(
             const meldInfo = findMeldTarget(element);
             if (meldInfo.target && meldInfo.distance < MELD_THRESHOLD) {
                 const nearbyElement = meldInfo.target;
-                const nearbyGlyphId = nearbyElement.dataset.glyphId || 'glyph-unknown';
+                const nearbyElementId = nearbyElement.dataset.elementId || 'glyph-unknown';
 
                 const nearbyGlyph: Glyph = {
-                    id: nearbyGlyphId,
+                    id: nearbyElementId,
                     title: 'Glyph',
                     renderContent: () => nearbyElement
                 };
@@ -293,15 +293,15 @@ export function makeDraggable(
                 if (targetComp || initiatorComp) {
                     const compositionElement = (targetComp || initiatorComp)!;
                     const standaloneElement = targetComp ? meldInitiator : meldTarget;
-                    const standaloneId = standaloneElement.dataset.glyphId || '';
+                    const standaloneId = standaloneElement.dataset.elementId || '';
                     const standaloneClass = getGlyphClass(standaloneElement);
-                    const fallbackAnchorId = (targetComp ? meldTarget : meldInitiator).dataset.glyphId || '';
+                    const fallbackAnchorId = (targetComp ? meldTarget : meldInitiator).dataset.elementId || '';
                     const existingComp = canvasHost.findCompositionByGlyph(fallbackAnchorId);
 
                     if (existingComp && standaloneClass) {
-                        const selectedIds = canvasHost.getSelectedGlyphIds(dragCanvasId);
+                        const selectedIds = canvasHost.getSelectedElementIds(dragCanvasId);
                         const selectedAnchor = selectedIds.find(id =>
-                            compositionElement.querySelector(`[data-glyph-id="${id}"]`) !== null
+                            compositionElement.querySelector(`[data-element-id="${id}"]`) !== null
                         );
 
                         let bestAnchorId: string;
@@ -321,9 +321,9 @@ export function makeDraggable(
                         const option = selectPreferredMeldOption(options, bestAnchorId, bestDirection);
 
                         if (option) {
-                            extendComposition(compositionElement, standaloneElement, standaloneId, option.glyphId, option.direction, option.incomingRole);
+                            extendComposition(compositionElement, standaloneElement, standaloneId, option.elementId, option.direction, option.incomingRole);
 
-                            const updatedId = compositionElement.getAttribute('data-glyph-id') || '';
+                            const updatedId = compositionElement.getAttribute('data-element-id') || '';
                             const compositionGlyph: Glyph = {
                                 id: updatedId,
                                 title: 'Melded Composition',
@@ -345,7 +345,7 @@ export function makeDraggable(
                 const composition = performMeld(meldInitiator, meldTarget, meldInitiatorGlyph, meldTargetGlyph, meldInfo.direction);
 
                 const compositionGlyph: Glyph = {
-                    id: composition.getAttribute('data-glyph-id') || `melded-${meldInitiatorGlyph.id}-${meldTargetGlyph.id}`,
+                    id: composition.getAttribute('data-element-id') || `melded-${meldInitiatorGlyph.id}-${meldTargetGlyph.id}`,
                     title: 'Melded Composition',
                     renderContent: () => composition
                 };
@@ -367,9 +367,9 @@ export function makeDraggable(
         if (isMeldedComposition(element)) {
             const x = Math.round(parseFloat(element.style.left) || 0);
             const y = Math.round(parseFloat(element.style.top) || 0);
-            const compositionId = element.getAttribute('data-glyph-id') || '';
-            const firstChild = element.querySelector('[data-glyph-id]');
-            const childId = firstChild?.getAttribute('data-glyph-id') || '';
+            const compositionId = element.getAttribute('data-element-id') || '';
+            const firstChild = element.querySelector('[data-element-id]');
+            const childId = firstChild?.getAttribute('data-element-id') || '';
             const existingComp = canvasHost.findCompositionByGlyph(childId);
             if (existingComp) {
                 canvasHost.saveComposition({ ...existingComp, x, y });
@@ -452,19 +452,19 @@ export function makeDraggable(
 
         const canvasId = (element.closest('[data-canvas-id]') as HTMLElement | null)?.dataset?.canvasId ?? 'canvas-workspace';
         dragCanvasId = canvasId;
-        const selectedIds = canvasHost.getSelectedGlyphIds(canvasId);
+        const selectedIds = canvasHost.getSelectedElementIds(canvasId);
         if (selectedIds.length > 1 && canvasHost.isGlyphSelected(canvasId, glyph.id)) {
             isMultiDrag = true;
             const canvas = element.parentElement;
             if (canvas) {
                 for (const id of selectedIds) {
-                    const el = canvas.querySelector(`[data-glyph-id="${id}"]`) as HTMLElement | null;
+                    const el = canvas.querySelector(`[data-element-id="${id}"]`) as HTMLElement | null;
                     if (el) {
                         const elRect = el.getBoundingClientRect();
                         const glyphData: Glyph = {
                             id,
                             title: el.dataset.glyphTitle || 'Glyph',
-                            symbol: el.dataset.glyphSymbol,
+                            symbol: el.dataset.symbol,
                             width: Math.round(elRect.width),
                             height: Math.round(elRect.height),
                             renderContent: () => el

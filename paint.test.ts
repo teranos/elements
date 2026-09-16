@@ -13,7 +13,7 @@
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { tray } from './tray/tray';
 import { canvasPlaced } from './forms/canvas-placed';
-import { resetGlyphElement } from './forms/morphology';
+import { resetElement } from './forms/morphology';
 import { readPaint, wearPaint } from './paint';
 import { DEFAULT_COLOR } from './glyph';
 import type { Glyph } from './glyph';
@@ -89,7 +89,7 @@ describe('a glyph whose datum names no colour', () => {
         document.body.appendChild(element);
 
         let handed: HTMLElement | null = null;
-        resetGlyphElement(element, item, 'CRIER', (el) => { handed = el; });
+        resetElement(element, item, 'CRIER', (el) => { handed = el; });
 
         expect(handed).not.toBeNull();
         expect(element.style.backgroundColor).toBe(PAINTED);

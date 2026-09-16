@@ -6,8 +6,8 @@ import {
     setLastPosition,
     hasProximityText,
     setProximityText,
-    getGlyphId,
-    setGlyphId,
+    getElementId,
+    setElementId,
     setCanvasOrigin,
     getCanvasOrigin,
     clearCanvasOrigin,
@@ -81,17 +81,17 @@ describe('Tim: dataset helpers', () => {
 
     describe('glyph ID', () => {
         test('no ID by default', () => {
-            expect(getGlyphId(el)).toBeNull();
+            expect(getElementId(el)).toBeNull();
         });
 
         test('set and get', () => {
-            setGlyphId(el, 'py-abc123');
-            expect(getGlyphId(el)).toBe('py-abc123');
+            setElementId(el, 'py-abc123');
+            expect(getElementId(el)).toBe('py-abc123');
         });
 
-        test('uses data-glyph-id attribute', () => {
-            setGlyphId(el, 'test-id');
-            expect(el.getAttribute('data-glyph-id')).toBe('test-id');
+        test('uses data-element-id attribute', () => {
+            setElementId(el, 'test-id');
+            expect(el.getAttribute('data-element-id')).toBe('test-id');
         });
     });
 
@@ -181,9 +181,9 @@ describe('Spike: dataset edge cases', () => {
     });
 
     test('overwrite glyph ID', () => {
-        setGlyphId(el, 'first');
-        setGlyphId(el, 'second');
-        expect(getGlyphId(el)).toBe('second');
+        setElementId(el, 'first');
+        setElementId(el, 'second');
+        expect(getElementId(el)).toBe('second');
     });
 
     test('overwrite canvas origin', () => {

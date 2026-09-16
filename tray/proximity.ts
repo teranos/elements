@@ -172,8 +172,8 @@ export class Proximity {
             const baselineBoost = maxProximityRaw > this.BASELINE_BOOST_TRIGGER ? this.BASELINE_BOOST_AMOUNT : 0;
 
             glyphs.forEach((glyph) => {
-                const glyphId = glyph.dataset.glyphId ?? '';
-                const item = items.get(glyphId);
+                const elementId = glyph.dataset.elementId ?? '';
+                const item = items.get(elementId);
 
                 const { proximityRaw, isVerticalApproach } = this.calculateProximity(glyph);
 

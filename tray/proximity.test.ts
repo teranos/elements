@@ -16,7 +16,7 @@ import { describe, test, expect, beforeAll, afterAll, afterEach } from 'bun:test
 import { configureGlyphs, getDotGeometry } from '../config';
 import { Proximity, applyRestingDotGeometry } from './proximity';
 import { tray } from './tray';
-import { resetGlyphElement } from '../forms/morphology';
+import { resetElement } from '../forms/morphology';
 import type { Glyph } from '../glyph';
 
 /** The geometry the hardcoded constants had. Changing these is a breaking change. */
@@ -170,7 +170,7 @@ describe('Spike: geometry is read at use time', () => {
 
         const item: Glyph = { id: 'dot-geometry-1', title: 'Dot Geometry', symbol: 'ax' };
         tray.add(item, true);
-        const dot = document.querySelector('[data-glyph-id="dot-geometry-1"]') as HTMLElement;
+        const dot = document.querySelector('[data-element-id="dot-geometry-1"]') as HTMLElement;
 
         expect(dot).not.toBeNull();
         expect(dot.style.width).toBe('16px');
@@ -188,7 +188,7 @@ describe('Spike: geometry is read at use time', () => {
         el.style.height = '400px';
         document.body.appendChild(el);
 
-        resetGlyphElement(el, item, 'test', () => {});
+        resetElement(el, item, 'test', () => {});
 
         expect(el.style.width).toBe('16px');
         expect(el.style.height).toBe('18px');
@@ -219,7 +219,7 @@ describe('Jenny: the expanded dot shows the symbol', () => {
     /** A tray with one dot bound to an item, as the engine finds them. */
     function trayWithItem(item: Glyph): { container: HTMLElement; dot: HTMLElement; items: Map<string, Glyph> } {
         const { container, dot } = makeTray();
-        dot.dataset.glyphId = item.id;
+        dot.dataset.elementId = item.id;
         return { container, dot, items: new Map([[item.id, item]]) };
     }
 

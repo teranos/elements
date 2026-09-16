@@ -16,7 +16,7 @@
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { tray } from './tray/tray';
 import { canvasPlaced } from './forms/canvas-placed';
-import { resetGlyphElement } from './forms/morphology';
+import { resetElement } from './forms/morphology';
 import type { Glyph } from './glyph';
 
 const BORDER = '2px dashed red';
@@ -38,7 +38,7 @@ describe('Tim: every form wears the border', () => {
     test('a dot born in the tray wears it', () => {
         const item = makeGlyph('border-dot-1', { border: BORDER });
         tray.add(item, true);
-        const dot = document.querySelector('[data-glyph-id="border-dot-1"]') as HTMLElement;
+        const dot = document.querySelector('[data-element-id="border-dot-1"]') as HTMLElement;
 
         expect(dot.style.border).toBe(BORDER);
 
@@ -64,7 +64,7 @@ describe('Tim: every form wears the border', () => {
         el.style.cssText = 'width: 600px; border: 1px solid red;';
         document.body.appendChild(el);
 
-        resetGlyphElement(el, item, 'test', () => {});
+        resetElement(el, item, 'test', () => {});
 
         expect(el.style.border).toBe(BORDER);
         expect(el.style.backgroundColor).not.toBe('');
@@ -75,7 +75,7 @@ describe('Spike: no border on the datum', () => {
     test('a dot without one carries no inline border — CSS decides', () => {
         const item = makeGlyph('border-none-1');
         tray.add(item, true);
-        const dot = document.querySelector('[data-glyph-id="border-none-1"]') as HTMLElement;
+        const dot = document.querySelector('[data-element-id="border-none-1"]') as HTMLElement;
 
         expect(dot.style.border).toBe('');
 

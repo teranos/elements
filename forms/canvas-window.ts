@@ -19,7 +19,7 @@ import {
     getLastPosition,
     setLastPosition,
     getSymbol,
-    getGlyphId,
+    getElementId,
 } from '../dataset';
 import { settleWindow } from './settle-window';
 import { watchContent, disarmContentWatch } from '../content-watch';
@@ -230,7 +230,7 @@ export function morphCanvasPlacedToWindow(
         // at once. It is watched all the same: a glyph lifted off the canvas
         // holding nothing is the same silence as one opened from the tray
         // holding nothing (content-watch.ts).
-        watchContent(element, contentDiv, { id: getGlyphId(element) ?? canvasId, title }, 'CanvasWindow');
+        watchContent(element, contentDiv, { id: getElementId(element) ?? canvasId, title }, 'CanvasWindow');
 
         log.debug(seg, `[CanvasWindow] Morphed to window at ${targetX},${targetY}`);
     }).catch(err => {
@@ -371,7 +371,7 @@ function minimizeCanvasWindowToTray(
     teardownWindowDrag(element);
 
     // 3. Find tray target position
-    const trayTarget = calculateTrayTarget(element.dataset.glyphId);
+    const trayTarget = calculateTrayTarget(element.dataset.elementId);
 
     // 4. Animate toward tray
     beginMorphToDot(element, windowRect, trayTarget, getRestDuration())

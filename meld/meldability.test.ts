@@ -17,7 +17,7 @@ import {
     getMeldOptions,
     selectPreferredMeldOption,
 } from './meldability';
-import { getLeafGlyphIds, getRootGlyphIds, computeGridPositions } from '../edge-graph';
+import { getLeafElementIds, getRootElementIds, computeGridPositions } from '../edge-graph';
 import type { EdgeDirection } from '../composition';
 
 describe('Port-aware MELDABILITY registry', () => {
@@ -171,13 +171,13 @@ describe('Port-aware MELDABILITY registry', () => {
         });
     });
 
-    describe('getLeafGlyphIds', () => {
+    describe('getLeafElementIds', () => {
         test('finds leaf in simple chain', () => {
             const edges = [
                 { from: 'ax1', to: 'py1', direction: 'right' },
                 { from: 'py1', to: 'prompt1', direction: 'right' }
             ];
-            expect(getLeafGlyphIds(edges)).toEqual(['prompt1']);
+            expect(getLeafElementIds(edges)).toEqual(['prompt1']);
         });
 
         test('finds multiple leaves in fan-out', () => {
@@ -185,7 +185,7 @@ describe('Port-aware MELDABILITY registry', () => {
                 { from: 'ax1', to: 'py1', direction: 'right' },
                 { from: 'ax1', to: 'py2', direction: 'right' }
             ];
-            const leaves = getLeafGlyphIds(edges);
+            const leaves = getLeafElementIds(edges);
             expect(leaves).toContain('py1');
             expect(leaves).toContain('py2');
             expect(leaves.length).toBe(2);
@@ -193,17 +193,17 @@ describe('Port-aware MELDABILITY registry', () => {
 
         test('single edge: leaf is the to node', () => {
             const edges = [{ from: 'ax1', to: 'prompt1', direction: 'right' }];
-            expect(getLeafGlyphIds(edges)).toEqual(['prompt1']);
+            expect(getLeafElementIds(edges)).toEqual(['prompt1']);
         });
     });
 
-    describe('getRootGlyphIds', () => {
+    describe('getRootElementIds', () => {
         test('finds root in simple chain', () => {
             const edges = [
                 { from: 'ax1', to: 'py1', direction: 'right' },
                 { from: 'py1', to: 'prompt1', direction: 'right' }
             ];
-            expect(getRootGlyphIds(edges)).toEqual(['ax1']);
+            expect(getRootElementIds(edges)).toEqual(['ax1']);
         });
 
         test('finds multiple roots in fan-in', () => {
@@ -211,7 +211,7 @@ describe('Port-aware MELDABILITY registry', () => {
                 { from: 'py1', to: 'prompt1', direction: 'right' },
                 { from: 'py2', to: 'prompt1', direction: 'right' }
             ];
-            const roots = getRootGlyphIds(edges);
+            const roots = getRootElementIds(edges);
             expect(roots).toContain('py1');
             expect(roots).toContain('py2');
             expect(roots.length).toBe(2);
@@ -223,10 +223,10 @@ describe('Port-aware MELDABILITY registry', () => {
             const composition = document.createElement('div');
             const ax = document.createElement('div');
             ax.className = 'canvas-ax-glyph';
-            ax.setAttribute('data-glyph-id', 'ax1');
+            ax.setAttribute('data-element-id', 'ax1');
             const py = document.createElement('div');
             py.className = 'canvas-py-glyph';
-            py.setAttribute('data-glyph-id', 'py1');
+            py.setAttribute('data-element-id', 'py1');
             composition.appendChild(ax);
             composition.appendChild(py);
 
@@ -237,7 +237,7 @@ describe('Port-aware MELDABILITY registry', () => {
 
             const appendOption = options.find(o => o.incomingRole === 'to');
             expect(appendOption).toBeDefined();
-            expect(appendOption!.glyphId).toBe('py1');
+            expect(appendOption!.elementId).toBe('py1');
             expect(appendOption!.direction).toBe('right');
         });
 
@@ -245,10 +245,10 @@ describe('Port-aware MELDABILITY registry', () => {
             const composition = document.createElement('div');
             const py = document.createElement('div');
             py.className = 'canvas-py-glyph';
-            py.setAttribute('data-glyph-id', 'py1');
+            py.setAttribute('data-element-id', 'py1');
             const prompt = document.createElement('div');
             prompt.className = 'canvas-prompt-glyph';
-            prompt.setAttribute('data-glyph-id', 'prompt1');
+            prompt.setAttribute('data-element-id', 'prompt1');
             composition.appendChild(py);
             composition.appendChild(prompt);
 
@@ -258,7 +258,7 @@ describe('Port-aware MELDABILITY registry', () => {
 
             const prependOption = options.find(o => o.incomingRole === 'from');
             expect(prependOption).toBeDefined();
-            expect(prependOption!.glyphId).toBe('py1');
+            expect(prependOption!.elementId).toBe('py1');
             expect(prependOption!.direction).toBe('right');
         });
 
@@ -266,10 +266,10 @@ describe('Port-aware MELDABILITY registry', () => {
             const composition = document.createElement('div');
             const ax = document.createElement('div');
             ax.className = 'canvas-ax-glyph';
-            ax.setAttribute('data-glyph-id', 'ax1');
+            ax.setAttribute('data-element-id', 'ax1');
             const py = document.createElement('div');
             py.className = 'canvas-py-glyph';
-            py.setAttribute('data-glyph-id', 'py1');
+            py.setAttribute('data-element-id', 'py1');
             composition.appendChild(ax);
             composition.appendChild(py);
 
@@ -279,7 +279,7 @@ describe('Port-aware MELDABILITY registry', () => {
 
             const bottomOption = options.find(o => o.direction === 'bottom');
             expect(bottomOption).toBeDefined();
-            expect(bottomOption!.glyphId).toBe('py1');
+            expect(bottomOption!.elementId).toBe('py1');
             expect(bottomOption!.incomingRole).toBe('to');
         });
 
@@ -287,13 +287,13 @@ describe('Port-aware MELDABILITY registry', () => {
             const composition = document.createElement('div');
             const r1 = document.createElement('div');
             r1.className = 'canvas-result-glyph';
-            r1.setAttribute('data-glyph-id', 'result1');
+            r1.setAttribute('data-element-id', 'result1');
             const r2 = document.createElement('div');
             r2.className = 'canvas-result-glyph';
-            r2.setAttribute('data-glyph-id', 'result2');
+            r2.setAttribute('data-element-id', 'result2');
             const r3 = document.createElement('div');
             r3.className = 'canvas-result-glyph';
-            r3.setAttribute('data-glyph-id', 'result3');
+            r3.setAttribute('data-element-id', 'result3');
             composition.appendChild(r1);
             composition.appendChild(r2);
             composition.appendChild(r3);
@@ -309,7 +309,7 @@ describe('Port-aware MELDABILITY registry', () => {
             expect(rightOptions.length).toBe(3);
 
             const preferredOption = selectPreferredMeldOption(options, 'result3');
-            expect(preferredOption!.glyphId).toBe('result3');
+            expect(preferredOption!.elementId).toBe('result3');
 
             const fallbackOption = selectPreferredMeldOption(options, 'nonexistent');
             expect(fallbackOption).toBeDefined();
@@ -319,7 +319,7 @@ describe('Port-aware MELDABILITY registry', () => {
             const composition = document.createElement('div');
             const ax = document.createElement('div');
             ax.className = 'canvas-ax-glyph';
-            ax.setAttribute('data-glyph-id', 'ax1');
+            ax.setAttribute('data-element-id', 'ax1');
             composition.appendChild(ax);
 
             const edges = [{ from: 'ax1', to: 'py1', direction: 'right' }];
@@ -334,17 +334,17 @@ describe('Port-aware MELDABILITY registry', () => {
             const composition = document.createElement('div');
             const se = document.createElement('div');
             se.className = 'canvas-se-glyph';
-            se.setAttribute('data-glyph-id', 'se1');
+            se.setAttribute('data-element-id', 'se1');
             const py = document.createElement('div');
             py.className = 'canvas-py-glyph';
-            py.setAttribute('data-glyph-id', 'py1');
+            py.setAttribute('data-element-id', 'py1');
             composition.appendChild(se);
             composition.appendChild(py);
 
             const edges = [{ from: 'se1', to: 'py1', direction: 'right' }];
             const options = getMeldOptions('canvas-prompt-glyph', composition, edges);
 
-            const appendOption = options.find(o => o.glyphId === 'py1' && o.direction === 'right');
+            const appendOption = options.find(o => o.elementId === 'py1' && o.direction === 'right');
             expect(appendOption).toBeDefined();
             expect(appendOption!.incomingRole).toBe('to');
         });

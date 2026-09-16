@@ -14,7 +14,7 @@ import type { CompositionEdge } from './composition';
 /**
  * Find root nodes — glyphs with no incoming edges (graph sources).
  */
-export function getRootGlyphIds(
+export function getRootElementIds(
     edges: Array<{ from: string; to: string; direction: string }>
 ): string[] {
     const allIds = new Set<string>();
@@ -32,7 +32,7 @@ export function getRootGlyphIds(
 /**
  * Find leaf nodes — glyphs with no outgoing edges (graph sinks).
  */
-export function getLeafGlyphIds(
+export function getLeafElementIds(
     edges: Array<{ from: string; to: string; direction: string }>
 ): string[] {
     const allIds = new Set<string>();
@@ -51,14 +51,14 @@ export function getLeafGlyphIds(
  * Check if a glyph's port is free (no existing edge occupies it).
  */
 export function isPortFree(
-    glyphId: string,
+    elementId: string,
     direction: string,
     role: 'incoming' | 'outgoing',
     edges: Array<{ from: string; to: string; direction: string }>
 ): boolean {
     for (const edge of edges) {
-        if (role === 'outgoing' && edge.from === glyphId && edge.direction === direction) return false;
-        if (role === 'incoming' && edge.to === glyphId && edge.direction === direction) return false;
+        if (role === 'outgoing' && edge.from === elementId && edge.direction === direction) return false;
+        if (role === 'incoming' && edge.to === elementId && edge.direction === direction) return false;
     }
     return true;
 }
@@ -115,7 +115,7 @@ export function computeGridPositions(
 
     if (edges.length === 0) return positions;
 
-    const roots = getRootGlyphIds(edges);
+    const roots = getRootElementIds(edges);
 
     // Build adjacency list
     const adjacency = new Map<string, Array<{ to: string; direction: string }>>();

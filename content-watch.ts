@@ -172,7 +172,7 @@ export function declareContent(node: Node, state: ContentState): void {
 /** The glyph element a node sits inside, or null if it sits in no glyph. */
 function owningGlyph(node: Node): HTMLElement | null {
     const start = node.nodeType === 1 ? (node as HTMLElement) : node.parentElement;
-    return start?.closest('[data-glyph-id]') as HTMLElement | null ?? null;
+    return start?.closest('[data-element-id]') as HTMLElement | null ?? null;
 }
 
 /**

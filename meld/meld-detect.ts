@@ -164,7 +164,7 @@ export function findMeldTarget(draggedElement: HTMLElement): {
                 for (const direction of directions) {
                     // Axiom: one glyph per side — skip if target's incoming port is occupied
                     if (targetComp) {
-                        const targetId = targetElement.dataset.glyphId;
+                        const targetId = targetElement.dataset.elementId;
                         if (targetId) {
                             const comp = canvasHost.findCompositionByGlyph(targetId);
                             if (comp && !isPortFree(targetId, direction, 'incoming', comp.edges)) continue;
@@ -204,7 +204,7 @@ export function findMeldTarget(draggedElement: HTMLElement): {
                 for (const direction of directions) {
                     // Axiom: one glyph per side — skip if nearby's outgoing port is occupied
                     if (nearbyComp) {
-                        const nearbyId = nearbyElement.dataset.glyphId;
+                        const nearbyId = nearbyElement.dataset.elementId;
                         if (nearbyId) {
                             const comp = canvasHost.findCompositionByGlyph(nearbyId);
                             if (comp && !isPortFree(nearbyId, direction, 'outgoing', comp.edges)) continue;

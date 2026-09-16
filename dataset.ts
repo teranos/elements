@@ -94,15 +94,15 @@ export function setProximityText(element: HTMLElement, hasText: boolean): void {
 /**
  * Get glyph ID from element
  */
-export function getGlyphId(element: HTMLElement): string | null {
-    return element.getAttribute('data-glyph-id');
+export function getElementId(element: HTMLElement): string | null {
+    return element.getAttribute('data-element-id');
 }
 
 /**
  * Set glyph ID on element
  */
-export function setGlyphId(element: HTMLElement, id: string): void {
-    element.setAttribute('data-glyph-id', id);
+export function setElementId(element: HTMLElement, id: string): void {
+    element.setAttribute('data-element-id', id);
 }
 
 /**
@@ -150,7 +150,7 @@ export function clearCanvasOrigin(element: HTMLElement): void {
  * Get glyph symbol from element
  */
 export function getSymbol(element: HTMLElement): string | undefined {
-    return element.dataset.glyphSymbol;
+    return element.dataset.symbol;
 }
 
 /**
@@ -158,9 +158,9 @@ export function getSymbol(element: HTMLElement): string | undefined {
  */
 export function setSymbol(element: HTMLElement, symbol: string | undefined): void {
     if (symbol !== undefined) {
-        element.dataset.glyphSymbol = symbol;
+        element.dataset.symbol = symbol;
     } else {
-        delete element.dataset.glyphSymbol;
+        delete element.dataset.symbol;
     }
 }
 

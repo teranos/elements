@@ -59,7 +59,7 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
     // Container — reuse cursor element from placement mode if available
     const element = config.element ?? glyph.cursorElement ?? document.createElement('div');
     element.className = `${className} canvas-glyph`;
-    element.dataset.glyphId = glyph.id;
+    element.dataset.elementId = glyph.id;
     setSymbol(element, glyph.symbol);
     element.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
     element.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;

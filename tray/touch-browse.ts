@@ -50,8 +50,8 @@ export function findPeakedGlyph(host: TouchBrowseHost): { element: HTMLElement; 
         return null;
     }
 
-    const glyphId = (bestElement as HTMLElement).dataset.glyphId ?? '';
-    const item = host.items.get(glyphId);
+    const elementId = (bestElement as HTMLElement).dataset.elementId ?? '';
+    const item = host.items.get(elementId);
     if (!item) return null;
 
     return { element: bestElement, item };
@@ -86,7 +86,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         const target = e.target as HTMLElement | null;
         if (target && typeof target.closest === 'function') {
             if (target.closest('button')) return;
-            const owner = target.closest('[data-glyph-id]') as HTMLElement | null;
+            const owner = target.closest('[data-element-id]') as HTMLElement | null;
             if (owner && !owner.classList.contains('glyph-run-glyph')) return;
         }
 

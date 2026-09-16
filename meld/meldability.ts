@@ -139,16 +139,16 @@ export function areClassesCompatible(initiatorClass: string, targetClass: string
 /**
  * Extract glyph IDs from a composition element's children
  */
-export function getCompositionGlyphIds(composition: HTMLElement): string[] {
-    const glyphElements = composition.querySelectorAll('[data-glyph-id]');
-    const glyphIds: string[] = [];
+export function getCompositionElementIds(composition: HTMLElement): string[] {
+    const glyphElements = composition.querySelectorAll('[data-element-id]');
+    const elementIds: string[] = [];
 
     glyphElements.forEach(el => {
-        const id = el.getAttribute('data-glyph-id');
-        if (id) glyphIds.push(id);
+        const id = el.getAttribute('data-element-id');
+        if (id) elementIds.push(id);
     });
 
-    return glyphIds;
+    return elementIds;
 }
 
 /**
@@ -163,7 +163,7 @@ export function getGlyphClass(element: HTMLElement): string | null {
 
 export interface MeldOption {
     /** The glyph in the composition that the incoming glyph connects with */
-    glyphId: string;
+    elementId: string;
     /** Edge direction for this connection */
     direction: EdgeDirection;
     /** Whether the incoming glyph is the 'from' (prepend) or 'to' (append) in the edge */
@@ -203,23 +203,23 @@ export function getMeldOptions(
         incoming.get(edge.to)!.add(edge.direction);
     }
 
-    for (const glyphId of allIds) {
-        const el = compositionElement.querySelector(`[data-glyph-id="${glyphId}"]`) as HTMLElement | null;
+    for (const elementId of allIds) {
+        const el = compositionElement.querySelector(`[data-element-id="${elementId}"]`) as HTMLElement | null;
         if (!el) continue;
         const cls = getGlyphClass(el);
         if (!cls) continue;
 
         // 1. Append: this glyph sends to the incoming glyph (outgoing port)
         for (const appendDir of getCompatibleDirections(cls, incomingClass)) {
-            if (!outgoing.get(glyphId)?.has(appendDir)) {
-                options.push({ glyphId, direction: appendDir, incomingRole: 'to' });
+            if (!outgoing.get(elementId)?.has(appendDir)) {
+                options.push({ elementId, direction: appendDir, incomingRole: 'to' });
             }
         }
 
         // 2. Prepend: the incoming glyph sends to this glyph (incoming port)
         for (const prependDir of getCompatibleDirections(incomingClass, cls)) {
-            if (!incoming.get(glyphId)?.has(prependDir)) {
-                options.push({ glyphId, direction: prependDir, incomingRole: 'from' });
+            if (!incoming.get(elementId)?.has(prependDir)) {
+                options.push({ elementId, direction: prependDir, incomingRole: 'from' });
             }
         }
     }
@@ -233,19 +233,19 @@ export function getMeldOptions(
  */
 export function selectPreferredMeldOption(
     options: MeldOption[],
-    anchorGlyphId: string,
+    anchorElementId: string,
     preferredDirection?: EdgeDirection
 ): MeldOption | null {
     if (options.length === 0) return null;
 
     // Best: matches both anchor glyph and detected direction
     if (preferredDirection) {
-        const exact = options.find(o => o.glyphId === anchorGlyphId && o.direction === preferredDirection);
+        const exact = options.find(o => o.elementId === anchorElementId && o.direction === preferredDirection);
         if (exact) return exact;
     }
 
     // Good: matches anchor glyph
-    const anchorMatch = options.find(o => o.glyphId === anchorGlyphId);
+    const anchorMatch = options.find(o => o.elementId === anchorElementId);
     if (anchorMatch) return anchorMatch;
 
     return options[0];

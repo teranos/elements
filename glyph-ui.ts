@@ -158,7 +158,7 @@ export interface Attestation {
 
 /** Detail payload for the glyph:spawn-result DOM event. */
 export interface SpawnResultDetail {
-    glyphId: string;
+    elementId: string;
     name: string;
     result: {
         success: boolean;
@@ -173,7 +173,7 @@ export interface SpawnResultDetail {
 /** Data passed to onMeld callbacks when a glyph melds onto this one. */
 export interface MeldEvent {
     /** ID of the glyph that melded onto this one */
-    glyphId: string;
+    elementId: string;
     /** Symbol of the melded glyph */
     symbol: string;
     /** Direction the meld came from (the edge direction) */

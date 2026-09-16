@@ -14,20 +14,20 @@ import { getLogger, getLogSegment } from '../config';
 import { type Glyph, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../glyph';
 import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import { getOpenDuration, getRestDuration } from '../glyph';
-import { prepareMorphTo, calculateTrayTarget, resetGlyphElement } from './morphology';
+import { prepareMorphTo, calculateTrayTarget, resetElement } from './morphology';
 
 /**
  * Morph a glyph to fullscreen canvas (no chrome)
  */
 export function morphDotToWorkspace(
-    glyphElement: HTMLElement,
+    element: HTMLElement,
     glyph: Glyph,
     verifyElement: (id: string, element: HTMLElement) => void,
     onMinimize: (element: HTMLElement, glyph: Glyph) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();
-    const morph = prepareMorphTo(glyphElement, glyph, verifyElement, 'workspace', '1000');
+    const morph = prepareMorphTo(element, glyph, verifyElement, 'workspace', '1000');
     const glyphRect = morph.rect;
 
     // Target: full viewport
@@ -38,7 +38,7 @@ export function morphDotToWorkspace(
 
     // BEGIN TRANSACTION: Start the morph animation
     beginMorphToBox(
-        glyphElement,
+        element,
         glyphRect,
         { x: targetX, y: targetY, width: targetWidth, height: targetHeight },
         getOpenDuration()
@@ -47,23 +47,23 @@ export function morphDotToWorkspace(
         log.debug(seg, `[Canvas] Animation committed for ${glyph.id}`);
 
         // Apply final fullscreen state - NO CHROME
-        glyphElement.style.position = 'fixed';
-        glyphElement.style.left = '0';
-        glyphElement.style.top = '0';
-        glyphElement.style.width = '100vw';
-        glyphElement.style.height = '100vh';
-        glyphElement.style.borderRadius = '0'; // No rounded corners
-        glyphElement.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
-        if (glyph.border) glyphElement.style.border = glyph.border;
-        glyphElement.style.backdropFilter = 'blur(2px)';
-        glyphElement.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
-        glyphElement.style.boxShadow = 'none'; // No shadow
-        glyphElement.style.padding = '0'; // No padding
-        glyphElement.style.opacity = '1';
+        element.style.position = 'fixed';
+        element.style.left = '0';
+        element.style.top = '0';
+        element.style.width = '100vw';
+        element.style.height = '100vh';
+        element.style.borderRadius = '0'; // No rounded corners
+        element.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
+        if (glyph.border) element.style.border = glyph.border;
+        element.style.backdropFilter = 'blur(2px)';
+        element.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
+        element.style.boxShadow = 'none'; // No shadow
+        element.style.padding = '0'; // No padding
+        element.style.opacity = '1';
 
         // Set up as flex container (content fills entire viewport)
-        glyphElement.style.display = 'flex';
-        glyphElement.style.flexDirection = 'column';
+        element.style.display = 'flex';
+        element.style.flexDirection = 'column';
         // Morph class leaves with the morph; settled fullscreen class stays
         morph.commitClass('canvas-fullscreen-adjusted');
 
@@ -72,19 +72,19 @@ export function morphDotToWorkspace(
         minimizeBtn.textContent = '\u2212';
         minimizeBtn.className = 'canvas-minimize-btn';
         minimizeBtn.onclick = () => morphWorkspaceToDot(
-            glyphElement,
+            element,
             glyph,
             verifyElement,
             onMinimize
         );
-        glyphElement.appendChild(minimizeBtn);
+        element.appendChild(minimizeBtn);
 
         // Add content (fills viewport)
         try {
             const content = glyph.renderContent();
             content.style.flex = '1'; // Take all space
             content.style.overflow = 'hidden';
-            glyphElement.appendChild(content);
+            element.appendChild(content);
         } catch (error) {
             log.error(seg, `[Canvas ${glyph.id}] Error rendering content: ${error instanceof Error ? error.message : String(error)}`);
             const errorContent = document.createElement('div');
@@ -103,7 +103,7 @@ export function morphDotToWorkspace(
             errorMsg.textContent = error instanceof Error ? error.message : String(error);
             errorContent.appendChild(errorMsg);
 
-            glyphElement.appendChild(errorContent);
+            element.appendChild(errorContent);
         }
     }).catch(error => {
         // ROLLBACK: Animation failed — the glyph keeps the classes it had
@@ -137,7 +137,7 @@ export function morphWorkspaceToDot(
 
     beginMorphToDot(canvasElement, currentRect, trayTarget, getRestDuration())
         .then(() => {
-            resetGlyphElement(canvasElement, glyph, 'Canvas', onMorphComplete);
+            resetElement(canvasElement, glyph, 'Canvas', onMorphComplete);
         })
         .catch(error => {
             log.warn(seg, `[Canvas] Animation failed for ${glyph.id}: ${error instanceof Error ? error.message : String(error)}`);

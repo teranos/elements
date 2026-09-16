@@ -14,7 +14,7 @@
  * - cloneNode on a Glyph element
  * - document.createElement to represent an existing Glyph
  * - Re-rendering a Glyph via renderItems, add, remove, or diffing logic
- * - Having two elements with the same data-glyph-id
+ * - Having two elements with the same data-element-id
  * - "Fading out" one element while "fading in" another
  * - Recreating a Glyph to "simplify animation"
  *
@@ -25,14 +25,14 @@
  * - Temporarily detaching a Glyph from layout flow
  * - Delaying content mount until after morph completion
  *
- * All Glyph DOM elements MUST be created through createGlyphElement factory.
+ * Every element MUST be created through the createElement factory.
  */
 
 import { getLogger, getLogSegment, getPersistence } from '../config';
 import { Proximity, applyRestingDotGeometry } from './proximity';
 import { type Glyph, getOpenDuration, DEFAULT_COLOR } from '../glyph';
 import { readPaint, wearPaint } from '../paint';
-import { getForm, setGlyphId, setSymbol } from '../dataset';
+import { getForm, setElementId, setSymbol } from '../dataset';
 import { morphDotToWindow } from '../forms/window';
 import { morphDotToWorkspace } from '../forms/canvas';
 import { morphDotToPanel } from '../forms/panel';
@@ -45,7 +45,7 @@ export type { Glyph } from '../glyph';
 
 class Tray {
     // Track all created glyph elements to enforce single-element axiom
-    private glyphElements: Map<string, HTMLElement> = new Map();
+    private elements: Map<string, HTMLElement> = new Map();
 
     // Track click handlers separately for proper cleanup (prevents memory leaks)
     private glyphClickHandlers: WeakMap<HTMLElement, (e: MouseEvent) => void> = new WeakMap();
@@ -68,48 +68,48 @@ class Tray {
      *
      * The glyph's DOM element IS its identity, not a representation of it.
      */
-    private createGlyphElement(item: Glyph): HTMLElement {
+    private createElement(item: Glyph): HTMLElement {
         const log = getLogger();
         const seg = getLogSegment();
 
         // Check if element already exists - THIS SHOULD NEVER HAPPEN
-        if (this.glyphElements.has(item.id)) {
+        if (this.elements.has(item.id)) {
             throw new Error(`AXIOM VIOLATION: Attempted to create duplicate glyph element for ${item.id}`);
         }
 
-        const existing = document.querySelector(`[data-glyph-id="${item.id}"]`);
+        const existing = document.querySelector(`[data-element-id="${item.id}"]`);
         if (existing) {
             throw new Error(`AXIOM VIOLATION: Glyph element ${item.id} already exists in DOM`);
         }
 
         // CREATE THE ELEMENT - ONCE AND ONLY ONCE
-        const glyph = document.createElement('div');
-        glyph.className = 'glyph-run-glyph';
-        applyRestingDotGeometry(glyph);
-        glyph.style.backgroundColor = item.color ?? DEFAULT_COLOR;
-        if (item.border) glyph.style.border = item.border;
-        setGlyphId(glyph, item.id);
-        setSymbol(glyph, item.symbol);
+        const element = document.createElement('div');
+        element.className = 'glyph-run-glyph';
+        applyRestingDotGeometry(element);
+        element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
+        if (item.border) element.style.border = item.border;
+        setElementId(element, item.id);
+        setSymbol(element, item.symbol);
 
         // Track this element
-        this.glyphElements.set(item.id, glyph);
+        this.elements.set(item.id, element);
 
         // Attach click handler that will persist with the element forever
         const clickHandler = (e: MouseEvent) => {
             e.stopPropagation();
-            log.debug(seg, `[Glyph ${item.id}] Click detected, form: ${getForm(glyph) ?? 'none'}`);
-            this.morphGlyph(glyph, item);
+            log.debug(seg, `[Glyph ${item.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
+            this.morphGlyph(element, item);
         };
 
         // Store handler in WeakMap for proper cleanup
-        this.glyphClickHandlers.set(glyph, clickHandler);
-        glyph.addEventListener('click', clickHandler);
+        this.glyphClickHandlers.set(element, clickHandler);
+        element.addEventListener('click', clickHandler);
 
         // The press is what starts a selection; click already fires on mouseup,
         // by which time the range exists.
-        glyph.addEventListener('mousedown', suppressSelectionUntilRelease);
+        element.addEventListener('mousedown', suppressSelectionUntilRelease);
 
-        return glyph;
+        return element;
     }
     // Deferred items to add after init
     private deferredItems: Glyph[] = [];
@@ -188,11 +188,11 @@ class Tray {
      * Morph a glyph from dot to its form (window, panel or workspace).
      * Shared by click handler and touch browse release.
      */
-    private morphGlyph(glyphElement: HTMLElement, item: Glyph): void {
+    private morphGlyph(element: HTMLElement, item: Glyph): void {
         // Already open — don't open it again. isInWindowState() answered this
         // for every form prepareMorphTo() reparents to document.body:
         // all three tray destinations, and canvasExpanded alongside them.
-        const current = getForm(glyphElement);
+        const current = getForm(element);
         if (current === 'window' || current === 'panel'
             || current === 'workspace' || current === 'canvasExpanded') return;
 
@@ -201,7 +201,7 @@ class Tray {
         const opensAs = item.opensAs || 'window';
         if (opensAs === 'panel') {
             morphDotToPanel(
-                glyphElement,
+                element,
                 item,
                 (id, element) => this.verifyElementTracking(id, element),
                 (id) => this.remove(id),
@@ -209,14 +209,14 @@ class Tray {
             );
         } else if (opensAs === 'workspace') {
             morphDotToWorkspace(
-                glyphElement,
+                element,
                 item,
                 (id, element) => this.verifyElementTracking(id, element),
                 (element, g) => this.reattachGlyphToIndicator(element, g)
             );
         } else {
             morphDotToWindow(
-                glyphElement,
+                element,
                 item,
                 (id, element) => this.verifyElementTracking(id, element),
                 (id) => this.remove(id),
@@ -249,7 +249,7 @@ class Tray {
         const log = getLogger();
         const seg = getLogSegment();
         const item = this.items.get(id);
-        const element = this.glyphElements.get(id);
+        const element = this.elements.get(id);
         if (!item || !element) {
             log.warn(seg, `[Tray] open: glyph ${id} not found`);
             return;
@@ -305,11 +305,11 @@ class Tray {
 
         this.items.set(item.id, item);
 
-        // USE THE FACTORY - THE ONLY WAY TO CREATE A GLYPH
-        const glyph = this.createGlyphElement(item);
+        // USE THE FACTORY - THE ONLY WAY TO CREATE AN ELEMENT
+        const element = this.createElement(item);
 
         // Add to indicator container
-        this.indicatorContainer!.appendChild(glyph);
+        this.indicatorContainer!.appendChild(element);
 
         this.element.setAttribute('data-empty', 'false');
 
@@ -334,7 +334,7 @@ class Tray {
 
         // Register the existing element (no factory creation)
         this.items.set(item.id, item);
-        this.glyphElements.set(item.id, element);
+        this.elements.set(item.id, element);
 
         // Class and geometry are what a tray dot is and change with the
         // form; paint is what the glyph is and does not.
@@ -342,7 +342,7 @@ class Tray {
         element.className = 'glyph-run-glyph';
         applyRestingDotGeometry(element);
         wearPaint(element, was, item);
-        setGlyphId(element, item.id);
+        setElementId(element, item.id);
         setSymbol(element, item.symbol);
 
         // Attach click handler
@@ -364,17 +364,17 @@ class Tray {
      * Verify no duplicate glyph elements exist in DOM
      * Hard errors if duplicates found - this is an AXIOM VIOLATION
      */
-    private verifyNoDuplicateElements(glyphId: string): void {
-        const elements = document.querySelectorAll(`[data-glyph-id="${glyphId}"]`);
+    private verifyNoDuplicateElements(elementId: string): void {
+        const elements = document.querySelectorAll(`[data-element-id="${elementId}"]`);
         if (elements.length > 1) {
             throw new Error(
-                `AXIOM VIOLATION: ${elements.length} elements found with data-glyph-id="${glyphId}". ` +
+                `AXIOM VIOLATION: ${elements.length} elements found with data-element-id="${elementId}". ` +
                 `A glyph must be exactly ONE DOM element. This is a critical error.`
             );
         }
         if (elements.length === 1) {
             throw new Error(
-                `AXIOM VIOLATION: Element with data-glyph-id="${glyphId}" already exists. ` +
+                `AXIOM VIOLATION: Element with data-element-id="${elementId}" already exists. ` +
                 `Cannot create duplicate. A glyph must be exactly ONE DOM element.`
             );
         }
@@ -390,10 +390,10 @@ class Tray {
         this.items.delete(id);
 
         // Remove from tracking
-        const tracked = this.glyphElements.get(id);
+        const tracked = this.elements.get(id);
         if (tracked) {
             // Verify it's the same element in DOM
-            const inDom = document.querySelector(`[data-glyph-id="${id}"]`);
+            const inDom = document.querySelector(`[data-element-id="${id}"]`);
             if (inDom && inDom !== tracked) {
                 throw new Error(
                     `AXIOM VIOLATION: Tracked element for ${id} doesn't match DOM element. ` +
@@ -407,7 +407,7 @@ class Tray {
                 // WeakMap will automatically clean up when element is GC'd
             }
             tracked.remove();
-            this.glyphElements.delete(id);
+            this.elements.delete(id);
         }
 
         if (this.items.size === 0) {
@@ -427,14 +427,14 @@ class Tray {
 
     /**
      * Get the target position for minimize animation.
-     * If glyphId is provided, returns that dot's position.
+     * If elementId is provided, returns that dot's position.
      * Falls back to the last dot, then the tray center.
      */
-    public getTargetPosition(glyphId?: string): { x: number; y: number } | null {
+    public getTargetPosition(elementId?: string): { x: number; y: number } | null {
         if (!this.element) return null;
 
-        if (glyphId) {
-            const dot = this.glyphElements.get(glyphId);
+        if (elementId) {
+            const dot = this.elements.get(elementId);
             if (dot) {
                 const dotRect = dot.getBoundingClientRect();
                 return {
@@ -468,11 +468,11 @@ class Tray {
     /**
      * Verify element tracking for morph operations
      */
-    private verifyElementTracking(glyphId: string, element: HTMLElement): void {
-        const tracked = this.glyphElements.get(glyphId);
+    private verifyElementTracking(elementId: string, element: HTMLElement): void {
+        const tracked = this.elements.get(elementId);
         if (tracked !== element) {
             throw new Error(
-                `AXIOM VIOLATION: Element for ${glyphId} doesn't match tracked element. ` +
+                `AXIOM VIOLATION: Element for ${elementId} doesn't match tracked element. ` +
                 `This indicates element recreation somewhere.`
             );
         }
@@ -481,35 +481,35 @@ class Tray {
     /**
      * Re-attach a morphed glyph back to the indicator container
      */
-    private reattachGlyphToIndicator(glyphElement: HTMLElement, glyph: Glyph): void {
+    private reattachGlyphToIndicator(element: HTMLElement, glyph: Glyph): void {
         const log = getLogger();
         const seg = getLogSegment();
         if (!this.indicatorContainer) return;
 
         // Remove any existing handler to avoid duplicates
-        const existingHandler = this.glyphClickHandlers.get(glyphElement);
+        const existingHandler = this.glyphClickHandlers.get(element);
         if (existingHandler) {
-            glyphElement.removeEventListener('click', existingHandler);
+            element.removeEventListener('click', existingHandler);
         }
 
         // Re-attach the click handler
         // (Event listeners can be lost during certain DOM manipulations)
         const clickHandler = (e: MouseEvent) => {
             e.stopPropagation();
-            log.debug(seg, `[Glyph ${glyph.id}] Click detected, form: ${getForm(glyphElement) ?? 'none'}`);
-            this.morphGlyph(glyphElement, glyph);
+            log.debug(seg, `[Glyph ${glyph.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
+            this.morphGlyph(element, glyph);
         };
 
-        this.glyphClickHandlers.set(glyphElement, clickHandler);
-        glyphElement.addEventListener('click', clickHandler);
+        this.glyphClickHandlers.set(element, clickHandler);
+        element.addEventListener('click', clickHandler);
 
         // Insert at the correct position in the indicator container
         const glyphIndex = Array.from(this.items.keys()).indexOf(glyph.id);
         const glyphs = Array.from(this.indicatorContainer.children);
         if (glyphIndex < glyphs.length) {
-            this.indicatorContainer.insertBefore(glyphElement, glyphs[glyphIndex]);
+            this.indicatorContainer.insertBefore(element, glyphs[glyphIndex]);
         } else {
-            this.indicatorContainer.appendChild(glyphElement);
+            this.indicatorContainer.appendChild(element);
         }
 
         // Re-enable proximity morphing
@@ -535,8 +535,8 @@ class Tray {
         const log = getLogger();
         const seg = getLogSegment();
         // Check that tracked elements match DOM
-        this.glyphElements.forEach((trackedElement, id) => {
-            const inDom = document.querySelector(`[data-glyph-id="${id}"]`);
+        this.elements.forEach((trackedElement, id) => {
+            const inDom = document.querySelector(`[data-element-id="${id}"]`);
 
             // Verify element exists
             if (!inDom) {
@@ -554,27 +554,27 @@ class Tray {
             }
 
             // Verify no duplicates
-            const allWithId = document.querySelectorAll(`[data-glyph-id="${id}"]`);
+            const allWithId = document.querySelectorAll(`[data-element-id="${id}"]`);
             if (allWithId.length !== 1) {
                 throw new Error(
-                    `INVARIANT VIOLATION: Found ${allWithId.length} elements with data-glyph-id="${id}". ` +
+                    `INVARIANT VIOLATION: Found ${allWithId.length} elements with data-element-id="${id}". ` +
                     `Must be exactly one.`
                 );
             }
         });
 
         // Check that all DOM glyphs are tracked
-        document.querySelectorAll('[data-glyph-id]').forEach((element) => {
-            const id = element.getAttribute('data-glyph-id');
-            if (id && !this.glyphElements.has(id)) {
+        document.querySelectorAll('[data-element-id]').forEach((element) => {
+            const id = element.getAttribute('data-element-id');
+            if (id && !this.elements.has(id)) {
                 throw new Error(
-                    `INVARIANT VIOLATION: DOM element with data-glyph-id="${id}" is not tracked. ` +
+                    `INVARIANT VIOLATION: DOM element with data-element-id="${id}" is not tracked. ` +
                     `Element was created outside the factory.`
                 );
             }
         });
 
-        log.info(seg, `Invariant verified: ${this.glyphElements.size} glyphs maintain single-element axiom`);
+        log.info(seg, `Invariant verified: ${this.elements.size} glyphs maintain single-element axiom`);
     }
 }
 

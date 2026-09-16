@@ -15,7 +15,7 @@ beforeEach(() => {
 
 function windowEl(): HTMLElement {
     const el = document.createElement('div');
-    el.dataset.glyphId = `w-${currentTop()}`;
+    el.dataset.elementId = `w-${currentTop()}`;
     document.body.appendChild(el);
     return el;
 }

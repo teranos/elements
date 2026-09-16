@@ -23,7 +23,7 @@ export interface ExpandToWindowConfig {
     /** The expand/collapse button. */
     expandBtn: HTMLElement;
     /** Glyph identity. */
-    glyphId: string;
+    elementId: string;
     /** Window title and tray label. */
     title: string;
     /** Symbol for the tray dot. */
@@ -54,7 +54,7 @@ export function wireExpandToWindow(config: ExpandToWindowConfig): void {
     const {
         element,
         expandBtn,
-        glyphId,
+        elementId,
         title,
         symbol,
         renderContent,
@@ -84,7 +84,7 @@ export function wireExpandToWindow(config: ExpandToWindowConfig): void {
                     expandBtn.textContent = '\u2B06'; // ⬆
                     expandBtn.title = 'Expand to window';
                     onRestoreToCanvas?.(el);
-                    log.debug(seg, `[${label}] Placed on canvas ${glyphId}`);
+                    log.debug(seg, `[${label}] Placed on canvas ${elementId}`);
                 },
             });
             return;
@@ -99,12 +99,12 @@ export function wireExpandToWindow(config: ExpandToWindowConfig): void {
             canvasId,
             onClose: () => {
                 element.remove();
-                removeCanvasGlyph(glyphId);
-                log.debug(seg, `[${label}] Closed from window ${glyphId}`);
+                removeCanvasGlyph(elementId);
+                log.debug(seg, `[${label}] Closed from window ${elementId}`);
             },
             onMinimize: (el: HTMLElement) => {
                 getTray().adopt(el, {
-                    id: glyphId,
+                    id: elementId,
                     title,
                     symbol,
                     color,
@@ -112,15 +112,15 @@ export function wireExpandToWindow(config: ExpandToWindowConfig): void {
                     border,
                     renderContent,
                     onClose: () => {
-                        log.debug(seg, `[${label}] Closed from tray ${glyphId}`);
+                        log.debug(seg, `[${label}] Closed from tray ${elementId}`);
                     },
                     ...adoptExtras,
                 });
-                log.debug(seg, `[${label}] Minimized to tray ${glyphId}`);
+                log.debug(seg, `[${label}] Minimized to tray ${elementId}`);
             },
             onRestoreComplete: (el) => {
                 onRestoreToCanvas?.(el);
-                log.debug(seg, `[${label}] Restored to canvas ${glyphId}`);
+                log.debug(seg, `[${label}] Restored to canvas ${elementId}`);
             },
         });
 

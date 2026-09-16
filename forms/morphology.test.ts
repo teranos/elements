@@ -16,7 +16,7 @@
 
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { prepareMorphTo } from './morphology';
-import { setGlyphId, getForm } from '../dataset';
+import { setElementId, getForm } from '../dataset';
 import type { Glyph } from '../glyph';
 
 const noVerify = () => {};
@@ -24,7 +24,7 @@ const noVerify = () => {};
 function trayDot(ownClasses: string[] = []): { element: HTMLElement; glyph: Glyph } {
     const element = document.createElement('div');
     element.className = ['glyph-run-glyph', ...ownClasses].join(' ');
-    setGlyphId(element, 'morph-test-1');
+    setElementId(element, 'morph-test-1');
     document.body.appendChild(element);
     const glyph: Glyph = {
         id: 'morph-test-1',

@@ -64,8 +64,8 @@ export {
     setLastPosition,
     hasProximityText,
     setProximityText,
-    getGlyphId,
-    setGlyphId,
+    getElementId,
+    setElementId,
     setCanvasOrigin,
     getCanvasOrigin,
     clearCanvasOrigin,
@@ -108,10 +108,10 @@ export {
 
 // Form helpers
 export {
-    verifyGlyphAxiom,
+    verifyElementAxiom,
     prepareMorphTo,
     calculateTrayTarget,
-    resetGlyphElement,
+    resetElement,
 } from './forms/morphology';
 
 export { addWindowControls, removeWindowControls } from './forms/title-bar-controls';
@@ -179,12 +179,12 @@ export { tray } from './tray/tray';
 
 // Composition types — canonical, package-owned (CTYPE)
 export type { CompositionEdge, CompositionState, EdgeDirection } from './composition';
-export { buildEdgesFromChain, extractGlyphIds } from './composition';
+export { buildEdgesFromChain, extractElementIds } from './composition';
 
 // Edge graph — pure DAG traversal and layout (EWALK + GRDLP)
 export {
-    getRootGlyphIds,
-    getLeafGlyphIds,
+    getRootElementIds,
+    getLeafElementIds,
     isPortFree,
     isConnectedGraph,
     computeGridPositions,
@@ -219,7 +219,7 @@ export {
     getCompatibleTargets,
     getCompatibleDirections,
     areClassesCompatible,
-    getCompositionGlyphIds,
+    getCompositionElementIds,
     getGlyphClass,
     getMeldOptions,
     selectPreferredMeldOption,

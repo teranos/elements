@@ -21,7 +21,7 @@ function compWith(...glyphs: Array<{ id: string; cls: string }>): HTMLElement {
     for (const g of glyphs) {
         const el = document.createElement('div');
         el.className = g.cls;
-        el.setAttribute('data-glyph-id', g.id);
+        el.setAttribute('data-element-id', g.id);
         comp.appendChild(el);
     }
     return comp;
@@ -38,7 +38,7 @@ describe('Spike: one glyph per side axiom', () => {
 
         const options = getMeldOptions('canvas-prompt-glyph', comp, edges);
 
-        const pyAppend = options.find(o => o.glyphId === 'py1' && o.direction === 'right');
+        const pyAppend = options.find(o => o.elementId === 'py1' && o.direction === 'right');
         expect(pyAppend).toBeUndefined();
     });
 
@@ -51,10 +51,10 @@ describe('Spike: one glyph per side axiom', () => {
 
         const options = getMeldOptions('canvas-ax-glyph', comp, edges);
 
-        const promptPrepend = options.find(o => o.glyphId === 'prompt1');
+        const promptPrepend = options.find(o => o.elementId === 'prompt1');
         expect(promptPrepend).toBeUndefined();
 
-        const pyPrepend = options.find(o => o.glyphId === 'py1' && o.incomingRole === 'from');
+        const pyPrepend = options.find(o => o.elementId === 'py1' && o.incomingRole === 'from');
         expect(pyPrepend).toBeDefined();
         expect(pyPrepend!.direction).toBe('right');
     });
@@ -68,7 +68,7 @@ describe('Spike: one glyph per side axiom', () => {
 
         const options = getMeldOptions('canvas-result-glyph', comp, edges);
 
-        const pyBottom = options.find(o => o.glyphId === 'py1' && o.direction === 'bottom');
+        const pyBottom = options.find(o => o.elementId === 'py1' && o.direction === 'bottom');
         expect(pyBottom).toBeUndefined();
     });
 
@@ -81,7 +81,7 @@ describe('Spike: one glyph per side axiom', () => {
 
         const options = getMeldOptions('canvas-result-glyph', comp, edges);
 
-        const pyBottom = options.find(o => o.glyphId === 'py1' && o.direction === 'bottom');
+        const pyBottom = options.find(o => o.elementId === 'py1' && o.direction === 'bottom');
         expect(pyBottom).toBeDefined();
         expect(pyBottom!.incomingRole).toBe('to');
     });
@@ -113,7 +113,7 @@ describe('Jenny: saturated chain', () => {
 
         const resultOptions = getMeldOptions('canvas-result-glyph', comp, edges);
         expect(resultOptions.length).toBe(2);
-        expect(resultOptions.find(o => o.glyphId === 'py1' && o.direction === 'bottom')).toBeDefined();
-        expect(resultOptions.find(o => o.glyphId === 'prompt1' && o.direction === 'bottom')).toBeDefined();
+        expect(resultOptions.find(o => o.elementId === 'py1' && o.direction === 'bottom')).toBeDefined();
+        expect(resultOptions.find(o => o.elementId === 'prompt1' && o.direction === 'bottom')).toBeDefined();
     });
 });

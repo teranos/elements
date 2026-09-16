@@ -55,7 +55,7 @@ const DEFAULT_MARGIN = 24;
  */
 export function occupiedRects(exclude?: Element | null): Rect[] {
     const out: Rect[] = [];
-    for (const el of document.querySelectorAll('[data-glyph-id]')) {
+    for (const el of document.querySelectorAll('[data-element-id]')) {
         if (el === exclude) continue;
         const r = el.getBoundingClientRect();
         if (r.width === 0 || r.height === 0) continue;

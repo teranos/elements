@@ -47,18 +47,18 @@ export interface CompositionState {
  * Creates consecutive edges connecting glyphs in order.
  */
 export function buildEdgesFromChain(
-    glyphIds: string[],
+    elementIds: string[],
     direction: EdgeDirection = 'right'
 ): CompositionEdge[] {
-    if (glyphIds.length < 2) {
+    if (elementIds.length < 2) {
         return [];
     }
 
     const edges: CompositionEdge[] = [];
-    for (let i = 0; i < glyphIds.length - 1; i++) {
+    for (let i = 0; i < elementIds.length - 1; i++) {
         edges.push({
-            from: glyphIds[i],
-            to: glyphIds[i + 1],
+            from: elementIds[i],
+            to: elementIds[i + 1],
             direction,
             position: i
         });
@@ -70,7 +70,7 @@ export function buildEdgesFromChain(
  * Extract all unique glyph IDs from edges.
  * Returns deduplicated array of glyph IDs.
  */
-export function extractGlyphIds(edges: CompositionEdge[]): string[] {
+export function extractElementIds(edges: CompositionEdge[]): string[] {
     const ids = new Set<string>();
     for (const edge of edges) {
         ids.add(edge.from);

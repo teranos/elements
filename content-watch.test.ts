@@ -39,7 +39,7 @@ function glyphFixture(id: string = 'tokens-glyph'): Glyph {
 /** A window as render-content.ts leaves it: element, title bar, content area. */
 function opened(body?: HTMLElement): { element: HTMLElement; contentArea: HTMLElement } {
     const element = document.createElement('div');
-    element.dataset.glyphId = 'tokens-glyph';
+    element.dataset.elementId = 'tokens-glyph';
 
     const titleBar = document.createElement('div');
     titleBar.className = 'glyph-title-bar';
