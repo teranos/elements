@@ -8,7 +8,7 @@
  * All glyphs are container glyphs - they can hold child glyphs in various layout strategies.
  *
  * This file contains just the Glyph interface and shared constants.
- * Manifestation logic lives in ./manifestations/*
+ * Manifestation logic lives in ./forms/*
  */
 
 import type { TrayDestination } from './manifestation';
@@ -98,7 +98,7 @@ export function getMinimizeDuration(): number {
  */
 export const CONTENT_DEADLINE_MS = 10000;
 
-// Window manifestation constants (used by manifestations/window.ts)
+// Window manifestation constants (used by forms/window.ts)
 export const DEFAULT_WINDOW_WIDTH = '800px';
 export const DEFAULT_WINDOW_HEIGHT = '600px';
 export const WINDOW_BORDER_RADIUS = '8px';
@@ -109,7 +109,7 @@ export const TITLE_BAR_HEIGHT = '32px';
 export const WINDOW_BUTTON_SIZE = '24px';
 export const CONTENT_PADDING = '16px';
 
-// Panel manifestation constants (used by manifestations/panel.ts)
+// Panel manifestation constants (used by forms/panel.ts)
 export const PANEL_BORDER_RADIUS = '0 0 12px 12px';  // Rounded bottom when sliding from top
 export const PANEL_BORDER_RADIUS_BOTTOM = '12px 12px 0 0';  // Rounded top when sliding from bottom
 export const PANEL_OVERLAY_BG = 'rgba(0, 0, 0, 0.4)';

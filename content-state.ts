@@ -26,7 +26,7 @@
 export interface ContentStateTable {
     /**
      * Mounted and showing nothing. Written by the runtime at mount
-     * (manifestations/render-content.ts), never by a glyph — a glyph that means
+     * (forms/render-content.ts), never by a glyph — a glyph that means
      * to show nothing says `empty` and says it in words.
      */
     readonly pending: { readonly settled: false };

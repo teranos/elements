@@ -13,7 +13,7 @@ import type { Glyph } from './glyph';
 import {
     morphCanvasPlacedToWindow,
     placeWindowOnCanvas,
-} from './manifestations/canvas-window';
+} from './forms/canvas-window';
 
 // ── Public API ───────────────────────────────────────────────────────
 

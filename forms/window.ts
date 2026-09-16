@@ -140,7 +140,7 @@ export function morphDotToWindow(
 
         // What a window is, wherever it came from — the box, the cap, the
         // shadow, the column that clips, its place in the stack
-        // (manifestations/settle-window.ts). Per-axis size ownership is this
+        // (forms/settle-window.ts). Per-axis size ownership is this
         // path's alone, so the style each axis takes is passed in.
         settleWindow(glyphElement, {
             x: targetX,

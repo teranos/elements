@@ -9,8 +9,8 @@
 
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { createSymbolSpan, settleSymbolSpan } from './symbol-span';
-import { canvasPlaced } from './manifestations/canvas-placed';
-import { renderGlyphContent } from './manifestations/render-content';
+import { canvasPlaced } from './forms/canvas-placed';
+import { renderGlyphContent } from './forms/render-content';
 import type { Glyph } from './glyph';
 
 beforeEach(() => {

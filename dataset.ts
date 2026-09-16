@@ -179,7 +179,7 @@ export function setContentState(element: HTMLElement, state: ContentState): void
  * What a glyph's body is showing, or null if nothing has said.
  *
  * Null is itself a finding: every window and panel is stamped at mount
- * (manifestations/render-content.ts), so an unstamped body is one that reached
+ * (forms/render-content.ts), so an unstamped body is one that reached
  * the screen by some path that does not say what it holds.
  */
 export function getContentState(element: HTMLElement): ContentState | null {

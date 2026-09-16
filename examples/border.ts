@@ -7,8 +7,8 @@
  * transition (Element Axioma).
  */
 
-import { canvasPlaced } from '../manifestations/canvas-placed';
-import { morphCanvasPlacedToWindow } from '../manifestations/canvas-window';
+import { canvasPlaced } from '../forms/canvas-placed';
+import { morphCanvasPlacedToWindow } from '../forms/canvas-window';
 import { getManifestation } from '../dataset';
 import type { Glyph } from '../glyph';
 

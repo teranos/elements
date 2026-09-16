@@ -15,8 +15,8 @@
 
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { glyphRun } from './run';
-import { canvasPlaced } from './manifestations/canvas-placed';
-import { resetGlyphElement } from './manifestations/morphology';
+import { canvasPlaced } from './forms/canvas-placed';
+import { resetGlyphElement } from './forms/morphology';
 import type { Glyph } from './glyph';
 
 const BORDER = '2px dashed red';

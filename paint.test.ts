@@ -12,8 +12,8 @@
 
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { glyphRun } from './run';
-import { canvasPlaced } from './manifestations/canvas-placed';
-import { resetGlyphElement } from './manifestations/morphology';
+import { canvasPlaced } from './forms/canvas-placed';
+import { resetGlyphElement } from './forms/morphology';
 import { readPaint, wearPaint } from './paint';
 import { DEFAULT_GLYPH_COLOR } from './glyph';
 import type { Glyph } from './glyph';

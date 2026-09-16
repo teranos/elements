@@ -16,7 +16,7 @@ import { describe, test, expect, beforeAll, afterAll, afterEach } from 'bun:test
 import { configureGlyphs, getDotGeometry } from './config';
 import { GlyphProximity, applyRestingDotGeometry } from './proximity';
 import { glyphRun } from './run';
-import { resetGlyphElement } from './manifestations/morphology';
+import { resetGlyphElement } from './forms/morphology';
 import type { Glyph } from './glyph';
 
 /** The geometry the hardcoded constants had. Changing these is a breaking change. */

@@ -33,9 +33,9 @@ import { GlyphProximity, applyRestingDotGeometry } from './proximity';
 import { type Glyph, getMaximizeDuration, DEFAULT_GLYPH_COLOR } from './glyph';
 import { readPaint, wearPaint } from './paint';
 import { getManifestation, setGlyphId, setGlyphSymbol } from './dataset';
-import { morphDotToWindow } from './manifestations/window';
-import { morphDotToWorkspace } from './manifestations/canvas';
-import { morphDotToPanel } from './manifestations/panel';
+import { morphDotToWindow } from './forms/window';
+import { morphDotToWorkspace } from './forms/canvas';
+import { morphDotToPanel } from './forms/panel';
 import { setupTouchBrowse } from './touch-browse';
 import { suppressSelectionUntilRelease } from './morph-transaction';
 

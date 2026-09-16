@@ -1,7 +1,7 @@
 /**
  * Canvas-Window Manifestation — morph a canvas-placed glyph into a floating window and back.
  *
- * Unlike the tray→window path (manifestations/window.ts) which clears the element
+ * Unlike the tray→window path (forms/window.ts) which clears the element
  * and rebuilds via renderContent(), this path wraps/unwraps existing children so
  * DOM state (scroll position, textarea content, rendered markdown) is preserved.
  *
@@ -211,7 +211,7 @@ export function morphCanvasPlacedToWindow(
         { x: targetX, y: targetY, width: targetW, height: targetH },
         getMaximizeDuration(),
     ).then(() => {
-        // What a window is, wherever it came from (manifestations/settle-window.ts).
+        // What a window is, wherever it came from (forms/settle-window.ts).
         // This path used to write its own version of that block, and the two
         // drifted: no cap on the box, and a z-index sitting at the base that no
         // press ever raised, so a glyph lifted off the canvas opened under every
@@ -229,7 +229,7 @@ export function morphCanvasPlacedToWindow(
         // The body is the children this glyph already had, so it usually draws
         // at once. It is watched all the same: a glyph lifted off the canvas
         // holding nothing is the same silence as one opened from the tray
-        // holding nothing (manifestations/content-watch.ts).
+        // holding nothing (content-watch.ts).
         watchContent(element, contentDiv, { id: getGlyphId(element) ?? canvasId, title }, 'CanvasWindow');
 
         log.debug(seg, `[CanvasWindow] Morphed to window at ${targetX},${targetY}`);

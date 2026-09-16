@@ -32,7 +32,7 @@ export interface ManifestationTable {
     /**
      * Resting in the tray. `applyRestingDotGeometry()` puts a glyph here at birth
      * and when an existing element joins the tray (run.ts), and on the way back
-     * from panel (manifestations/panel.ts) and window (manifestations/morphology.ts).
+     * from panel (forms/panel.ts) and window (forms/morphology.ts).
      * Where a morph starts, never where one ends.
      */
     readonly dot: { readonly opensFromTray: false };
@@ -44,18 +44,18 @@ export interface ManifestationTable {
      */
     readonly proximity: { readonly opensFromTray: false };
 
-    /** Floating, with chrome. manifestations/window.ts. */
+    /** Floating, with chrome. forms/window.ts. */
     readonly window: { readonly opensFromTray: true };
 
     /**
      * Anchored to an edge at full height, snapping to fullscreen when dragged past
-     * 90% of the viewport. manifestations/panel.ts.
+     * 90% of the viewport. forms/panel.ts.
      */
     readonly panel: { readonly opensFromTray: true };
 
     /**
      * "Canvas Manifestation - Fullscreen, no chrome" — the workspace itself,
-     * which is a glyph. manifestations/canvas.ts.
+     * which is a glyph. forms/canvas.ts.
      *
      * Named for what it is rather than for its file, the one row where those
      * differ. `canvas` sat one suffix from `canvasPlaced` while meaning the
@@ -67,7 +67,7 @@ export interface ManifestationTable {
 
     /**
      * "Canvas-Placed Manifestation" — a glyph sitting on that workspace, with
-     * container, position, drag, title bar and resize. manifestations/canvas-placed.ts.
+     * container, position, drag, title bar and resize. forms/canvas-placed.ts.
      * Reached by being placed, not by a dot being opened.
      */
     readonly canvasPlaced: { readonly opensFromTray: false };

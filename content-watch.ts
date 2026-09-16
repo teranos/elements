@@ -14,11 +14,11 @@
  * hiding (web/ts/market-glyph.ts).
  *
  * Scope: a window or panel opened from a tray dot mounts through
- * manifestations/render-content.ts, and a glyph lifted off the canvas mounts
- * through manifestations/canvas-window.ts. Both arm the watch, so both are
+ * forms/render-content.ts, and a glyph lifted off the canvas mounts
+ * through forms/canvas-window.ts. Both arm the watch, so both are
  * covered — they are two constructors for the one `window` row, and saying
  * "every window" without saying which constructor is how they drifted in the
- * first place. Not covered: `workspace` (manifestations/canvas.ts renders
+ * first place. Not covered: `workspace` (forms/canvas.ts renders
  * straight into the viewport), `canvasPlaced`, and host glyphs that build their
  * own content area. They call `declareContent` or they are not covered.
  */
@@ -140,7 +140,7 @@ export function watchContent(
 
 /**
  * End a watch. Called when a glyph settles, and when its content is stashed —
- * a body off the DOM is not a body that failed to draw (manifestations/stash.ts).
+ * a body off the DOM is not a body that failed to draw (forms/stash.ts).
  */
 export function disarmContentWatch(element: HTMLElement): void {
     const watch = watches.get(element);

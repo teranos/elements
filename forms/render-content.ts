@@ -78,7 +78,7 @@ export function renderGlyphContent(
         // Add content area with error boundary
         try {
             // Use the pre-rendered content when the caller pre-measured for
-            // fit-content sizing (packages/glyphs/manifestations/window.ts);
+            // fit-content sizing (packages/glyphs/forms/window.ts);
             // otherwise render fresh. Ensures renderContent() runs exactly once.
             const content = preRenderedContent ?? glyph.renderContent();
             const contentArea = document.createElement('div');

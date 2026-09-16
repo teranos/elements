@@ -112,23 +112,23 @@ export {
     prepareMorphTo,
     calculateTrayTarget,
     resetGlyphElement,
-} from './manifestations/morphology';
+} from './forms/morphology';
 
-export { addWindowControls, removeWindowControls } from './manifestations/title-bar-controls';
-export type { WindowControlsConfig } from './manifestations/title-bar-controls';
+export { addWindowControls, removeWindowControls } from './forms/title-bar-controls';
+export type { WindowControlsConfig } from './forms/title-bar-controls';
 
-export { stashContent, restoreContent, hasStash } from './manifestations/stash';
+export { stashContent, restoreContent, hasStash } from './forms/stash';
 
-export { renderGlyphContent } from './manifestations/render-content';
-export type { RenderContentResult } from './manifestations/render-content';
+export { renderGlyphContent } from './forms/render-content';
+export type { RenderContentResult } from './forms/render-content';
 
 // Canvas-window manifestation — canvas ↔ window morphing
 export {
     morphCanvasPlacedToWindow,
     morphWindowToCanvasPlaced,
     placeWindowOnCanvas,
-} from './manifestations/canvas-window';
-export type { CanvasWindowConfig } from './manifestations/canvas-window';
+} from './forms/canvas-window';
+export type { CanvasWindowConfig } from './forms/canvas-window';
 
 // Expand-to-window — unified lifecycle wiring
 export { wireExpandToWindow } from './expand-to-window';
@@ -145,34 +145,34 @@ export type { PlacementOpts, Rect, Size } from './placement';
 export { raise, raiseOnInteract } from './z-order';
 
 // Manifestations — every morph names both ends, in the names the table holds
-export { morphDotToWindow, morphWindowToDot } from './manifestations/window';
-export { morphDotToWorkspace, morphWorkspaceToDot } from './manifestations/canvas';
-export { morphDotToPanel, morphPanelToDot } from './manifestations/panel';
+export { morphDotToWindow, morphWindowToDot } from './forms/window';
+export { morphDotToWorkspace, morphWorkspaceToDot } from './forms/canvas';
+export { morphDotToPanel, morphPanelToDot } from './forms/panel';
 export {
     /** @deprecated Renamed to `morphDotToWindow`. */
     morphToWindow,
     /** @deprecated Renamed to `morphWindowToDot`. */
     morphFromWindow,
-} from './manifestations/window';
+} from './forms/window';
 export {
     /** @deprecated Renamed to `morphDotToWorkspace`. */
     morphToCanvas,
     /** @deprecated Renamed to `morphWorkspaceToDot`. */
     morphFromCanvas,
-} from './manifestations/canvas';
+} from './forms/canvas';
 export {
     /** @deprecated Renamed to `morphDotToPanel`. */
     morphToPanel,
     /** @deprecated Renamed to `morphPanelToDot`. */
     morphFromPanel,
-} from './manifestations/panel';
+} from './forms/panel';
 
 // Cursor manifestation — transient placement preview
-export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './manifestations/cursor';
+export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './forms/cursor';
 
 // Canvas-placed factory (CPLCD)
-export { canvasPlaced } from './manifestations/canvas-placed';
-export type { CanvasPlacedConfig, CanvasPlacedResult } from './manifestations/canvas-placed';
+export { canvasPlaced } from './forms/canvas-placed';
+export type { CanvasPlacedConfig, CanvasPlacedResult } from './forms/canvas-placed';
 
 // GlyphRun tray singleton
 export { glyphRun } from './run';

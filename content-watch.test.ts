@@ -22,7 +22,7 @@ import {
     isWatched,
 } from './content-watch';
 import { getContentState } from './dataset';
-import { stashContent } from './manifestations/stash';
+import { stashContent } from './forms/stash';
 
 const DEADLINE = 20;
 
