@@ -18,11 +18,11 @@
 
 import { getLogger, getLogSegment } from '../config';
 import { applyRestingDotGeometry } from '../tray/proximity';
-import { type Glyph, DEFAULT_GLYPH_COLOR, DEFAULT_GLYPH_TEXT_COLOR } from '../glyph';
+import { type Glyph, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../glyph';
 import { addWindowControls } from './title-bar-controls';
 import { disarmContentWatch } from '../content-watch';
 import { stashContent } from './stash';
-import { renderGlyphContent } from './render-content';
+import { renderContent } from './render-content';
 import {
     setForm,
     setGlyphId
@@ -201,12 +201,12 @@ export function morphDotToPanel(
         glyphElement.style.width = `${panelWidth}px`;
         glyphElement.style.height = `${panelHeight}px`;
         glyphElement.style.zIndex = PANEL_Z_INDEX;
-        glyphElement.style.backgroundColor = glyph.color ?? DEFAULT_GLYPH_COLOR;
-        glyphElement.style.color = glyph.textColor ?? DEFAULT_GLYPH_TEXT_COLOR;
+        glyphElement.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
+        glyphElement.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
         if (glyph.border) glyphElement.style.border = glyph.border;
 
         // Restore stashed content or render fresh (shared with window.ts)
-        const { titleBar } = renderGlyphContent(glyphElement, glyph, 'Panel', preRenderedContent);
+        const { titleBar } = renderContent(glyphElement, glyph, 'Panel', preRenderedContent);
 
         // Add window controls (minimize/close) to the title bar
         addWindowControls(titleBar, {

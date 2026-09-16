@@ -11,8 +11,8 @@ import {
     setCanvasOrigin,
     getCanvasOrigin,
     clearCanvasOrigin,
-    getGlyphSymbol,
-    setGlyphSymbol,
+    getSymbol,
+    setSymbol,
 } from './dataset';
 
 let el: HTMLElement;
@@ -97,18 +97,18 @@ describe('Tim: dataset helpers', () => {
 
     describe('glyph symbol', () => {
         test('no symbol by default', () => {
-            expect(getGlyphSymbol(el)).toBeUndefined();
+            expect(getSymbol(el)).toBeUndefined();
         });
 
         test('set and get', () => {
-            setGlyphSymbol(el, 'PY');
-            expect(getGlyphSymbol(el)).toBe('PY');
+            setSymbol(el, 'PY');
+            expect(getSymbol(el)).toBe('PY');
         });
 
         test('set undefined clears', () => {
-            setGlyphSymbol(el, 'AX');
-            setGlyphSymbol(el, undefined);
-            expect(getGlyphSymbol(el)).toBeUndefined();
+            setSymbol(el, 'AX');
+            setSymbol(el, undefined);
+            expect(getSymbol(el)).toBeUndefined();
         });
     });
 

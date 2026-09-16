@@ -12,8 +12,8 @@
  */
 
 import type { Glyph } from '../glyph';
-import { DEFAULT_GLYPH_COLOR, DEFAULT_GLYPH_TEXT_COLOR } from '../glyph';
-import { setGlyphSymbol } from '../dataset';
+import { DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../glyph';
+import { setSymbol } from '../dataset';
 import { createSymbolSpan, settleSymbolSpan } from '../symbol-span';
 import { applyCanvasGlyphLayout, makeDraggable, preventDrag } from '../canvas-drag';
 import { makeResizable } from '../canvas-resize';
@@ -60,9 +60,9 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
     const element = config.element ?? glyph.cursorElement ?? document.createElement('div');
     element.className = `${className} canvas-glyph`;
     element.dataset.glyphId = glyph.id;
-    setGlyphSymbol(element, glyph.symbol);
-    element.style.backgroundColor = glyph.color ?? DEFAULT_GLYPH_COLOR;
-    element.style.color = glyph.textColor ?? DEFAULT_GLYPH_TEXT_COLOR;
+    setSymbol(element, glyph.symbol);
+    element.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
+    element.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
     if (glyph.border) element.style.border = glyph.border;
     element.style.backdropFilter = 'blur(2px)';
 

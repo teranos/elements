@@ -10,14 +10,14 @@
 
 import type { CompositionState } from './composition';
 
-export interface GlyphLogger {
+export interface Logger {
     debug(segment: string, message: string, metadata?: Record<string, unknown>): void;
     info(segment: string, message: string, metadata?: Record<string, unknown>): void;
     warn(segment: string, message: string, metadata?: Record<string, unknown>): void;
     error(segment: string, message: string, metadata?: Record<string, unknown>): void;
 }
 
-export interface GlyphPersistence {
+export interface Persistence {
     /** Ids of the glyphs resting in the tray */
     getResting(): string[];
     /** A glyph has come to rest in the tray */
@@ -66,7 +66,7 @@ export interface CanvasCoordinateBridge {
  * It reaches it here instead. Every field is optional; anything omitted keeps the
  * default. All values are px.
  */
-export interface GlyphDotGeometry {
+export interface DotGeometry {
     /** Dot width at rest. Default 10. */
     minWidth?: number;
     /** Dot height at rest. Default 10. */
@@ -80,9 +80,9 @@ export interface GlyphDotGeometry {
 }
 
 export interface GlyphConfig {
-    logger?: GlyphLogger;
+    logger?: Logger;
     logSegment?: string;
-    persistence?: GlyphPersistence;
+    persistence?: Persistence;
     /** Canvas coordinate transforms — required for canvas-window morphs. */
     canvas?: CanvasCoordinateBridge;
     /** Canvas host — persistence, transform, selection, composition CRUD. */
@@ -90,13 +90,13 @@ export interface GlyphConfig {
     /** Called when a glyph is removed from the canvas (close/minimize). */
     removeCanvasGlyph?: (glyphId: string) => void;
     /** Dot and expanded-state dimensions used by the proximity engine. */
-    dotGeometry?: GlyphDotGeometry;
+    dotGeometry?: DotGeometry;
     /** Corner radius of an opened window. Written inline, so CSS cannot reach it. */
     windowBorderRadius?: string;
 }
 
 // Default no-op logger
-const noopLogger: GlyphLogger = {
+const noopLogger: Logger = {
     debug() {},
     info() {},
     warn() {},
@@ -104,7 +104,7 @@ const noopLogger: GlyphLogger = {
 };
 
 // Default no-op persistence
-const noopPersistence: GlyphPersistence = {
+const noopPersistence: Persistence = {
     getResting: () => [],
     addResting() {},
     removeResting() {},
@@ -124,7 +124,7 @@ const noopCanvasHost: CanvasHost = {
 };
 
 // Default dot geometry — the numbers the proximity engine used to hardcode
-const defaultDotGeometry: Required<GlyphDotGeometry> = {
+const defaultDotGeometry: Required<DotGeometry> = {
     minWidth: 10,
     minHeight: 10,
     maxWidth: 220,
@@ -134,13 +134,13 @@ const defaultDotGeometry: Required<GlyphDotGeometry> = {
 
 // Active configuration — starts with defaults
 let config: {
-    logger: GlyphLogger;
+    logger: Logger;
     logSegment: string;
-    persistence: GlyphPersistence;
+    persistence: Persistence;
     canvas: CanvasCoordinateBridge | null;
     canvasHost: CanvasHost;
     removeCanvasGlyph: ((glyphId: string) => void) | null;
-    dotGeometry: Required<GlyphDotGeometry>;
+    dotGeometry: Required<DotGeometry>;
     windowBorderRadius: string;
 } = {
     logger: noopLogger,
@@ -180,7 +180,7 @@ export function configureGlyphs(opts: GlyphConfig): void {
 }
 
 /** Get the active logger */
-export function getLogger(): GlyphLogger {
+export function getLogger(): Logger {
     return config.logger;
 }
 
@@ -190,7 +190,7 @@ export function getLogSegment(): string {
 }
 
 /** Get the active persistence layer */
-export function getPersistence(): GlyphPersistence {
+export function getPersistence(): Persistence {
     return config.persistence;
 }
 
@@ -200,7 +200,7 @@ export function getCanvasHost(): CanvasHost {
 }
 
 /** Get the dot geometry, every field resolved to a number */
-export function getDotGeometry(): Required<GlyphDotGeometry> {
+export function getDotGeometry(): Required<DotGeometry> {
     return config.dotGeometry;
 }
 

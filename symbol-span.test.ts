@@ -10,7 +10,7 @@
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { createSymbolSpan, settleSymbolSpan } from './symbol-span';
 import { canvasPlaced } from './forms/canvas-placed';
-import { renderGlyphContent } from './forms/render-content';
+import { renderContent } from './forms/render-content';
 import type { Glyph } from './glyph';
 
 beforeEach(() => {
@@ -99,7 +99,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
         const element = document.createElement('div');
         document.body.appendChild(element);
 
-        const { titleBar } = renderGlyphContent(element, makeGlyph({ symbol: '⍟' }), 'Test');
+        const { titleBar } = renderContent(element, makeGlyph({ symbol: '⍟' }), 'Test');
 
         const symbol = titleBar.querySelector('.glyph-symbol');
         expect(symbol).not.toBeNull();
@@ -111,7 +111,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
         const element = document.createElement('div');
         document.body.appendChild(element);
 
-        const { titleBar } = renderGlyphContent(element, makeGlyph(), 'Test');
+        const { titleBar } = renderContent(element, makeGlyph(), 'Test');
 
         expect(titleBar.querySelector('.glyph-symbol')).toBeNull();
         expect(titleBar.textContent).toContain('Self');

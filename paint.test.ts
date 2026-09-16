@@ -15,7 +15,7 @@ import { tray } from './tray/tray';
 import { canvasPlaced } from './forms/canvas-placed';
 import { resetGlyphElement } from './forms/morphology';
 import { readPaint, wearPaint } from './paint';
-import { DEFAULT_GLYPH_COLOR } from './glyph';
+import { DEFAULT_COLOR } from './glyph';
 import type { Glyph } from './glyph';
 
 const PAINTED = 'rgb(5, 16, 11)';
@@ -61,7 +61,7 @@ describe('paint across a wipe', () => {
 
         wearPaint(el, readPaint(el));
 
-        expect(el.style.backgroundColor).toBe(DEFAULT_GLYPH_COLOR);
+        expect(el.style.backgroundColor).toBe(DEFAULT_COLOR);
     });
 });
 
@@ -103,6 +103,6 @@ describe('a glyph whose datum names no colour', () => {
             logLabel: 'CRIER',
         });
 
-        expect(element.style.backgroundColor).toBe(DEFAULT_GLYPH_COLOR);
+        expect(element.style.backgroundColor).toBe(DEFAULT_COLOR);
     });
 });

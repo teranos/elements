@@ -9,11 +9,11 @@
  */
 
 import { getLogger, getLogSegment } from '../config';
-import { type Glyph, DEFAULT_GLYPH_COLOR, DEFAULT_GLYPH_TEXT_COLOR } from '../glyph';
+import { type Glyph, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../glyph';
 import { addWindowControls } from './title-bar-controls';
 import { disarmContentWatch } from '../content-watch';
 import { stashContent } from './stash';
-import { renderGlyphContent } from './render-content';
+import { renderContent } from './render-content';
 import { setupWindowDrag, teardownWindowDrag } from '../window-drag';
 import { fitsAsWindow } from '../window-fits';
 import { morphDotToPanel } from './panel';
@@ -154,17 +154,17 @@ export function morphDotToWindow(
         // What the glyph wears is data on the glyph and never a property of a
         // form (VISION.md). The canvas path reaches the same place by
         // leaving on the element what it already wore.
-        glyphElement.style.backgroundColor = glyph.color ?? DEFAULT_GLYPH_COLOR;
+        glyphElement.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
         if (glyph.border) glyphElement.style.border = glyph.border;
         glyphElement.style.backdropFilter = 'blur(2px)';
         glyphElement.style.padding = '0';
         glyphElement.style.opacity = '1';
-        glyphElement.style.color = glyph.textColor ?? DEFAULT_GLYPH_TEXT_COLOR;
+        glyphElement.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
 
         // Restore stashed content or render fresh (shared with panel.ts).
         // preRenderedContent is populated when we measured for fit-content
         // sizing above; passing it in avoids a second renderContent() call.
-        const { titleBar } = renderGlyphContent(
+        const { titleBar } = renderContent(
             glyphElement,
             glyph,
             'Window',

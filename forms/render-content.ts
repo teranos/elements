@@ -18,7 +18,7 @@ export interface RenderContentResult {
     contentElement: HTMLElement | null;
 }
 
-export function renderGlyphContent(
+export function renderContent(
     element: HTMLElement,
     glyph: Glyph,
     logLabel: string,

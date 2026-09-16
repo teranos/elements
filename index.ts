@@ -9,13 +9,13 @@
  * and persistence. Without configuration, safe defaults apply.
  *
  * Usage:
- *   import { configureGlyphs, GlyphProximity } from '@qntx/glyphs';
+ *   import { configureGlyphs, Proximity } from '@qntx/glyphs';
  *   import type { Glyph, GlyphUI, RenderFn } from '@qntx/glyphs';
  */
 
 // Configuration / dependency injection
 export { configureGlyphs, getLogger, getLogSegment, getPersistence, getCanvasHost, getCanvasBridge, getDotGeometry, removeCanvasGlyph } from './config';
-export type { GlyphConfig, GlyphLogger, GlyphPersistence, GlyphDotGeometry, CanvasGlyphData, CanvasHost, CanvasCoordinateBridge } from './config';
+export type { GlyphConfig, Logger, Persistence, DotGeometry, CanvasGlyphData, CanvasHost, CanvasCoordinateBridge } from './config';
 
 // Glyph primitive — interface + constants
 export {
@@ -37,13 +37,13 @@ export {
     PANEL_Z_INDEX,
     CANVAS_GLYPH_TITLE_BAR_HEIGHT,
     CANVAS_GLYPH_CONTENT_PADDING,
-    GLYPH_CONTENT_INNER_PADDING,
+    CONTENT_INNER_PADDING,
     MAX_VIEWPORT_HEIGHT_RATIO,
     MAX_VIEWPORT_WIDTH_RATIO,
     MIN_WINDOW_HEIGHT,
     MIN_WINDOW_WIDTH,
-    DEFAULT_GLYPH_COLOR,
-    DEFAULT_GLYPH_TEXT_COLOR,
+    DEFAULT_COLOR,
+    DEFAULT_TEXT_COLOR,
 } from './glyph';
 export type { Glyph } from './glyph';
 
@@ -69,8 +69,8 @@ export {
     setCanvasOrigin,
     getCanvasOrigin,
     clearCanvasOrigin,
-    getGlyphSymbol,
-    setGlyphSymbol,
+    getSymbol,
+    setSymbol,
     setContentState,
     getContentState,
 } from './dataset';
@@ -89,7 +89,7 @@ export {
 } from './content-watch';
 
 // Proximity engine
-export { GlyphProximity, applyRestingDotGeometry } from './tray/proximity';
+export { Proximity, applyRestingDotGeometry } from './tray/proximity';
 
 // Symbol rendering — the one way glyph.symbol becomes DOM
 export { createSymbolSpan, settleSymbolSpan } from './symbol-span';
@@ -119,7 +119,7 @@ export type { WindowControlsConfig } from './forms/title-bar-controls';
 
 export { stashContent, restoreContent, hasStash } from './forms/stash';
 
-export { renderGlyphContent } from './forms/render-content';
+export { renderContent } from './forms/render-content';
 export type { RenderContentResult } from './forms/render-content';
 
 // Canvas-window form — canvas ↔ window morphing

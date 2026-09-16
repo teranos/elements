@@ -2,7 +2,7 @@
  * Tests for configurable dot geometry
  *
  * The dot is the glyph at rest. Its size used to be five private constants
- * inside GlyphProximity, written inline on every animation frame — unreachable
+ * inside Proximity, written inline on every animation frame — unreachable
  * from a host app and unreachable from CSS (inline styles win). These tests pin
  * the config surface that replaced them.
  *
@@ -14,7 +14,7 @@
 
 import { describe, test, expect, beforeAll, afterAll, afterEach } from 'bun:test';
 import { configureGlyphs, getDotGeometry } from '../config';
-import { GlyphProximity, applyRestingDotGeometry } from './proximity';
+import { Proximity, applyRestingDotGeometry } from './proximity';
 import { tray } from './tray';
 import { resetGlyphElement } from '../forms/morphology';
 import type { Glyph } from '../glyph';
@@ -130,7 +130,7 @@ describe('Tim: dot geometry config', () => {
 describe('Spike: geometry is read at use time', () => {
     test('an engine built before configureGlyphs still uses the new geometry', () => {
         // Engine exists first — it must not capture geometry at construction.
-        const proximity = new GlyphProximity();
+        const proximity = new Proximity();
 
         configureGlyphs({
             dotGeometry: { minWidth: 16, minHeight: 18, maxWidth: 400, maxHeight: 48, borderRadiusMax: 6 },
@@ -152,7 +152,7 @@ describe('Spike: geometry is read at use time', () => {
             dotGeometry: { minWidth: 16, minHeight: 18, maxWidth: 400, maxHeight: 48, borderRadiusMax: 6 },
         });
 
-        const proximity = new GlyphProximity();
+        const proximity = new Proximity();
         const { container, dot } = makeTray();
 
         // Element rects are all-zero here, so pointer 0,0 sits inside the dot:
@@ -196,7 +196,7 @@ describe('Spike: geometry is read at use time', () => {
     });
 
     test('unconfigured geometry still morphs 10px → 220px', () => {
-        const proximity = new GlyphProximity();
+        const proximity = new Proximity();
         const { container, dot } = makeTray();
 
         proximity.setPointerPosition(10000, 10000);
@@ -226,7 +226,7 @@ describe('Jenny: the expanded dot shows the symbol', () => {
     // The tray dot used to have no symbol resting or expanded — hosts glued
     // it to the front of the title string. The engine renders it natively now.
     test('symbol and title together', () => {
-        const proximity = new GlyphProximity();
+        const proximity = new Proximity();
         const { container, dot, items } = trayWithItem({
             id: 'sym-dot-1',
             title: 'Self',
@@ -241,7 +241,7 @@ describe('Jenny: the expanded dot shows the symbol', () => {
     });
 
     test('no symbol, the title alone', () => {
-        const proximity = new GlyphProximity();
+        const proximity = new Proximity();
         const { container, dot, items } = trayWithItem({
             id: 'sym-dot-2',
             title: 'Handlers',

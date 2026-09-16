@@ -50,7 +50,7 @@ export interface Glyph {
     // Visual identity — every form (dot, window, panel) reads these.
     // Like color, border is never lost to a morph: the dot a note minimizes
     // into wears the note's border.
-    color?: string;      // Background color (default: DEFAULT_GLYPH_COLOR)
+    color?: string;      // Background color (default: DEFAULT_COLOR)
     textColor?: string;  // Text color (default: 'rgb(255,255,255)')
     border?: string;     // CSS border shorthand (default: the form's own border)
 
@@ -65,8 +65,8 @@ export interface Glyph {
     symbolElement?: HTMLElement;
 }
 
-export const DEFAULT_GLYPH_COLOR = 'rgba(35, 35, 38, 0.92)';
-export const DEFAULT_GLYPH_TEXT_COLOR = 'rgb(255,255,255)';
+export const DEFAULT_COLOR = 'rgba(35, 35, 38, 0.92)';
+export const DEFAULT_TEXT_COLOR = 'rgb(255,255,255)';
 
 // Function to check if user prefers reduced motion
 function getPrefersReducedMotion(): boolean {
@@ -119,7 +119,7 @@ export const MORPHING_Z_INDEX = '10004';  // Above panels while a morph animates
 // Canvas glyph dimensions
 export const CANVAS_GLYPH_TITLE_BAR_HEIGHT = 32; // Title bar height for canvas-placed glyphs
 export const CANVAS_GLYPH_CONTENT_PADDING = 8; // Content element padding (reduced from CONTENT_PADDING)
-export const GLYPH_CONTENT_INNER_PADDING = 4; // .glyph-content CSS padding
+export const CONTENT_INNER_PADDING = 4; // .glyph-content CSS padding
 
 // ResizeObserver constraints
 export const MAX_VIEWPORT_HEIGHT_RATIO = 0.8; // Don't exceed 80% of viewport height

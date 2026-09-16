@@ -13,7 +13,7 @@
  * change it, and one that names none is not asking for the default.
  */
 
-import { DEFAULT_GLYPH_COLOR } from './glyph';
+import { DEFAULT_COLOR } from './glyph';
 
 /** What an element is wearing now. */
 export interface Paint {
@@ -41,7 +41,7 @@ export function wearPaint(
     was: Paint,
     asked?: { color?: string; border?: string },
 ): void {
-    element.style.backgroundColor = asked?.color || was.background || DEFAULT_GLYPH_COLOR;
+    element.style.backgroundColor = asked?.color || was.background || DEFAULT_COLOR;
 
     const border = asked?.border || was.border;
     if (border) element.style.border = border;

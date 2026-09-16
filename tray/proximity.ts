@@ -14,7 +14,7 @@
  * The element persists through: dot → proximity → window → dot
  */
 
-import { type Glyph, DEFAULT_GLYPH_COLOR } from '../glyph';
+import { type Glyph, DEFAULT_COLOR } from '../glyph';
 import { hasProximityText, setProximityText } from '../dataset';
 import { getDotGeometry } from '../config';
 
@@ -34,7 +34,7 @@ export function applyRestingDotGeometry(element: HTMLElement): void {
     element.style.borderRadius = `${dot.borderRadiusMax}px`;
 }
 
-export class GlyphProximity {
+export class Proximity {
     // Proximity morphing configuration
     private readonly PROXIMITY_THRESHOLD_HORIZONTAL = 30; // Max distance for horizontal approach (px)
     private readonly PROXIMITY_THRESHOLD_VERTICAL = 110; // Max distance for vertical approach (px)
@@ -217,7 +217,7 @@ export class GlyphProximity {
                 const borderRadius = dot.borderRadiusMax * (1 - proximity);
 
                 // Use the glyph's own color
-                const color = item?.color ?? DEFAULT_GLYPH_COLOR;
+                const color = item?.color ?? DEFAULT_COLOR;
 
                 // Apply morphing styles
                 glyph.style.width = `${width}px`;

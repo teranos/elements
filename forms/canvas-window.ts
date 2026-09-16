@@ -18,7 +18,7 @@ import {
     getForm,
     getLastPosition,
     setLastPosition,
-    getGlyphSymbol,
+    getSymbol,
     getGlyphId,
 } from '../dataset';
 import { settleWindow } from './settle-window';
@@ -152,7 +152,7 @@ export function morphCanvasPlacedToWindow(
         titleBar = document.createElement('div');
         titleBar.className = 'glyph-title-bar';
         titleBar.dataset.windowCreated = 'true'; // Mark for removal on restore
-        const symbol = getGlyphSymbol(element);
+        const symbol = getSymbol(element);
         if (symbol) {
             titleBar.appendChild(createSymbolSpan(symbol));
         }

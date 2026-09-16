@@ -6,7 +6,7 @@
  */
 
 import { getLogger, getLogSegment } from '../config';
-import type { GlyphProximity } from './proximity';
+import type { Proximity } from './proximity';
 import type { Glyph } from '../glyph';
 
 // How close to the tray's edge the touch must land (px)
@@ -18,7 +18,7 @@ const MIN_PROXIMITY_THRESHOLD = 0.3;
 export interface TouchBrowseHost {
     readonly element: HTMLElement | null;
     readonly indicatorContainer: HTMLElement | null;
-    readonly proximity: GlyphProximity;
+    readonly proximity: Proximity;
     readonly items: Map<string, Glyph>;
     updateProximity(): void;
     morphGlyph(element: HTMLElement, item: Glyph): void;

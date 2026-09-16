@@ -149,14 +149,14 @@ export function clearCanvasOrigin(element: HTMLElement): void {
 /**
  * Get glyph symbol from element
  */
-export function getGlyphSymbol(element: HTMLElement): string | undefined {
+export function getSymbol(element: HTMLElement): string | undefined {
     return element.dataset.glyphSymbol;
 }
 
 /**
  * Set glyph symbol on element
  */
-export function setGlyphSymbol(element: HTMLElement, symbol: string | undefined): void {
+export function setSymbol(element: HTMLElement, symbol: string | undefined): void {
     if (symbol !== undefined) {
         element.dataset.glyphSymbol = symbol;
     } else {

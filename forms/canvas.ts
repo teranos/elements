@@ -11,7 +11,7 @@
  */
 
 import { getLogger, getLogSegment } from '../config';
-import { type Glyph, DEFAULT_GLYPH_COLOR, DEFAULT_GLYPH_TEXT_COLOR } from '../glyph';
+import { type Glyph, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../glyph';
 import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import { getOpenDuration, getRestDuration } from '../glyph';
 import { prepareMorphTo, calculateTrayTarget, resetGlyphElement } from './morphology';
@@ -53,10 +53,10 @@ export function morphDotToWorkspace(
         glyphElement.style.width = '100vw';
         glyphElement.style.height = '100vh';
         glyphElement.style.borderRadius = '0'; // No rounded corners
-        glyphElement.style.backgroundColor = glyph.color ?? DEFAULT_GLYPH_COLOR;
+        glyphElement.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
         if (glyph.border) glyphElement.style.border = glyph.border;
         glyphElement.style.backdropFilter = 'blur(2px)';
-        glyphElement.style.color = glyph.textColor ?? DEFAULT_GLYPH_TEXT_COLOR;
+        glyphElement.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
         glyphElement.style.boxShadow = 'none'; // No shadow
         glyphElement.style.padding = '0'; // No padding
         glyphElement.style.opacity = '1';
