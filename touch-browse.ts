@@ -1,7 +1,7 @@
 /**
  * Touch browse — hold thumb near tray, slide to browse, release to open.
  *
- * Separated from run.ts because touch interaction is a self-contained
+ * Separated from tray.ts because touch interaction is a self-contained
  * concern with its own state (suppressNextClick, activation zone).
  */
 
@@ -103,7 +103,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         host.proximity.setPointerPosition(touch.clientX, touch.clientY);
         host.updateProximity();
 
-        log.debug(seg, `[GlyphRun] Touch browse started at ${touch.clientX},${touch.clientY} with ${host.items.size} glyphs`);
+        log.debug(seg, `[Tray] Touch browse started at ${touch.clientX},${touch.clientY} with ${host.items.size} glyphs`);
     }, { passive: false });
 
     document.addEventListener('touchmove', (e) => {
@@ -129,10 +129,10 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
 
         if (peaked) {
             suppressNextClick = true;
-            log.debug(seg, `[GlyphRun] Touch browse selected ${peaked.item.id}`);
+            log.debug(seg, `[Tray] Touch browse selected ${peaked.item.id}`);
             host.morphGlyph(peaked.element, peaked.item);
         } else {
-            log.debug(seg, '[GlyphRun] Touch browse ended with no selection');
+            log.debug(seg, '[Tray] Touch browse ended with no selection');
         }
     });
 
@@ -146,7 +146,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         if (target.closest('.glyph-run-glyph')) {
             e.stopPropagation();
             e.preventDefault();
-            log.debug(seg, '[GlyphRun] Suppressed post-browse synthetic click');
+            log.debug(seg, '[Tray] Suppressed post-browse synthetic click');
         }
     }, { capture: true });
 }

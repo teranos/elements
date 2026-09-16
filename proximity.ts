@@ -92,7 +92,7 @@ export class GlyphProximity {
         });
 
         // Mobile: touchmove feeds the same coordinates during browse mode.
-        // The actual touchstart/touchend lifecycle is managed by GlyphRun
+        // The actual touchstart/touchend lifecycle is managed by Tray
         // which calls setPointerPosition and sets isTouchBrowsing.
     }
 

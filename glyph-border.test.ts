@@ -14,7 +14,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { glyphRun } from './run';
+import { tray } from './tray';
 import { canvasPlaced } from './forms/canvas-placed';
 import { resetGlyphElement } from './forms/morphology';
 import type { Glyph } from './glyph';
@@ -37,12 +37,12 @@ beforeEach(() => {
 describe('Tim: every form wears the border', () => {
     test('a dot born in the tray wears it', () => {
         const item = makeGlyph('border-dot-1', { border: BORDER });
-        glyphRun.add(item, true);
+        tray.add(item, true);
         const dot = document.querySelector('[data-glyph-id="border-dot-1"]') as HTMLElement;
 
         expect(dot.style.border).toBe(BORDER);
 
-        glyphRun.remove('border-dot-1');
+        tray.remove('border-dot-1');
     });
 
     test('a canvas-placed glyph wears it', () => {
@@ -74,12 +74,12 @@ describe('Tim: every form wears the border', () => {
 describe('Spike: no border on the datum', () => {
     test('a dot without one carries no inline border — CSS decides', () => {
         const item = makeGlyph('border-none-1');
-        glyphRun.add(item, true);
+        tray.add(item, true);
         const dot = document.querySelector('[data-glyph-id="border-none-1"]') as HTMLElement;
 
         expect(dot.style.border).toBe('');
 
-        glyphRun.remove('border-none-1');
+        tray.remove('border-none-1');
     });
 });
 
@@ -91,12 +91,12 @@ describe('Jenny: window → tray, the border never leaves', () => {
         document.body.appendChild(el);
         const item = makeGlyph('border-adopt-1', { border: BORDER, color: '#221100' });
 
-        glyphRun.adopt(el, item);
+        tray.adopt(el, item);
 
         expect(el.style.border).toBe(BORDER);
         expect(el.style.backgroundColor).not.toBe('');
         expect(el.className).toBe('glyph-run-glyph');
 
-        glyphRun.remove('border-adopt-1');
+        tray.remove('border-adopt-1');
     });
 });

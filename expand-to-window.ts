@@ -8,7 +8,7 @@
 
 import { getLogger, getLogSegment, removeCanvasGlyph } from './config';
 import { getForm } from './dataset';
-import { getGlyphRun } from './run';
+import { getTray } from './tray';
 import type { Glyph } from './glyph';
 import {
     morphCanvasPlacedToWindow,
@@ -38,7 +38,7 @@ export interface ExpandToWindowConfig {
     border?: string;
     /** Called after restoring to canvas — re-apply visual identity, save dims, etc. */
     onRestoreToCanvas?: (element: HTMLElement) => void;
-    /** Extra fields forwarded to glyphRun.adopt() (e.g. renderTitleBar, opensAs). */
+    /** Extra fields forwarded to tray.adopt() (e.g. renderTitleBar, opensAs). */
     adoptExtras?: Partial<Glyph>;
     /** Whether to stopPropagation on click (needed for cloned buttons). */
     stopPropagation?: boolean;
@@ -103,7 +103,7 @@ export function wireExpandToWindow(config: ExpandToWindowConfig): void {
                 log.debug(seg, `[${label}] Closed from window ${glyphId}`);
             },
             onMinimize: (el: HTMLElement) => {
-                getGlyphRun().adopt(el, {
+                getTray().adopt(el, {
                     id: glyphId,
                     title,
                     symbol,

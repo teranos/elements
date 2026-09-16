@@ -1,5 +1,5 @@
 /**
- * Glyph Run - The universal container for glyphs
+ * Tray - where glyphs rest
  *
  * Design: Glyphs are visual entities that morph between three states:
  * 1. Collapsed (8px square) - minimal visual footprint
@@ -43,7 +43,7 @@ import { suppressSelectionUntilRelease } from './morph-transaction';
 export type { Glyph } from './glyph';
 
 
-class GlyphRunImpl {
+class Tray {
     // Track all created glyph elements to enforce single-element axiom
     private glyphElements: Map<string, HTMLElement> = new Map();
 
@@ -175,10 +175,10 @@ class GlyphRunImpl {
 
         // Mobile: touch browse — hold thumb near tray, slide to browse, release to open.
         setupTouchBrowse({
-            get element() { return glyphRun.element; },
-            get indicatorContainer() { return glyphRun.indicatorContainer; },
-            get proximity() { return glyphRun.proximity; },
-            get items() { return glyphRun.items; },
+            get element() { return tray.element; },
+            get indicatorContainer() { return tray.indicatorContainer; },
+            get proximity() { return tray.proximity; },
+            get items() { return tray.items; },
             updateProximity: () => this.updateProximity(),
             morphGlyph: (el, item) => this.morphGlyph(el, item),
         });
@@ -245,13 +245,13 @@ class GlyphRunImpl {
     /**
      * Programmatically open a glyph by ID (morph from dot to its form)
      */
-    public openGlyph(id: string): void {
+    public open(id: string): void {
         const log = getLogger();
         const seg = getLogSegment();
         const item = this.items.get(id);
         const element = this.glyphElements.get(id);
         if (!item || !element) {
-            log.warn(seg, `[GlyphRun] openGlyph: glyph ${id} not found`);
+            log.warn(seg, `[Tray] open: glyph ${id} not found`);
             return;
         }
         this.morphGlyph(element, item);
@@ -278,7 +278,7 @@ class GlyphRunImpl {
         if (!this.element) {
             // Tray not ready yet, defer this item (with safeguards)
             if (this.deferredItems.length >= this.MAX_DEFERRED_ITEMS) {
-                log.warn(seg, `GlyphRun: Deferred items limit reached (${this.MAX_DEFERRED_ITEMS}), dropping oldest`);
+                log.warn(seg, `Tray: Deferred items limit reached (${this.MAX_DEFERRED_ITEMS}), dropping oldest`);
                 this.deferredItems.shift(); // Remove oldest to make room
             }
 
@@ -287,7 +287,7 @@ class GlyphRunImpl {
             // Set a timeout to clear deferred items if init never happens
             if (!this.deferredItemsTimeout) {
                 this.deferredItemsTimeout = setTimeout(() => {
-                    log.warn(seg, `GlyphRun: Clearing ${this.deferredItems.length} deferred items after 30s timeout`);
+                    log.warn(seg, `Tray: Clearing ${this.deferredItems.length} deferred items after 30s timeout`);
                     this.deferredItems = [];
                     this.deferredItemsTimeout = null;
                 }, 30000); // Clear after 30 seconds
@@ -579,9 +579,9 @@ class GlyphRunImpl {
 }
 
 // Singleton instance
-export const glyphRun: GlyphRunImpl = new GlyphRunImpl();
+export const tray: Tray = new Tray();
 
 /** Getter — safe to call from code that imports via the barrel without const init ordering issues. */
-export function getGlyphRun(): GlyphRunImpl {
-    return glyphRun;
+export function getTray(): Tray {
+    return tray;
 }

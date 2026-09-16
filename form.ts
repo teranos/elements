@@ -15,7 +15,7 @@
  * Every form, in the order a glyph meets them, and whether a tray dot
  * opens as it.
  *
- * `opensFromTray` is what GlyphRun.morphGlyph() dispatches on: exactly the
+ * `opensFromTray` is what Tray.morphGlyph() dispatches on: exactly the
  * entries marked true; the rest are reached another way, or are where a morph
  * begins. It is written as a literal `true`/`false` rather than `boolean` so
  * TrayDestination can derive from it.
@@ -31,7 +31,7 @@
 export interface FormTable {
     /**
      * Resting in the tray. `applyRestingDotGeometry()` puts a glyph here at birth
-     * and when an existing element joins the tray (run.ts), and on the way back
+     * and when an existing element joins the tray (tray.ts), and on the way back
      * from panel (forms/panel.ts) and window (forms/morphology.ts).
      * Where a morph starts, never where one ends.
      */

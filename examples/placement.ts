@@ -5,7 +5,7 @@
  * passes a position, so every open goes through morphDotToWindow → findPlacement.
  */
 
-import { glyphRun } from '../run';
+import { tray } from '../tray';
 import type { Glyph } from '../glyph';
 
 const WINDOW_WIDTH = 380;
@@ -51,6 +51,6 @@ function specimenGlyph(index: number): Glyph {
 /** Fills the tray. Opening is done by hand from the tray. */
 export function renderPlacementSpecimen(): void {
     for (let i = 1; i <= TRAY_SIZE; i++) {
-        glyphRun.add(specimenGlyph(i));
+        tray.add(specimenGlyph(i));
     }
 }

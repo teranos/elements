@@ -1,5 +1,5 @@
 import { configureGlyphs } from '../config';
-import { glyphRun } from '../run';
+import { tray } from '../tray';
 import { renderPlacementSpecimen } from './placement';
 import { renderBorderSpecimen } from './border';
 
@@ -9,7 +9,7 @@ configureGlyphs({
     dotGeometry: { minWidth: 20, minHeight: 20 },
     windowBorderRadius: '0',
 });
-glyphRun.init();
+tray.init();
 
 renderPlacementSpecimen();
 renderBorderSpecimen();

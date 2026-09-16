@@ -23,7 +23,7 @@
     "forms/canvas.ts",
     "forms/panel.ts",
     "window-drag.ts",
-    "run.ts",
+    "tray.ts",
     "composition.ts",
     "edge-graph.ts",
     "glyph-ui.ts",

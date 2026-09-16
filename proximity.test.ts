@@ -15,7 +15,7 @@
 import { describe, test, expect, beforeAll, afterAll, afterEach } from 'bun:test';
 import { configureGlyphs, getDotGeometry } from './config';
 import { GlyphProximity, applyRestingDotGeometry } from './proximity';
-import { glyphRun } from './run';
+import { tray } from './tray';
 import { resetGlyphElement } from './forms/morphology';
 import type { Glyph } from './glyph';
 
@@ -169,14 +169,14 @@ describe('Spike: geometry is read at use time', () => {
         configureGlyphs({ dotGeometry: { minWidth: 16, minHeight: 18, borderRadiusMax: 6 } });
 
         const item: Glyph = { id: 'dot-geometry-1', title: 'Dot Geometry', symbol: 'ax' };
-        glyphRun.add(item, true);
+        tray.add(item, true);
         const dot = document.querySelector('[data-glyph-id="dot-geometry-1"]') as HTMLElement;
 
         expect(dot).not.toBeNull();
         expect(dot.style.width).toBe('16px');
         expect(dot.style.height).toBe('18px');
 
-        glyphRun.remove('dot-geometry-1');
+        tray.remove('dot-geometry-1');
     });
 
     test('a dot returning to rest is re-sized from config after its styles are wiped', () => {

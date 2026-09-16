@@ -11,7 +11,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { glyphRun } from './run';
+import { tray } from './tray';
 import { canvasPlaced } from './forms/canvas-placed';
 import { resetGlyphElement } from './forms/morphology';
 import { readPaint, wearPaint } from './paint';
@@ -71,10 +71,10 @@ describe('a glyph whose datum names no colour', () => {
         el.style.backgroundColor = PAINTED;
         document.body.appendChild(el);
 
-        glyphRun.adopt(el, glyph('paint-adopt-1'));
+        tray.adopt(el, glyph('paint-adopt-1'));
 
         expect(el.style.backgroundColor).toBe(PAINTED);
-        glyphRun.remove('paint-adopt-1');
+        tray.remove('paint-adopt-1');
     });
 
     test('keeps its paint through the minimize reset', () => {

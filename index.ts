@@ -174,8 +174,8 @@ export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, co
 export { canvasPlaced } from './forms/canvas-placed';
 export type { CanvasPlacedConfig, CanvasPlacedResult } from './forms/canvas-placed';
 
-// GlyphRun tray singleton
-export { glyphRun } from './run';
+// The tray singleton
+export { tray } from './tray';
 
 // Composition types — canonical, package-owned (CTYPE)
 export type { CompositionEdge, CompositionState, EdgeDirection } from './composition';
