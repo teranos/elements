@@ -5,54 +5,54 @@
  * with proper type safety and validation.
  */
 
-import { isManifestation, type Manifestation } from './manifestation';
+import { isForm, type Form } from './form';
 import { isContentState, type ContentState } from './content-state';
 
 /**
- * Record which manifestation a glyph is in.
+ * Record which form a glyph is in.
  *
- * AXIOMAS.md: a morph is a transition between manifestations, and a glyph is in
+ * AXIOMAS.md: a morph is a transition between forms, and a glyph is in
  * one at any time. This is where that is written down, so it can be read.
  */
-export function setManifestation(element: HTMLElement, manifestation: Manifestation): void {
-    element.dataset.manifestation = manifestation;
+export function setForm(element: HTMLElement, form: Form): void {
+    element.dataset.form = form;
 }
 
 /**
- * Which manifestation a glyph is in, or null if nothing has said.
+ * Which form a glyph is in, or null if nothing has said.
  *
  * Null for a name the table does not have: an element carrying one is not in
- * some eighth manifestation, it is carrying a word.
+ * some eighth form, it is carrying a word.
  */
-export function getManifestation(element: HTMLElement): Manifestation | null {
-    const name = element.dataset.manifestation;
-    return name !== undefined && isManifestation(name) ? name : null;
+export function getForm(element: HTMLElement): Form | null {
+    const name = element.dataset.form;
+    return name !== undefined && isForm(name) ? name : null;
 }
 
 /**
- * @deprecated Use {@link getManifestation}. One bit cannot hold a seven-name
+ * @deprecated Use {@link getForm}. One bit cannot hold a seven-name
  * list: this is true for `window` and for `canvasExpanded`, and false for
  * `panel`, `workspace` and a dot alike — so it can say what a glyph is not far
  * better than what it is.
  *
- * It reads the same store {@link setManifestation} writes, so it stays correct
+ * It reads the same store {@link setForm} writes, so it stays correct
  * about what it could ever say.
  */
 export function isInWindowState(element: HTMLElement): boolean {
-    const m = getManifestation(element);
+    const m = getForm(element);
     return m === 'window' || m === 'canvasExpanded';
 }
 
 /**
- * @deprecated Use {@link setManifestation}, which takes the name instead of a
+ * @deprecated Use {@link setForm}, which takes the name instead of a
  * bit. `false` here meant "not a window" and left three different destinations
  * — dot, canvasPlaced, workspace — indistinguishable at the far end of a morph.
  */
 export function setWindowState(element: HTMLElement, isWindow: boolean): void {
     if (isWindow) {
-        setManifestation(element, 'window');
+        setForm(element, 'window');
     } else {
-        delete element.dataset.manifestation;
+        delete element.dataset.form;
     }
 }
 

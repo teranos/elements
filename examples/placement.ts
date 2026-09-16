@@ -31,7 +31,7 @@ function specimenGlyph(index: number): Glyph {
         // like color, the dot, the window, and the dot it minimizes back into
         // all wear them.
         border: index === 1 ? '2px dashed #ffd43b' : undefined,
-        manifestationType: 'window',
+        opensAs: 'window',
         initialWidth: `${WINDOW_WIDTH}px`,
         // No initialHeight — the engine measures the content and commits
         // fit-content, the way sbvh.nl's windows do.

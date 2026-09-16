@@ -1,7 +1,7 @@
 /**
  * What a window is once its morph has committed.
  *
- * There are two constructors for the one `window` row in MANIFESTATIONS —
+ * There are two constructors for the one `window` row in FORMS —
  * a tray dot opening (window.ts) and a canvas glyph being lifted
  * (canvas-window.ts) — and they drifted: 520x420 against a content-sized box,
  * a base z-index that never rose against one that did, a cap on one and none

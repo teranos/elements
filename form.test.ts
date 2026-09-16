@@ -1,5 +1,5 @@
 /**
- * Tests for the manifestation list.
+ * Tests for the form list.
  *
  * Personas:
  * - Tim: Happy path — the table is what the package's own files say it is
@@ -9,18 +9,18 @@
 
 import { describe, test, expect } from 'bun:test';
 import {
-    MANIFESTATIONS,
+    FORMS,
     TRAY_DESTINATIONS,
-    isManifestation,
+    isForm,
     isTrayDestination,
-    type Manifestation,
+    type Form,
     type TrayDestination,
-} from './manifestation';
+} from './form';
 
-const names = Object.keys(MANIFESTATIONS) as Manifestation[];
+const names = Object.keys(FORMS) as Form[];
 
 describe('Tim: the table', () => {
-    test('names every manifestation the package implements', () => {
+    test('names every form the package implements', () => {
         expect([...names].sort()).toEqual([
             'canvasExpanded',
             'canvasPlaced',
@@ -40,13 +40,13 @@ describe('Tim: the table', () => {
     });
 
     test('is frozen — the table is read, never edited at runtime', () => {
-        expect(Object.isFrozen(MANIFESTATIONS)).toBe(true);
+        expect(Object.isFrozen(FORMS)).toBe(true);
         expect(Object.isFrozen(TRAY_DESTINATIONS)).toBe(true);
     });
 
     test('every row is frozen too, or the table and its subset can disagree', () => {
         for (const name of names) {
-            expect(Object.isFrozen(MANIFESTATIONS[name])).toBe(true);
+            expect(Object.isFrozen(FORMS[name])).toBe(true);
         }
     });
 
@@ -54,7 +54,7 @@ describe('Tim: the table', () => {
         // TRAY_DESTINATIONS is computed once at load; isTrayDestination reads the
         // table live. A mutable row lets the two answer differently for one name.
         expect(() => {
-            (MANIFESTATIONS.dot as { opensFromTray: boolean }).opensFromTray = true;
+            (FORMS.dot as { opensFromTray: boolean }).opensFromTray = true;
         }).toThrow();
         expect(isTrayDestination('dot')).toBe(false);
         expect(TRAY_DESTINATIONS).not.toContain('dot' as TrayDestination);
@@ -62,7 +62,7 @@ describe('Tim: the table', () => {
 
     test('every entry says whether a tray dot opens as it', () => {
         for (const name of names) {
-            expect(typeof MANIFESTATIONS[name].opensFromTray).toBe('boolean');
+            expect(typeof FORMS[name].opensFromTray).toBe('boolean');
         }
     });
 });
@@ -73,53 +73,53 @@ describe('Spike: the tray opens onto a subset', () => {
     });
 
     test('the subset is derived from the table, not kept beside it', () => {
-        const marked = names.filter(m => MANIFESTATIONS[m].opensFromTray);
+        const marked = names.filter(m => FORMS[m].opensFromTray);
         expect([...TRAY_DESTINATIONS]).toEqual(marked);
     });
 
     test('dot is not a destination — it is where the morph starts', () => {
-        expect(MANIFESTATIONS.dot.opensFromTray).toBe(false);
+        expect(FORMS.dot.opensFromTray).toBe(false);
     });
 
     test('proximity is not a destination — it is the way there', () => {
-        expect(MANIFESTATIONS.proximity.opensFromTray).toBe(false);
+        expect(FORMS.proximity.opensFromTray).toBe(false);
     });
 
     test('cursor is not a destination — cursor.ts says it stays outside the tray morph lifecycle', () => {
-        expect(MANIFESTATIONS.cursor.opensFromTray).toBe(false);
+        expect(FORMS.cursor.opensFromTray).toBe(false);
     });
 
     test('canvasPlaced is not a destination — it is reached by placing, not by opening a dot', () => {
-        expect(MANIFESTATIONS.canvasPlaced.opensFromTray).toBe(false);
+        expect(FORMS.canvasPlaced.opensFromTray).toBe(false);
     });
 
     test('canvasExpanded is not a destination — it is reached from a placed glyph', () => {
-        expect(MANIFESTATIONS.canvasExpanded.opensFromTray).toBe(false);
+        expect(FORMS.canvasExpanded.opensFromTray).toBe(false);
     });
 });
 
 describe('Jenny: recognising a name', () => {
-    test('isManifestation accepts each name in the table', () => {
+    test('isForm accepts each name in the table', () => {
         for (const name of names) {
-            expect(isManifestation(name)).toBe(true);
+            expect(isForm(name)).toBe(true);
         }
     });
 
-    test('isManifestation rejects a name that is not in it', () => {
-        expect(isManifestation('fullscreen')).toBe(false);
-        expect(isManifestation('canvas-placed')).toBe(false);
-        expect(isManifestation('')).toBe(false);
+    test('isForm rejects a name that is not in it', () => {
+        expect(isForm('fullscreen')).toBe(false);
+        expect(isForm('canvas-placed')).toBe(false);
+        expect(isForm('')).toBe(false);
     });
 
-    // The word the workspace used to answer to. Three manifestations reach the
+    // The word the workspace used to answer to. Three forms reach the
     // viewport's edges, so neither 'canvas' nor 'fullscreen' picks one out.
-    test('isManifestation rejects canvas, the name workspace replaced', () => {
-        expect(isManifestation('canvas')).toBe(false);
+    test('isForm rejects canvas, the name workspace replaced', () => {
+        expect(isForm('canvas')).toBe(false);
     });
 
-    test('isManifestation does not accept an inherited property', () => {
-        expect(isManifestation('toString')).toBe(false);
-        expect(isManifestation('constructor')).toBe(false);
+    test('isForm does not accept an inherited property', () => {
+        expect(isForm('toString')).toBe(false);
+        expect(isForm('constructor')).toBe(false);
     });
 
     test('isTrayDestination narrows to what a dot may open as', () => {

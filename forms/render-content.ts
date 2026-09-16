@@ -1,5 +1,5 @@
 /**
- * Shared content rendering for glyph manifestations.
+ * Shared content rendering for glyph forms.
  *
  * Two paths: restore from stash (same DOM nodes) or fresh render via callbacks.
  * Used by window.ts and panel.ts.
@@ -53,13 +53,13 @@ export function renderGlyphContent(
         // A stash that holds chrome and no body is how a glyph comes back from
         // the tray as a title bar over nothing: `restored` is true, so nothing
         // here renders fresh content, and renderContent() is never called again
-        // for the life of the element. Say so rather than manifest it.
+        // for the life of the element. Say so rather than show it.
         if (!contentElement) {
             setContentState(element, 'refused');
             log.warn(seg, `[${logLabel}] ${glyph.id} restored with chrome and no body`, {
                 glyph: glyph.id,
                 title: glyph.title,
-                manifestation: logLabel,
+                form: logLabel,
                 children: element.children.length,
             });
         } else {

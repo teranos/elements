@@ -1,5 +1,5 @@
 /**
- * Canvas-Window Manifestation — morph a canvas-placed glyph into a floating window and back.
+ * Canvas-Window Form — morph a canvas-placed glyph into a floating window and back.
  *
  * Unlike the tray→window path (forms/window.ts) which clears the element
  * and rebuilds via renderContent(), this path wraps/unwraps existing children so
@@ -14,8 +14,8 @@ import {
     setCanvasOrigin,
     getCanvasOrigin,
     clearCanvasOrigin,
-    setManifestation,
-    getManifestation,
+    setForm,
+    getForm,
     getLastPosition,
     setLastPosition,
     getGlyphSymbol,
@@ -111,8 +111,8 @@ export function morphCanvasPlacedToWindow(
 ): void {
     // What isInWindowState() answered here: a window, or a canvas-placed glyph
     // filling the viewport. Both are already off the canvas.
-    const manifestation = getManifestation(element);
-    if (manifestation === 'window' || manifestation === 'canvasExpanded') return;
+    const form = getForm(element);
+    if (form === 'window' || form === 'canvasExpanded') return;
 
     const log = getLogger();
     const seg = getLogSegment();
@@ -131,7 +131,7 @@ export function morphCanvasPlacedToWindow(
     const fromRect = element.getBoundingClientRect();
     const originalParent = element.parentElement;
 
-    // 3. Detect existing glyph title bar (belongs to the glyph, not the manifestation)
+    // 3. Detect existing glyph title bar (belongs to the glyph, not the form)
     const existingTitleBar = element.querySelector(':scope > .glyph-title-bar') as HTMLElement | null;
 
     // 4. Wrap non-title-bar children into a scrollable content div
@@ -182,7 +182,7 @@ export function morphCanvasPlacedToWindow(
     document.body.appendChild(element);
 
     // 9. Mark window state
-    setManifestation(element, 'window');
+    setForm(element, 'window');
 
     // 10. Calculate target window rect — the default box answers to the
     //     viewport (a phone may be the screen), and a remembered position
@@ -249,7 +249,7 @@ function unwrapWindowContent(element: HTMLElement): void {
 
     if (titleBar) {
         if ((titleBar as HTMLElement).dataset.windowCreated) {
-            titleBar.remove(); // Manifestation-created: remove entirely
+            titleBar.remove(); // Form-created: remove entirely
         } else {
             removeWindowControls(titleBar as HTMLElement); // Glyph-owned: just strip controls
         }
@@ -270,8 +270,8 @@ export function morphWindowToCanvasPlaced(
     element: HTMLElement,
     config: Pick<CanvasWindowConfig, 'onRestoreComplete'>,
 ): void {
-    const manifestation = getManifestation(element);
-    if (manifestation !== 'window' && manifestation !== 'canvasExpanded') return;
+    const form = getForm(element);
+    if (form !== 'window' && form !== 'canvasExpanded') return;
 
     const log = getLogger();
     const seg = getLogSegment();
@@ -314,7 +314,7 @@ export function morphWindowToCanvasPlaced(
             unwrapWindowContent(element);
 
             // 6. Back on the canvas, and the element now says so
-            setManifestation(element, 'canvasPlaced');
+            setForm(element, 'canvasPlaced');
             clearCanvasOrigin(element);
 
             // 7. Remove from body, clear window-specific inline styles,
@@ -357,8 +357,8 @@ function minimizeCanvasWindowToTray(
     element: HTMLElement,
     config: CanvasWindowConfig,
 ): void {
-    const manifestation = getManifestation(element);
-    if (manifestation !== 'window' && manifestation !== 'canvasExpanded') return;
+    const form = getForm(element);
+    if (form !== 'window' && form !== 'canvasExpanded') return;
 
     const log = getLogger();
     const seg = getLogSegment();
@@ -378,7 +378,7 @@ function minimizeCanvasWindowToTray(
         .then(() => {
             // 5. Stash content, clear state, pass element through
             stashContent(element);
-            setManifestation(element, 'dot');
+            setForm(element, 'dot');
             clearCanvasOrigin(element);
             element.remove();
             // The wipe takes the window's layout. What the glyph is painted is
@@ -407,8 +407,8 @@ export function placeWindowOnCanvas(
     element: HTMLElement,
     config: Pick<CanvasWindowConfig, 'onRestoreComplete'>,
 ): void {
-    const manifestation = getManifestation(element);
-    if (manifestation !== 'window' && manifestation !== 'canvasExpanded') return;
+    const form = getForm(element);
+    if (form !== 'window' && form !== 'canvasExpanded') return;
 
     const log = getLogger();
     const seg = getLogSegment();
@@ -464,7 +464,7 @@ export function placeWindowOnCanvas(
             unwrapWindowContent(element);
 
             // 9. Back on the canvas, and the element now says so
-            setManifestation(element, 'canvasPlaced');
+            setForm(element, 'canvasPlaced');
             clearCanvasOrigin(element);
 
             // 10. Remove from body, clear window-specific inline styles,

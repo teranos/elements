@@ -5,18 +5,18 @@
  * prepareMorphTo, leaves at commit, and never wipes what the glyph wears.
  *
  * It says a morph is in flight and nothing more. Which morph is
- * data-manifestation's to say, so there is one class rather than one per
+ * data-form's to say, so there is one class rather than one per
  * destination.
  *
  * Personas:
- * - Tim: happy path — manifest, commit, the morph class is gone
+ * - Tim: happy path — open, commit, the morph class is gone
  * - Spike: rollback — the glyph keeps the classes it had (Morph Axioma)
  * - Jenny: a window settles into no class of its own
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { prepareMorphTo } from './morphology';
-import { setGlyphId, getManifestation } from '../dataset';
+import { setGlyphId, getForm } from '../dataset';
 import type { Glyph } from '../glyph';
 
 const noVerify = () => {};
@@ -38,7 +38,7 @@ beforeEach(() => {
     document.body.innerHTML = '';
 });
 
-describe('Tim: manifest and commit', () => {
+describe('Tim: open and commit', () => {
     test('the morph class is added, the dot class leaves with the dot state', () => {
         const { element, glyph } = trayDot();
         prepareMorphTo(element, glyph, noVerify, 'window', '1000');
@@ -52,7 +52,7 @@ describe('Tim: manifest and commit', () => {
         prepareMorphTo(element, glyph, noVerify, 'panel', '10003');
 
         expect(element.classList.contains('glyph-morphing')).toBe(true);
-        expect(getManifestation(element)).toBe('panel');
+        expect(getForm(element)).toBe('panel');
     });
 
     test('commit swaps the morph class for the settled class', () => {
@@ -77,7 +77,7 @@ describe('Tim: manifest and commit', () => {
         expect(element.classList.contains('glyph-panel--from-top')).toBe(true);
     });
 
-    test('the glyph keeps its own classes through manifest and commit', () => {
+    test('the glyph keeps its own classes through open and commit', () => {
         const { element, glyph } = trayDot(['glyph-error']);
         const morph = prepareMorphTo(element, glyph, noVerify, 'window', '1000');
         expect(element.classList.contains('glyph-error')).toBe(true);
@@ -104,7 +104,7 @@ describe('Spike: rollback', () => {
 describe('Jenny: a window settles into no class of its own', () => {
     // .glyph-window carried one declaration, pointer-events: auto, which
     // .glyph-morphing-to-window carried too — the same rule before and after the
-    // morph. [data-manifestation="window"] spans both, so the class is the
+    // morph. [data-form="window"] spans both, so the class is the
     // attribute wearing a second name and the morph commits without one.
     test('commit with nothing to settle leaves the morph class gone and adds none', () => {
         const { element, glyph } = trayDot();
@@ -114,7 +114,7 @@ describe('Jenny: a window settles into no class of its own', () => {
 
         expect(element.classList.contains('glyph-morphing')).toBe(false);
         expect(element.classList.contains('glyph-window')).toBe(false);
-        expect(getManifestation(element)).toBe('window');
+        expect(getForm(element)).toBe('window');
     });
 
     test('an empty string settles nothing rather than throwing on a blank class', () => {

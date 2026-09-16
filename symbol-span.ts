@@ -17,7 +17,7 @@ export function createSymbolSpan(symbol: string): HTMLElement {
 
 /**
  * Turn a symbol span carried across a morph (cursor → placed) into the
- * settled .glyph-symbol form. Same element, new manifestation — the span
+ * settled .glyph-symbol form. Same element, new form — the span
  * itself honors the Element Axioma.
  */
 export function settleSymbolSpan(span: HTMLElement): HTMLElement {

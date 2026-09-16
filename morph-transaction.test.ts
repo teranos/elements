@@ -29,8 +29,8 @@ describe('Spike: the old name', () => {
 });
 
 describe('Tim: every morph names both ends', () => {
-    // AXIOMAS.md: a morph is a transition between manifestations. The names now
-    // say which two, in the words MANIFESTATIONS holds.
+    // AXIOMAS.md: a morph is a transition between forms. The names now
+    // say which two, in the words FORMS holds.
     test.each([
         ['morphDotToWindow', 'morphToWindow'],
         ['morphWindowToDot', 'morphFromWindow'],

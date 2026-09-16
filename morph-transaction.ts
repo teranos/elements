@@ -241,7 +241,7 @@ export function beginMorphToCanvasPlaced(
 /**
  * @deprecated Renamed to {@link beginMorphToCanvasPlaced}. "Restore" is the
  * vocabulary of a window manager, and the window manager it came from is gone.
- * AXIOMAS.md names a morph by the manifestations it moves between, and every
+ * AXIOMAS.md names a morph by the forms it moves between, and every
  * caller of this one ends at canvasPlaced.
  *
  * The old name is the same function, so a consumer that keeps calling it is
@@ -267,7 +267,7 @@ export function cancelMorph(element: HTMLElement): void {
 }
 
 /**
- * @deprecated Renamed to {@link beginMorphToDot} — "minimize" is window-manager vocabulary; all four callers end at the tray dot, which is a row in MANIFESTATIONS.
+ * @deprecated Renamed to {@link beginMorphToDot} — "minimize" is window-manager vocabulary; all four callers end at the tray dot, which is a row in FORMS.
  *
  * Every morph now says both ends, in the names the table holds. This is the
  * same function, so a consumer still on it is unaffected.

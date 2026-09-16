@@ -91,7 +91,7 @@ export interface GlyphConfig {
     removeCanvasGlyph?: (glyphId: string) => void;
     /** Dot and expanded-state dimensions used by the proximity engine. */
     dotGeometry?: GlyphDotGeometry;
-    /** Corner radius of a manifested window. Written inline, so CSS cannot reach it. */
+    /** Corner radius of an opened window. Written inline, so CSS cannot reach it. */
     windowBorderRadius?: string;
 }
 
@@ -204,7 +204,7 @@ export function getDotGeometry(): Required<GlyphDotGeometry> {
     return config.dotGeometry;
 }
 
-/** Corner radius a manifested window commits to. */
+/** Corner radius an opened window commits to. */
 export function getWindowBorderRadius(): string {
     return config.windowBorderRadius;
 }

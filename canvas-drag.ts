@@ -8,7 +8,7 @@
 
 import type { Glyph } from './glyph';
 import type { MakeDraggableOptions } from './glyph-ui';
-import { getManifestation } from './dataset';
+import { getForm } from './dataset';
 import { getLogger, getLogSegment, getCanvasHost } from './config';
 import {
     canInitiateMeld,
@@ -429,8 +429,8 @@ export function makeDraggable(
         }
 
         // A window and a viewport-filling glyph both carry their own drag.
-        const manifestation = getManifestation(element);
-        if (manifestation === 'window' || manifestation === 'canvasExpanded') {
+        const form = getForm(element);
+        if (form === 'window' || form === 'canvasExpanded') {
             return;
         }
 

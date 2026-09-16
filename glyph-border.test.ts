@@ -4,12 +4,12 @@
  * "When I pick up note glyph as window and minimise it, it never loses
  *  color, i want the border to be treated similarly"
  *
- * Like color, the border lives on the Glyph datum and every manifestation
+ * Like color, the border lives on the Glyph datum and every form
  * wears it — the dot a glyph minimizes into included.
  *
  * Personas:
- * - Tim: happy path — every manifestation wears the glyph's border
- * - Spike: no border on the datum → the manifestation's own border decides
+ * - Tim: happy path — every form wears the glyph's border
+ * - Spike: no border on the datum → the form's own border decides
  * - Jenny: window → tray adopt keeps the border, like color
  */
 
@@ -34,7 +34,7 @@ beforeEach(() => {
     document.body.innerHTML = '';
 });
 
-describe('Tim: every manifestation wears the border', () => {
+describe('Tim: every form wears the border', () => {
     test('a dot born in the tray wears it', () => {
         const item = makeGlyph('border-dot-1', { border: BORDER });
         glyphRun.add(item, true);

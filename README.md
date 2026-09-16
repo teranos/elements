@@ -2,9 +2,9 @@
 
 [AXIOMAS.md](AXIOMAS.md) — read it before changing anything here. [VISION.md](VISION.md) — why the axioms exist.
 
-A glyph is exactly one DOM element for its entire lifetime. It morphs between manifestations — dot, proximity-expanded, window, panel, canvas — through smooth animations, but the element identity never changes.
+A glyph is exactly one DOM element for its entire lifetime. It morphs between forms — dot, proximity-expanded, window, panel, canvas — through smooth animations, but the element identity never changes.
 
-This package is the glyph runtime: tray, proximity engine, morph transactions, manifestations, and the canvas interaction layer (drag, resize, meld). It has zero framework dependencies — pure DOM, Web Animations API, and dependency injection via `configureGlyphs()` and `CanvasHost` for host-specific concerns.
+This package is the glyph runtime: tray, proximity engine, morph transactions, forms, and the canvas interaction layer (drag, resize, meld). It has zero framework dependencies — pure DOM, Web Animations API, and dependency injection via `configureGlyphs()` and `CanvasHost` for host-specific concerns.
 
 ## Core pattern
 
@@ -62,9 +62,9 @@ Where this package ends and QNTX begins. The test that settles each line is in [
 
 - **Canvas workspace orchestration is QNTX.** Pan, zoom, selection, spawn, and thread state are wired to QNTX persistence, sync, and the glyph registry. The package owns the interaction layer the workspace consumes: drag, resize, meld, placement, z-order, touch browse.
 - **GlyphUI's I/O is QNTX.** `pluginFetch`, `pluginWebSocket`, `onMeld`, and config persistence belong to the host factory. The DOM building blocks (`createInput`, `createButton`, `createStatusLine`) are package-owned in `ui-primitives.ts`; the host factory delegates to them.
-- **ax is QNTX.** The `'ax'` manifestation type is dropped from the package. A future integration is deliberately unthought.
+- **ax is QNTX.** The `'ax'` form type is dropped from the package. A future integration is deliberately unthought.
 - **Titles arrive plain.** Callers strip markup before passing items.
 
 ## Morph classes
 
-One morph class, `glyph-morphing`, belongs to the morph: `prepareMorphTo` adds it beside the glyph's own classes, and the transaction ends it — commit swaps it for the settled classes (`glyph-panel …`, `canvas-fullscreen-adjusted`; a window settles into none, `[data-manifestation="window"]` is its only hook), rollback restores exactly the classes the glyph had. Which manifestation is in flight is `data-manifestation`'s to say, written at morph start. Position and stacking during a morph are inline, and `raise()` writes a plain z-index.
+One morph class, `glyph-morphing`, belongs to the morph: `prepareMorphTo` adds it beside the glyph's own classes, and the transaction ends it — commit swaps it for the settled classes (`glyph-panel …`, `canvas-fullscreen-adjusted`; a window settles into none, `[data-form="window"]` is its only hook), rollback restores exactly the classes the glyph had. Which form is in flight is `data-form`'s to say, written at morph start. Position and stacking during a morph are inline, and `raise()` writes a plain z-index.

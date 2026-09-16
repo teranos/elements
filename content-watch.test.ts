@@ -2,7 +2,7 @@
  * Tests for the content watch.
  *
  * The behaviour under test is the one that reached a phone screen: a window
- * manifested, its chrome committed, and its body never arrived — 44px of title
+ * opened, its chrome committed, and its body never arrived — 44px of title
  * bar over 16px of padding, with nothing thrown and nothing logged. These are
  * the assertions that would have failed instead.
  *
@@ -37,7 +37,7 @@ function glyphFixture(id: string = 'tokens-glyph'): Glyph {
 }
 
 /** A window as render-content.ts leaves it: element, title bar, content area. */
-function manifested(body?: HTMLElement): { element: HTMLElement; contentArea: HTMLElement } {
+function opened(body?: HTMLElement): { element: HTMLElement; contentArea: HTMLElement } {
     const element = document.createElement('div');
     element.dataset.glyphId = 'tokens-glyph';
 
@@ -67,7 +67,7 @@ beforeEach(() => {
 
 describe('Tim: a body that draws', () => {
     test('settles present at mount when the glyph rendered synchronously', () => {
-        const { element, contentArea } = manifested(text('Loading tokens…'));
+        const { element, contentArea } = opened(text('Loading tokens…'));
         watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
 
         expect(getContentState(element)).toBe('present');
@@ -75,13 +75,13 @@ describe('Tim: a body that draws', () => {
     });
 
     test('a placeholder counts — the question is whether the user sees anything', () => {
-        expect(showsSomething(manifested(text('Loading tokens…')).contentArea)).toBe(true);
-        expect(showsSomething(manifested(text('No access tokens.')).contentArea)).toBe(true);
+        expect(showsSomething(opened(text('Loading tokens…')).contentArea)).toBe(true);
+        expect(showsSomething(opened(text('No access tokens.')).contentArea)).toBe(true);
     });
 
     test('settles present when the body draws later', async () => {
         const body = document.createElement('div');
-        const { element, contentArea } = manifested(body);
+        const { element, contentArea } = opened(body);
         watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
         expect(getContentState(element)).toBe('pending');
 
@@ -94,7 +94,7 @@ describe('Tim: a body that draws', () => {
 
     test('a body that drew before the deadline is never refused', async () => {
         const body = document.createElement('div');
-        const { element, contentArea } = manifested(body);
+        const { element, contentArea } = opened(body);
         watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
 
         body.appendChild(text('ci-runner'));
@@ -107,7 +107,7 @@ describe('Tim: a body that draws', () => {
 
 describe('Spike: a body that never draws', () => {
     test('is refused when the deadline passes', async () => {
-        const { element, contentArea } = manifested(document.createElement('div'));
+        const { element, contentArea } = opened(document.createElement('div'));
         watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
         expect(getContentState(element)).toBe('pending');
 
@@ -118,7 +118,7 @@ describe('Spike: a body that never draws', () => {
     });
 
     test('says so in the body, naming the glyph and how long it waited', async () => {
-        const { element, contentArea } = manifested();
+        const { element, contentArea } = opened();
         watchContent(element, contentArea, glyphFixture(), 'Panel', DEADLINE);
         await sleep(DEADLINE * 3);
 
@@ -130,18 +130,18 @@ describe('Spike: a body that never draws', () => {
     });
 
     test('an empty content area shows nothing, whitespace included', () => {
-        expect(showsSomething(manifested().contentArea)).toBe(false);
-        expect(showsSomething(manifested(text('   \n  ')).contentArea)).toBe(false);
+        expect(showsSomething(opened().contentArea)).toBe(false);
+        expect(showsSomething(opened(text('   \n  ')).contentArea)).toBe(false);
     });
 
     test('something that draws without words still counts', () => {
-        const { contentArea } = manifested();
+        const { contentArea } = opened();
         contentArea.appendChild(document.createElement('img'));
         expect(showsSomething(contentArea)).toBe(true);
     });
 
     test('disarming stops the deadline', async () => {
-        const { element, contentArea } = manifested();
+        const { element, contentArea } = opened();
         watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
         disarmContentWatch(element);
 
@@ -155,7 +155,7 @@ describe('Spike: a body that never draws', () => {
 describe('Jenny: the glyph\'s own word', () => {
     test('a glyph may declare empty from anywhere inside its body', async () => {
         const body = document.createElement('div');
-        const { element, contentArea } = manifested(body);
+        const { element, contentArea } = opened(body);
         watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
 
         declareContent(body, 'empty');
@@ -166,7 +166,7 @@ describe('Jenny: the glyph\'s own word', () => {
     });
 
     test('a declared state is not overridden by the deadline', async () => {
-        const { element, contentArea } = manifested();
+        const { element, contentArea } = opened();
         watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
 
         declareContent(contentArea, 'refused');
@@ -184,7 +184,7 @@ describe('Jenny: the glyph\'s own word', () => {
     });
 
     test('one element, one watch — re-arming replaces the last', async () => {
-        const { element, contentArea } = manifested();
+        const { element, contentArea } = opened();
         watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
         watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE * 6);
 
@@ -197,7 +197,7 @@ describe('Jenny: the glyph\'s own word', () => {
     });
 
     test('stashing to the tray ends the watch — a stashed body did not fail', async () => {
-        const { element, contentArea } = manifested();
+        const { element, contentArea } = opened();
         watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
 
         stashContent(element);

@@ -1,5 +1,5 @@
 /**
- * Tests for cursor manifestation
+ * Tests for cursor form
  *
  * Personas:
  * - Tim: Happy path — create, attach, prepare, commit

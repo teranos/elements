@@ -2,27 +2,27 @@
  * Glyph - The universal primitive
  *
  * A glyph is exactly ONE DOM element for its entire lifetime.
- * It morphs between manifestations through smooth animations, but the element
- * identity never changes. The manifestations are named in ./manifestation.ts.
+ * It morphs between forms through smooth animations, but the element
+ * identity never changes. The forms are named in ./form.ts.
  *
  * All glyphs are container glyphs - they can hold child glyphs in various layout strategies.
  *
  * This file contains just the Glyph interface and shared constants.
- * Manifestation logic lives in ./forms/*
+ * Form logic lives in ./forms/*
  */
 
-import type { TrayDestination } from './manifestation';
+import type { TrayDestination } from './form';
 
 export interface Glyph {
     id: string;
     title: string;                       // Plain text — strip any markup before passing
     symbol?: string;                     // Symbol — rendered natively by title bars and the proximity engine
     renderContent: () => HTMLElement;    // Function to render content
-    renderTitleBar?: () => HTMLElement;   // Glyph-specific title bar, enhanced by manifestations with window controls
+    renderTitleBar?: () => HTMLElement;   // Glyph-specific title bar, enhanced by forms with window controls
 
-    // Manifestation configuration
-    manifestationType?: TrayDestination;  // What this opens as from the tray. Default: 'window'
-    // TODO: Add 'programmature' manifestation type for full code editor that can minimize to tray
+    // Form configuration
+    opensAs?: TrayDestination;  // What this opens as from the tray. Default: 'window'
+    // TODO: Add 'programmature' form type for full code editor that can minimize to tray
     initialWidth?: string;               // Initial dimensions (e.g., "800px")
     initialHeight?: string;
     defaultX?: number;                   // Default position
@@ -47,18 +47,18 @@ export interface Glyph {
     // Glyph content: source code, markdown, template, or JSON result
     content?: string;
 
-    // Visual identity — every manifestation (dot, window, panel) reads these.
+    // Visual identity — every form (dot, window, panel) reads these.
     // Like color, border is never lost to a morph: the dot a note minimizes
     // into wears the note's border.
     color?: string;      // Background color (default: DEFAULT_GLYPH_COLOR)
     textColor?: string;  // Text color (default: 'rgb(255,255,255)')
-    border?: string;     // CSS border shorthand (default: the manifestation's own border)
+    border?: string;     // CSS border shorthand (default: the form's own border)
 
-    // Pre-existing DOM element from cursor manifestation (placement mode).
+    // Pre-existing DOM element from cursor form (placement mode).
     // When set, canvasPlaced reuses this element instead of creating a new one.
     cursorElement?: HTMLElement;
 
-    // Symbol span extracted from cursor manifestation during placement —
+    // Symbol span extracted from cursor form during placement —
     // the element continuity carrier for `symbol` across a cursor → placed
     // morph. Not a second source of truth: it displays the same string.
     // Absent, renderers create a span from `symbol`.
@@ -77,8 +77,8 @@ function getPrefersReducedMotion(): boolean {
 }
 
 // Animation durations in milliseconds
-export const MAXIMIZE_DURATION_MS = 450;  // Base duration for dot → manifestation
-export const MINIMIZE_DURATION_MS = 350;  // Base duration for manifestation → dot
+export const MAXIMIZE_DURATION_MS = 450;  // Base duration for dot → form
+export const MINIMIZE_DURATION_MS = 350;  // Base duration for form → dot
 
 // Get actual durations considering reduced motion preference
 export function getMaximizeDuration(): number {
@@ -98,7 +98,7 @@ export function getMinimizeDuration(): number {
  */
 export const CONTENT_DEADLINE_MS = 10000;
 
-// Window manifestation constants (used by forms/window.ts)
+// Window form constants (used by forms/window.ts)
 export const DEFAULT_WINDOW_WIDTH = '800px';
 export const DEFAULT_WINDOW_HEIGHT = '600px';
 export const WINDOW_BORDER_RADIUS = '8px';
@@ -109,7 +109,7 @@ export const TITLE_BAR_HEIGHT = '32px';
 export const WINDOW_BUTTON_SIZE = '24px';
 export const CONTENT_PADDING = '16px';
 
-// Panel manifestation constants (used by forms/panel.ts)
+// Panel form constants (used by forms/panel.ts)
 export const PANEL_BORDER_RADIUS = '0 0 12px 12px';  // Rounded bottom when sliding from top
 export const PANEL_BORDER_RADIUS_BOTTOM = '12px 12px 0 0';  // Rounded top when sliding from bottom
 export const PANEL_OVERLAY_BG = 'rgba(0, 0, 0, 0.4)';

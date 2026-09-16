@@ -1,18 +1,18 @@
 /**
- * The manifestations a glyph can take.
+ * The forms a glyph can take.
  *
- * AXIOMAS.md: "A morph is a state transition of a glyph between manifestations."
- * That names the noun and the verb. This names the manifestations, once, so the
+ * AXIOMAS.md: "A morph is a state transition of a glyph between forms."
+ * That names the noun and the verb. This names the forms, once, so the
  * type, the stylesheets and the morph functions stop each keeping their own list.
  *
  * Fullscreen is not among them, because three of them are it: `workspace` is
  * edge to edge, `canvasExpanded` is edge to edge, and a `panel` dragged past
  * 90% of the viewport becomes edge to edge (.glyph-panel--fullscreen). One
- * word for three manifestations names none of them.
+ * word for three forms names none of them.
  */
 
 /**
- * Every manifestation, in the order a glyph meets them, and whether a tray dot
+ * Every form, in the order a glyph meets them, and whether a tray dot
  * opens as it.
  *
  * `opensFromTray` is what GlyphRun.morphGlyph() dispatches on: exactly the
@@ -24,11 +24,11 @@
  * says which file, so a name here can always be checked against the code that
  * implements it.
  *
- * The values live in MANIFESTATIONS below, and the compiler holds the two
+ * The values live in FORMS below, and the compiler holds the two
  * together both ways: a row here with no value there fails, and a value there
  * with no row here fails too.
  */
-export interface ManifestationTable {
+export interface FormTable {
     /**
      * Resting in the tray. `applyRestingDotGeometry()` puts a glyph here at birth
      * and when an existing element joins the tray (run.ts), and on the way back
@@ -54,7 +54,7 @@ export interface ManifestationTable {
     readonly panel: { readonly opensFromTray: true };
 
     /**
-     * "Canvas Manifestation - Fullscreen, no chrome" — the workspace itself,
+     * "Canvas Form - Fullscreen, no chrome" — the workspace itself,
      * which is a glyph. forms/canvas.ts.
      *
      * Named for what it is rather than for its file, the one row where those
@@ -66,20 +66,20 @@ export interface ManifestationTable {
     readonly workspace: { readonly opensFromTray: true };
 
     /**
-     * "Canvas-Placed Manifestation" — a glyph sitting on that workspace, with
+     * "Canvas-Placed Form" — a glyph sitting on that workspace, with
      * container, position, drag, title bar and resize. forms/canvas-placed.ts.
      * Reached by being placed, not by a dot being opened.
      */
     readonly canvasPlaced: { readonly opensFromTray: false };
 
     /**
-     * "Canvas-Expanded Manifestation" — a canvas-placed glyph filling the
+     * "Canvas-Expanded Form" — a canvas-placed glyph filling the
      * viewport, reparented to document.body. The host's, not the package's:
      * web/ts/components/glyph/manifestations/canvas-expanded.ts.
      *
      * It fills the viewport like `workspace` and shares nothing else with it —
      * it comes from a placed glyph rather than from the tray, and goes back to
-     * one. Listed because it is a manifestation a glyph can be in, and a list
+     * one. Listed because it is a form a glyph can be in, and a list
      * that omits one is how "fullscreen" ended up meaning two things.
      */
     readonly canvasExpanded: { readonly opensFromTray: false };
@@ -91,10 +91,10 @@ export interface ManifestationTable {
     readonly cursor: { readonly opensFromTray: false };
 }
 
-// Annotated here rather than only on MANIFESTATIONS: a literal assigned straight
+// Annotated here rather than only on FORMS: a literal assigned straight
 // to an annotated name is checked for excess properties too, so a value with no
 // row above is caught. Passed through Object.freeze() it would not be.
-const TABLE: ManifestationTable = {
+const TABLE: FormTable = {
     dot: { opensFromTray: false },
     proximity: { opensFromTray: false },
     window: { opensFromTray: true },
@@ -105,14 +105,14 @@ const TABLE: ManifestationTable = {
     cursor: { opensFromTray: false },
 };
 
-export const MANIFESTATIONS: ManifestationTable = Object.freeze(TABLE);
+export const FORMS: FormTable = Object.freeze(TABLE);
 
 // Each row too, not just the table. TRAY_DESTINATIONS is computed once below
 // while isTrayDestination reads the table live, so a writable row lets the two
 // answer differently for the same name — the drift this file exists to end.
-for (const row of Object.values(MANIFESTATIONS)) Object.freeze(row);
+for (const row of Object.values(FORMS)) Object.freeze(row);
 
-export type Manifestation = keyof ManifestationTable;
+export type Form = keyof FormTable;
 
 /**
  * What a tray dot opens as — the entries above marked `opensFromTray`.
@@ -120,21 +120,21 @@ export type Manifestation = keyof ManifestationTable;
  * Derived rather than listed, so it cannot drift from the table it narrows.
  */
 export type TrayDestination = {
-    [M in Manifestation]: ManifestationTable[M]['opensFromTray'] extends true ? M : never;
-}[Manifestation];
+    [M in Form]: FormTable[M]['opensFromTray'] extends true ? M : never;
+}[Form];
 
 export const TRAY_DESTINATIONS: readonly TrayDestination[] = Object.freeze(
-    (Object.keys(MANIFESTATIONS) as Manifestation[]).filter(
-        (m): m is TrayDestination => MANIFESTATIONS[m].opensFromTray,
+    (Object.keys(FORMS) as Form[]).filter(
+        (m): m is TrayDestination => FORMS[m].opensFromTray,
     ),
 );
 
-/** Whether a name is in the table. Own keys only — `toString` is not a manifestation. */
-export function isManifestation(name: string): name is Manifestation {
-    return Object.prototype.hasOwnProperty.call(MANIFESTATIONS, name);
+/** Whether a name is in the table. Own keys only — `toString` is not a form. */
+export function isForm(name: string): name is Form {
+    return Object.prototype.hasOwnProperty.call(FORMS, name);
 }
 
 /** Whether a name is something a tray dot can open as. */
 export function isTrayDestination(name: string): name is TrayDestination {
-    return isManifestation(name) && MANIFESTATIONS[name].opensFromTray;
+    return isForm(name) && FORMS[name].opensFromTray;
 }

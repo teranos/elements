@@ -7,7 +7,7 @@
  */
 
 import { getLogger, getLogSegment, removeCanvasGlyph } from './config';
-import { getManifestation } from './dataset';
+import { getForm } from './dataset';
 import { getGlyphRun } from './run';
 import type { Glyph } from './glyph';
 import {
@@ -38,7 +38,7 @@ export interface ExpandToWindowConfig {
     border?: string;
     /** Called after restoring to canvas — re-apply visual identity, save dims, etc. */
     onRestoreToCanvas?: (element: HTMLElement) => void;
-    /** Extra fields forwarded to glyphRun.adopt() (e.g. renderTitleBar, manifestationType). */
+    /** Extra fields forwarded to glyphRun.adopt() (e.g. renderTitleBar, opensAs). */
     adoptExtras?: Partial<Glyph>;
     /** Whether to stopPropagation on click (needed for cloned buttons). */
     stopPropagation?: boolean;
@@ -77,8 +77,8 @@ export function wireExpandToWindow(config: ExpandToWindowConfig): void {
 
         // Already off the canvas → place it back on. What isInWindowState()
         // answered here: a window, or a canvas-placed glyph filling the viewport.
-        const manifestation = getManifestation(element);
-        if (manifestation === 'window' || manifestation === 'canvasExpanded') {
+        const form = getForm(element);
+        if (form === 'window' || form === 'canvasExpanded') {
             placeWindowOnCanvas(element, {
                 onRestoreComplete: (el) => {
                     expandBtn.textContent = '\u2B06'; // ⬆

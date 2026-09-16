@@ -1,10 +1,10 @@
 /**
- * Paint survives a change of manifestation because it is on the element.
+ * Paint survives a change of form because it is on the element.
  *
  * Element Axioma: a glyph is exactly one DOM element for its entire lifetime,
  * and everything about it survives every transition. Inline styles are wiped on
- * a morph because geometry is the manifestation's — a tray dot is not laid out
- * like a canvas frame. Paint is not the manifestation's, so wiping it and then
+ * a morph because geometry is the form's — a tray dot is not laid out
+ * like a canvas frame. Paint is not the form's, so wiping it and then
  * re-reading it from the Glyph datum makes the datum authoritative over the
  * element, which is the thing the axiom denies. A glyph whose datum names no
  * colour used to lose what it was painted and come back as the default.

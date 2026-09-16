@@ -1,5 +1,5 @@
 /**
- * Canvas-Placed Manifestation — shared wrapper for glyphs on the canvas workspace.
+ * Canvas-Placed Form — shared wrapper for glyphs on the canvas workspace.
  *
  * Every canvas-placed glyph needs:  container, position, drag, and (usually)
  * a title bar and resize handle.  This module provides all of that so each

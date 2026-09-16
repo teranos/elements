@@ -23,7 +23,7 @@ export interface GlyphDef {
     label: string;
     // A plugin's UI is a panel in the tray, a peer of Database and Handlers.
     // Narrower than TrayDestination: a plugin does not open as a window.
-    manifestation?: 'panel' | 'workspace';
+    form?: 'panel' | 'workspace';
     defaultWidth?: number;
     defaultHeight?: number;
 }

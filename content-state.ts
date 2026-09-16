@@ -1,13 +1,13 @@
 /**
  * What a glyph's body is showing.
  *
- * A manifestation with chrome and an empty body is three different things —
+ * A form with chrome and an empty body is three different things —
  * still loading, nothing to show, or a failure nobody heard — and until this
  * list existed the element said none of them. An empty box was read as whichever
  * of the three the reader guessed.
  *
- * So emptiness is declared rather than inferred, the way `manifestation.ts`
- * declares which manifestation a glyph is in. The states are a closed set for
+ * So emptiness is declared rather than inferred, the way `form.ts`
+ * declares which form a glyph is in. The states are a closed set for
  * the same reason that one is: a name off the list is a word, not a state.
  *
  * `refused` is not `error`. docs/sentry.md: "A refusal that the node is designed

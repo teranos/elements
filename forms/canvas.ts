@@ -1,11 +1,11 @@
 /**
- * Workspace Manifestation — the canvas itself, edge to edge, no chrome.
+ * Workspace Form — the canvas itself, edge to edge, no chrome.
  *
- * Its row in MANIFESTATIONS is `workspace`: `canvas` sat one suffix from
+ * Its row in FORMS is `workspace`: `canvas` sat one suffix from
  * `canvasPlaced` and meant the opposite thing, the surface rather than a glyph
  * on it. canvas-glyph.ts already gives this one `id: 'canvas-workspace'`.
  *
- * The canvas manifestation morphs a glyph to fill the entire viewport
+ * The canvas form morphs a glyph to fill the entire viewport
  * with no window chrome, title bar, or padding. Used for spatial workspaces,
  * overlays, and other full-screen experiences.
  */

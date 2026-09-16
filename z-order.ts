@@ -1,5 +1,5 @@
 /**
- * Stacking order for manifested glyphs.
+ * Stacking order for open glyphs.
  *
  * prepareMorphTo writes one z-index for every window, so which window sits on
  * top is DOM order and clicking cannot change it. This hands out an

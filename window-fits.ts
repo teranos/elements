@@ -5,7 +5,7 @@
  * beside another one. Where the content wants more room than a window may take,
  * the glyph is a panel and takes the whole screen.
  *
- * On a phone that is almost every glyph, which is why one rarely manifests to
+ * On a phone that is almost every glyph, which is why one rarely opens as
  * a window there.
  */
 

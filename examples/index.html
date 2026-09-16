@@ -8,7 +8,7 @@
     /* The package's own identity: black and white. Structure follows the
        working consumer in sbvh.nl/src/GlyphTray.svelte — the tray is a fixed
        right-edge column, the dots carry the pointer events, and a window is
-       reached through [data-manifestation]. */
+       reached through [data-form]. */
     :root {
       --border: #fff;
       --border-radius: 0;
@@ -64,13 +64,13 @@
     .glyph-run-glyph:hover { filter: brightness(1.6); }
 
     /* Position and stacking during a morph are written inline by prepareMorphTo.
-       data-manifestation is written at morph start and stays, so one selector
+       data-form is written at morph start and stays, so one selector
        covers a window from its first frame through to the settled state.
 
        Its surface comes from the glyph's own color, written inline at morph
        commit — visual identity, never overridden. This supplies only the
        default border, which a glyph's own border (inline) beats. */
-    [data-manifestation="window"] {
+    [data-form="window"] {
       pointer-events: auto;
       border: 1px solid #fff;
     }

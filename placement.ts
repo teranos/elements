@@ -51,7 +51,7 @@ const DEFAULT_MARGIN = 24;
 
 /**
  * What is already on screen, read from the DOM rather than from a store, so
- * every manifestation counts whoever placed it.
+ * every form counts whoever placed it.
  */
 export function occupiedRects(exclude?: Element | null): Rect[] {
     const out: Rect[] = [];

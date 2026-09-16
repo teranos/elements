@@ -1,5 +1,5 @@
 /**
- * Glyph Morphology — shared helpers for manifestation transitions.
+ * Glyph Morphology — shared helpers for form transitions.
  *
  * Extracted from window.ts, panel.ts, canvas.ts to eliminate duplication
  * in the morph lifecycle (axiom verification, tray targeting, element reset).
@@ -7,14 +7,14 @@
 
 import { type Glyph } from '../glyph';
 import { readPaint, wearPaint } from '../paint';
-import type { Manifestation } from '../manifestation';
-import { setManifestation, setProximityText, hasProximityText } from '../dataset';
+import type { Form } from '../form';
+import { setForm, setProximityText, hasProximityText } from '../dataset';
 import { getLogger, getLogSegment } from '../config';
 import { applyRestingDotGeometry } from '../proximity';
 
 /**
  * On the element for the length of a morph, and nothing else. Which morph is
- * data-manifestation's to say, so this does not repeat it.
+ * data-form's to say, so this does not repeat it.
  */
 const MORPHING_CLASS = 'glyph-morphing';
 
@@ -45,8 +45,8 @@ export interface MorphPreparation {
      * Commit: the morph class leaves with the morph; the settled class(es)
      * carry the rules that still apply. The glyph's own classes stay.
      *
-     * Called with nothing when a manifestation has no rules beyond the ones
-     * [data-manifestation] already carries — a window is that case.
+     * Called with nothing when a form has no rules beyond the ones
+     * [data-form] already carries — a window is that case.
      */
     commitClass(settledClasses?: string): void;
     /** Abandon: the glyph keeps the classes it had (Morph Axioma). */
@@ -54,12 +54,12 @@ export interface MorphPreparation {
 }
 
 /**
- * Morph-to preamble shared by all manifestations.
+ * Morph-to preamble shared by all forms.
  * Verifies axiom, captures current rect, detaches, clears proximity text,
- * reparents to body with fixed positioning, and records which manifestation
+ * reparents to body with fixed positioning, and records which form
  * the glyph is entering.
  *
- * `manifestation` is a parameter because this runs for window, panel and
+ * `form` is a parameter because this runs for window, panel and
  * workspace alike. It used to mark all three "window state" — one bit was all
  * setWindowState() had, so the three destinations arrived indistinguishable.
  *
@@ -69,7 +69,7 @@ export interface MorphPreparation {
  * to say.
  *
  * The morph class is added, not assigned — the glyph keeps its own classes
- * through the manifest. The dot class leaves with the dot state. The caller
+ * through the morph. The dot class leaves with the dot state. The caller
  * ends the transaction through the returned handle: commitClass() on animation
  * finish, rollbackClass() on cancel.
  */
@@ -77,14 +77,14 @@ export function prepareMorphTo(
     glyphElement: HTMLElement,
     glyph: Glyph,
     verifyElement: (id: string, element: HTMLElement) => void,
-    manifestation: Manifestation,
+    form: Form,
     zIndex: string
 ): MorphPreparation {
     verifyGlyphAxiom(glyph.id, glyphElement, verifyElement);
 
     const glyphRect = glyphElement.getBoundingClientRect();
 
-    // THE GLYPH ITSELF BECOMES THE MANIFESTATION - NO CLONING
+    // THE GLYPH ITSELF TAKES THE FORM - NO CLONING
     glyphElement.remove();
 
     if (hasProximityText(glyphElement)) {
@@ -99,7 +99,7 @@ export function prepareMorphTo(
     glyphElement.style.zIndex = zIndex;
 
     document.body.appendChild(glyphElement);
-    setManifestation(glyphElement, manifestation);
+    setForm(glyphElement, form);
 
     return {
         rect: glyphRect,
@@ -167,7 +167,7 @@ export function resetGlyphElement(
     const log = getLogger();
     const seg = getLogSegment();
     log.debug(seg, `[${label}] Animation complete for ${glyph.id}`);
-    setManifestation(element, 'dot');
+    setForm(element, 'dot');
     setProximityText(element, false);
     element.remove();
     // The paint is read off the element, so the wipe takes the layout and not

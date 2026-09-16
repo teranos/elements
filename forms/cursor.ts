@@ -1,5 +1,5 @@
 /**
- * Cursor manifestation — transient glyph preview during placement mode.
+ * Cursor form — transient glyph preview during placement mode.
  *
  * A small glyph element that follows the mouse pointer while the user
  * carries a glyph type from the spawn menu to a canvas position.

@@ -1,5 +1,5 @@
 /**
- * Panel Manifestation - Full-width resizable workspace panel
+ * Panel Form - Full-width resizable workspace panel
  *
  * The glyph element morphs from its tray dot into a full-width panel
  * via beginMaximizeMorph. The panel's target position is the OPPOSITE
@@ -24,7 +24,7 @@ import { disarmContentWatch } from '../content-watch';
 import { stashContent } from './stash';
 import { renderGlyphContent } from './render-content';
 import {
-    setManifestation,
+    setForm,
     setGlyphId
 } from '../dataset';
 import { prepareMorphTo, calculateTrayTarget, resetGlyphElement } from './morphology';
@@ -239,7 +239,7 @@ export function morphDotToPanel(
             escapeHandlers.delete(glyphElement);
         }
         // Reattach to tray so the glyph isn't orphaned — with the classes it had
-        setManifestation(glyphElement, 'dot');
+        setForm(glyphElement, 'dot');
         glyphElement.remove();
         glyphElement.style.cssText = '';
         morph.rollbackClass();

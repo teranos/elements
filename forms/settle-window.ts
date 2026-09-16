@@ -1,9 +1,9 @@
 /**
  * What a window is, once its morph has committed.
  *
- * `window` is one row in MANIFESTATIONS and had two constructors: a tray dot
+ * `window` is one row in FORMS and had two constructors: a tray dot
  * opening (window.ts) and a canvas-placed glyph being lifted (canvas-window.ts).
- * Both wrote `data-manifestation="window"` and neither agreed with the other on
+ * Both wrote `data-form="window"` and neither agreed with the other on
  * what that meant — a content-sized box against a fixed 520x420, a cap on one
  * and none on the other, a z-index that rose on a press and one that sat at the
  * base and never moved. The table names the state. Nothing said what the state
@@ -14,7 +14,7 @@
  * regardless of where it came from is here, written once.
  *
  * What is deliberately NOT here: what the glyph wears. Its colour, its border,
- * its padding are data on the glyph and never a property of a manifestation
+ * its padding are data on the glyph and never a property of a form
  * (VISION.md) — the tray path reads them off the Glyph, the canvas path leaves
  * the element wearing what it already wore, and both are the same intent
  * reached by different routes. Nor the content: one path rebuilds from
@@ -50,7 +50,7 @@ export interface WindowBox {
 }
 
 /**
- * Settle an element into the window manifestation.
+ * Settle an element into the window form.
  *
  * Call at morph commit, from either constructor. Idempotent: a glyph reopened
  * is one element (Element Axioma), and settling it again neither stacks its

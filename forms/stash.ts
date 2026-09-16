@@ -1,7 +1,7 @@
 /**
- * DOM Content Stash — preserves glyph identity across manifestation morphs.
+ * DOM Content Stash — preserves glyph identity across form morphs.
  *
- * Instead of destroying children with innerHTML = '', manifestations
+ * Instead of destroying children with innerHTML = '', forms
  * stash them off-DOM in a DocumentFragment. On next maximize, the
  * stashed content is restored — same DOM nodes, same event handlers,
  * same scroll positions.
@@ -15,7 +15,7 @@ import { disarmContentWatch } from '../content-watch';
 const stash = new WeakMap<HTMLElement, DocumentFragment>();
 
 /**
- * Stash all children off-DOM, stripping manifestation chrome first.
+ * Stash all children off-DOM, stripping form chrome first.
  * After this call the element is empty (ready for tray-dot state).
  */
 export function stashContent(element: HTMLElement): void {
@@ -30,7 +30,7 @@ export function stashContent(element: HTMLElement): void {
     //    that failed to draw, and the deadline must not fire into a stash.
     disarmContentWatch(element);
 
-    // 3. Strip manifestation-added window controls from any title bar
+    // 3. Strip form-added window controls from any title bar
     const titleBar = element.querySelector('.glyph-title-bar') as HTMLElement | null;
     if (titleBar) {
         removeWindowControls(titleBar);

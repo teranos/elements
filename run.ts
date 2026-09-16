@@ -32,7 +32,7 @@ import { getLogger, getLogSegment, getPersistence } from './config';
 import { GlyphProximity, applyRestingDotGeometry } from './proximity';
 import { type Glyph, getMaximizeDuration, DEFAULT_GLYPH_COLOR } from './glyph';
 import { readPaint, wearPaint } from './paint';
-import { getManifestation, setGlyphId, setGlyphSymbol } from './dataset';
+import { getForm, setGlyphId, setGlyphSymbol } from './dataset';
 import { morphDotToWindow } from './forms/window';
 import { morphDotToWorkspace } from './forms/canvas';
 import { morphDotToPanel } from './forms/panel';
@@ -97,7 +97,7 @@ class GlyphRunImpl {
         // Attach click handler that will persist with the element forever
         const clickHandler = (e: MouseEvent) => {
             e.stopPropagation();
-            log.debug(seg, `[Glyph ${item.id}] Click detected, manifestation: ${getManifestation(glyph) ?? 'none'}`);
+            log.debug(seg, `[Glyph ${item.id}] Click detected, form: ${getForm(glyph) ?? 'none'}`);
             this.morphGlyph(glyph, item);
         };
 
@@ -185,21 +185,21 @@ class GlyphRunImpl {
     }
 
     /**
-     * Morph a glyph from dot to its manifestation (window, panel or workspace).
+     * Morph a glyph from dot to its form (window, panel or workspace).
      * Shared by click handler and touch browse release.
      */
     private morphGlyph(glyphElement: HTMLElement, item: Glyph): void {
         // Already open — don't open it again. isInWindowState() answered this
-        // for every manifestation prepareMorphTo() reparents to document.body:
+        // for every form prepareMorphTo() reparents to document.body:
         // all three tray destinations, and canvasExpanded alongside them.
-        const current = getManifestation(glyphElement);
+        const current = getForm(glyphElement);
         if (current === 'window' || current === 'panel'
             || current === 'workspace' || current === 'canvasExpanded') return;
 
         this.isRestoring = true;
 
-        const manifestationType = item.manifestationType || 'window';
-        if (manifestationType === 'panel') {
+        const opensAs = item.opensAs || 'window';
+        if (opensAs === 'panel') {
             morphDotToPanel(
                 glyphElement,
                 item,
@@ -207,7 +207,7 @@ class GlyphRunImpl {
                 (id) => this.remove(id),
                 (element, g) => this.reattachGlyphToIndicator(element, g)
             );
-        } else if (manifestationType === 'workspace') {
+        } else if (opensAs === 'workspace') {
             morphDotToWorkspace(
                 glyphElement,
                 item,
@@ -243,7 +243,7 @@ class GlyphRunImpl {
     }
 
     /**
-     * Programmatically open a glyph by ID (morph from dot to its manifestation)
+     * Programmatically open a glyph by ID (morph from dot to its form)
      */
     public openGlyph(id: string): void {
         const log = getLogger();
@@ -337,7 +337,7 @@ class GlyphRunImpl {
         this.glyphElements.set(item.id, element);
 
         // Class and geometry are what a tray dot is and change with the
-        // manifestation; paint is what the glyph is and does not.
+        // form; paint is what the glyph is and does not.
         const was = readPaint(element);
         element.className = 'glyph-run-glyph';
         applyRestingDotGeometry(element);
@@ -348,7 +348,7 @@ class GlyphRunImpl {
         // Attach click handler
         const clickHandler = (e: MouseEvent) => {
             e.stopPropagation();
-            log.debug(seg, `[Glyph ${item.id}] Click detected, manifestation: ${getManifestation(element) ?? 'none'}`);
+            log.debug(seg, `[Glyph ${item.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
             this.morphGlyph(element, item);
         };
         this.glyphClickHandlers.set(element, clickHandler);
@@ -496,7 +496,7 @@ class GlyphRunImpl {
         // (Event listeners can be lost during certain DOM manipulations)
         const clickHandler = (e: MouseEvent) => {
             e.stopPropagation();
-            log.debug(seg, `[Glyph ${glyph.id}] Click detected, manifestation: ${getManifestation(glyphElement) ?? 'none'}`);
+            log.debug(seg, `[Glyph ${glyph.id}] Click detected, form: ${getForm(glyphElement) ?? 'none'}`);
             this.morphGlyph(glyphElement, glyph);
         };
 

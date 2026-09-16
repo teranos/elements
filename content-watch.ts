@@ -179,7 +179,7 @@ function owningGlyph(node: Node): HTMLElement | null {
  * Say, in the body, that nothing came.
  *
  * Every variable in scope goes on the line and into the box: which glyph, which
- * manifestation mounted it, how long it waited. A refusal a reader cannot act on
+ * form mounted it, how long it waited. A refusal a reader cannot act on
  * is the silence this file exists to end.
  */
 function refuse(contentArea: HTMLElement, glyph: ContentSubject, logLabel: string, waitedMs: number): void {
@@ -191,7 +191,7 @@ function refuse(contentArea: HTMLElement, glyph: ContentSubject, logLabel: strin
     log.warn(seg, `[${logLabel}] ${glyph.id} drew nothing in ${waitedMs}ms`, {
         glyph: glyph.id,
         title: glyph.title,
-        manifestation: logLabel,
+        form: logLabel,
         waitedMs,
     });
 

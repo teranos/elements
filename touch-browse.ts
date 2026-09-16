@@ -79,7 +79,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         const touch = e.touches[0];
         if (!touch) return;
 
-        // A touch on a button or a manifested glyph is not a browse, however
+        // A touch on a button or an open glyph is not a browse, however
         // close to the tray it lands — its own interaction wins. Only dots,
         // the tray, and bare page near the tray start a browse.
         // (e.target can be the document itself, which has no closest().)

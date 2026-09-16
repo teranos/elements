@@ -2,7 +2,7 @@
  * Title Bar Controls — shared helpers for adding/removing window controls
  * (minimize, close) to any glyph title bar.
  *
- * Manifestations call addWindowControls() when morphing to window/panel,
+ * Forms call addWindowControls() when morphing to window/panel,
  * and removeWindowControls() when returning to canvas-placed.
  */
 

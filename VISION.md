@@ -1,7 +1,7 @@
 # Glyphs
 
 The glyph is the universal UI primitive: exactly one DOM element for its
-entire lifetime, morphing between manifestations while its identity never
+entire lifetime, morphing between forms while its identity never
 changes. The axioms are in [AXIOMAS.md](AXIOMAS.md); this is why they exist.
 
 ## The glyph IS the window
@@ -16,23 +16,23 @@ relationship unmistakable.
 
 At rest a glyph is a dot — presence without demand. As the pointer
 approaches it grows, and its symbol and title fade in: attention is answered
-before commitment. Interaction commits it to a manifestation — a window with
+before commitment. Interaction commits it to a form — a window with
 chrome, a fullscreen panel, a canvas, an element placed on a workspace.
-Leaving a manifestation is the same road driven backwards, down to the dot
+Leaving a form is the same road driven backwards, down to the dot
 it never stopped being.
 
 A morph between states is a transaction. It ends one of two ways: the glyph
 takes the new state, or the attempt is abandoned and the glyph keeps the one
 it had. Nothing about a morph outlives the morph.
 
-## Universal manifestation
+## Universal form
 
-A manifestation is a state, not a component. The same element, the same
+A form is a state, not a component. The same element, the same
 identity, another form — and any form an interface needs tomorrow is a new
-manifestation type, not a new primitive.
+form type, not a new primitive.
 
 ```
-glyph → [intent] → manifestation → [interaction] → another form, or back
+glyph → [intent] → form → [interaction] → another form, or back
 ```
 
 Users learn the morphing grammar once, not each UI.
@@ -40,8 +40,8 @@ Users learn the morphing grammar once, not each UI.
 ## Visual identity
 
 What a glyph wears is data on the glyph, never a property of a
-manifestation: its symbol, its color, its border. Every manifestation reads
-them and every manifestation shows them — the dot a note minimizes into
+form: its symbol, its color, its border. Every form reads
+them and every form shows them — the dot a note minimizes into
 wears the note's border. Everything about a glyph survives every transition.
 
 ## Memory

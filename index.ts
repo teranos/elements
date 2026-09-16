@@ -2,7 +2,7 @@
  * @qntx/glyphs — Glyph runtime and type definitions.
  *
  * The glyph is the universal UI primitive. This package provides the core
- * runtime (tray, proximity engine, morph transactions, manifestations) and
+ * runtime (tray, proximity engine, morph transactions, forms) and
  * type definitions for glyph development.
  *
  * Host apps call configureGlyphs() at startup to wire in their logger
@@ -47,18 +47,18 @@ export {
 } from './glyph';
 export type { Glyph } from './glyph';
 
-// The manifestations a glyph can take — the list the type, the stylesheets and
+// The forms a glyph can take — the list the type, the stylesheets and
 // the morph functions all read from. AXIOMAS.md names the noun; this names them.
-export { MANIFESTATIONS, TRAY_DESTINATIONS, isManifestation, isTrayDestination } from './manifestation';
-export type { Manifestation, ManifestationTable, TrayDestination } from './manifestation';
+export { FORMS, TRAY_DESTINATIONS, isForm, isTrayDestination } from './form';
+export type { Form, FormTable, TrayDestination } from './form';
 
 // Dataset attribute helpers
 export {
-    setManifestation,
-    getManifestation,
-    /** @deprecated Use `getManifestation`. */
+    setForm,
+    getForm,
+    /** @deprecated Use `getForm`. */
     isInWindowState,
-    /** @deprecated Use `setManifestation`. */
+    /** @deprecated Use `setForm`. */
     setWindowState,
     getLastPosition,
     setLastPosition,
@@ -76,7 +76,7 @@ export {
 } from './dataset';
 
 // What a glyph's body is showing — the states, and the watch that settles them.
-// A manifestation with chrome and an empty body is a state the manifestation
+// A form with chrome and an empty body is a state the form
 // table cannot name; these name it.
 export { CONTENT_STATES, isContentState, isSettled } from './content-state';
 export type { ContentState, ContentStateTable } from './content-state';
@@ -106,7 +106,7 @@ export {
     cancelMorph,
 } from './morph-transaction';
 
-// Manifestation helpers
+// Form helpers
 export {
     verifyGlyphAxiom,
     prepareMorphTo,
@@ -122,7 +122,7 @@ export { stashContent, restoreContent, hasStash } from './forms/stash';
 export { renderGlyphContent } from './forms/render-content';
 export type { RenderContentResult } from './forms/render-content';
 
-// Canvas-window manifestation — canvas ↔ window morphing
+// Canvas-window form — canvas ↔ window morphing
 export {
     morphCanvasPlacedToWindow,
     morphWindowToCanvasPlaced,
@@ -144,7 +144,7 @@ export type { PlacementOpts, Rect, Size } from './placement';
 // Stacking — the last window touched is the one in front
 export { raise, raiseOnInteract } from './z-order';
 
-// Manifestations — every morph names both ends, in the names the table holds
+// Forms — every morph names both ends, in the names the table holds
 export { morphDotToWindow, morphWindowToDot } from './forms/window';
 export { morphDotToWorkspace, morphWorkspaceToDot } from './forms/canvas';
 export { morphDotToPanel, morphPanelToDot } from './forms/panel';
@@ -167,7 +167,7 @@ export {
     morphFromPanel,
 } from './forms/panel';
 
-// Cursor manifestation — transient placement preview
+// Cursor form — transient placement preview
 export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './forms/cursor';
 
 // Canvas-placed factory (CPLCD)

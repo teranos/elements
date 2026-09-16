@@ -1,7 +1,7 @@
 /**
- * Window Manifestation - Traditional window with chrome
+ * Window Form - Traditional window with chrome
  *
- * The window manifestation morphs a glyph into a draggable window with:
+ * The window form morphs a glyph into a draggable window with:
  * - Title bar
  * - Minimize/close buttons
  * - Resizable content area
@@ -76,7 +76,7 @@ export function morphDotToWindow(
         document.body.removeChild(measurer);
     }
 
-    // Asked before a transaction opens, because which manifestation this is
+    // Asked before a transaction opens, because which form this is
     // cannot be decided halfway through becoming one (Morph Axioma).
     if (!fitsAsWindow(measuredWidth, window.innerWidth)) {
         morphDotToPanel(glyphElement, glyph, verifyElement, onRemove, onMinimize, preRenderedContent ?? undefined);
@@ -134,8 +134,8 @@ export function morphDotToWindow(
         // The morph class leaves with the morph. A window settles into no class
         // of its own: .glyph-window carried one declaration, pointer-events:
         // auto, which .glyph-morphing-to-window carried too, and
-        // [data-manifestation="window"] spans both. The glyph's own classes
-        // survive the manifest.
+        // [data-form="window"] spans both. The glyph's own classes
+        // survive the morph.
         morph.commitClass();
 
         // What a window is, wherever it came from — the box, the cap, the
@@ -152,7 +152,7 @@ export function morphDotToWindow(
         });
 
         // What the glyph wears is data on the glyph and never a property of a
-        // manifestation (VISION.md). The canvas path reaches the same place by
+        // form (VISION.md). The canvas path reaches the same place by
         // leaving on the element what it already wore.
         glyphElement.style.backgroundColor = glyph.color ?? DEFAULT_GLYPH_COLOR;
         if (glyph.border) glyphElement.style.border = glyph.border;
