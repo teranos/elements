@@ -84,7 +84,7 @@ class Tray {
 
         // CREATE THE ELEMENT - ONCE AND ONLY ONCE
         const element = document.createElement('div');
-        element.className = 'glyph-run-glyph';
+        element.className = 'dot';
         applyRestingDotGeometry(element);
         element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
         if (item.border) element.style.border = item.border;
@@ -136,12 +136,12 @@ class Tray {
         }
 
         this.element = document.createElement('div');
-        this.element.className = 'glyph-run';
+        this.element.className = 'tray';
         this.element.setAttribute('data-empty', 'true');
 
         // Container for collapsed glyphs
         this.indicatorContainer = document.createElement('div');
-        this.indicatorContainer.className = 'glyph-run-indicators';
+        this.indicatorContainer.className = 'tray-dots';
         this.element.appendChild(this.indicatorContainer);
 
         document.body.appendChild(this.element);
@@ -339,7 +339,7 @@ class Tray {
         // Class and geometry are what a tray dot is and change with the
         // form; paint is what the glyph is and does not.
         const was = readPaint(element);
-        element.className = 'glyph-run-glyph';
+        element.className = 'dot';
         applyRestingDotGeometry(element);
         wearPaint(element, was, item);
         setElementId(element, item.id);

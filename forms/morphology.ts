@@ -16,7 +16,7 @@ import { applyRestingDotGeometry } from '../tray/proximity';
  * On the element for the length of a morph, and nothing else. Which morph is
  * data-form's to say, so this does not repeat it.
  */
-const MORPHING_CLASS = 'glyph-morphing';
+const MORPHING_CLASS = 'morphing';
 
 /**
  * Verify the glyph axiom: exactly one DOM element for this glyph.
@@ -93,7 +93,7 @@ export function prepareMorphTo(
     }
 
     const previousClassName = element.className;
-    element.classList.remove('glyph-run-glyph');
+    element.classList.remove('dot');
     element.classList.add(MORPHING_CLASS);
     element.style.position = 'fixed';
     element.style.zIndex = zIndex;
@@ -120,7 +120,7 @@ export function prepareMorphTo(
  * Otherwise targets the end of the tray (where new dots append).
  */
 export function calculateTrayTarget(elementId?: string): { x: number; y: number } {
-    const trayElement = document.querySelector('.glyph-run');
+    const trayElement = document.querySelector('.tray');
     if (!trayElement) {
         return { x: window.innerWidth - 50, y: window.innerHeight / 2 };
     }
@@ -136,7 +136,7 @@ export function calculateTrayTarget(elementId?: string): { x: number; y: number 
         }
     }
 
-    const indicators = trayElement.querySelector('.glyph-run-indicators');
+    const indicators = trayElement.querySelector('.tray-dots');
     const lastDot = indicators?.lastElementChild;
     if (lastDot) {
         const lastRect = lastDot.getBoundingClientRect();
@@ -174,7 +174,7 @@ export function resetElement(
     // what the glyph is (Element Axioma).
     const was = readPaint(element);
     element.style.cssText = '';
-    element.className = 'glyph-run-glyph';
+    element.className = 'dot';
     applyRestingDotGeometry(element);
     wearPaint(element, was, item);
     onMorphComplete(element, item);

@@ -72,8 +72,8 @@ function attachResizeHandle(
     const seg = getLogSegment();
     const handle = document.createElement('div');
     handle.className = direction === 'from-top'
-        ? 'glyph-panel-resize-handle glyph-panel-resize-handle--bottom'
-        : 'glyph-panel-resize-handle glyph-panel-resize-handle--top';
+        ? 'panel-resize-handle panel-resize-handle--bottom'
+        : 'panel-resize-handle panel-resize-handle--top';
     panelElement.appendChild(handle);
 
     const controller = new AbortController();
@@ -102,7 +102,7 @@ function attachResizeHandle(
         }
 
         panelElement.style.height = `${newHeight}px`;
-        panelElement.classList.toggle('glyph-panel--fullscreen', isFullscreen);
+        panelElement.classList.toggle('panel--fullscreen', isFullscreen);
 
         // For from-bottom panels, also adjust top position
         if (direction === 'from-bottom') {
@@ -113,7 +113,7 @@ function attachResizeHandle(
     const onMouseUp = () => {
         if (!isDragging) return;
         isDragging = false;
-        panelElement.classList.remove('glyph-panel--resizing');
+        panelElement.classList.remove('panel--resizing');
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
         dragController?.abort();
@@ -129,7 +129,7 @@ function attachResizeHandle(
         startY = e.clientY;
         startHeight = panelElement.offsetHeight;
 
-        panelElement.classList.add('glyph-panel--resizing');
+        panelElement.classList.add('panel--resizing');
         document.body.style.cursor = 'ns-resize';
         document.body.style.userSelect = 'none';
 
@@ -191,9 +191,9 @@ export function morphDotToPanel(
     ).then(() => {
         log.debug(seg, `[Panel] Animation committed for ${item.id}`);
 
-        const directionClass = direction === 'from-top' ? 'glyph-panel--from-top' : 'glyph-panel--from-bottom';
+        const directionClass = direction === 'from-top' ? 'panel--from-top' : 'panel--from-bottom';
         // Morph class leaves with the morph; the glyph's own classes survive
-        morph.commitClass(`glyph-panel glyph-panel--fullscreen ${directionClass}`);
+        morph.commitClass(`panel panel--fullscreen ${directionClass}`);
         element.style.cssText = '';
         element.style.position = 'fixed';
         element.style.left = `${targetX}px`;

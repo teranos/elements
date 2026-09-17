@@ -31,7 +31,7 @@ export function stashContent(element: HTMLElement): void {
     disarmContentWatch(element);
 
     // 3. Strip form-added window controls from any title bar
-    const titleBar = element.querySelector('.glyph-title-bar') as HTMLElement | null;
+    const titleBar = element.querySelector('.title-bar') as HTMLElement | null;
     if (titleBar) {
         removeWindowControls(titleBar);
     }

@@ -81,7 +81,7 @@ describe('a glyph whose datum names no colour', () => {
         const item = make('paint-reset-1');
         const { element } = canvasPlaced({
             item: item,
-            className: 'canvas-glyph glyph-crier',
+            className: 'canvas-element crier',
             defaults: { x: 0, y: 0, width: 400, height: 300 },
             logLabel: 'CRIER',
         });
@@ -98,7 +98,7 @@ describe('a glyph whose datum names no colour', () => {
     test('a canvas frame is painted, so there is something to keep', () => {
         const { element } = canvasPlaced({
             item: make('paint-frame-1'),
-            className: 'canvas-glyph glyph-crier',
+            className: 'canvas-element crier',
             defaults: { x: 0, y: 0, width: 400, height: 300 },
             logLabel: 'CRIER',
         });

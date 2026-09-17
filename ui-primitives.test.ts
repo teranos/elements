@@ -16,7 +16,7 @@ beforeEach(() => {
 describe('Tim: building blocks', () => {
     test('an input with a label', () => {
         const wrapper = createInput({ label: 'Name', placeholder: 'type here', value: 'x' });
-        expect(wrapper.className).toBe('glyph-form-group');
+        expect(wrapper.className).toBe('field');
         expect(wrapper.querySelector('label')!.textContent).toBe('Name');
         const input = wrapper.querySelector('input')!;
         expect(input.placeholder).toBe('type here');
@@ -34,14 +34,14 @@ describe('Tim: building blocks', () => {
         let fired = 0;
         const btn = createButton({ label: 'Run', onClick: () => { fired++; } });
         expect(btn.textContent).toBe('Run');
-        expect(btn.className).toBe('glyph-btn');
+        expect(btn.className).toBe('btn');
         btn.click();
         expect(fired).toBe(1);
     });
 
     test('a primary button wears the modifier', () => {
         const btn = createButton({ label: 'Save', onClick: () => {}, primary: true });
-        expect(btn.className).toBe('glyph-btn glyph-btn--primary');
+        expect(btn.className).toBe('btn btn--primary');
     });
 });
 

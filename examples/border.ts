@@ -46,7 +46,7 @@ export function renderBorderSpecimen(): void {
     });
 
     const body = document.createElement('div');
-    body.className = 'glyph-content-area';
+    body.className = 'content-area';
     body.textContent = `inline border: ${OWNED_BORDER}`;
     element.appendChild(body);
 

@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>@qntx/glyphs — specimens</title>
   <style>
-    /* The package's own identity: black and white. Structure follows the
-       working consumer in sbvh.nl/src/ElementTray.svelte — the tray is a fixed
-       right-edge column, the dots carry the pointer events, and a window is
-       reached through [data-form]. */
+    /* The package's own identity: black and white. Structure follows a
+       working consumer — the tray is a fixed right-edge column, the dots
+       carry the pointer events, and a window is reached through [data-form]. */
     :root {
       --border: #fff;
       --border-radius: 0;
@@ -28,7 +27,7 @@
     }
 
     /* Tray — fixed right edge, vertically centred */
-    .glyph-run {
+    .tray {
       position: fixed;
       top: 50%;
       right: 4px;
@@ -41,7 +40,7 @@
       width: fit-content;
     }
 
-    .glyph-run-indicators {
+    .tray-dots {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
@@ -51,7 +50,7 @@
     }
 
     /* Pointer events on the dots only */
-    .glyph-run-glyph {
+    .dot {
       pointer-events: auto;
       cursor: pointer;
       font-family: var(--font-mono);
@@ -61,7 +60,7 @@
       border-radius: var(--border-radius);
     }
 
-    .glyph-run-glyph:hover { filter: brightness(1.6); }
+    .dot:hover { filter: brightness(1.6); }
 
     /* Position and stacking during a morph are written inline by prepareMorphTo.
        data-form is written at morph start and stays, so one selector
@@ -75,7 +74,7 @@
       border: 1px solid #fff;
     }
 
-    .glyph-title-bar {
+    .title-bar {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -91,7 +90,7 @@
       color: #fff;
     }
 
-    .glyph-title-bar button {
+    .title-bar button {
       width: 22px;
       height: 22px;
       padding: 1px 2px;
@@ -107,15 +106,15 @@
       margin-left: 2px;
     }
 
-    .glyph-title-bar button:hover { background: #fff; color: #000; }
+    .title-bar button:hover { background: #fff; color: #000; }
 
-    .glyph-content-area {
+    .content-area {
       flex: 1 1 auto;
       overflow: auto;
       padding: 8px;
     }
 
-    .glyph-content {
+    .content {
       font-family: var(--font-mono);
       font-size: var(--font-size-sm);
       line-height: 1.6;

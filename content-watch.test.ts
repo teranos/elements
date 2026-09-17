@@ -28,7 +28,7 @@ const DEADLINE = 20;
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-function fixture(id: string = 'tokens-glyph'): Element {
+function fixture(id: string = 'tokens-element'): Element {
     return {
         id,
         title: 'Access Tokens',
@@ -39,15 +39,15 @@ function fixture(id: string = 'tokens-glyph'): Element {
 /** A window as render-content.ts leaves it: element, title bar, content area. */
 function opened(body?: HTMLElement): { element: HTMLElement; contentArea: HTMLElement } {
     const element = document.createElement('div');
-    element.dataset.elementId = 'tokens-glyph';
+    element.dataset.elementId = 'tokens-element';
 
     const titleBar = document.createElement('div');
-    titleBar.className = 'glyph-title-bar';
+    titleBar.className = 'title-bar';
     titleBar.textContent = 'Access Tokens';
     element.appendChild(titleBar);
 
     const contentArea = document.createElement('div');
-    contentArea.classList.add('glyph-content-area');
+    contentArea.classList.add('content-area');
     if (body) contentArea.appendChild(body);
     element.appendChild(contentArea);
 
@@ -124,7 +124,7 @@ describe('Spike: a body that never draws', () => {
 
         const said = contentArea.textContent ?? '';
         expect(said).toContain('nothing was drawn, and nothing said why');
-        expect(said).toContain('tokens-glyph');
+        expect(said).toContain('tokens-element');
         expect(said).toContain('Panel');
         expect(said).toContain(`${DEADLINE}ms`);
     });

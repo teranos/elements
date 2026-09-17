@@ -10,7 +10,7 @@ import { getLogger, getLogSegment } from './config';
 
 // ── Cleanup registry ────────────────────────────────────────────────
 
-const CLEANUP_KEY = '__glyphCleanup';
+const CLEANUP_KEY = '__elementCleanup';
 
 /**
  * Store a cleanup function on a glyph element.

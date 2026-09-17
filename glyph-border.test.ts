@@ -48,7 +48,7 @@ describe('Tim: every form wears the border', () => {
     test('a canvas-placed glyph wears it', () => {
         const { element } = canvasPlaced({
             item: makeElement('border-canvas-1', { border: BORDER }),
-            className: 'canvas-test-glyph',
+            className: 'canvas-test-element',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             logLabel: 'Test',
         });
@@ -95,7 +95,7 @@ describe('Jenny: window → tray, the border never leaves', () => {
 
         expect(el.style.border).toBe(BORDER);
         expect(el.style.backgroundColor).not.toBe('');
-        expect(el.className).toBe('glyph-run-glyph');
+        expect(el.className).toBe('dot');
 
         tray.remove('border-adopt-1');
     });

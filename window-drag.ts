@@ -10,10 +10,10 @@
 import { setLastPosition } from './dataset';
 import { reflowBox } from './window-reflow';
 
-const DRAG_KEY = '__glyphWindowDrag';
+const DRAG_KEY = '__elementWindowDrag';
 
 /** The width a window has when nothing is squeezing it. */
-const NATURAL_KEY = '__glyphNaturalWidth';
+const NATURAL_KEY = '__elementNaturalWidth';
 
 /** How much of a window stays on screen at the bottom: its title bar. */
 const TITLE_BAR_VISIBLE = 50;

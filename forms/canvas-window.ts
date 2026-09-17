@@ -132,11 +132,11 @@ export function morphCanvasPlacedToWindow(
     const originalParent = element.parentElement;
 
     // 3. Detect existing glyph title bar (belongs to the glyph, not the form)
-    const existingTitleBar = element.querySelector(':scope > .glyph-title-bar') as HTMLElement | null;
+    const existingTitleBar = element.querySelector(':scope > .title-bar') as HTMLElement | null;
 
     // 4. Wrap non-title-bar children into a scrollable content div
     const contentDiv = document.createElement('div');
-    contentDiv.className = 'canvas-window-content glyph-content-area';
+    contentDiv.className = 'canvas-window-content content-area';
     contentDiv.style.padding = '0';
     const children = Array.from(element.childNodes);
     for (const child of children) {
@@ -150,7 +150,7 @@ export function morphCanvasPlacedToWindow(
         titleBar = existingTitleBar;
     } else {
         titleBar = document.createElement('div');
-        titleBar.className = 'glyph-title-bar';
+        titleBar.className = 'title-bar';
         titleBar.dataset.windowCreated = 'true'; // Mark for removal on restore
         const symbol = getSymbol(element);
         if (symbol) {
@@ -245,7 +245,7 @@ function unwrapWindowContent(element: HTMLElement): void {
     disarmContentWatch(element);
 
     const contentDiv = element.querySelector('.canvas-window-content');
-    const titleBar = element.querySelector('.glyph-title-bar');
+    const titleBar = element.querySelector('.title-bar');
 
     if (titleBar) {
         if ((titleBar as HTMLElement).dataset.windowCreated) {

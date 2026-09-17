@@ -18,9 +18,9 @@ beforeEach(() => {
 });
 
 describe('Tim: the symbol span', () => {
-    test('createSymbolSpan renders the symbol as .glyph-symbol', () => {
+    test('createSymbolSpan renders the symbol as .symbol', () => {
         const span = createSymbolSpan('⍟');
-        expect(span.classList.contains('glyph-symbol')).toBe(true);
+        expect(span.classList.contains('symbol')).toBe(true);
         expect(span.textContent).toBe('⍟');
     });
 
@@ -37,14 +37,14 @@ describe('Spike: symbol carried across a cursor morph', () => {
     // The span itself honors the Element Axioma — same element, new class.
     test('settleSymbolSpan settles the same element', () => {
         const cursorSpan = document.createElement('span');
-        cursorSpan.className = 'glyph-cursor-symbol';
+        cursorSpan.className = 'cursor-symbol';
         cursorSpan.textContent = 'ax';
 
         const settled = settleSymbolSpan(cursorSpan);
 
         expect(settled).toBe(cursorSpan);
-        expect(settled.classList.contains('glyph-cursor-symbol')).toBe(false);
-        expect(settled.classList.contains('glyph-symbol')).toBe(true);
+        expect(settled.classList.contains('cursor-symbol')).toBe(false);
+        expect(settled.classList.contains('symbol')).toBe(true);
         expect(settled.textContent).toBe('ax');
         expect(['none', '0 0 auto']).toContain(settled.style.flex);
     });
@@ -66,31 +66,31 @@ describe('Jenny: native renderers display glyph.symbol', () => {
     test('canvasPlaced renders glyph.symbol when no symbolElement is carried', () => {
         const { titleBar } = canvasPlaced({
             item: makeElement({ symbol: '⍟' }),
-            className: 'canvas-test-glyph',
+            className: 'canvas-test-element',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             titleBar: { label: 'Self' },
             logLabel: 'Test',
         });
 
-        const span = titleBar!.querySelector('.glyph-symbol');
+        const span = titleBar!.querySelector('.symbol');
         expect(span).not.toBeNull();
         expect(span!.textContent).toBe('⍟');
     });
 
     test('canvasPlaced still reuses a carried symbolElement — same element', () => {
         const carried = document.createElement('span');
-        carried.className = 'glyph-cursor-symbol';
+        carried.className = 'cursor-symbol';
         carried.textContent = 'ax';
 
         const { titleBar } = canvasPlaced({
             item: makeElement({ symbol: 'ax', symbolElement: carried }),
-            className: 'canvas-test-glyph',
+            className: 'canvas-test-element',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             titleBar: { label: 'AX' },
             logLabel: 'Test',
         });
 
-        const span = titleBar!.querySelector('.glyph-symbol');
+        const span = titleBar!.querySelector('.symbol');
         expect(span).toBe(carried);
     });
 
@@ -101,7 +101,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
 
         const { titleBar } = renderContent(element, makeElement({ symbol: '⍟' }), 'Test');
 
-        const symbol = titleBar.querySelector('.glyph-symbol');
+        const symbol = titleBar.querySelector('.symbol');
         expect(symbol).not.toBeNull();
         expect(symbol!.textContent).toBe('⍟');
         expect(titleBar.textContent).toContain('Self');
@@ -113,7 +113,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
 
         const { titleBar } = renderContent(element, makeElement(), 'Test');
 
-        expect(titleBar.querySelector('.glyph-symbol')).toBeNull();
+        expect(titleBar.querySelector('.symbol')).toBeNull();
         expect(titleBar.textContent).toContain('Self');
     });
 });

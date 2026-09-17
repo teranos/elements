@@ -33,7 +33,7 @@ export function renderContent(
 
     if (restored) {
         // Content restored from stash — find existing title bar
-        titleBar = element.querySelector('.glyph-title-bar') as HTMLElement;
+        titleBar = element.querySelector('.title-bar') as HTMLElement;
         if (!titleBar) {
             // Stash had no title bar — create generic
             titleBar = createGenericTitleBar(item);
@@ -82,7 +82,7 @@ export function renderContent(
             // otherwise render fresh. Ensures renderContent() runs exactly once.
             const content = preRenderedContent ?? item.renderContent();
             const contentArea = document.createElement('div');
-            contentArea.classList.add('glyph-content-area');
+            contentArea.classList.add('content-area');
             contentArea.style.padding = `${CANVAS_ELEMENT_CONTENT_PADDING}px`;
             contentArea.appendChild(content);
             element.appendChild(contentArea);
@@ -91,7 +91,7 @@ export function renderContent(
         } catch (error) {
             log.error(seg, `[${logLabel} ${item.id}] Error rendering content: ${error instanceof Error ? error.message : String(error)}`);
             const errorContent = document.createElement('div');
-            errorContent.className = 'glyph-content-area';
+            errorContent.className = 'content-area';
             errorContent.style.color = 'var(--color-error)';
             errorContent.style.fontFamily = 'var(--font-mono)';
 
@@ -119,7 +119,7 @@ export function renderContent(
 
 function createGenericTitleBar(item: Element): HTMLElement {
     const titleBar = document.createElement('div');
-    titleBar.className = 'glyph-title-bar';
+    titleBar.className = 'title-bar';
     if (item.symbol) {
         titleBar.appendChild(createSymbolSpan(item.symbol));
     }

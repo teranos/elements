@@ -12,17 +12,17 @@ import { preventDrag } from './canvas-drag';
 /** Create a text input with drag protection already applied. */
 export function createInput(opts?: { label?: string; placeholder?: string; value?: string; type?: string }): HTMLElement {
     const wrapper = document.createElement('div');
-    wrapper.className = 'glyph-form-group';
+    wrapper.className = 'field';
 
     if (opts?.label) {
         const label = document.createElement('label');
-        label.className = 'glyph-label';
+        label.className = 'label';
         label.textContent = opts.label;
         wrapper.appendChild(label);
     }
 
     const input = document.createElement('input');
-    input.className = 'glyph-input';
+    input.className = 'input';
     input.type = opts?.type ?? 'text';
     if (opts?.placeholder) input.placeholder = opts.placeholder;
     if (opts?.value) input.value = opts.value;
@@ -35,7 +35,7 @@ export function createInput(opts?: { label?: string; placeholder?: string; value
 /** Create a button with drag protection already applied. */
 export function createButton(opts: { label: string; onClick: () => void; primary?: boolean }): HTMLButtonElement {
     const btn = document.createElement('button');
-    btn.className = opts.primary ? 'glyph-btn glyph-btn--primary' : 'glyph-btn';
+    btn.className = opts.primary ? 'btn btn--primary' : 'btn';
     btn.textContent = opts.label;
     btn.addEventListener('click', opts.onClick);
     preventDrag(btn);
@@ -49,7 +49,7 @@ export function createButton(opts: { label: string; onClick: () => void; primary
  */
 export function createStatusLine(): { element: HTMLElement; show(msg: string, isError?: boolean): void; clear(): void } {
     const el = document.createElement('div');
-    el.className = 'glyph-status';
+    el.className = 'status';
     el.style.fontFamily = 'monospace';
     el.style.fontSize = 'var(--font-size-xs, 10px)';
     el.style.minHeight = '16px';

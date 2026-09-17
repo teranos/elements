@@ -6,7 +6,7 @@
  * and removeWindowControls() when returning to canvas-placed.
  */
 
-const WINDOW_CONTROLS_CLASS = 'glyph-window-controls';
+const WINDOW_CONTROLS_CLASS = 'window-controls';
 
 export interface WindowControlsConfig {
     onMinimize: () => void;

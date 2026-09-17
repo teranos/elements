@@ -23,132 +23,132 @@ import type { EdgeDirection } from '../composition';
 describe('Port-aware MELDABILITY registry', () => {
     describe('areClassesCompatible', () => {
         test('ax → prompt returns right', () => {
-            expect(areClassesCompatible('canvas-ax-glyph', 'canvas-prompt-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-ax-element', 'canvas-prompt-element')).toBe('right');
         });
 
         test('ax → py returns right', () => {
-            expect(areClassesCompatible('canvas-ax-glyph', 'canvas-py-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-ax-element', 'canvas-py-element')).toBe('right');
         });
 
         test('se → py returns right', () => {
-            expect(areClassesCompatible('canvas-se-glyph', 'canvas-py-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-se-element', 'canvas-py-element')).toBe('right');
         });
 
         test('se → prompt returns right', () => {
-            expect(areClassesCompatible('canvas-se-glyph', 'canvas-prompt-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-se-element', 'canvas-prompt-element')).toBe('right');
         });
 
         test('se → se returns right (semantic intersection)', () => {
-            expect(areClassesCompatible('canvas-se-glyph', 'canvas-se-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-se-element', 'canvas-se-element')).toBe('right');
         });
 
         test('py → prompt returns right', () => {
-            expect(areClassesCompatible('canvas-py-glyph', 'canvas-prompt-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-py-element', 'canvas-prompt-element')).toBe('right');
         });
 
         test('py → py returns right', () => {
-            expect(areClassesCompatible('canvas-py-glyph', 'canvas-py-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-py-element', 'canvas-py-element')).toBe('right');
         });
 
         test('py → result returns bottom', () => {
-            expect(areClassesCompatible('canvas-py-glyph', 'canvas-result-glyph')).toBe('bottom');
+            expect(areClassesCompatible('canvas-py-element', 'canvas-result-element')).toBe('bottom');
         });
 
         test('prompt → result returns bottom', () => {
-            expect(areClassesCompatible('canvas-prompt-glyph', 'canvas-result-glyph')).toBe('bottom');
+            expect(areClassesCompatible('canvas-prompt-element', 'canvas-result-element')).toBe('bottom');
         });
 
         test('doc → prompt returns right as first direction', () => {
-            expect(areClassesCompatible('canvas-doc-glyph', 'canvas-prompt-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-doc-element', 'canvas-prompt-element')).toBe('right');
         });
 
         test('doc → prompt supports both right and bottom', () => {
-            const dirs = getCompatibleDirections('canvas-doc-glyph', 'canvas-prompt-glyph');
+            const dirs = getCompatibleDirections('canvas-doc-element', 'canvas-prompt-element');
             expect(dirs).toContain('right');
             expect(dirs).toContain('bottom');
             expect(dirs.length).toBe(2);
         });
 
         test('doc → doc supports both right and bottom', () => {
-            const dirs = getCompatibleDirections('canvas-doc-glyph', 'canvas-doc-glyph');
+            const dirs = getCompatibleDirections('canvas-doc-element', 'canvas-doc-element');
             expect(dirs).toContain('right');
             expect(dirs).toContain('bottom');
             expect(dirs.length).toBe(2);
         });
 
         test('note → prompt returns bottom (note sits above prompt)', () => {
-            expect(areClassesCompatible('canvas-note-glyph', 'canvas-prompt-glyph')).toBe('bottom');
+            expect(areClassesCompatible('canvas-note-element', 'canvas-prompt-element')).toBe('bottom');
         });
 
         test('doc → result returns right (doc sits left of result)', () => {
-            expect(areClassesCompatible('canvas-doc-glyph', 'canvas-result-glyph')).toBe('right');
-            expect(getCompatibleDirections('canvas-doc-glyph', 'canvas-result-glyph')).toEqual(['right']);
+            expect(areClassesCompatible('canvas-doc-element', 'canvas-result-element')).toBe('right');
+            expect(getCompatibleDirections('canvas-doc-element', 'canvas-result-element')).toEqual(['right']);
         });
 
         test('prompt → prompt returns null (incompatible)', () => {
-            expect(areClassesCompatible('canvas-prompt-glyph', 'canvas-prompt-glyph')).toBe(null);
+            expect(areClassesCompatible('canvas-prompt-element', 'canvas-prompt-element')).toBe(null);
         });
 
         test('result → result returns bottom (conversational chaining)', () => {
-            expect(areClassesCompatible('canvas-result-glyph', 'canvas-result-glyph')).toBe('bottom');
+            expect(areClassesCompatible('canvas-result-element', 'canvas-result-element')).toBe('bottom');
         });
 
         test('result → non-result returns null', () => {
-            expect(areClassesCompatible('canvas-result-glyph', 'canvas-py-glyph')).toBe(null);
+            expect(areClassesCompatible('canvas-result-element', 'canvas-py-element')).toBe(null);
         });
 
         test('unknown class returns null', () => {
-            expect(areClassesCompatible('unknown', 'canvas-py-glyph')).toBe(null);
+            expect(areClassesCompatible('unknown', 'canvas-py-element')).toBe(null);
         });
     });
 
     describe('getInitiatorClasses', () => {
         test('includes ax, se, py, prompt, doc, note, result, subcanvas', () => {
             const classes = getInitiatorClasses();
-            expect(classes).toContain('canvas-ax-glyph');
-            expect(classes).toContain('canvas-se-glyph');
-            expect(classes).toContain('canvas-py-glyph');
-            expect(classes).toContain('canvas-prompt-glyph');
-            expect(classes).toContain('canvas-doc-glyph');
-            expect(classes).toContain('canvas-note-glyph');
-            expect(classes).toContain('canvas-result-glyph');
-            expect(classes).toContain('canvas-subcanvas-glyph');
+            expect(classes).toContain('canvas-ax-element');
+            expect(classes).toContain('canvas-se-element');
+            expect(classes).toContain('canvas-py-element');
+            expect(classes).toContain('canvas-prompt-element');
+            expect(classes).toContain('canvas-doc-element');
+            expect(classes).toContain('canvas-note-element');
+            expect(classes).toContain('canvas-result-element');
+            expect(classes).toContain('canvas-subcanvas-element');
         });
     });
 
     describe('getTargetClasses', () => {
         test('includes prompt, py, doc, result, subcanvas (all targets across all ports)', () => {
             const classes = getTargetClasses();
-            expect(classes).toContain('canvas-prompt-glyph');
-            expect(classes).toContain('canvas-py-glyph');
-            expect(classes).toContain('canvas-doc-glyph');
-            expect(classes).toContain('canvas-result-glyph');
-            expect(classes).toContain('canvas-subcanvas-glyph');
+            expect(classes).toContain('canvas-prompt-element');
+            expect(classes).toContain('canvas-py-element');
+            expect(classes).toContain('canvas-doc-element');
+            expect(classes).toContain('canvas-result-element');
+            expect(classes).toContain('canvas-subcanvas-element');
         });
     });
 
     describe('getCompatibleTargets', () => {
         test('py can target prompt, py, and result', () => {
-            const targets = getCompatibleTargets('canvas-py-glyph');
-            expect(targets).toContain('canvas-prompt-glyph');
-            expect(targets).toContain('canvas-py-glyph');
-            expect(targets).toContain('canvas-result-glyph');
+            const targets = getCompatibleTargets('canvas-py-element');
+            expect(targets).toContain('canvas-prompt-element');
+            expect(targets).toContain('canvas-py-element');
+            expect(targets).toContain('canvas-result-element');
         });
 
         test('ax can target prompt, py, and subcanvas', () => {
-            const targets = getCompatibleTargets('canvas-ax-glyph');
-            expect(targets).toContain('canvas-prompt-glyph');
-            expect(targets).toContain('canvas-py-glyph');
-            expect(targets).toContain('canvas-subcanvas-glyph');
+            const targets = getCompatibleTargets('canvas-ax-element');
+            expect(targets).toContain('canvas-prompt-element');
+            expect(targets).toContain('canvas-py-element');
+            expect(targets).toContain('canvas-subcanvas-element');
             expect(targets.length).toBe(3);
         });
 
         test('se can target prompt, py, se, and subcanvas', () => {
-            const targets = getCompatibleTargets('canvas-se-glyph');
-            expect(targets).toContain('canvas-prompt-glyph');
-            expect(targets).toContain('canvas-py-glyph');
-            expect(targets).toContain('canvas-se-glyph');
-            expect(targets).toContain('canvas-subcanvas-glyph');
+            const targets = getCompatibleTargets('canvas-se-element');
+            expect(targets).toContain('canvas-prompt-element');
+            expect(targets).toContain('canvas-py-element');
+            expect(targets).toContain('canvas-se-element');
+            expect(targets).toContain('canvas-subcanvas-element');
             expect(targets.length).toBe(4);
         });
 
@@ -160,8 +160,8 @@ describe('Port-aware MELDABILITY registry', () => {
     describe('getElementClass', () => {
         test('extracts glyph class from element', () => {
             const el = document.createElement('div');
-            el.className = 'canvas-py-glyph canvas-glyph extra-class';
-            expect(getElementClass(el)).toBe('canvas-py-glyph');
+            el.className = 'canvas-py-element canvas-element extra-class';
+            expect(getElementClass(el)).toBe('canvas-py-element');
         });
 
         test('returns null when no glyph class found', () => {
@@ -222,17 +222,17 @@ describe('Port-aware MELDABILITY registry', () => {
         test('prompt can append to ax-py composition (py leaf, right port)', () => {
             const composition = document.createElement('div');
             const ax = document.createElement('div');
-            ax.className = 'canvas-ax-glyph';
+            ax.className = 'canvas-ax-element';
             ax.setAttribute('data-element-id', 'ax1');
             const py = document.createElement('div');
-            py.className = 'canvas-py-glyph';
+            py.className = 'canvas-py-element';
             py.setAttribute('data-element-id', 'py1');
             composition.appendChild(ax);
             composition.appendChild(py);
 
             const edges = [{ from: 'ax1', to: 'py1', direction: 'right' }];
 
-            const options = getMeldOptions('canvas-prompt-glyph', composition, edges);
+            const options = getMeldOptions('canvas-prompt-element', composition, edges);
             expect(options.length).toBeGreaterThan(0);
 
             const appendOption = options.find(o => o.incomingRole === 'to');
@@ -244,17 +244,17 @@ describe('Port-aware MELDABILITY registry', () => {
         test('ax can prepend to py-prompt composition (py root, right port)', () => {
             const composition = document.createElement('div');
             const py = document.createElement('div');
-            py.className = 'canvas-py-glyph';
+            py.className = 'canvas-py-element';
             py.setAttribute('data-element-id', 'py1');
             const prompt = document.createElement('div');
-            prompt.className = 'canvas-prompt-glyph';
+            prompt.className = 'canvas-prompt-element';
             prompt.setAttribute('data-element-id', 'prompt1');
             composition.appendChild(py);
             composition.appendChild(prompt);
 
             const edges = [{ from: 'py1', to: 'prompt1', direction: 'right' }];
 
-            const options = getMeldOptions('canvas-ax-glyph', composition, edges);
+            const options = getMeldOptions('canvas-ax-element', composition, edges);
 
             const prependOption = options.find(o => o.incomingRole === 'from');
             expect(prependOption).toBeDefined();
@@ -265,17 +265,17 @@ describe('Port-aware MELDABILITY registry', () => {
         test('result can attach below py leaf (bottom port)', () => {
             const composition = document.createElement('div');
             const ax = document.createElement('div');
-            ax.className = 'canvas-ax-glyph';
+            ax.className = 'canvas-ax-element';
             ax.setAttribute('data-element-id', 'ax1');
             const py = document.createElement('div');
-            py.className = 'canvas-py-glyph';
+            py.className = 'canvas-py-element';
             py.setAttribute('data-element-id', 'py1');
             composition.appendChild(ax);
             composition.appendChild(py);
 
             const edges = [{ from: 'ax1', to: 'py1', direction: 'right' }];
 
-            const options = getMeldOptions('canvas-result-glyph', composition, edges);
+            const options = getMeldOptions('canvas-result-element', composition, edges);
 
             const bottomOption = options.find(o => o.direction === 'bottom');
             expect(bottomOption).toBeDefined();
@@ -286,13 +286,13 @@ describe('Port-aware MELDABILITY registry', () => {
         test('doc right-meld onto result chain returns options for all results (#521)', () => {
             const composition = document.createElement('div');
             const r1 = document.createElement('div');
-            r1.className = 'canvas-result-glyph';
+            r1.className = 'canvas-result-element';
             r1.setAttribute('data-element-id', 'result1');
             const r2 = document.createElement('div');
-            r2.className = 'canvas-result-glyph';
+            r2.className = 'canvas-result-element';
             r2.setAttribute('data-element-id', 'result2');
             const r3 = document.createElement('div');
-            r3.className = 'canvas-result-glyph';
+            r3.className = 'canvas-result-element';
             r3.setAttribute('data-element-id', 'result3');
             composition.appendChild(r1);
             composition.appendChild(r2);
@@ -303,7 +303,7 @@ describe('Port-aware MELDABILITY registry', () => {
                 { from: 'result2', to: 'result3', direction: 'bottom' }
             ];
 
-            const options = getMeldOptions('canvas-doc-glyph', composition, edges);
+            const options = getMeldOptions('canvas-doc-element', composition, edges);
 
             const rightOptions = options.filter(o => o.direction === 'right');
             expect(rightOptions.length).toBe(3);
@@ -318,13 +318,13 @@ describe('Port-aware MELDABILITY registry', () => {
         test('incompatible glyph returns no options', () => {
             const composition = document.createElement('div');
             const ax = document.createElement('div');
-            ax.className = 'canvas-ax-glyph';
+            ax.className = 'canvas-ax-element';
             ax.setAttribute('data-element-id', 'ax1');
             composition.appendChild(ax);
 
             const edges = [{ from: 'ax1', to: 'py1', direction: 'right' }];
 
-            const options = getMeldOptions('canvas-unknown-glyph', composition, edges);
+            const options = getMeldOptions('canvas-unknown-element', composition, edges);
             expect(options).toEqual([]);
         });
 
@@ -333,16 +333,16 @@ describe('Port-aware MELDABILITY registry', () => {
         test('prompt can append to py leaf of an se|py chain (right port)', () => {
             const composition = document.createElement('div');
             const se = document.createElement('div');
-            se.className = 'canvas-se-glyph';
+            se.className = 'canvas-se-element';
             se.setAttribute('data-element-id', 'se1');
             const py = document.createElement('div');
-            py.className = 'canvas-py-glyph';
+            py.className = 'canvas-py-element';
             py.setAttribute('data-element-id', 'py1');
             composition.appendChild(se);
             composition.appendChild(py);
 
             const edges = [{ from: 'se1', to: 'py1', direction: 'right' }];
-            const options = getMeldOptions('canvas-prompt-glyph', composition, edges);
+            const options = getMeldOptions('canvas-prompt-element', composition, edges);
 
             const appendOption = options.find(o => o.elementId === 'py1' && o.direction === 'right');
             expect(appendOption).toBeDefined();
@@ -485,52 +485,52 @@ describe('Port-aware MELDABILITY registry', () => {
 
     describe('Subcanvas meld compatibility - Tim (Happy Path)', () => {
         test('Tim: subcanvas is compatible as target from ax (right)', () => {
-            expect(areClassesCompatible('canvas-ax-glyph', 'canvas-subcanvas-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-ax-element', 'canvas-subcanvas-element')).toBe('right');
         });
 
         test('Tim: subcanvas is compatible as target from py (right and bottom)', () => {
-            expect(areClassesCompatible('canvas-py-glyph', 'canvas-subcanvas-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-py-element', 'canvas-subcanvas-element')).toBe('right');
         });
 
         test('Tim: subcanvas is compatible as target from se (right)', () => {
-            expect(areClassesCompatible('canvas-se-glyph', 'canvas-subcanvas-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-se-element', 'canvas-subcanvas-element')).toBe('right');
         });
 
         test('Tim: subcanvas is compatible as target from note (bottom)', () => {
-            expect(areClassesCompatible('canvas-note-glyph', 'canvas-subcanvas-glyph')).toBe('bottom');
+            expect(areClassesCompatible('canvas-note-element', 'canvas-subcanvas-element')).toBe('bottom');
         });
 
         test('Tim: subcanvas is compatible as target from prompt (bottom)', () => {
-            expect(areClassesCompatible('canvas-prompt-glyph', 'canvas-subcanvas-glyph')).toBe('bottom');
+            expect(areClassesCompatible('canvas-prompt-element', 'canvas-subcanvas-element')).toBe('bottom');
         });
 
         test('Tim: subcanvas can initiate meld toward prompt (right)', () => {
-            expect(areClassesCompatible('canvas-subcanvas-glyph', 'canvas-prompt-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-subcanvas-element', 'canvas-prompt-element')).toBe('right');
         });
 
         test('Tim: subcanvas can initiate meld toward py (right)', () => {
-            expect(areClassesCompatible('canvas-subcanvas-glyph', 'canvas-py-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-subcanvas-element', 'canvas-py-element')).toBe('right');
         });
 
         test('Tim: subcanvas can initiate meld toward result (right)', () => {
-            expect(areClassesCompatible('canvas-subcanvas-glyph', 'canvas-result-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-subcanvas-element', 'canvas-result-element')).toBe('right');
         });
     });
 
     describe('Subcanvas meld compatibility - Spike (Edge Cases)', () => {
         test('Spike: subcanvas-to-subcanvas compatibility works', () => {
-            expect(areClassesCompatible('canvas-subcanvas-glyph', 'canvas-subcanvas-glyph')).toBe('right');
+            expect(areClassesCompatible('canvas-subcanvas-element', 'canvas-subcanvas-element')).toBe('right');
         });
 
         test('Spike: subcanvas has ports in all three directions', () => {
-            const targets = getCompatibleTargets('canvas-subcanvas-glyph');
-            expect(targets).toContain('canvas-ax-glyph');
-            expect(targets).toContain('canvas-se-glyph');
-            expect(targets).toContain('canvas-py-glyph');
-            expect(targets).toContain('canvas-prompt-glyph');
-            expect(targets).toContain('canvas-note-glyph');
-            expect(targets).toContain('canvas-result-glyph');
-            expect(targets).toContain('canvas-subcanvas-glyph');
+            const targets = getCompatibleTargets('canvas-subcanvas-element');
+            expect(targets).toContain('canvas-ax-element');
+            expect(targets).toContain('canvas-se-element');
+            expect(targets).toContain('canvas-py-element');
+            expect(targets).toContain('canvas-prompt-element');
+            expect(targets).toContain('canvas-note-element');
+            expect(targets).toContain('canvas-result-element');
+            expect(targets).toContain('canvas-subcanvas-element');
         });
     });
 });

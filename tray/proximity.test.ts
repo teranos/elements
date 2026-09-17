@@ -57,7 +57,7 @@ afterEach(() => {
 function makeTray(): { container: HTMLElement; dot: HTMLElement } {
     const container = document.createElement('div');
     const dot = document.createElement('div');
-    dot.className = 'glyph-run-glyph';
+    dot.className = 'dot';
     container.appendChild(dot);
     document.body.appendChild(container);
     return { container, dot };

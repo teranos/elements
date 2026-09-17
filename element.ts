@@ -119,7 +119,7 @@ export const MORPHING_Z_INDEX = '10004';  // Above panels while a morph animates
 // Canvas glyph dimensions
 export const CANVAS_ELEMENT_TITLE_BAR_HEIGHT = 32; // Title bar height for canvas-placed glyphs
 export const CANVAS_ELEMENT_CONTENT_PADDING = 8; // Content element padding (reduced from CONTENT_PADDING)
-export const CONTENT_INNER_PADDING = 4; // .glyph-content CSS padding
+export const CONTENT_INNER_PADDING = 4; // .content CSS padding
 
 // ResizeObserver constraints
 export const MAX_VIEWPORT_HEIGHT_RATIO = 0.8; // Don't exceed 80% of viewport height

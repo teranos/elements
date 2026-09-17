@@ -8,7 +8,7 @@
 
 export function createSymbolSpan(symbol: string): HTMLElement {
     const span = document.createElement('span');
-    span.className = 'glyph-symbol';
+    span.className = 'symbol';
     // Title spans take flex: 1; the symbol keeps its natural width.
     span.style.flex = 'none';
     span.textContent = symbol;
@@ -21,8 +21,8 @@ export function createSymbolSpan(symbol: string): HTMLElement {
  * itself honors the Element Axioma.
  */
 export function settleSymbolSpan(span: HTMLElement): HTMLElement {
-    span.classList.remove('glyph-cursor-symbol');
-    span.classList.add('glyph-symbol');
+    span.classList.remove('cursor-symbol');
+    span.classList.add('symbol');
     span.style.flex = 'none';
     return span;
 }

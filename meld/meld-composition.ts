@@ -450,7 +450,7 @@ export function detachElement(elementId: string, composition: HTMLElement): {
 
     // 2-glyph composition → full unmeld
     if (allElementIds.length <= 2) {
-        log.info(seg, '[MeldSystem] detachElement: 2-glyph composition, delegating to full unmeld');
+        log.info(seg, '[MeldSystem] detachElement: 2-element composition, delegating to full unmeld');
         const result = unmeldComposition(composition);
         if (!result) return null;
         const detached = result.members.find(

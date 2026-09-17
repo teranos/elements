@@ -29,7 +29,7 @@ beforeEach(() => {
 
 function windowEl(): HTMLElement {
     const el = document.createElement('div');
-    el.dataset.elementId = 'tokens-glyph';
+    el.dataset.elementId = 'tokens-element';
     document.body.appendChild(el);
     return el;
 }
@@ -98,7 +98,7 @@ describe('Spike: an axis the content owns', () => {
         settleWindow(el, { ...BOX, widthStyle: 'fit-content' });
 
         // setNaturalWidth's key — what window-drag asks with every frame.
-        expect((el as unknown as Record<string, number>).__glyphNaturalWidth).toBe(520);
+        expect((el as unknown as Record<string, number>).__elementNaturalWidth).toBe(520);
     });
 });
 

@@ -266,7 +266,7 @@ export function makeDraggable(
             const meldInfo = findMeldTarget(element);
             if (meldInfo.target && meldInfo.distance < MELD_THRESHOLD) {
                 const nearbyElement = meldInfo.target;
-                const nearbyElementId = nearbyElement.dataset.elementId || 'glyph-unknown';
+                const nearbyElementId = nearbyElement.dataset.elementId || 'element-unknown';
 
                 const nearbyItem: Element = {
                     id: nearbyElementId,
@@ -463,7 +463,7 @@ export function makeDraggable(
                         const elRect = el.getBoundingClientRect();
                         const itemData: Element = {
                             id,
-                            title: el.dataset.glyphTitle || 'Element',
+                            title: el.dataset.elementTitle || 'Element',
                             symbol: el.dataset.symbol,
                             width: Math.round(elRect.width),
                             height: Math.round(elRect.height),

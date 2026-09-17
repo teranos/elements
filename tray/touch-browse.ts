@@ -32,7 +32,7 @@ export function findPeakedElement(host: TouchBrowseHost): { element: HTMLElement
     if (!host.indicatorContainer) return null;
 
     const dots = Array.from(
-        host.indicatorContainer.querySelectorAll('.glyph-run-glyph')
+        host.indicatorContainer.querySelectorAll('.dot')
     ) as HTMLElement[];
 
     let bestProximity = 0;
@@ -87,7 +87,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         if (target && typeof target.closest === 'function') {
             if (target.closest('button')) return;
             const owner = target.closest('[data-element-id]') as HTMLElement | null;
-            if (owner && !owner.classList.contains('glyph-run-glyph')) return;
+            if (owner && !owner.classList.contains('dot')) return;
         }
 
         const trayRect = host.element.getBoundingClientRect();
@@ -143,7 +143,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         suppressNextClick = false;
 
         const target = e.target as HTMLElement;
-        if (target.closest('.glyph-run-glyph')) {
+        if (target.closest('.dot')) {
             e.stopPropagation();
             e.preventDefault();
             log.debug(seg, '[Tray] Suppressed post-browse synthetic click');

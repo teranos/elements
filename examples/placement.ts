@@ -34,12 +34,12 @@ function specimenElement(index: number): Element {
         opensAs: 'window',
         initialWidth: `${WINDOW_WIDTH}px`,
         // No initialHeight — the engine measures the content and commits
-        // fit-content, the way sbvh.nl's windows do.
+        // fit-content, the way a consumer's windows do.
         color: index === 1 ? '#6b21a8' : '#000',
         textColor: '#fff',
         renderContent: () => {
             const el = document.createElement('div');
-            el.className = 'glyph-content';
+            el.className = 'content';
             el.style.maxWidth = `${WINDOW_WIDTH - 2 - 16}px`;
             el.style.minHeight = `${BODY_HEIGHT}px`;
             el.textContent = `glyph ${index}`;

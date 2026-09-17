@@ -196,7 +196,7 @@ function refuse(contentArea: HTMLElement, item: ContentSubject, logLabel: string
     });
 
     const box = document.createElement('div');
-    box.className = 'glyph-refusal';
+    box.className = 'refusal';
     box.style.color = 'var(--color-warning)';
     box.style.fontFamily = 'var(--font-mono)';
     box.style.padding = '8px';

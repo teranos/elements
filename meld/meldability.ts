@@ -24,10 +24,10 @@ export interface PortRule {
 
 /** All glyph classes that participate in melding */
 const ALL_ELEMENT_CLASSES = [
-    'canvas-ax-glyph', 'canvas-se-glyph', 'canvas-py-glyph',
-    'canvas-prompt-glyph', 'canvas-doc-glyph', 'canvas-note-glyph',
-    'canvas-result-glyph', 'canvas-subcanvas-glyph',
-    'canvas-plugin-glyph',
+    'canvas-ax-element', 'canvas-se-element', 'canvas-py-element',
+    'canvas-prompt-element', 'canvas-doc-element', 'canvas-note-element',
+    'canvas-result-element', 'canvas-subcanvas-element',
+    'canvas-plugin-element',
 ] as const;
 
 /**
@@ -35,33 +35,33 @@ const ALL_ELEMENT_CLASSES = [
  * Each port specifies a direction and which target classes can connect there
  */
 export const MELDABILITY: Record<string, readonly PortRule[]> = {
-    'canvas-ax-glyph': [
-        { direction: 'right', targets: ['canvas-prompt-glyph', 'canvas-py-glyph', 'canvas-subcanvas-glyph'] }
+    'canvas-ax-element': [
+        { direction: 'right', targets: ['canvas-prompt-element', 'canvas-py-element', 'canvas-subcanvas-element'] }
     ],
-    'canvas-se-glyph': [
-        { direction: 'right', targets: ['canvas-prompt-glyph', 'canvas-py-glyph', 'canvas-se-glyph', 'canvas-subcanvas-glyph'] }
+    'canvas-se-element': [
+        { direction: 'right', targets: ['canvas-prompt-element', 'canvas-py-element', 'canvas-se-element', 'canvas-subcanvas-element'] }
     ],
-    'canvas-py-glyph': [
-        { direction: 'right', targets: ['canvas-prompt-glyph', 'canvas-py-glyph', 'canvas-subcanvas-glyph'] },
-        { direction: 'bottom', targets: ['canvas-result-glyph', 'canvas-subcanvas-glyph'] }
+    'canvas-py-element': [
+        { direction: 'right', targets: ['canvas-prompt-element', 'canvas-py-element', 'canvas-subcanvas-element'] },
+        { direction: 'bottom', targets: ['canvas-result-element', 'canvas-subcanvas-element'] }
     ],
-    'canvas-prompt-glyph': [
-        { direction: 'bottom', targets: ['canvas-result-glyph', 'canvas-subcanvas-glyph'] }
+    'canvas-prompt-element': [
+        { direction: 'bottom', targets: ['canvas-result-element', 'canvas-subcanvas-element'] }
     ],
-    'canvas-doc-glyph': [
-        { direction: 'right', targets: ['canvas-result-glyph', 'canvas-prompt-glyph', 'canvas-doc-glyph', 'canvas-subcanvas-glyph'] },
-        { direction: 'bottom', targets: ['canvas-prompt-glyph', 'canvas-doc-glyph', 'canvas-subcanvas-glyph'] }
+    'canvas-doc-element': [
+        { direction: 'right', targets: ['canvas-result-element', 'canvas-prompt-element', 'canvas-doc-element', 'canvas-subcanvas-element'] },
+        { direction: 'bottom', targets: ['canvas-prompt-element', 'canvas-doc-element', 'canvas-subcanvas-element'] }
     ],
-    'canvas-note-glyph': [
-        { direction: 'bottom', targets: ['canvas-prompt-glyph', 'canvas-plugin-glyph', 'canvas-subcanvas-glyph'] }
+    'canvas-note-element': [
+        { direction: 'bottom', targets: ['canvas-prompt-element', 'canvas-plugin-element', 'canvas-subcanvas-element'] }
     ],
-    'canvas-result-glyph': [
-        { direction: 'bottom', targets: ['canvas-result-glyph'] }
+    'canvas-result-element': [
+        { direction: 'bottom', targets: ['canvas-result-element'] }
     ],
-    'canvas-plugin-glyph': [
-        { direction: 'bottom', targets: ['canvas-result-glyph', 'canvas-subcanvas-glyph'] }
+    'canvas-plugin-element': [
+        { direction: 'bottom', targets: ['canvas-result-element', 'canvas-subcanvas-element'] }
     ],
-    'canvas-subcanvas-glyph': [
+    'canvas-subcanvas-element': [
         { direction: 'right', targets: ALL_ELEMENT_CLASSES },
         { direction: 'bottom', targets: ALL_ELEMENT_CLASSES },
         { direction: 'top', targets: ALL_ELEMENT_CLASSES },
@@ -156,7 +156,7 @@ export function getCompositionElementIds(composition: HTMLElement): string[] {
  */
 export function getElementClass(element: HTMLElement): string | null {
     for (const cls of element.classList) {
-        if (cls.startsWith('canvas-') && cls.endsWith('-glyph')) return cls;
+        if (cls.startsWith('canvas-') && cls.endsWith('-element')) return cls;
     }
     return null;
 }

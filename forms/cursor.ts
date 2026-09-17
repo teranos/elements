@@ -10,7 +10,7 @@
  * via canvasPlaced({ element }) to preserve DOM identity.
  */
 
-const CURSOR_CLASS = 'glyph-cursor';
+const CURSOR_CLASS = 'cursor';
 
 /**
  * Create a cursor glyph element displaying the given symbol.
@@ -19,14 +19,14 @@ const CURSOR_CLASS = 'glyph-cursor';
 export function createCursorElement(symbol: string, elementType: string): HTMLElement {
     const el = document.createElement('div');
     el.className = CURSOR_CLASS;
-    el.setAttribute('data-glyph-type', elementType);
+    el.setAttribute('data-element-type', elementType);
     el.style.position = 'fixed';
     el.style.pointerEvents = 'none';
     el.style.zIndex = '10003';
 
     // Symbol as a <span> so it can be extracted and reused in the placed glyph
     const sym = document.createElement('span');
-    sym.className = 'glyph-cursor-symbol';
+    sym.className = 'cursor-symbol';
     sym.textContent = symbol;
     el.appendChild(sym);
 
@@ -53,8 +53,8 @@ export function attachCursorToMouse(element: HTMLElement): () => void {
  * Returns the symbol span reference for the factory to reuse.
  */
 export function prepareCursorForPlacement(element: HTMLElement): HTMLElement | null {
-    const symbolSpan = element.querySelector('.glyph-cursor-symbol') as HTMLElement | null;
-    element.removeAttribute('data-glyph-type');
+    const symbolSpan = element.querySelector('.cursor-symbol') as HTMLElement | null;
+    element.removeAttribute('data-element-type');
     return symbolSpan;
 }
 

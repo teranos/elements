@@ -156,7 +156,7 @@ export class Proximity {
         this.proximityRAF = requestAnimationFrame(() => {
             if (!indicatorContainer || isRestoring) return;
 
-            const dots = Array.from(indicatorContainer.querySelectorAll('.glyph-run-glyph')) as HTMLElement[];
+            const dots = Array.from(indicatorContainer.querySelectorAll('.dot')) as HTMLElement[];
 
             // Read at use time — the host may have configured geometry after construction
             const geometry = getDotGeometry();

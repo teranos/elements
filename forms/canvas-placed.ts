@@ -58,7 +58,7 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
 
     // Container — reuse cursor element from placement mode if available
     const element = config.element ?? item.cursorElement ?? document.createElement('div');
-    element.className = `${className} canvas-glyph`;
+    element.className = `${className} canvas-element`;
     element.dataset.elementId = item.id;
     setSymbol(element, item.symbol);
     element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
@@ -79,7 +79,7 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
     let titleBar: HTMLElement | null = null;
     if (config.titleBar) {
         titleBar = document.createElement('div');
-        titleBar.className = 'glyph-title-bar';
+        titleBar.className = 'title-bar';
 
         // Symbol — reuse the span carried across the cursor morph, or render
         // glyph.symbol natively
@@ -115,8 +115,8 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
     if (config.resizable) {
         const handle = document.createElement('div');
         handle.className = config.resizeHandleClass
-            ? `glyph-resize-handle ${config.resizeHandleClass}`
-            : 'glyph-resize-handle';
+            ? `resize-handle ${config.resizeHandleClass}`
+            : 'resize-handle';
         element.appendChild(handle);
 
         const resizeOpts = typeof config.resizable === 'object' ? config.resizable : {};

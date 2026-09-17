@@ -31,12 +31,12 @@ describe('Spike: one glyph per side axiom', () => {
 
     test('py with right-outgoing occupied (py→prompt) cannot accept another right-append', () => {
         const comp = compWith(
-            { id: 'py1', cls: 'canvas-py-glyph' },
-            { id: 'prompt1', cls: 'canvas-prompt-glyph' },
+            { id: 'py1', cls: 'canvas-py-element' },
+            { id: 'prompt1', cls: 'canvas-prompt-element' },
         );
         const edges = [{ from: 'py1', to: 'prompt1', direction: 'right' }];
 
-        const options = getMeldOptions('canvas-prompt-glyph', comp, edges);
+        const options = getMeldOptions('canvas-prompt-element', comp, edges);
 
         const pyAppend = options.find(o => o.elementId === 'py1' && o.direction === 'right');
         expect(pyAppend).toBeUndefined();
@@ -44,12 +44,12 @@ describe('Spike: one glyph per side axiom', () => {
 
     test('prompt with left side occupied (py→prompt) cannot receive second left meld', () => {
         const comp = compWith(
-            { id: 'py1', cls: 'canvas-py-glyph' },
-            { id: 'prompt1', cls: 'canvas-prompt-glyph' },
+            { id: 'py1', cls: 'canvas-py-element' },
+            { id: 'prompt1', cls: 'canvas-prompt-element' },
         );
         const edges = [{ from: 'py1', to: 'prompt1', direction: 'right' }];
 
-        const options = getMeldOptions('canvas-ax-glyph', comp, edges);
+        const options = getMeldOptions('canvas-ax-element', comp, edges);
 
         const promptPrepend = options.find(o => o.elementId === 'prompt1');
         expect(promptPrepend).toBeUndefined();
@@ -61,12 +61,12 @@ describe('Spike: one glyph per side axiom', () => {
 
     test('py with bottom occupied (py→result) rejects second bottom attachment', () => {
         const comp = compWith(
-            { id: 'py1', cls: 'canvas-py-glyph' },
-            { id: 'result1', cls: 'canvas-result-glyph' },
+            { id: 'py1', cls: 'canvas-py-element' },
+            { id: 'result1', cls: 'canvas-result-element' },
         );
         const edges = [{ from: 'py1', to: 'result1', direction: 'bottom' }];
 
-        const options = getMeldOptions('canvas-result-glyph', comp, edges);
+        const options = getMeldOptions('canvas-result-element', comp, edges);
 
         const pyBottom = options.find(o => o.elementId === 'py1' && o.direction === 'bottom');
         expect(pyBottom).toBeUndefined();
@@ -74,12 +74,12 @@ describe('Spike: one glyph per side axiom', () => {
 
     test('py with right occupied still allows bottom meld (different side)', () => {
         const comp = compWith(
-            { id: 'py1', cls: 'canvas-py-glyph' },
-            { id: 'prompt1', cls: 'canvas-prompt-glyph' },
+            { id: 'py1', cls: 'canvas-py-element' },
+            { id: 'prompt1', cls: 'canvas-prompt-element' },
         );
         const edges = [{ from: 'py1', to: 'prompt1', direction: 'right' }];
 
-        const options = getMeldOptions('canvas-result-glyph', comp, edges);
+        const options = getMeldOptions('canvas-result-element', comp, edges);
 
         const pyBottom = options.find(o => o.elementId === 'py1' && o.direction === 'bottom');
         expect(pyBottom).toBeDefined();
@@ -91,9 +91,9 @@ describe('Jenny: saturated chain', () => {
 
     test('[ax → py → prompt] — right axis fully saturated, bottom axis open', () => {
         const comp = compWith(
-            { id: 'ax1', cls: 'canvas-ax-glyph' },
-            { id: 'py1', cls: 'canvas-py-glyph' },
-            { id: 'prompt1', cls: 'canvas-prompt-glyph' },
+            { id: 'ax1', cls: 'canvas-ax-element' },
+            { id: 'py1', cls: 'canvas-py-element' },
+            { id: 'prompt1', cls: 'canvas-prompt-element' },
         );
         const edges = [
             { from: 'ax1', to: 'py1', direction: 'right' },
@@ -108,10 +108,10 @@ describe('Jenny: saturated chain', () => {
         expect(isPortFree('py1', 'bottom', 'outgoing', edges)).toBe(true);
         expect(isPortFree('prompt1', 'bottom', 'outgoing', edges)).toBe(true);
 
-        expect(getMeldOptions('canvas-py-glyph', comp, edges)).toEqual([]);
-        expect(getMeldOptions('canvas-ax-glyph', comp, edges)).toEqual([]);
+        expect(getMeldOptions('canvas-py-element', comp, edges)).toEqual([]);
+        expect(getMeldOptions('canvas-ax-element', comp, edges)).toEqual([]);
 
-        const resultOptions = getMeldOptions('canvas-result-glyph', comp, edges);
+        const resultOptions = getMeldOptions('canvas-result-element', comp, edges);
         expect(resultOptions.length).toBe(2);
         expect(resultOptions.find(o => o.elementId === 'py1' && o.direction === 'bottom')).toBeDefined();
         expect(resultOptions.find(o => o.elementId === 'prompt1' && o.direction === 'bottom')).toBeDefined();

@@ -25,14 +25,14 @@ beforeEach(() => {
 
 describe('Tim: cursor lifecycle', () => {
     test('createCursorElement sets cursor styles', () => {
-        expect(el.classList.contains('glyph-cursor')).toBe(true);
+        expect(el.classList.contains('cursor')).toBe(true);
         expect(el.style.position).toBe('fixed');
         expect(el.style.pointerEvents).toBe('none');
         expect(el.style.zIndex).toBe('10003');
     });
 
     test('createCursorElement contains symbol span', () => {
-        const sym = el.querySelector('.glyph-cursor-symbol');
+        const sym = el.querySelector('.cursor-symbol');
         expect(sym).not.toBeNull();
         expect(sym!.textContent).toBe('ax');
     });
@@ -45,7 +45,7 @@ describe('Tim: cursor lifecycle', () => {
 
     test('commitCursorPlacement strips cursor class', () => {
         commitCursorPlacement(el);
-        expect(el.classList.contains('glyph-cursor')).toBe(false);
+        expect(el.classList.contains('cursor')).toBe(false);
     });
 });
 
@@ -75,7 +75,7 @@ describe('Spike: full cursor → canvas-placed lifecycle', () => {
         // 4. entry.render(glyph) calls canvasPlaced — reuses cursorElement
         const { element } = canvasPlaced({
             item,
-            className: 'canvas-ax-glyph',
+            className: 'canvas-ax-element',
             defaults: { x: 200, y: 200, width: 400, height: 200 },
             logLabel: 'AxElement',
         });
@@ -84,8 +84,8 @@ describe('Spike: full cursor → canvas-placed lifecycle', () => {
         expect(element).toBe(el);
 
         // canvasPlaced sets className, wiping cursor class
-        expect(element.classList.contains('canvas-glyph')).toBe(true);
-        expect(element.classList.contains('glyph-cursor')).toBe(false);
+        expect(element.classList.contains('canvas-element')).toBe(true);
+        expect(element.classList.contains('cursor')).toBe(false);
 
         // applyCanvasElementLayout set canvas coordinates
         expect(element.style.left).toBe('120px');
