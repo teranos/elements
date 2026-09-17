@@ -93,7 +93,7 @@ export function getRestDuration(): number {
  * How long an element's body may show nothing before the runtime says so.
  *
  * Long enough for a slow answer over a slow link, short enough that a body
- * which is never coming stops being mistaken for one that is. content-watch.ts
+ * which is never coming stops being mistaken for one that is. content/watch.ts
  * spends it; a caller may pass its own.
  */
 export const CONTENT_DEADLINE_MS = 10000;

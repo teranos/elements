@@ -25,7 +25,7 @@
 export interface ContentStateTable {
     /**
      * Mounted and showing nothing. Written by the runtime at mount
-     * (forms/render-content.ts), never by an element — an element that means
+     * (content/render.ts), never by an element — an element that means
      * to show nothing says `empty` and says it in words.
      */
     readonly pending: { readonly settled: false };

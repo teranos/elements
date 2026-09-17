@@ -20,9 +20,9 @@ import { getLogger, getLogSegment } from '../config';
 import { applyRestingDotGeometry } from '../tray/proximity';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { addWindowControls } from './title-bar-controls';
-import { disarmContentWatch } from '../content-watch';
-import { stashContent } from './stash';
-import { renderContent } from './render-content';
+import { disarmContentWatch } from '../content/watch';
+import { stashContent } from '../content/stash';
+import { renderContent } from '../content/render';
 import {
     setForm,
     setElementId

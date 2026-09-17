@@ -6,7 +6,7 @@
  */
 
 import { isForm, type Form } from './form';
-import { isContentState, type ContentState } from './content-state';
+import { isContentState, type ContentState } from './content/state';
 
 /**
  * Record which form an element is in.
@@ -167,7 +167,7 @@ export function setSymbol(element: HTMLElement, symbol: string | undefined): voi
 /**
  * Record what an element's body is showing.
  *
- * content-state.ts names the states; this is where one is written down, so it
+ * content/state.ts names the states; this is where one is written down, so it
  * can be read — off the element, which is the one thing an element keeps for its
  * whole life (AXIOMAS.md, Element Axioma).
  */
@@ -179,7 +179,7 @@ export function setContentState(element: HTMLElement, state: ContentState): void
  * What an element's body is showing, or null if nothing has said.
  *
  * Null is itself a finding: every window and panel is stamped at mount
- * (forms/render-content.ts), so an unstamped body is one that reached
+ * (content/render.ts), so an unstamped body is one that reached
  * the screen by some path that does not say what it holds.
  */
 export function getContentState(element: HTMLElement): ContentState | null {

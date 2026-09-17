@@ -78,15 +78,15 @@ export {
 // What an element's body is showing — the states, and the watch that settles them.
 // A form with chrome and an empty body is a state the form
 // table cannot name; these name it.
-export { CONTENT_STATES, isContentState, isSettled } from './content-state';
-export type { ContentState, ContentStateTable } from './content-state';
+export { CONTENT_STATES, isContentState, isSettled } from './content/state';
+export type { ContentState, ContentStateTable } from './content/state';
 export {
     watchContent,
     disarmContentWatch,
     declareContent,
     showsSomething,
     isWatched,
-} from './content-watch';
+} from './content/watch';
 
 // Proximity engine
 export { Proximity, applyRestingDotGeometry } from './tray/proximity';
@@ -117,10 +117,10 @@ export {
 export { addWindowControls, removeWindowControls } from './forms/title-bar-controls';
 export type { WindowControlsConfig } from './forms/title-bar-controls';
 
-export { stashContent, restoreContent, hasStash } from './forms/stash';
+export { stashContent, restoreContent, hasStash } from './content/stash';
 
-export { renderContent } from './forms/render-content';
-export type { RenderContentResult } from './forms/render-content';
+export { renderContent } from './content/render';
+export type { RenderContentResult } from './content/render';
 
 // Canvas-window form — canvas ↔ window morphing
 export {

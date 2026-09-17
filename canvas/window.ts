@@ -22,7 +22,7 @@ import {
     getElementId,
 } from '../dataset';
 import { settleWindow } from '../window/settle';
-import { watchContent, disarmContentWatch } from '../content-watch';
+import { watchContent, disarmContentWatch } from '../content/watch';
 import { createSymbolSpan } from '../symbol-span';
 import { beginMorphToBox, beginMorphToDot, beginMorphToCanvasPlaced } from '../morph-transaction';
 import {
@@ -33,7 +33,7 @@ import { addWindowControls, removeWindowControls } from '../forms/title-bar-cont
 import { setupWindowDrag, teardownWindowDrag } from '../window/drag';
 import { calculateTrayTarget } from '../forms/morphology';
 import { readPaint, wearPaint } from '../paint';
-import { stashContent } from '../forms/stash';
+import { stashContent } from '../content/stash';
 
 // ── Default window dimensions ────────────────────────────────────────
 
@@ -229,7 +229,7 @@ export function morphCanvasPlacedToWindow(
         // The body is the children this element already had, so it usually draws
         // at once. It is watched all the same: an element lifted off the canvas
         // holding nothing is the same silence as one opened from the tray
-        // holding nothing (content-watch.ts).
+        // holding nothing (content/watch.ts).
         watchContent(element, contentDiv, { id: getElementId(element) ?? canvasId, title }, 'CanvasWindow');
 
         log.debug(seg, `[CanvasWindow] Morphed to window at ${targetX},${targetY}`);

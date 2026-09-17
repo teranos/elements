@@ -11,7 +11,7 @@ import { CANVAS_ELEMENT_CONTENT_PADDING } from '../element';
 import { createSymbolSpan } from '../symbol-span';
 import { restoreContent } from './stash';
 import { setContentState } from '../dataset';
-import { watchContent } from '../content-watch';
+import { watchContent } from './watch';
 
 export interface RenderContentResult {
     titleBar: HTMLElement;

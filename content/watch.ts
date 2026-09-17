@@ -14,7 +14,7 @@
  * hiding.
  *
  * Scope: a window or panel opened from a tray dot mounts through
- * forms/render-content.ts, and an element lifted off the canvas mounts
+ * content/render.ts, and an element lifted off the canvas mounts
  * through canvas/window.ts. Both arm the watch, so both are
  * covered — they are two constructors for the one `window` row, and saying
  * "every window" without saying which constructor is how they drifted in the
@@ -23,10 +23,10 @@
  * own content area. They call `declareContent` or they are not covered.
  */
 
-import { getLogger, getLogSegment } from './config';
-import { CONTENT_DEADLINE_MS } from './element';
-import { setContentState, getContentState } from './dataset';
-import { isSettled, type ContentState } from './content-state';
+import { getLogger, getLogSegment } from '../config';
+import { CONTENT_DEADLINE_MS } from '../element';
+import { setContentState, getContentState } from '../dataset';
+import { isSettled, type ContentState } from './state';
 
 /**
  * Who the body belongs to. A `Element` satisfies it, and so does a path that has
@@ -140,7 +140,7 @@ export function watchContent(
 
 /**
  * End a watch. Called when an element settles, and when its content is stashed —
- * a body off the DOM is not a body that failed to draw (forms/stash.ts).
+ * a body off the DOM is not a body that failed to draw (content/stash.ts).
  */
 export function disarmContentWatch(element: HTMLElement): void {
     const watch = watches.get(element);

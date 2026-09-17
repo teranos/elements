@@ -13,16 +13,16 @@
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import type { Element } from './element';
+import type { Element } from '../element';
 import {
     watchContent,
     disarmContentWatch,
     declareContent,
     showsSomething,
     isWatched,
-} from './content-watch';
-import { getContentState } from './dataset';
-import { stashContent } from './forms/stash';
+} from './watch';
+import { getContentState } from '../dataset';
+import { stashContent } from './stash';
 
 const DEADLINE = 20;
 

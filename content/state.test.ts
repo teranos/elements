@@ -13,8 +13,8 @@ import {
     isContentState,
     isSettled,
     type ContentState,
-} from './content-state';
-import { setContentState, getContentState } from './dataset';
+} from './state';
+import { setContentState, getContentState } from '../dataset';
 
 const names = Object.keys(CONTENT_STATES) as ContentState[];
 

@@ -11,9 +11,9 @@
 import { getLogger, getLogSegment } from '../config';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { addWindowControls } from '../forms/title-bar-controls';
-import { disarmContentWatch } from '../content-watch';
-import { stashContent } from '../forms/stash';
-import { renderContent } from '../forms/render-content';
+import { disarmContentWatch } from '../content/watch';
+import { stashContent } from '../content/stash';
+import { renderContent } from '../content/render';
 import { setupWindowDrag, teardownWindowDrag } from './drag';
 import { fitsAsWindow } from './fits';
 import { morphDotToPanel } from '../forms/panel';

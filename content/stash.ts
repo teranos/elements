@@ -9,8 +9,8 @@
  * WeakMap: stash is GC'd when the element is GC'd (page refresh, element close).
  */
 
-import { removeWindowControls } from './title-bar-controls';
-import { disarmContentWatch } from '../content-watch';
+import { removeWindowControls } from '../forms/title-bar-controls';
+import { disarmContentWatch } from './watch';
 
 const stash = new WeakMap<HTMLElement, DocumentFragment>();
 
