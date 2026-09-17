@@ -1,7 +1,7 @@
 /**
  * Panel Form - Full-width resizable workspace panel
  *
- * The glyph element morphs from its tray dot into a full-width panel
+ * The element morphs from its tray dot into a full-width panel
  * via beginMorphToBox. The panel's target position is the OPPOSITE
  * edge of the system drawer (#system-drawer):
  * - Desktop: system drawer at bottom -> panel anchored to top
@@ -12,7 +12,7 @@
  * edge, and snaps to fullscreen when dragged past 90% height.
  * No overlay — the panel is a workspace, not a modal.
  *
- * Same single DOM element axiom — the glyph element itself
+ * Same single DOM element axiom — the element itself
  * becomes the panel, no cloning.
  */
 
@@ -47,7 +47,7 @@ const MIN_PANEL_HEIGHT_FRACTION = 0.3;
 
 /**
  * Determine panel anchor edge — opposite of system drawer position.
- * The glyph morphs to this target; there is no separate slide animation.
+ * The element morphs to this target; there is no separate slide animation.
  */
 function detectSlideDirection(): 'from-top' | 'from-bottom' {
     const drawer = document.getElementById('system-drawer');
@@ -146,7 +146,7 @@ function attachResizeHandle(
 }
 
 /**
- * Morph a glyph to a full-width panel (no overlay)
+ * Morph an element to a full-width panel (no overlay)
  */
 export function morphDotToPanel(
     element: HTMLElement,
@@ -155,7 +155,7 @@ export function morphDotToPanel(
     onRemove: (id: string) => void,
     onMinimize: (element: HTMLElement, item: Element) => void,
     // Content already rendered by a caller that measured it before deciding
-    // this is a panel. Rendering again would build the glyph's content twice.
+    // this is a panel. Rendering again would build the element's content twice.
     preRenderedContent?: HTMLElement,
 ): void {
     const log = getLogger();
@@ -192,7 +192,7 @@ export function morphDotToPanel(
         log.debug(seg, `[Panel] Animation committed for ${item.id}`);
 
         const directionClass = direction === 'from-top' ? 'panel--from-top' : 'panel--from-bottom';
-        // Morph class leaves with the morph; the glyph's own classes survive
+        // Morph class leaves with the morph; the element's own classes survive
         morph.commitClass(`panel panel--fullscreen ${directionClass}`);
         element.style.cssText = '';
         element.style.position = 'fixed';
@@ -218,7 +218,7 @@ export function morphDotToPanel(
                     escapeHandlers.delete(element);
                 }
                 cleanupResize(element);
-                // A closed glyph is not a glyph that failed to draw.
+                // A closed element is not an element that failed to draw.
                 disarmContentWatch(element);
                 onRemove(item.id);
                 element.remove();
@@ -238,7 +238,7 @@ export function morphDotToPanel(
             document.removeEventListener('keydown', handler);
             escapeHandlers.delete(element);
         }
-        // Reattach to tray so the glyph isn't orphaned — with the classes it had
+        // Reattach to tray so the element isn't orphaned — with the classes it had
         setForm(element, 'dot');
         element.remove();
         element.style.cssText = '';
@@ -259,7 +259,7 @@ function cleanupResize(element: HTMLElement): void {
 }
 
 /**
- * Morph a panel back into a glyph (dot)
+ * Morph a panel back into an element (dot)
  */
 export function morphPanelToDot(
     panelElement: HTMLElement,
@@ -288,7 +288,7 @@ export function morphPanelToDot(
     // Clean up resize handle
     cleanupResize(panelElement);
 
-    // Stash content (strips window controls, preserves glyph identity off-DOM)
+    // Stash content (strips window controls, preserves element identity off-DOM)
     stashContent(panelElement);
 
     const trayTarget = calculateTrayTarget(item.id);

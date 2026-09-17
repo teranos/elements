@@ -1,7 +1,7 @@
 /**
  * Composition types and pure helpers.
  *
- * These are the canonical types for glyph compositions — the package owns them.
+ * These are the canonical types for element compositions — the package owns them.
  * Proto-generated types (from canvas.proto) are wire format, mapped at the
  * API boundary in web/.
  */
@@ -17,9 +17,9 @@ export type EdgeDirection = 'right' | 'bottom' | 'top';
  * Supports multi-directional melding: horizontal (right), vertical (top/bottom).
  */
 export interface CompositionEdge {
-    /** source glyph ID */
+    /** source element ID */
     from: string;
-    /** target glyph ID */
+    /** target element ID */
     to: string;
     /** 'right', 'top', 'bottom' */
     direction: string;
@@ -28,7 +28,7 @@ export interface CompositionEdge {
 }
 
 /**
- * A composition of melded glyphs — a DAG with spatial anchor.
+ * A composition of melded elements — a DAG with spatial anchor.
  * Edges define the graph structure, x/y anchor the composition on canvas.
  */
 export interface CompositionState {
@@ -43,8 +43,8 @@ export interface CompositionState {
 }
 
 /**
- * Build edges from a linear chain of glyph IDs.
- * Creates consecutive edges connecting glyphs in order.
+ * Build edges from a linear chain of element IDs.
+ * Creates consecutive edges connecting elements in order.
  */
 export function buildEdgesFromChain(
     elementIds: string[],
@@ -67,8 +67,8 @@ export function buildEdgesFromChain(
 }
 
 /**
- * Extract all unique glyph IDs from edges.
- * Returns deduplicated array of glyph IDs.
+ * Extract all unique element IDs from edges.
+ * Returns deduplicated array of element IDs.
  */
 export function extractElementIds(edges: CompositionEdge[]): string[] {
     const ids = new Set<string>();

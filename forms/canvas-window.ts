@@ -1,5 +1,5 @@
 /**
- * Canvas-Window Form — morph a canvas-placed glyph into a floating window and back.
+ * Canvas-Window Form — morph a canvas-placed element into a floating window and back.
  *
  * Unlike the tray→window path (forms/window.ts) which clears the element
  * and rebuilds via renderContent(), this path wraps/unwraps existing children so
@@ -49,7 +49,7 @@ const CANVAS_PARENT_KEY = '__canvasParent';
  * Exported so the settle can be held to it: settle-window.test.ts asserts that
  * every property `settleWindow` writes is a property this list takes back off.
  * A style the window adds and the canvas never removes rides home with the
- * glyph and changes what it is on the canvas.
+ * element and changes what it is on the canvas.
  */
 export const WINDOW_STYLE_PROPS: (keyof CSSStyleDeclaration)[] = [
     'position', 'left', 'top', 'width', 'height',
@@ -58,7 +58,7 @@ export const WINDOW_STYLE_PROPS: (keyof CSSStyleDeclaration)[] = [
     'display', 'flexDirection', 'overflow',
 ];
 
-// The glyph's own inline styles — border, background — are inherently part
+// The element's own inline styles — border, background — are inherently part
 // of the element and the window state never touches them: a note expanded to
 // a window is a window that still wears the note's border, the same way it
 // keeps the note's background color. Only minHeight is suspended — the
@@ -83,7 +83,7 @@ export function restoreElementStyles(element: HTMLElement): void {
     delete (element as any)[SUPPRESSED_STYLE_KEY];
     if (!suppressed) return;
     for (const [prop, value] of Object.entries(suppressed)) {
-        // Empty means the glyph had nothing inline — already the state after
+        // Empty means the element had nothing inline — already the state after
         // suppression.
         if (value) (element.style as any)[prop] = value;
     }
@@ -102,14 +102,14 @@ export interface CanvasWindowConfig {
 }
 
 /**
- * Morph a canvas-placed glyph into a draggable floating window.
+ * Morph a canvas-placed element into a draggable floating window.
  * Wraps existing children into a scrollable content div — no rebuild.
  */
 export function morphCanvasPlacedToWindow(
     element: HTMLElement,
     config: CanvasWindowConfig,
 ): void {
-    // What isInWindowState() answered here: a window, or a canvas-placed glyph
+    // What isInWindowState() answered here: a window, or a canvas-placed element
     // filling the viewport. Both are already off the canvas.
     const form = getForm(element);
     if (form === 'window' || form === 'canvasExpanded') return;
@@ -131,7 +131,7 @@ export function morphCanvasPlacedToWindow(
     const fromRect = element.getBoundingClientRect();
     const originalParent = element.parentElement;
 
-    // 3. Detect existing glyph title bar (belongs to the glyph, not the form)
+    // 3. Detect existing element title bar (belongs to the element, not the form)
     const existingTitleBar = element.querySelector(':scope > .title-bar') as HTMLElement | null;
 
     // 4. Wrap non-title-bar children into a scrollable content div
@@ -214,20 +214,20 @@ export function morphCanvasPlacedToWindow(
         // What a window is, wherever it came from (forms/settle-window.ts).
         // This path used to write its own version of that block, and the two
         // drifted: no cap on the box, and a z-index sitting at the base that no
-        // press ever raised, so a glyph lifted off the canvas opened under every
+        // press ever raised, so an element lifted off the canvas opened under every
         // window the tray had ever opened and could not be brought forward.
         settleWindow(element, { x: targetX, y: targetY, width: targetW, height: targetH });
 
         // The window owns its box — suspend minHeight, given back on return.
-        // Everything else the glyph wrote on itself (border, background) is
+        // Everything else the element wrote on itself (border, background) is
         // inherently part of the element and stays untouched.
         suppressElementStyles(element);
 
         // Set up window dragging
         setupWindowDrag(element, titleBar);
 
-        // The body is the children this glyph already had, so it usually draws
-        // at once. It is watched all the same: a glyph lifted off the canvas
+        // The body is the children this element already had, so it usually draws
+        // at once. It is watched all the same: an element lifted off the canvas
         // holding nothing is the same silence as one opened from the tray
         // holding nothing (content-watch.ts).
         watchContent(element, contentDiv, { id: getElementId(element) ?? canvasId, title }, 'CanvasWindow');
@@ -318,7 +318,7 @@ export function morphWindowToCanvasPlaced(
             clearCanvasOrigin(element);
 
             // 7. Remove from body, clear window-specific inline styles,
-            //    give back the glyph-owned styles the window suppressed
+            //    give back the element-owned styles the window suppressed
             element.remove();
             for (const prop of WINDOW_STYLE_PROPS) {
                 (element.style as any)[prop] = '';
@@ -381,7 +381,7 @@ function minimizeCanvasWindowToTray(
             setForm(element, 'dot');
             clearCanvasOrigin(element);
             element.remove();
-            // The wipe takes the window's layout. What the glyph is painted is
+            // The wipe takes the window's layout. What the element is painted is
             // not the window's, so it goes on again (Element Axioma) — the tray
             // adopts this element and does not repaint what it arrives wearing.
             const was = readPaint(element);
@@ -448,7 +448,7 @@ export function placeWindowOnCanvas(
     const originW = origin?.width ?? 400;
     const originH = origin?.height ?? 250;
 
-    // 6. Animation target: same screen position, glyph size scaled by canvas zoom
+    // 6. Animation target: same screen position, element size scaled by canvas zoom
     const scale = bridge ? bridge.getScale(canvasId) : 1;
     const toRect = {
         x: windowRect.left,
@@ -468,7 +468,7 @@ export function placeWindowOnCanvas(
             clearCanvasOrigin(element);
 
             // 10. Remove from body, clear window-specific inline styles,
-            //     give back the glyph-owned styles the window suppressed
+            //     give back the element-owned styles the window suppressed
             element.remove();
             for (const prop of WINDOW_STYLE_PROPS) {
                 (element.style as any)[prop] = '';

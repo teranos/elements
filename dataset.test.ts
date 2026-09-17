@@ -79,7 +79,7 @@ describe('Tim: dataset helpers', () => {
         });
     });
 
-    describe('glyph ID', () => {
+    describe('element ID', () => {
         test('no ID by default', () => {
             expect(getElementId(el)).toBeNull();
         });
@@ -95,7 +95,7 @@ describe('Tim: dataset helpers', () => {
         });
     });
 
-    describe('glyph symbol', () => {
+    describe('element symbol', () => {
         test('no symbol by default', () => {
             expect(getSymbol(el)).toBeUndefined();
         });
@@ -180,7 +180,7 @@ describe('Spike: dataset edge cases', () => {
         expect(isInWindowState(el)).toBe(false);
     });
 
-    test('overwrite glyph ID', () => {
+    test('overwrite element ID', () => {
         setElementId(el, 'first');
         setElementId(el, 'second');
         expect(getElementId(el)).toBe('second');

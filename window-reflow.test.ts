@@ -1,5 +1,5 @@
 /**
- * A glyph dragged against an edge gives way at that edge, either one. Both are
+ * An element dragged against an edge gives way at that edge, either one. Both are
  * asked, because a fixed box measures its own room from the left alone.
  */
 

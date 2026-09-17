@@ -61,7 +61,7 @@ describe('Spike: full cursor → canvas-placed lifecycle', () => {
         const symbolSpan = prepareCursorForPlacement(el);
         expect(symbolSpan).not.toBeNull();
 
-        // 3. spawnElement creates glyph with cursorElement + symbolElement
+        // 3. spawnElement creates element with cursorElement + symbolElement
         const item: Element = {
             id: 'test-ax-001',
             title: 'AX Query',
@@ -72,7 +72,7 @@ describe('Spike: full cursor → canvas-placed lifecycle', () => {
             symbolElement: symbolSpan!,
         };
 
-        // 4. entry.render(glyph) calls canvasPlaced — reuses cursorElement
+        // 4. entry.render(element) calls canvasPlaced — reuses cursorElement
         const { element } = canvasPlaced({
             item,
             className: 'canvas-ax-element',

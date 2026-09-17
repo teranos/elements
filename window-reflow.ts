@@ -1,7 +1,7 @@
 /**
- * Where a dragged glyph sits and how wide it is.
+ * Where a dragged element sits and how wide it is.
  *
- * A glyph gives way at the edge it is pushed against, either one. Both edges
+ * An element gives way at the edge it is pushed against, either one. Both edges
  * are asked, because a fixed box measures its own room from the left alone.
  */
 
@@ -15,7 +15,7 @@ export interface Box {
 /**
  * Fit a window of its natural width at the place it was dragged to.
  *
- * `floor` is the width the content of this glyph needs. A window gives way at
+ * `floor` is the width the content of this element needs. A window gives way at
  * an edge down to that and then stops giving, because narrower than what it
  * holds is a window that has stopped showing it.
  *

@@ -1,5 +1,5 @@
 /**
- * Canvas resize interaction for glyphs.
+ * Canvas resize interaction for elements.
  *
  * Enables resize via a handle (typically in the bottom-right corner).
  * Final dimensions are persisted via CanvasHost.
@@ -22,7 +22,7 @@ export interface MakeResizableOptions {
  *
  * @param element - The element to make resizable
  * @param handle - The resize handle element
- * @param glyph - The glyph model to update with dimensions
+ * @param element - The element model to update with dimensions
  * @param opts - Optional configuration
  */
 export function makeResizable(

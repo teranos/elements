@@ -1,5 +1,5 @@
 /**
- * Canvas drag interaction for glyphs.
+ * Canvas drag interaction for elements.
  *
  * Pointer-driven move with meld-on-drop.
  * Uses DI (CanvasHost) for position persistence, transform,
@@ -33,18 +33,18 @@ import {
     type EdgeDirection,
 } from './meld/meldability';
 
-// Monotonic z-index counter — each drag/click brings glyph to front
+// Monotonic z-index counter — each drag/click brings element to front
 let topZIndex = 1;
 
 // ── Composition anchor selection ────────────────────────────────────
 
 /**
- * Find the spatially-nearest glyph in a composition that has a free port
+ * Find the spatially-nearest element in a composition that has a free port
  * compatible with the standalone element, in ANY valid direction.
  *
  * This replaces trusting findMeldTarget's single result as the anchor —
- * findMeldTarget picks the closest glyph on the entire canvas, which may
- * not be the closest glyph *within* the composition the user is targeting.
+ * findMeldTarget picks the closest element on the entire canvas, which may
+ * not be the closest element *within* the composition the user is targeting.
  * Its detected direction may also be wrong (e.g., 'bottom' when user meant 'right').
  *
  * Returns both the anchor ID and the best direction for that anchor.
@@ -74,7 +74,7 @@ function findBestAnchorInComposition(
 
         const memberRect = member.getBoundingClientRect();
 
-        // Append: composition glyph → standalone (outgoing port)
+        // Append: composition element → standalone (outgoing port)
         for (const dir of getCompatibleDirections(memberClass, standaloneClass)) {
             if (!isPortFree(elementId, dir, 'outgoing', edges)) continue;
             const dist = checkDirectionalProximity(memberRect, standaloneRect, dir);
@@ -86,7 +86,7 @@ function findBestAnchorInComposition(
             }
         }
 
-        // Prepend: standalone → composition glyph (incoming port)
+        // Prepend: standalone → composition element (incoming port)
         for (const dir of getCompatibleDirections(standaloneClass, memberClass)) {
             if (!isPortFree(elementId, dir, 'incoming', edges)) continue;
             const dist = checkDirectionalProximity(standaloneRect, memberRect, dir);
@@ -114,14 +114,14 @@ export interface CanvasElementLayoutOptions {
     y: number;
     width: number;
     height: number;
-    /** Use minHeight instead of height (glyph grows with content) */
+    /** Use minHeight instead of height (element grows with content) */
     useMinHeight?: boolean;
 }
 
 /**
- * Apply shared positioning and flex layout to a canvas-placed glyph.
+ * Apply shared positioning and flex layout to a canvas-placed element.
  *
- * Pairs with the `.canvas-glyph` CSS class which provides the visual
+ * Pairs with the `.canvas-element` CSS class which provides the visual
  * defaults (background, border, border-radius, overflow). This function
  * handles the instance-specific values that can't live in CSS (x/y/size).
  */
@@ -141,12 +141,12 @@ export function applyCanvasElementLayout(el: HTMLElement, opts: CanvasElementLay
 /**
  * Prevent drag from starting on an interactive child element.
  *
- * Canvas glyphs are draggable, but their interactive children (textareas,
+ * Canvas elements are draggable, but their interactive children (textareas,
  * buttons, inputs) need to receive mousedown without triggering a drag.
  * This stops the event from bubbling to the drag handler.
  *
  * Also marks elements with data-prevent-drag so the canvas click handler
- * knows to skip focus theft and glyph selection for these elements.
+ * knows to skip focus theft and element selection for these elements.
  */
 export function preventDrag(...elements: HTMLElement[]): void {
     for (const el of elements) {
@@ -164,11 +164,11 @@ export function preventDrag(...elements: HTMLElement[]): void {
  *
  * Design decision: Uses free-form dragging without live grid snapping.
  * Grid position is calculated only on mouseup for persistence. This provides
- * smoother UX for content glyphs compared to grid-snapped dragging.
+ * smoother UX for content elements compared to grid-snapped dragging.
  *
  * @param element - The element to make draggable
  * @param handle - The handle that triggers dragging (typically a title bar)
- * @param glyph - The glyph model to update with position
+ * @param element - The element model to update with position
  * @param opts - Optional configuration
  * @returns Cleanup function to remove all event listeners
  */
@@ -341,7 +341,7 @@ export function makeDraggable(
                     return;
                 }
 
-                // Neither is in a composition — create new 2-glyph composition
+                // Neither is in a composition — create new 2-element composition
                 const composition = performMeld(meldInitiator, meldTarget, meldInitiatorItem, meldTargetItem, meldInfo.direction);
 
                 const compositionItem: Element = {
@@ -396,7 +396,7 @@ export function makeDraggable(
                     });
                 }
             }
-            log.debug(seg, `[${logLabel}] Finished multi-dragging ${multiDragElements.length} glyphs`);
+            log.debug(seg, `[${logLabel}] Finished multi-dragging ${multiDragElements.length} elements`);
             multiDragElements = [];
             isMultiDrag = false;
         } else {
@@ -428,7 +428,7 @@ export function makeDraggable(
             return;
         }
 
-        // A window and a viewport-filling glyph both carry their own drag.
+        // A window and a viewport-filling element both carry their own drag.
         const form = getForm(element);
         if (form === 'window' || form === 'canvasExpanded') {
             return;
@@ -486,7 +486,7 @@ export function makeDraggable(
         document.addEventListener('mousemove', handleMouseMove, { signal: dragController.signal });
         document.addEventListener('mouseup', handleMouseUp, { signal: dragController.signal });
 
-        log.debug(seg, `[${logLabel}] Started dragging ${isMultiDrag ? `${selectedIds.length} glyphs` : item.id}`);
+        log.debug(seg, `[${logLabel}] Started dragging ${isMultiDrag ? `${selectedIds.length} elements` : item.id}`);
     }, { signal: setupController.signal });
 
     return () => {

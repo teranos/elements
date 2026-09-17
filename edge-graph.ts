@@ -1,7 +1,7 @@
 /**
  * Edge graph — pure DAG traversal and layout for composition edges.
  *
- * All functions are pure: edges in, data out. No DOM, no QNTX deps.
+ * All functions are pure: edges in, data out. No DOM, no host deps.
  * Used by both the real meld system and standalone demos.
  */
 
@@ -12,7 +12,7 @@ import type { CompositionEdge } from './composition';
 // ---------------------------------------------------------------------------
 
 /**
- * Find root nodes — glyphs with no incoming edges (graph sources).
+ * Find root nodes — elements with no incoming edges (graph sources).
  */
 export function getRootElementIds(
     edges: Array<{ from: string; to: string; direction: string }>
@@ -30,7 +30,7 @@ export function getRootElementIds(
 }
 
 /**
- * Find leaf nodes — glyphs with no outgoing edges (graph sinks).
+ * Find leaf nodes — elements with no outgoing edges (graph sinks).
  */
 export function getLeafElementIds(
     edges: Array<{ from: string; to: string; direction: string }>
@@ -48,7 +48,7 @@ export function getLeafElementIds(
 }
 
 /**
- * Check if a glyph's port is free (no existing edge occupies it).
+ * Check if an element's port is free (no existing edge occupies it).
  */
 export function isPortFree(
     elementId: string,
@@ -100,7 +100,7 @@ export function isConnectedGraph(edges: CompositionEdge[]): boolean {
 // ---------------------------------------------------------------------------
 
 /**
- * Compute grid row/col for each glyph in an edge DAG.
+ * Compute grid row/col for each element in an edge DAG.
  * BFS from roots: 'right' → same row, next col; 'bottom' → next row, same col.
  * Single source of truth for composition spatial layout.
  *
@@ -165,7 +165,7 @@ export function computeGridPositions(
                     candidate = { row: targetPos.row + 1, col: targetPos.col };
                 }
 
-                // Only use derived position if it doesn't collide with an existing glyph
+                // Only use derived position if it doesn't collide with an existing element
                 if (candidate) {
                     const occupied = [...positions.values()].some(
                         p => p.row === candidate!.row && p.col === candidate!.col

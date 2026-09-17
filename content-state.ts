@@ -1,5 +1,5 @@
 /**
- * What a glyph's body is showing.
+ * What an element's body is showing.
  *
  * A form with chrome and an empty body is three different things —
  * still loading, nothing to show, or a failure nobody heard — and until this
@@ -7,17 +7,16 @@
  * of the three the reader guessed.
  *
  * So emptiness is declared rather than inferred, the way `form.ts`
- * declares which form a glyph is in. The states are a closed set for
+ * declares which form an element is in. The states are a closed set for
  * the same reason that one is: a name off the list is a word, not a state.
  *
- * `refused` is not `error`. docs/sentry.md: "A refusal that the node is designed
- * to answer with is neither [Error nor Warn] — it is Info, and it is the node
- * working." A body that never arrived is the node not working, and it is shown
- * where it happened, because logging alone is hiding (web/ts/market-glyph.ts).
+ * `refused` is not `error`: a refusal the node is designed to answer with is
+ * the node working. A body that never arrived is the node not working, and it is shown
+ * where it happened, because logging alone is hiding.
  */
 
 /**
- * Every state a glyph's body can be in, and whether it is done moving.
+ * Every state an element's body can be in, and whether it is done moving.
  *
  * `settled` is what the watcher dispatches on: a body still `pending` past its
  * deadline is the failure this list exists to name. Written as a literal
@@ -26,21 +25,21 @@
 export interface ContentStateTable {
     /**
      * Mounted and showing nothing. Written by the runtime at mount
-     * (forms/render-content.ts), never by a glyph — a glyph that means
+     * (forms/render-content.ts), never by an element — an element that means
      * to show nothing says `empty` and says it in words.
      */
     readonly pending: { readonly settled: false };
 
     /**
      * Showing something. Written by the runtime the moment the body draws:
-     * at mount when the glyph rendered synchronously, or when what it was
+     * at mount when the element rendered synchronously, or when what it was
      * waiting for arrives.
      */
     readonly present: { readonly settled: true };
 
     /**
-     * Showing that there is nothing — "No access tokens." The glyph's own
-     * words, so the glyph declares it (`declareContent`). The runtime cannot
+     * Showing that there is nothing — "No access tokens." The element's own
+     * words, so the element declares it (`declareContent`). The runtime cannot
      * tell this from `present`, and must not: both draw.
      */
     readonly empty: { readonly settled: true };

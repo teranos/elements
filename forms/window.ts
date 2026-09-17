@@ -1,7 +1,7 @@
 /**
  * Window Form - Traditional window with chrome
  *
- * The window form morphs a glyph into a draggable window with:
+ * The window form morphs an element into a draggable window with:
  * - Title bar
  * - Minimize/close buttons
  * - Resizable content area
@@ -34,7 +34,7 @@ import {
 } from '../element';
 
 /**
- * Morph a glyph to window with chrome (title bar, buttons)
+ * Morph an element to window with chrome (title bar, buttons)
  */
 export function morphDotToWindow(
     element: HTMLElement,
@@ -104,7 +104,7 @@ export function morphDotToWindow(
     const rememberedPos = getLastPosition(element);
 
     // Remembered position, then a declared default, then the emptiest place
-    // we can find. Centring every glyph put each new one on top of the last.
+    // we can find. Centring every element put each new one on top of the last.
     const chosen = (rememberedPos || item.defaultX !== undefined)
         ? null
         : findPlacement(
@@ -132,9 +132,9 @@ export function morphDotToWindow(
         log.debug(seg, `[Window] Animation committed for ${item.id}`);
 
         // The morph class leaves with the morph. A window settles into no class
-        // of its own: .glyph-window carried one declaration, pointer-events:
-        // auto, which .glyph-morphing-to-window carried too, and
-        // [data-form="window"] spans both. The glyph's own classes
+        // of its own: a window class once carried one declaration, pointer-events:
+        // auto, which the morph class carried too, and
+        // [data-form="window"] spans both. The element's own classes
         // survive the morph.
         morph.commitClass();
 
@@ -151,7 +151,7 @@ export function morphDotToWindow(
             heightStyle: heightOwnedByWindow ? undefined : 'fit-content',
         });
 
-        // What the glyph wears is data on the glyph and never a property of a
+        // What the element wears is data on the element and never a property of a
         // form (VISION.md). The canvas path reaches the same place by
         // leaving on the element what it already wore.
         element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
@@ -176,7 +176,7 @@ export function morphDotToWindow(
             onMinimize: () => morphWindowToDot(element, item, verifyElement, onMinimize),
             onClose: item.onClose ? () => {
                 teardownWindowDrag(element);
-                // A closed glyph is not a glyph that failed to draw.
+                // A closed element is not an element that failed to draw.
                 disarmContentWatch(element);
                 onRemove(item.id);
                 element.remove();
@@ -198,13 +198,13 @@ export function morphDotToWindow(
     }).catch(error => {
         // ROLLBACK: Animation was cancelled or failed
         log.warn(seg, `[Window] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
-        // Element stays in glyph state with the classes it had, can retry
+        // Element stays in element state with the classes it had, can retry
         morph.rollbackClass();
     });
 }
 
 /**
- * Morph a window back into a glyph (dot)
+ * Morph a window back into an element (dot)
  * THE SAME ELEMENT morphs back - no new elements created
  */
 export function morphWindowToDot(
@@ -227,7 +227,7 @@ export function morphWindowToDot(
     // Tear down window drag handlers before stashing (prevents handler accumulation)
     teardownWindowDrag(windowElement);
 
-    // Stash content (strips window controls, preserves glyph identity off-DOM)
+    // Stash content (strips window controls, preserves element identity off-DOM)
     stashContent(windowElement);
 
     const trayTarget = calculateTrayTarget(item.id);

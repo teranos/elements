@@ -1,12 +1,12 @@
 /**
- * Meld feedback — visual proximity cues during glyph dragging.
+ * Meld feedback — visual proximity cues during element dragging.
  *
  * Direction-aware box shadows that glow toward the meld edge.
  * Shared by both detection (mousemove) and composition (performMeld/extendComposition).
  *
- * A glyph that owns an inline boxShadow keeps it: the prior value is saved
+ * An element that owns an inline boxShadow keeps it: the prior value is saved
  * before the glow is applied and put back when feedback clears — everything
- * about a glyph survives every transition (Element Axioma).
+ * about an element survives every transition (Element Axioma).
  */
 
 import type { EdgeDirection } from './meldability';

@@ -1,9 +1,9 @@
 /**
- * Border specimen — a canvas-placed glyph whose border is visual identity.
+ * Border specimen — a canvas-placed element whose border is visual identity.
  *
  * Like color, the border lives on the Element datum and every form
  * wears it: ⬆ expands to a window that keeps the dashed border; the window's
- * − places it back unchanged. Everything about a glyph survives every
+ * − places it back unchanged. Everything about an element survives every
  * transition (Element Axioma).
  */
 

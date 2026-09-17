@@ -9,7 +9,7 @@
  * Personas:
  * - Tim: Happy path — a body that draws is present, at mount or later
  * - Spike: Edge cases — a body that never draws is refused, and says so
- * - Jenny: Complex scenarios — the glyph's own word, re-arming, and the stash
+ * - Jenny: Complex scenarios — the element's own word, re-arming, and the stash
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
@@ -66,7 +66,7 @@ beforeEach(() => {
 });
 
 describe('Tim: a body that draws', () => {
-    test('settles present at mount when the glyph rendered synchronously', () => {
+    test('settles present at mount when the element rendered synchronously', () => {
         const { element, contentArea } = opened(text('Loading tokens…'));
         watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
 
@@ -117,7 +117,7 @@ describe('Spike: a body that never draws', () => {
         expect(isWatched(element)).toBe(false);
     });
 
-    test('says so in the body, naming the glyph and how long it waited', async () => {
+    test('says so in the body, naming the element and how long it waited', async () => {
         const { element, contentArea } = opened();
         watchContent(element, contentArea, fixture(), 'Panel', DEADLINE);
         await sleep(DEADLINE * 3);
@@ -152,8 +152,8 @@ describe('Spike: a body that never draws', () => {
     });
 });
 
-describe('Jenny: the glyph\'s own word', () => {
-    test('a glyph may declare empty from anywhere inside its body', async () => {
+describe('Jenny: the element\'s own word', () => {
+    test('an element may declare empty from anywhere inside its body', async () => {
         const body = document.createElement('div');
         const { element, contentArea } = opened(body);
         watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
@@ -173,11 +173,11 @@ describe('Jenny: the glyph\'s own word', () => {
         await sleep(DEADLINE * 3);
 
         expect(getContentState(element)).toBe('refused');
-        // The glyph said why itself; the watch does not say it a second time.
+        // The element said why itself; the watch does not say it a second time.
         expect(contentArea.textContent).not.toContain('nothing was drawn');
     });
 
-    test('a node outside any glyph declares nothing and throws nothing', () => {
+    test('a node outside any element declares nothing and throws nothing', () => {
         const orphan = document.createElement('div');
         expect(() => declareContent(orphan, 'present')).not.toThrow();
         expect(getContentState(orphan)).toBeNull();

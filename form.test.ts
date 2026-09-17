@@ -93,7 +93,7 @@ describe('Spike: the tray opens onto a subset', () => {
         expect(FORMS.canvasPlaced.opensFromTray).toBe(false);
     });
 
-    test('canvasExpanded is not a destination — it is reached from a placed glyph', () => {
+    test('canvasExpanded is not a destination — it is reached from a placed element', () => {
         expect(FORMS.canvasExpanded.opensFromTray).toBe(false);
     });
 });

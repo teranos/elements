@@ -1,14 +1,14 @@
 /**
- * Canvas ↔ window morph — what the glyph wrote on itself is the glyph.
+ * Canvas ↔ window morph — what the element wrote on itself is the element.
  *
  * A note keeps its background color when it becomes a window; the border is
  * the same: inherently part of the DOM element, never touched by the morph.
  * Only minHeight is suspended — the window owns its box — and given back on
- * return (Element Axioma: everything about a glyph survives every transition).
+ * return (Element Axioma: everything about an element survives every transition).
  *
  * Personas:
  * - Tim: happy path — the border rides through the window state untouched
- * - Spike: a glyph with nothing inline round-trips to nothing inline
+ * - Spike: an element with nothing inline round-trips to nothing inline
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
@@ -52,7 +52,7 @@ describe('Tim: the border is inherently part of the element', () => {
 });
 
 describe('Spike: nothing inline stays nothing', () => {
-    test('a glyph with no inline styles round-trips clean', () => {
+    test('an element with no inline styles round-trips clean', () => {
         suppressElementStyles(element);
         restoreElementStyles(element);
         expect(element.style.border).toBe('');

@@ -1,9 +1,5 @@
 /**
  * Port-aware meldability registry tests
- *
- * Duplicated from web/ts/components/glyph/meld/meldability.test.ts
- * to live with the package source. The web/ copy may be removed once
- * the package owns its own CI.
  */
 
 import { describe, test, expect } from 'bun:test';
@@ -158,13 +154,13 @@ describe('Port-aware MELDABILITY registry', () => {
     });
 
     describe('getElementClass', () => {
-        test('extracts glyph class from element', () => {
+        test('extracts element class from element', () => {
             const el = document.createElement('div');
             el.className = 'canvas-py-element canvas-element extra-class';
             expect(getElementClass(el)).toBe('canvas-py-element');
         });
 
-        test('returns null when no glyph class found', () => {
+        test('returns null when no element class found', () => {
             const el = document.createElement('div');
             el.className = 'some-other-class';
             expect(getElementClass(el)).toBe(null);
@@ -315,7 +311,7 @@ describe('Port-aware MELDABILITY registry', () => {
             expect(fallbackOption).toBeDefined();
         });
 
-        test('incompatible glyph returns no options', () => {
+        test('incompatible element returns no options', () => {
             const composition = document.createElement('div');
             const ax = document.createElement('div');
             ax.className = 'canvas-ax-element';
@@ -328,8 +324,7 @@ describe('Port-aware MELDABILITY registry', () => {
             expect(options).toEqual([]);
         });
 
-        // Ported from web/ts/components/glyph/meld/meldability.test.ts when
-        // the duplicate file was removed — the one case the package lacked.
+        // The one case the package lacked.
         test('prompt can append to py leaf of an se|py chain (right port)', () => {
             const composition = document.createElement('div');
             const se = document.createElement('div');

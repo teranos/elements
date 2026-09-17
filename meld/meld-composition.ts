@@ -1,10 +1,10 @@
 /**
- * Meld composition — create, extend, reconstruct, and unmeld glyph compositions.
+ * Meld composition — create, extend, reconstruct, and unmeld element compositions.
  *
- * CRITICAL: This implementation respects the core glyph axiom:
+ * CRITICAL: This implementation respects the core element axiom:
  * "An element is exactly ONE DOM element for its entire lifetime"
  *
- * NO cloneNode. NO createElement for existing glyphs.
+ * NO cloneNode. NO createElement for existing elements.
  * Melding is achieved through reparenting, not cloning.
  *
  * Layout: Absolute positioning derived from the edge DAG via computeGridPositions().
@@ -19,7 +19,7 @@ import { computeGridPositions, isConnectedGraph } from '../edge-graph';
 import { extractElementIds } from '../composition';
 import { clearMeldFeedback, clearFeedbackShadow } from './meld-feedback';
 
-const UNMELD_OFFSET = 20; // px - spacing between glyphs when unmelding
+const UNMELD_OFFSET = 20; // px - spacing between elements when unmelding
 const UNMELD_DURATION_MS = 200; // animation duration for unmeld slide
 
 /**
@@ -89,7 +89,7 @@ function applyColumnLayout(
         const id = el.getAttribute('data-element-id') || '';
         const pos = positions.get(id);
         if (!pos) {
-            log.warn(seg, `[MeldSystem] No grid position computed for glyph ${id}`);
+            log.warn(seg, `[MeldSystem] No grid position computed for element ${id}`);
             continue;
         }
         if (!rows.has(pos.row)) rows.set(pos.row, new Map());
@@ -224,7 +224,7 @@ export function performMeld(
         });
     }
 
-    // Clear positioning from glyphs (they're now relative to composition)
+    // Clear positioning from elements (they're now relative to composition)
     initiatorElement.style.position = 'relative';
     initiatorElement.style.left = '0';
     initiatorElement.style.top = '0';
@@ -265,7 +265,7 @@ export function performMeld(
 }
 
 /**
- * Extend an existing composition by adding a glyph at a leaf (append) or root (prepend)
+ * Extend an existing composition by adding an element at a leaf (append) or root (prepend)
  *
  * CRITICAL: Reparents the incoming element into the existing composition container.
  * Regenerates composition ID and updates storage.
@@ -285,7 +285,7 @@ export function extendComposition(
     // Look up existing composition state
     const existingComp = canvasHost.findCompositionByElement(anchorElementId);
     if (!existingComp) {
-        throw new Error(`Cannot extend composition: no composition found for glyph ${anchorElementId}`);
+        throw new Error(`Cannot extend composition: no composition found for element ${anchorElementId}`);
     }
 
     const oldId = existingComp.id;
@@ -313,7 +313,7 @@ export function extendComposition(
     incomingElement.style.top = '0';
     clearMeldFeedback(incomingElement);
 
-    // Clear feedback on all existing glyphs in the composition (anchor glyph may still glow)
+    // Clear feedback on all existing elements in the composition (anchor element may still glow)
     compositionElement.querySelectorAll('[data-element-id]').forEach(el => {
         clearFeedbackShadow(el as HTMLElement);
     });
@@ -362,7 +362,7 @@ export function reconstructMeld(
     y: number
 ): HTMLElement {
     if (members.length === 0) {
-        throw new Error(`Cannot reconstruct meld: no glyph elements provided for composition ${compositionId}`);
+        throw new Error(`Cannot reconstruct meld: no elements provided for composition ${compositionId}`);
     }
 
     const canvas = members[0].parentElement;
@@ -389,7 +389,7 @@ export function reconstructMeld(
     composition.style.left = `${x}px`;
     composition.style.top = `${y}px`;
 
-    // Clear positioning from glyphs and reparent
+    // Clear positioning from elements and reparent
     members.forEach(element => {
         element.style.position = 'relative';
         element.style.left = '0';
@@ -412,11 +412,11 @@ export function reconstructMeld(
 }
 
 /**
- * Detach a single glyph from a composition, keeping the rest melded if possible.
+ * Detach a single element from a composition, keeping the rest melded if possible.
  *
- * - If only 2 glyphs: delegates to unmeldComposition (can't have 1-glyph composition)
- * - If removing the glyph disconnects the graph: delegates to unmeldComposition
- * - Otherwise: removes the glyph, updates edges/storage, rebuilds layout
+ * - If only 2 elements: delegates to unmeldComposition (can't have 1-element composition)
+ * - If removing the element disconnects the graph: delegates to unmeldComposition
+ * - Otherwise: removes the element, updates edges/storage, rebuilds layout
  *
  * Returns the detached element and remaining composition (null if fully unmelded).
  */
@@ -442,13 +442,13 @@ export function detachElement(elementId: string, composition: HTMLElement): {
     const compositionId = composition.getAttribute('data-element-id') || '';
     const storedComp = canvasHost.findCompositionByElement(elementId);
     if (!storedComp) {
-        log.warn(seg, `[MeldSystem] detachElement: no stored composition for glyph ${elementId}`);
+        log.warn(seg, `[MeldSystem] detachElement: no stored composition for element ${elementId}`);
         return null;
     }
 
     const allElementIds = extractElementIds(storedComp.edges);
 
-    // 2-glyph composition → full unmeld
+    // 2-element composition → full unmeld
     if (allElementIds.length <= 2) {
         log.info(seg, '[MeldSystem] detachElement: 2-element composition, delegating to full unmeld');
         const result = unmeldComposition(composition);
@@ -460,7 +460,7 @@ export function detachElement(elementId: string, composition: HTMLElement): {
         return { detachedElement: detached, remainingComposition: null };
     }
 
-    // Filter edges: remove all edges involving this glyph
+    // Filter edges: remove all edges involving this element
     const remainingEdges = storedComp.edges.filter(
         e => e.from !== elementId && e.to !== elementId
     );
@@ -480,7 +480,7 @@ export function detachElement(elementId: string, composition: HTMLElement): {
     // Partial detach: reparent detached element to canvas
     const detachedEl = composition.querySelector(`[data-element-id="${elementId}"]`) as HTMLElement | null;
     if (!detachedEl) {
-        log.error(seg, `[MeldSystem] detachElement: element not found for glyph ${elementId}`);
+        log.error(seg, `[MeldSystem] detachElement: element not found for element ${elementId}`);
         return null;
     }
 
@@ -490,11 +490,11 @@ export function detachElement(elementId: string, composition: HTMLElement): {
     const innerLeft = parseFloat(detachedEl.style.left) || 0;
     const innerTop = parseFloat(detachedEl.style.top) || 0;
 
-    // Target: slide out from its composition position + offset away from remaining glyphs
+    // Target: slide out from its composition position + offset away from remaining elements
     const targetX = compLeft + innerLeft + UNMELD_OFFSET;
     const targetY = compTop + innerTop - UNMELD_OFFSET - 40;
 
-    // Start at the glyph's current visual position (composition origin + inner offset)
+    // Start at the element's current visual position (composition origin + inner offset)
     const startX = compLeft + innerLeft;
     const startY = compTop + innerTop;
 
@@ -510,7 +510,7 @@ export function detachElement(elementId: string, composition: HTMLElement): {
     // Animate slide to target position
     animatePosition(detachedEl, startX, startY, targetX, targetY);
 
-    // Persist detached glyph's new position
+    // Persist detached element's new position
     const detachedSymbol = detachedEl.dataset.symbol || '';
     if (detachedSymbol) {
         const existing = canvasHost.getCanvasElements().find(g => g.id === elementId);
@@ -541,7 +541,7 @@ export function detachElement(elementId: string, composition: HTMLElement): {
     ) as HTMLElement[];
     applyColumnLayout(composition, remainingElements, remainingEdges);
 
-    log.info(seg, `[MeldSystem] Detached glyph ${elementId} from composition`, {
+    log.info(seg, `[MeldSystem] Detached element ${elementId} from composition`, {
         oldId: compositionId,
         newId,
         remainingEdges: remainingEdges.length,
@@ -559,7 +559,7 @@ export function isMeldedComposition(element: HTMLElement): boolean {
 }
 
 /**
- * Unmeld a composition back to individual glyphs
+ * Unmeld a composition back to individual elements
  * Restores the original elements to canvas and removes from storage
  *
  * Returns the unmelded elements so caller can restore drag handlers.
@@ -585,11 +585,11 @@ export function unmeldComposition(composition: HTMLElement): {
     // Get composition ID for storage removal
     const compositionId = composition.getAttribute('data-element-id') || '';
 
-    // Find all child glyphs in composition
+    // Find all child elements in composition
     const members = Array.from(composition.querySelectorAll('[data-element-id]')) as HTMLElement[];
 
     if (members.length === 0) {
-        log.error(seg, '[MeldSystem] No glyphs found in composition - removing corrupted composition');
+        log.error(seg, '[MeldSystem] No elements found in composition - removing corrupted composition');
         if (compositionId) {
             canvasHost.removeComposition(compositionId);
         }
@@ -611,13 +611,13 @@ export function unmeldComposition(composition: HTMLElement): {
     const left = isNaN(compLeft) ? 0 : compLeft;
     const top = isNaN(compTop) ? 0 : compTop;
 
-    // Use each glyph's inner position within the composition to compute canvas position.
+    // Use each element's inner position within the composition to compute canvas position.
     // Elements slide out from their composition position to a spread-out arrangement.
     members.forEach((element, i) => {
         const innerLeft = parseFloat(element.style.left) || 0;
         const innerTop = parseFloat(element.style.top) || 0;
 
-        // Start: glyph's actual visual position (composition origin + inner offset)
+        // Start: element's actual visual position (composition origin + inner offset)
         const startX = left + innerLeft;
         const startY = top + innerTop;
 

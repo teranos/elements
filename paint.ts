@@ -1,11 +1,11 @@
 /**
- * What a glyph is painted, carried across a change of form.
+ * What an element is painted, carried across a change of form.
  *
- * A glyph is exactly one DOM element for its entire lifetime, and everything
+ * An element is exactly one DOM element for its entire lifetime, and everything
  * about it survives every transition (Element Axioma). Inline styles are wiped
  * on a morph because geometry and layout belong to the form — a tray
  * dot is not laid out like a canvas frame. Paint does not belong to the
- * form. A glyph is the colour it is in the tray, in a window and on
+ * form. An element is the colour it is in the tray, in a window and on
  * the canvas.
  *
  * So it is read off the element before the wipe and worn again after. The Element

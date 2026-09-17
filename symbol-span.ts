@@ -1,7 +1,7 @@
 /**
- * Symbol rendering — the one way a glyph.symbol becomes DOM.
+ * Symbol rendering — the one way `Element.symbol` becomes DOM.
  *
- * `glyph.symbol` is the datum; this span is its visual expression. Every
+ * `item.symbol` is the datum; this span is its visual expression. Every
  * native renderer (generic title bars, canvas-placed) goes through here,
  * so there is a single mechanism for one field.
  */
@@ -17,7 +17,7 @@ export function createSymbolSpan(symbol: string): HTMLElement {
 
 /**
  * Turn a symbol span carried across a morph (cursor → placed) into the
- * settled .glyph-symbol form. Same element, new form — the span
+ * settled .symbol form. Same element, new form — the span
  * itself honors the Element Axioma.
  */
 export function settleSymbolSpan(span: HTMLElement): HTMLElement {

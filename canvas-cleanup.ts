@@ -1,7 +1,7 @@
 /**
  * Element lifecycle cleanup.
  *
- * Cleanup registry for teardown functions stored on glyph elements,
+ * Cleanup registry for teardown functions stored on elements,
  * and ResizeObserver management for content-driven auto-sizing.
  */
 
@@ -13,9 +13,9 @@ import { getLogger, getLogSegment } from './config';
 const CLEANUP_KEY = '__elementCleanup';
 
 /**
- * Store a cleanup function on a glyph element.
- * Called by glyph setup code so conversions can tear down handlers
- * before repopulating the same element as a different glyph type.
+ * Store a cleanup function on a element.
+ * Called by element setup code so conversions can tear down handlers
+ * before repopulating the same element as a different element type.
  */
 export function storeCleanup(element: HTMLElement, fn: () => void): void {
     const list: Array<() => void> = (element as any)[CLEANUP_KEY] ??= [];
@@ -25,7 +25,7 @@ export function storeCleanup(element: HTMLElement, fn: () => void): void {
 /**
  * Run all stored cleanup functions and clear the list.
  * Tears down drag, resize, editor, and observer handlers
- * so the element can be repopulated as a different glyph type.
+ * so the element can be repopulated as a different element type.
  */
 export function runCleanup(element: HTMLElement): void {
     const list: Array<() => void> | undefined = (element as any)[CLEANUP_KEY];
@@ -39,7 +39,7 @@ export function runCleanup(element: HTMLElement): void {
 
 /**
  * Clean up ResizeObserver attached to an element.
- * Prevents memory leaks when glyphs are removed or re-rendered.
+ * Prevents memory leaks when elements are removed or re-rendered.
  */
 export function cleanupResizeObserver(element: HTMLElement, elementId?: string): void {
     const log = getLogger();
@@ -55,12 +55,12 @@ export function cleanupResizeObserver(element: HTMLElement, elementId?: string):
 }
 
 /**
- * Set up a ResizeObserver that auto-sizes a glyph element to its content.
+ * Set up a ResizeObserver that auto-sizes a element to its content.
  *
  * Cleans up any existing observer first, caps height at MAX_VIEWPORT_HEIGHT_RATIO,
  * and stores the observer on the element for later cleanup.
  *
- * @param glyphElement - The glyph DOM element whose minHeight is adjusted
+ * @param elementElement - The DOM element whose minHeight is adjusted
  * @param contentElement - The inner element to observe for size changes
  * @param label - Log label (e.g. "AX abc123")
  * @param heightOffset - Pixels to add to content height (default: CANVAS_ELEMENT_TITLE_BAR_HEIGHT)

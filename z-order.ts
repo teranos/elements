@@ -1,5 +1,5 @@
 /**
- * Stacking order for open glyphs.
+ * Stacking order for open elements.
  *
  * prepareMorphTo writes one z-index for every window, so which window sits on
  * top is DOM order and clicking cannot change it. This hands out an
@@ -21,7 +21,7 @@ export function raise(element: HTMLElement): void {
     element.style.zIndex = String(++top);
 }
 
-// Which elements already answer a press. A glyph is one element for its whole
+// Which elements already answer a press. An element is one element for its whole
 // life (AXIOMAS.md), so it is opened, minimized and opened again on the same
 // one — without this, every reopen left another pair of listeners on it.
 const wired = new WeakSet<HTMLElement>();

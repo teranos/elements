@@ -1,6 +1,6 @@
 /**
  * Title Bar Controls — shared helpers for adding/removing window controls
- * (minimize, close) to any glyph title bar.
+ * (minimize, close) to any element title bar.
  *
  * Forms call addWindowControls() when morphing to window/panel,
  * and removeWindowControls() when returning to canvas-placed.
@@ -13,7 +13,7 @@ export interface WindowControlsConfig {
     onClose?: () => void;
 }
 
-/** Append minimize/close buttons to an existing glyph title bar. */
+/** Append minimize/close buttons to an existing element title bar. */
 export function addWindowControls(titleBar: HTMLElement, config: WindowControlsConfig): void {
     // Guard against double-add
     if (titleBar.querySelector(`.${WINDOW_CONTROLS_CLASS}`)) return;

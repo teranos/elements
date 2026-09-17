@@ -1,7 +1,7 @@
 /**
- * Where a glyph lands when nothing says where to put it.
+ * Where an element lands when nothing says where to put it.
  *
- * Spawning without a cursor position put every glyph at the centre of the
+ * Spawning without a cursor position put every element at the centre of the
  * window, so each new one covered the last. This scores candidates against
  * what is already on the canvas and takes the emptiest.
  */
@@ -26,16 +26,16 @@ export interface PlacementOpts {
     margin?: number;
 }
 
-// .glyph-title-bar in css/glyph/title-bar.css.
+// .element-title-bar in css/element/title-bar.css.
 const TITLE_BAR_HEIGHT = 32;
 
 // Two 22px buttons with 2px margins against 8px of bar padding.
 const CONTROLS_WIDTH = 64;
 
-// .glyph-symbol is the title bar's first child, so it holds the left edge.
+// .symbol is the title bar's first child, so it holds the left edge.
 const SYMBOL_WIDTH = 32;
 
-// Ordered, not measured: the symbol is what a glyph is recognised by, the
+// Ordered, not measured: the symbol is what an element is recognised by, the
 // title says which one, the rest of the bar is the handle it moves by, the
 // body scrolls. The tests pin the ordering; these numbers only keep it.
 const COST_SYMBOL = 120;
@@ -75,7 +75,7 @@ export function overlapArea(a: Rect, b: Rect): number {
  * What it costs to put `candidate` here, given what is already placed.
  *
  * Occupants are counted separately rather than unioned, so landing across two
- * glyphs is worse than landing on one.
+ * elements is worse than landing on one.
  */
 export function placementCost(candidate: Rect, occupied: Rect[]): number {
     let cost = 0;
@@ -110,7 +110,7 @@ export function placementCost(candidate: Rect, occupied: Rect[]): number {
  * Try `attempts` positions and keep the cheapest. A candidate that covers
  * nothing wins outright, so the search stops there.
  *
- * Random rather than a grid: a grid lands new glyphs on the same few points,
+ * Random rather than a grid: a grid lands new elements on the same few points,
  * which is the problem being fixed one step removed.
  */
 export function findPlacement(

@@ -15,7 +15,7 @@ afterEach(() => {
 });
 
 describe('Tim: window corner radius', () => {
-    // "and glyphs as windows still have rounded corners" — said after setting
+    // "and elements as windows still have rounded corners" — said after setting
     // --border-radius: 0 in the example's own stylesheet, which the package
     // overrides inline.
     test('a host can square them', () => {

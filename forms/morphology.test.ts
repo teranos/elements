@@ -1,8 +1,8 @@
 /**
  * Morph class lifecycle (MRPCL).
  *
- * The morph class belongs to the morph, not the glyph: it arrives with
- * prepareMorphTo, leaves at commit, and never wipes what the glyph wears.
+ * The morph class belongs to the morph, not the element: it arrives with
+ * prepareMorphTo, leaves at commit, and never wipes what the element wears.
  *
  * It says a morph is in flight and nothing more. Which morph is
  * data-form's to say, so there is one class rather than one per
@@ -10,7 +10,7 @@
  *
  * Personas:
  * - Tim: happy path — open, commit, the morph class is gone
- * - Spike: rollback — the glyph keeps the classes it had (Morph Axioma)
+ * - Spike: rollback — the element keeps the classes it had (Morph Axioma)
  * - Jenny: a window settles into no class of its own
  */
 
@@ -77,7 +77,7 @@ describe('Tim: open and commit', () => {
         expect(element.classList.contains('panel--from-top')).toBe(true);
     });
 
-    test('the glyph keeps its own classes through open and commit', () => {
+    test('the element keeps its own classes through open and commit', () => {
         const { element, item } = trayDot(['error']);
         const morph = prepareMorphTo(element, item, noVerify, 'window', '1000');
         expect(element.classList.contains('error')).toBe(true);
@@ -88,9 +88,9 @@ describe('Tim: open and commit', () => {
 });
 
 describe('Spike: rollback', () => {
-    // Morph Axioma: the attempt is abandoned and the glyph keeps the state
+    // Morph Axioma: the attempt is abandoned and the element keeps the state
     // it had.
-    test('an abandoned morph restores exactly the classes the glyph had', () => {
+    test('an abandoned morph restores exactly the classes the element had', () => {
         const { element, item } = trayDot(['error']);
         const before = element.className;
         const morph = prepareMorphTo(element, item, noVerify, 'window', '1000');
@@ -102,8 +102,8 @@ describe('Spike: rollback', () => {
 });
 
 describe('Jenny: a window settles into no class of its own', () => {
-    // .glyph-window carried one declaration, pointer-events: auto, which
-    // .glyph-morphing-to-window carried too — the same rule before and after the
+    // A window class once carried one declaration, pointer-events: auto, which
+    // the morph class carried too — the same rule before and after the
     // morph. [data-form="window"] spans both, so the class is the
     // attribute wearing a second name and the morph commits without one.
     test('commit with nothing to settle leaves the morph class gone and adds none', () => {

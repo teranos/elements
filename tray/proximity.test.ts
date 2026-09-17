@@ -1,7 +1,7 @@
 /**
  * Tests for configurable dot geometry
  *
- * The dot is the glyph at rest. Its size used to be five private constants
+ * The dot is the element at rest. Its size used to be five private constants
  * inside Proximity, written inline on every animation frame — unreachable
  * from a host app and unreachable from CSS (inline styles win). These tests pin
  * the config surface that replaced them.
@@ -9,7 +9,7 @@
  * Personas:
  * - Tim: defaults and overrides through configureElements
  * - Spike: config arrives after the proximity engine already exists
- * - Jenny: the expanded dot renders glyph.symbol natively (SYMRD)
+ * - Jenny: the expanded dot renders item.symbol natively (SYMRD)
  */
 
 import { describe, test, expect, beforeAll, afterAll, afterEach } from 'bun:test';
@@ -168,7 +168,7 @@ describe('Spike: geometry is read at use time', () => {
     test('a dot is born at the configured resting size, not the CSS size', () => {
         configureElements({ dotGeometry: { minWidth: 16, minHeight: 18, borderRadiusMax: 6 } });
 
-        const item: Element = { id: 'dot-geometry-1', title: 'Dot Geometry', symbol: 'ax' };
+        const item: Element = { id: 'dot-geometry-1', title: 'Dot Geometry', symbol: '■' };
         tray.add(item, true);
         const dot = document.querySelector('[data-element-id="dot-geometry-1"]') as HTMLElement;
 
@@ -182,7 +182,7 @@ describe('Spike: geometry is read at use time', () => {
     test('a dot returning to rest is re-sized from config after its styles are wiped', () => {
         configureElements({ dotGeometry: { minWidth: 16, minHeight: 18, borderRadiusMax: 6 } });
 
-        const item: Element = { id: 'dot-geometry-2', title: 'Dot Geometry', symbol: 'ax' };
+        const item: Element = { id: 'dot-geometry-2', title: 'Dot Geometry', symbol: '■' };
         const el = document.createElement('div');
         el.style.width = '600px';
         el.style.height = '400px';
@@ -230,14 +230,14 @@ describe('Jenny: the expanded dot shows the symbol', () => {
         const { container, dot, items } = trayWithItem({
             id: 'sym-dot-1',
             title: 'Self',
-            symbol: '⍟',
+            symbol: '●',
             renderContent: () => document.createElement('div'),
         });
 
         proximity.setPointerPosition(0, 0);
         proximity.updateProximity(container, items, false);
 
-        expect(dot.textContent).toBe('⍟ Self');
+        expect(dot.textContent).toBe('● Self');
     });
 
     test('no symbol, the title alone', () => {

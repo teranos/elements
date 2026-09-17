@@ -1,14 +1,14 @@
 /**
- * Proximity morphing for glyphs
+ * Proximity morphing for elements
  *
- * Handles the smooth transformation of glyphs from resting dot to expanded state
+ * Handles the smooth transformation of elements from resting dot to expanded state
  * based on pointer proximity (mouse cursor or touch position). The two ends of
  * that morph are host-configurable: configureElements({ dotGeometry }).
  * This modifies the SAME DOM element in place.
  *
  * Desktop: mousemove drives proximity continuously.
  * Mobile:  touchstart near tray enters browse mode, touchmove drives proximity,
- *          touchend opens the peaked glyph. Between touches there is no pointer.
+ *          touchend opens the peaked element. Between touches there is no pointer.
  *
  * CRITICAL: We ONLY change styles, never recreate or replace the element.
  * The element persists through: dot → proximity → window → dot
@@ -97,7 +97,7 @@ export class Proximity {
     }
 
     /**
-     * Calculate proximity metrics for a glyph element
+     * Calculate proximity metrics for a element
      */
     public calculateProximity(dot: HTMLElement): {
         distance: number;
@@ -141,7 +141,7 @@ export class Proximity {
     }
 
     /**
-     * Update proximity-based morphing for glyphs in the indicator container
+     * Update proximity-based morphing for elements in the indicator container
      * Uses requestAnimationFrame for smooth 60fps updates
      */
     public updateProximity(
@@ -161,14 +161,14 @@ export class Proximity {
             // Read at use time — the host may have configured geometry after construction
             const geometry = getDotGeometry();
 
-            // First pass: check if any glyph is highly proximate (gives baseline boost to all)
+            // First pass: check if any element is highly proximate (gives baseline boost to all)
             let maxProximityRaw = 0;
             dots.forEach((dot) => {
                 const { proximityRaw } = this.calculateProximity(dot);
                 maxProximityRaw = Math.max(maxProximityRaw, proximityRaw);
             });
 
-            // Calculate baseline boost when any glyph is nearly fully expanded
+            // Calculate baseline boost when any element is nearly fully expanded
             const baselineBoost = maxProximityRaw > this.BASELINE_BOOST_TRIGGER ? this.BASELINE_BOOST_AMOUNT : 0;
 
             dots.forEach((dot) => {
@@ -216,7 +216,7 @@ export class Proximity {
                 // Interpolate border radius (starts at max, goes to 0 for full item)
                 const borderRadius = geometry.borderRadiusMax * (1 - proximity);
 
-                // Use the glyph's own color
+                // Use the element's own color
                 const color = item?.color ?? DEFAULT_COLOR;
 
                 // Apply morphing styles
@@ -224,7 +224,7 @@ export class Proximity {
                 dot.style.height = `${height}px`;
                 dot.style.borderRadius = `${borderRadius}px`;
                 dot.style.backgroundColor = color;
-                // Visual identity, like color — the dot wears the glyph's border
+                // Visual identity, like color — the dot wears the element's border
                 if (item?.border) dot.style.border = item.border;
                 dot.style.backdropFilter = 'blur(2px)';
                 dot.style.filter = dot.matches(':hover') ? 'brightness(1.2)' : '';

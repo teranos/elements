@@ -1,5 +1,5 @@
 /**
- * Type-safe dataset attribute helpers for glyph DOM elements
+ * Type-safe dataset attribute helpers for DOM elements
  *
  * These helpers ensure dataset attributes are accessed and modified
  * with proper type safety and validation.
@@ -9,9 +9,9 @@ import { isForm, type Form } from './form';
 import { isContentState, type ContentState } from './content-state';
 
 /**
- * Record which form a glyph is in.
+ * Record which form an element is in.
  *
- * AXIOMAS.md: a morph is a transition between forms, and a glyph is in
+ * AXIOMAS.md: a morph is a transition between forms, and an element is in
  * one at any time. This is where that is written down, so it can be read.
  */
 export function setForm(element: HTMLElement, form: Form): void {
@@ -19,7 +19,7 @@ export function setForm(element: HTMLElement, form: Form): void {
 }
 
 /**
- * Which form a glyph is in, or null if nothing has said.
+ * Which form an element is in, or null if nothing has said.
  *
  * Null for a name the table does not have: an element carrying one is not in
  * some eighth form, it is carrying a word.
@@ -32,7 +32,7 @@ export function getForm(element: HTMLElement): Form | null {
 /**
  * @deprecated Use {@link getForm}. One bit cannot hold a seven-name
  * list: this is true for `window` and for `canvasExpanded`, and false for
- * `panel`, `workspace` and a dot alike — so it can say what a glyph is not far
+ * `panel`, `workspace` and a dot alike — so it can say what an element is not far
  * better than what it is.
  *
  * It reads the same store {@link setForm} writes, so it stays correct
@@ -74,7 +74,7 @@ export function setLastPosition(element: HTMLElement, x: number, y: number): voi
 }
 
 /**
- * Check if glyph has proximity text showing
+ * Check if element has proximity text showing
  */
 export function hasProximityText(element: HTMLElement): boolean {
     return element.dataset.hasText === 'true';
@@ -92,14 +92,14 @@ export function setProximityText(element: HTMLElement, hasText: boolean): void {
 }
 
 /**
- * Get glyph ID from element
+ * Get element ID from element
  */
 export function getElementId(element: HTMLElement): string | null {
     return element.getAttribute('data-element-id');
 }
 
 /**
- * Set glyph ID on element
+ * Set element ID on element
  */
 export function setElementId(element: HTMLElement, id: string): void {
     element.setAttribute('data-element-id', id);
@@ -147,14 +147,14 @@ export function clearCanvasOrigin(element: HTMLElement): void {
 }
 
 /**
- * Get glyph symbol from element
+ * Get element symbol from element
  */
 export function getSymbol(element: HTMLElement): string | undefined {
     return element.dataset.symbol;
 }
 
 /**
- * Set glyph symbol on element
+ * Set element symbol on element
  */
 export function setSymbol(element: HTMLElement, symbol: string | undefined): void {
     if (symbol !== undefined) {
@@ -165,10 +165,10 @@ export function setSymbol(element: HTMLElement, symbol: string | undefined): voi
 }
 
 /**
- * Record what a glyph's body is showing.
+ * Record what an element's body is showing.
  *
  * content-state.ts names the states; this is where one is written down, so it
- * can be read — off the element, which is the one thing a glyph keeps for its
+ * can be read — off the element, which is the one thing an element keeps for its
  * whole life (AXIOMAS.md, Element Axioma).
  */
 export function setContentState(element: HTMLElement, state: ContentState): void {
@@ -176,7 +176,7 @@ export function setContentState(element: HTMLElement, state: ContentState): void
 }
 
 /**
- * What a glyph's body is showing, or null if nothing has said.
+ * What an element's body is showing, or null if nothing has said.
  *
  * Null is itself a finding: every window and panel is stamped at mount
  * (forms/render-content.ts), so an unstamped body is one that reached

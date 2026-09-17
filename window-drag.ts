@@ -1,5 +1,5 @@
 /**
- * Window Drag — standalone drag implementation for glyph windows.
+ * Window Drag — standalone drag implementation for element windows.
  *
  * Supports mouse and touch. Constrains the window to keep at least
  * 50px visible on screen. Saves position via dataset helpers on drag end.
@@ -34,7 +34,7 @@ function naturalWidth(el: HTMLElement): number {
 }
 
 /**
- * The width this glyph's content needs, asked of the browser once per drag.
+ * The width this element's content needs, asked of the browser once per drag.
  *
  * `min-content` is the browser's own answer to how narrow this can be and
  * still be laid out, which is the only place that number can come from.

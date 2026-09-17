@@ -1,18 +1,18 @@
 /**
- * The forms a glyph can take.
+ * The forms an element can take.
  *
- * AXIOMAS.md: "A morph is a state transition of a glyph between forms."
+ * AXIOMAS.md: "A morph is a state transition of an element between forms."
  * That names the noun and the verb. This names the forms, once, so the
  * type, the stylesheets and the morph functions stop each keeping their own list.
  *
  * Fullscreen is not among them, because three of them are it: `workspace` is
  * edge to edge, `canvasExpanded` is edge to edge, and a `panel` dragged past
- * 90% of the viewport becomes edge to edge (.glyph-panel--fullscreen). One
+ * 90% of the viewport becomes edge to edge (.panel--fullscreen). One
  * word for three forms names none of them.
  */
 
 /**
- * Every form, in the order a glyph meets them, and whether a tray dot
+ * Every form, in the order an element meets them, and whether a tray dot
  * opens as it.
  *
  * `opensFromTray` is what Tray.morphElement() dispatches on: exactly the
@@ -30,7 +30,7 @@
  */
 export interface FormTable {
     /**
-     * Resting in the tray. `applyRestingDotGeometry()` puts a glyph here at birth
+     * Resting in the tray. `applyRestingDotGeometry()` puts an element here at birth
      * and when an existing element joins the tray (tray/tray.ts), and on the way back
      * from panel (forms/panel.ts) and window (forms/morphology.ts).
      * Where a morph starts, never where one ends.
@@ -55,31 +55,29 @@ export interface FormTable {
 
     /**
      * "Canvas Form - Fullscreen, no chrome" — the workspace itself,
-     * which is a glyph. forms/canvas.ts.
+     * which is an element. forms/canvas.ts.
      *
      * Named for what it is rather than for its file, the one row where those
      * differ. `canvas` sat one suffix from `canvasPlaced` while meaning the
-     * opposite thing — the surface, not a glyph on it. The word was already
-     * here: QNTX's canvas-glyph.ts:81 gives it `id: 'canvas-workspace'`, and
-     * canvas-placed.ts calls its subjects "glyphs on the canvas workspace".
+     * opposite thing — the surface, not an element on it. The word was already
+     * here: canvas-placed.ts calls its subjects "elements on the canvas workspace".
      */
     readonly workspace: { readonly opensFromTray: true };
 
     /**
-     * "Canvas-Placed Form" — a glyph sitting on that workspace, with
+     * "Canvas-Placed Form" — an element sitting on that workspace, with
      * container, position, drag, title bar and resize. forms/canvas-placed.ts.
      * Reached by being placed, not by a dot being opened.
      */
     readonly canvasPlaced: { readonly opensFromTray: false };
 
     /**
-     * "Canvas-Expanded Form" — a canvas-placed glyph filling the
-     * viewport, reparented to document.body. The host's, not the package's:
-     * web/ts/components/glyph/manifestations/canvas-expanded.ts.
+     * "Canvas-Expanded Form" — a canvas-placed element filling the
+     * viewport, reparented to document.body. The host's, not the package's.
      *
      * It fills the viewport like `workspace` and shares nothing else with it —
-     * it comes from a placed glyph rather than from the tray, and goes back to
-     * one. Listed because it is a form a glyph can be in, and a list
+     * it comes from a placed element rather than from the tray, and goes back to
+     * one. Listed because it is a form an element can be in, and a list
      * that omits one is how "fullscreen" ended up meaning two things.
      */
     readonly canvasExpanded: { readonly opensFromTray: false };

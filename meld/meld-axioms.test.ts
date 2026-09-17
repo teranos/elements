@@ -1,14 +1,10 @@
 /**
  * Meld Axiom tests
  *
- * Axiom: each side of a glyph accepts at most one connection.
- * A glyph with an occupied right-outgoing port cannot emit another
- * right edge; a glyph whose left (right-incoming) is occupied cannot
+ * Axiom: each side of an element accepts at most one connection.
+ * An element with an occupied right-outgoing port cannot emit another
+ * right edge; an element whose left (right-incoming) is occupied cannot
  * receive another right-incoming edge. Same for bottom/top.
- *
- * Duplicated from web/ts/components/glyph/meld/meld-axioms.test.ts
- * to live with the package source. The web/ copy may be removed once
- * the package owns its own CI.
  */
 
 import { describe, test, expect } from 'bun:test';
@@ -27,7 +23,7 @@ function compWith(...specs: Array<{ id: string; cls: string }>): HTMLElement {
     return comp;
 }
 
-describe('Spike: one glyph per side axiom', () => {
+describe('Spike: one element per side axiom', () => {
 
     test('py with right-outgoing occupied (py→prompt) cannot accept another right-append', () => {
         const comp = compWith(

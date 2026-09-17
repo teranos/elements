@@ -1,5 +1,5 @@
 /**
- * Tray - where glyphs rest
+ * Tray - where elements rest
  *
  * Design: Elements are visual entities that morph between three states:
  * 1. Collapsed (8px square) - minimal visual footprint
@@ -44,7 +44,7 @@ export type { Element } from '../element';
 
 
 class Tray {
-    // Track all created glyph elements to enforce single-element axiom
+    // Track all created elements to enforce single-element axiom
     private elements: Map<string, HTMLElement> = new Map();
 
     // Track click handlers separately for proper cleanup (prevents memory leaks)
@@ -54,19 +54,19 @@ class Tray {
     private proximity: Proximity = new Proximity();
 
     /**
-     * SINGLE FACTORY for creating glyph DOM elements
-     * This is the ONLY place that calls document.createElement for glyphs
+     * SINGLE FACTORY for creating DOM elements
+     * This is the ONLY place that calls document.createElement for elements
      *
      * CRITICAL: This is not a UX preference.
      * This is a structural invariant required for future attestations and reasoning.
      *
      * The persistent DOM identity enables:
-     * - Attestations about glyph state and transitions
-     * - Reasoning about glyph relationships and dependencies
+     * - Attestations about element state and transitions
+     * - Reasoning about element relationships and dependencies
      * - Tracking provenance and lifecycle events
      * - Maintaining coherence between frontend and backend models
      *
-     * The glyph's DOM element IS its identity, not a representation of it.
+     * The element's DOM element IS its identity, not a representation of it.
      */
     private createElement(item: Element): HTMLElement {
         const log = getLogger();
@@ -74,7 +74,7 @@ class Tray {
 
         // Check if element already exists - THIS SHOULD NEVER HAPPEN
         if (this.elements.has(item.id)) {
-            throw new Error(`AXIOM VIOLATION: Attempted to create duplicate glyph element for ${item.id}`);
+            throw new Error(`AXIOM VIOLATION: Attempted to create duplicate element for ${item.id}`);
         }
 
         const existing = document.querySelector(`[data-element-id="${item.id}"]`);
@@ -129,7 +129,7 @@ class Tray {
     public init(): void {
         if (this.element) {
             // Having an element is not the same as being in the document. If the
-            // body was replaced under us, re-attach — otherwise every glyph added
+            // body was replaced under us, re-attach — otherwise every element added
             // from here lands in a detached tree and is never seen again.
             if (!this.element.isConnected) document.body.appendChild(this.element);
             return;
@@ -139,7 +139,7 @@ class Tray {
         this.element.className = 'tray';
         this.element.setAttribute('data-empty', 'true');
 
-        // Container for collapsed glyphs
+        // Container for collapsed elements
         this.indicatorContainer = document.createElement('div');
         this.indicatorContainer.className = 'tray-dots';
         this.element.appendChild(this.indicatorContainer);
@@ -185,7 +185,7 @@ class Tray {
     }
 
     /**
-     * Morph a glyph from dot to its form (window, panel or workspace).
+     * Morph an element from dot to its form (window, panel or workspace).
      * Shared by click handler and touch browse release.
      */
     private morphElement(element: HTMLElement, item: Element): void {
@@ -243,7 +243,7 @@ class Tray {
     }
 
     /**
-     * Programmatically open a glyph by ID (morph from dot to its form)
+     * Programmatically open an element by ID (morph from dot to its form)
      */
     public open(id: string): void {
         const log = getLogger();
@@ -251,7 +251,7 @@ class Tray {
         const item = this.items.get(id);
         const element = this.elements.get(id);
         if (!item || !element) {
-            log.warn(seg, `[Tray] open: glyph ${id} not found`);
+            log.warn(seg, `[Tray] open: element ${id} not found`);
             return;
         }
         this.morphElement(element, item);
@@ -259,7 +259,7 @@ class Tray {
 
     /**
      * Load tray state from persistence
-     * Returns the ids of the glyphs that were resting in the tray
+     * Returns the ids of the elements that were resting in the tray
      */
     public loadState(): string[] {
         return getPersistence().getResting();
@@ -267,7 +267,7 @@ class Tray {
 
     /**
      * Add a minimized window to the tray
-     * Creates the glyph DOM element ONCE via factory - this element persists forever
+     * Creates the DOM element ONCE via factory - this element persists forever
      */
     public add(item: Element, skipSave: boolean = false): void {
         const log = getLogger();
@@ -321,7 +321,7 @@ class Tray {
 
     /**
      * Adopt an existing element into the tray (no new element created).
-     * Used when a canvas-placed glyph is minimized to tray — the same
+     * Used when a canvas-placed element is minimized to tray — the same
      * DOM element transitions from canvas/window to tray dot.
      */
     public adopt(element: HTMLElement, item: Element): void {
@@ -337,7 +337,7 @@ class Tray {
         this.elements.set(item.id, element);
 
         // Class and geometry are what a tray dot is and change with the
-        // form; paint is what the glyph is and does not.
+        // form; paint is what the element is and does not.
         const was = readPaint(element);
         element.className = 'dot';
         applyRestingDotGeometry(element);
@@ -361,7 +361,7 @@ class Tray {
     }
 
     /**
-     * Verify no duplicate glyph elements exist in DOM
+     * Verify no duplicate elements exist in DOM
      * Hard errors if duplicates found - this is an AXIOM VIOLATION
      */
     private verifyNoDuplicateElements(elementId: string): void {
@@ -369,19 +369,19 @@ class Tray {
         if (elements.length > 1) {
             throw new Error(
                 `AXIOM VIOLATION: ${elements.length} elements found with data-element-id="${elementId}". ` +
-                `A glyph must be exactly ONE DOM element. This is a critical error.`
+                `An element must be exactly ONE DOM element. This is a critical error.`
             );
         }
         if (elements.length === 1) {
             throw new Error(
                 `AXIOM VIOLATION: Element with data-element-id="${elementId}" already exists. ` +
-                `Cannot create duplicate. A glyph must be exactly ONE DOM element.`
+                `Cannot create duplicate. An element must be exactly ONE DOM element.`
             );
         }
     }
 
     /**
-     * Remove a glyph completely (when closed via X button)
+     * Remove an element completely (when closed via X button)
      * This is the ONLY time we destroy the DOM element
      */
     public remove(id: string): void {
@@ -479,7 +479,7 @@ class Tray {
     }
 
     /**
-     * Re-attach a morphed glyph back to the indicator container
+     * Re-attach a morphed element back to the indicator container
      */
     private reattachElementToIndicator(element: HTMLElement, item: Element): void {
         const log = getLogger();
@@ -525,7 +525,7 @@ class Tray {
     }
 
     /**
-     * Verify the structural invariant: Each glyph is exactly ONE DOM element
+     * Verify the structural invariant: Each element is exactly ONE DOM element
      * Call this to ensure the system maintains coherence
      *
      * The Element must remain the same DOM element across dot → proximity → window → dot.
@@ -563,7 +563,7 @@ class Tray {
             }
         });
 
-        // Check that all DOM glyphs are tracked
+        // Check that all DOM elements are tracked
         document.querySelectorAll('[data-element-id]').forEach((element) => {
             const id = element.getAttribute('data-element-id');
             if (id && !this.elements.has(id)) {
@@ -574,7 +574,7 @@ class Tray {
             }
         });
 
-        log.info(seg, `Invariant verified: ${this.elements.size} glyphs maintain single-element axiom`);
+        log.info(seg, `Invariant verified: ${this.elements.size} elements maintain single-element axiom`);
     }
 }
 

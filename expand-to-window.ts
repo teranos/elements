@@ -2,7 +2,7 @@
  * Expand-to-Window — unified lifecycle for canvas ↔ window ↔ tray morphing.
  *
  * Replaces the copy-pasted expand-button click handler that existed in every
- * glyph file (attestation, note, response, plugin-module). Each glyph now
+ * element file (attestation, note, response, plugin-module). Each element now
  * passes a config object and gets the full bidirectional morph for free.
  */
 
@@ -18,7 +18,7 @@ import {
 // ── Public API ───────────────────────────────────────────────────────
 
 export interface ExpandToWindowConfig {
-    /** The canvas-placed glyph element. */
+    /** The canvas-placed element. */
     element: HTMLElement;
     /** The expand/collapse button. */
     expandBtn: HTMLElement;
@@ -76,7 +76,7 @@ export function wireExpandToWindow(config: ExpandToWindowConfig): void {
         const seg = getLogSegment();
 
         // Already off the canvas → place it back on. What isInWindowState()
-        // answered here: a window, or a canvas-placed glyph filling the viewport.
+        // answered here: a window, or a canvas-placed element filling the viewport.
         const form = getForm(element);
         if (form === 'window' || form === 'canvasExpanded') {
             placeWindowOnCanvas(element, {

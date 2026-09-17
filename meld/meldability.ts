@@ -1,10 +1,10 @@
 /**
- * Meldability - Port-aware glyph melding rules
+ * Meldability - Port-aware element melding rules
  *
- * Melding is QNTX's spatial composition model where glyphs physically fuse
+ * Melding is the spatial composition model where elements physically fuse
  * through proximity rather than connecting via wires.
  *
- * Each glyph has directional ports that define valid connections:
+ * Each element has directional ports that define valid connections:
  * - right: horizontal data flow (ax → py → prompt, py → py)
  * - bottom: result/output attachment (py ↓ result, prompt ↓ result)
  * - top: (reserved for future upward connections)
@@ -22,7 +22,7 @@ export interface PortRule {
     targets: readonly string[];
 }
 
-/** All glyph classes that participate in melding */
+/** All element classes that participate in melding */
 const ALL_ELEMENT_CLASSES = [
     'canvas-ax-element', 'canvas-se-element', 'canvas-py-element',
     'canvas-prompt-element', 'canvas-doc-element', 'canvas-note-element',
@@ -31,7 +31,7 @@ const ALL_ELEMENT_CLASSES = [
 ] as const;
 
 /**
- * Port-aware meldability rules: maps glyph classes to their output ports
+ * Port-aware meldability rules: maps element classes to their output ports
  * Each port specifies a direction and which target classes can connect there
  */
 export const MELDABILITY: Record<string, readonly PortRule[]> = {
@@ -112,7 +112,7 @@ export function getCompatibleTargets(initiatorClass: string): string[] {
 }
 
 /**
- * Check if two glyph classes are compatible for melding
+ * Check if two element classes are compatible for melding
  * Returns all compatible edge directions (empty array if incompatible)
  */
 export function getCompatibleDirections(initiatorClass: string, targetClass: string): EdgeDirection[] {
@@ -128,7 +128,7 @@ export function getCompatibleDirections(initiatorClass: string, targetClass: str
 }
 
 /**
- * Check if two glyph classes are compatible for melding
+ * Check if two element classes are compatible for melding
  * Returns the first edge direction if compatible, null if not
  */
 export function areClassesCompatible(initiatorClass: string, targetClass: string): EdgeDirection | null {
@@ -137,7 +137,7 @@ export function areClassesCompatible(initiatorClass: string, targetClass: string
 }
 
 /**
- * Extract glyph IDs from a composition element's children
+ * Extract element IDs from a composition element's children
  */
 export function getCompositionElementIds(composition: HTMLElement): string[] {
     const members = composition.querySelectorAll('[data-element-id]');
@@ -152,7 +152,7 @@ export function getCompositionElementIds(composition: HTMLElement): string[] {
 }
 
 /**
- * Extract the canonical glyph class (e.g. 'canvas-py-glyph') from an element's classList
+ * Extract the canonical element class (e.g. 'canvas-py-element') from an element's classList
  */
 export function getElementClass(element: HTMLElement): string | null {
     for (const cls of element.classList) {
@@ -162,22 +162,22 @@ export function getElementClass(element: HTMLElement): string | null {
 }
 
 export interface MeldOption {
-    /** The glyph in the composition that the incoming glyph connects with */
+    /** The element in the composition that the incoming element connects with */
     elementId: string;
     /** Edge direction for this connection */
     direction: EdgeDirection;
-    /** Whether the incoming glyph is the 'from' (prepend) or 'to' (append) in the edge */
+    /** Whether the incoming element is the 'from' (prepend) or 'to' (append) in the edge */
     incomingRole: 'from' | 'to';
 }
 
 /**
- * Get all possible ways an incoming glyph could meld with a composition.
+ * Get all possible ways an incoming element could meld with a composition.
  *
- * Checks every glyph in the composition for a free port:
- * 1. Append (incoming is 'to'): glyph's outgoing port in the compatible direction must be unoccupied
- * 2. Prepend (incoming is 'from'): glyph's incoming port in the compatible direction must be unoccupied
+ * Checks every element in the composition for a free port:
+ * 1. Append (incoming is 'to'): element's outgoing port in the compatible direction must be unoccupied
+ * 2. Prepend (incoming is 'from'): element's incoming port in the compatible direction must be unoccupied
  *
- * Axiom: each side of a glyph accepts at most one connection.
+ * Axiom: each side of an element accepts at most one connection.
  */
 export function getMeldOptions(
     incomingClass: string,
@@ -186,14 +186,14 @@ export function getMeldOptions(
 ): MeldOption[] {
     const options: MeldOption[] = [];
 
-    // Collect all glyph IDs from edges
+    // Collect all element IDs from edges
     const allIds = new Set<string>();
     for (const edge of edges) {
         allIds.add(edge.from);
         allIds.add(edge.to);
     }
 
-    // Build port occupancy: which directions are taken for each glyph
+    // Build port occupancy: which directions are taken for each element
     const outgoing = new Map<string, Set<string>>();
     const incoming = new Map<string, Set<string>>();
     for (const edge of edges) {
@@ -209,14 +209,14 @@ export function getMeldOptions(
         const cls = getElementClass(el);
         if (!cls) continue;
 
-        // 1. Append: this glyph sends to the incoming glyph (outgoing port)
+        // 1. Append: this element sends to the incoming element (outgoing port)
         for (const appendDir of getCompatibleDirections(cls, incomingClass)) {
             if (!outgoing.get(elementId)?.has(appendDir)) {
                 options.push({ elementId, direction: appendDir, incomingRole: 'to' });
             }
         }
 
-        // 2. Prepend: the incoming glyph sends to this glyph (incoming port)
+        // 2. Prepend: the incoming element sends to this element (incoming port)
         for (const prependDir of getCompatibleDirections(incomingClass, cls)) {
             if (!incoming.get(elementId)?.has(prependDir)) {
                 options.push({ elementId, direction: prependDir, incomingRole: 'from' });
@@ -228,7 +228,7 @@ export function getMeldOptions(
 }
 
 /**
- * Select the best meld option, preferring the one matching the anchor glyph
+ * Select the best meld option, preferring the one matching the anchor element
  * AND the spatially-detected direction. Falls back to anchor match, then first option.
  */
 export function selectPreferredMeldOption(
@@ -238,13 +238,13 @@ export function selectPreferredMeldOption(
 ): MeldOption | null {
     if (options.length === 0) return null;
 
-    // Best: matches both anchor glyph and detected direction
+    // Best: matches both anchor element and detected direction
     if (preferredDirection) {
         const exact = options.find(o => o.elementId === anchorElementId && o.direction === preferredDirection);
         if (exact) return exact;
     }
 
-    // Good: matches anchor glyph
+    // Good: matches anchor element
     const anchorMatch = options.find(o => o.elementId === anchorElementId);
     if (anchorMatch) return anchorMatch;
 

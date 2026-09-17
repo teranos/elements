@@ -15,7 +15,7 @@ beforeEach(() => {
 });
 
 describe('Tim: selection during a morph', () => {
-    // "when clicking on a glyph from the tray, on release i see that i have
+    // "when clicking on an element from the tray, on release i see that i have
     //  selected the text of the other glyophs while the tray was getting
     //  smaller"
     test('the press stops selection before the tray moves', () => {

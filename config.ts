@@ -18,11 +18,11 @@ export interface Logger {
 }
 
 export interface Persistence {
-    /** Ids of the glyphs resting in the tray */
+    /** Ids of the elements resting in the tray */
     getResting(): string[];
-    /** A glyph has come to rest in the tray */
+    /** An element has come to rest in the tray */
     addResting(id: string): void;
-    /** A glyph has left the tray for good */
+    /** An element has left the tray for good */
     removeResting(id: string): void;
 }
 
@@ -59,7 +59,7 @@ export interface CanvasCoordinateBridge {
 }
 
 /**
- * Geometry of the dot — the glyph at rest — and of its fully expanded proximity state.
+ * Geometry of the dot — the element at rest — and of its fully expanded proximity state.
  *
  * The proximity engine interpolates between min (proximity 0) and max (proximity 1)
  * and writes the result as inline styles, so a host cannot reach this through CSS.
@@ -87,7 +87,7 @@ export interface ElementConfig {
     canvas?: CanvasCoordinateBridge;
     /** Canvas host — persistence, transform, selection, composition CRUD. */
     canvasHost?: CanvasHost;
-    /** Called when a glyph is removed from the canvas (close/minimize). */
+    /** Called when an element is removed from the canvas (close/minimize). */
     removeCanvasElement?: (elementId: string) => void;
     /** Dot and expanded-state dimensions used by the proximity engine. */
     dotGeometry?: DotGeometry;
@@ -154,7 +154,7 @@ let config: {
 };
 
 /**
- * Configure the glyph package with host-specific implementations.
+ * Configure the element package with host-specific implementations.
  * Call once at app startup.
  */
 export function configureElements(opts: ElementConfig): void {
@@ -214,7 +214,7 @@ export function getCanvasBridge(): CanvasCoordinateBridge | null {
     return config.canvas;
 }
 
-/** Remove a glyph from canvas state. No-op if not configured. */
+/** Remove an element from canvas state. No-op if not configured. */
 export function removeCanvasElement(elementId: string): void {
     config.removeCanvasElement?.(elementId);
 }

@@ -2,10 +2,10 @@
  * Workspace Form — the canvas itself, edge to edge, no chrome.
  *
  * Its row in FORMS is `workspace`: `canvas` sat one suffix from
- * `canvasPlaced` and meant the opposite thing, the surface rather than a glyph
- * on it. QNTX's canvas-glyph.ts already gives this one `id: 'canvas-workspace'`.
+ * `canvasPlaced` and meant the opposite thing, the surface rather than an element
+ * on it.
  *
- * The canvas form morphs a glyph to fill the entire viewport
+ * The canvas form morphs an element to fill the entire viewport
  * with no window chrome, title bar, or padding. Used for spatial workspaces,
  * overlays, and other full-screen experiences.
  */
@@ -17,7 +17,7 @@ import { getOpenDuration, getRestDuration } from '../element';
 import { prepareMorphTo, calculateTrayTarget, resetElement } from './morphology';
 
 /**
- * Morph a glyph to fullscreen canvas (no chrome)
+ * Morph an element to fullscreen canvas (no chrome)
  */
 export function morphDotToWorkspace(
     element: HTMLElement,
@@ -106,14 +106,14 @@ export function morphDotToWorkspace(
             element.appendChild(errorContent);
         }
     }).catch(error => {
-        // ROLLBACK: Animation failed — the glyph keeps the classes it had
+        // ROLLBACK: Animation failed — the element keeps the classes it had
         log.warn(seg, `[Canvas] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         morph.rollbackClass();
     });
 }
 
 /**
- * Morph canvas back to glyph (dot)
+ * Morph canvas back to element (dot)
  */
 export function morphWorkspaceToDot(
     canvasElement: HTMLElement,

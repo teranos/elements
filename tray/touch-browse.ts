@@ -12,7 +12,7 @@ import type { Element } from '../element';
 // How close to the tray's edge the touch must land (px)
 const TOUCH_ACTIVATION_MARGIN = 44;
 
-// Minimum proximity factor to count as "thumb was on this glyph"
+// Minimum proximity factor to count as "thumb was on this element"
 const MIN_PROXIMITY_THRESHOLD = 0.3;
 
 export interface TouchBrowseHost {
@@ -25,7 +25,7 @@ export interface TouchBrowseHost {
 }
 
 /**
- * Find the glyph dot with the highest proximity factor.
+ * Find the element dot with the highest proximity factor.
  * Returns the element and its Element data, or null if nothing is close enough.
  */
 export function findPeakedElement(host: TouchBrowseHost): { element: HTMLElement; item: Element } | null {
@@ -61,8 +61,8 @@ export function findPeakedElement(host: TouchBrowseHost): { element: HTMLElement
  * Set up touch browse on the document.
  *
  * touchstart near the tray edge enters browse mode.
- * touchmove slides through glyphs — proximity morphing shows labels.
- * touchend opens the glyph with highest proximity.
+ * touchmove slides through elements — proximity morphing shows labels.
+ * touchend opens the element with highest proximity.
  *
  * Suppresses the synthetic click that would otherwise fire on the 8px dot.
  */
@@ -79,7 +79,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         const touch = e.touches[0];
         if (!touch) return;
 
-        // A touch on a button or an open glyph is not a browse, however
+        // A touch on a button or an open element is not a browse, however
         // close to the tray it lands — its own interaction wins. Only dots,
         // the tray, and bare page near the tray start a browse.
         // (e.target can be the document itself, which has no closest().)
@@ -103,7 +103,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         host.proximity.setPointerPosition(touch.clientX, touch.clientY);
         host.updateProximity();
 
-        log.debug(seg, `[Tray] Touch browse started at ${touch.clientX},${touch.clientY} with ${host.items.size} glyphs`);
+        log.debug(seg, `[Tray] Touch browse started at ${touch.clientX},${touch.clientY} with ${host.items.size} elements`);
     }, { passive: false });
 
     document.addEventListener('touchmove', (e) => {
@@ -137,7 +137,7 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
     });
 
     // Suppress synthetic click after touch browse.
-    // Capture phase so we catch it before the glyph's own click handler.
+    // Capture phase so we catch it before the element's own click handler.
     document.addEventListener('click', (e) => {
         if (!suppressNextClick) return;
         suppressNextClick = false;

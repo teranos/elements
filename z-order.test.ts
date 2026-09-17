@@ -23,7 +23,7 @@ function windowEl(): HTMLElement {
 const z = (el: HTMLElement) => Number(el.style.zIndex);
 
 describe('Tim: stacking', () => {
-    // "why doesnt clicking on a glyph move it up its z compared to the other
+    // "why doesnt clicking on an element move it up its z compared to the other
     //  ones on screen?"
     test('a raised window sits above one raised before it', () => {
         const first = windowEl();
@@ -35,7 +35,7 @@ describe('Tim: stacking', () => {
         expect(z(second)).toBeGreaterThan(z(first));
     });
 
-    // "why doesnt clicking on a glyph move it up its z compared to the other
+    // "why doesnt clicking on an element move it up its z compared to the other
     //  ones on screen?" — the buried one is the case that was broken.
     test('raising the one underneath puts it in front', () => {
         const under = windowEl();

@@ -1,5 +1,5 @@
 /**
- * Where a glyph lands when nothing says where.
+ * Where an element lands when nothing says where.
  *
  * Personas:
  * - Tim: the emptiest place wins, and the tiers are ordered
@@ -136,7 +136,7 @@ describe('Tim: findPlacement', () => {
         expect(Number.isFinite(p.y)).toBe(true);
     });
 
-    test('a glyph larger than the canvas is placed at the origin', () => {
+    test('an element larger than the canvas is placed at the origin', () => {
         const p = findPlacement({ width: 2000, height: 2000 }, [], bounds);
         expect(p).toEqual({ x: 0, y: 0 });
     });

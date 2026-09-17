@@ -1,5 +1,5 @@
 /**
- * ElementUI — type definitions for building glyphs.
+ * ElementUI — type definitions for building elements.
  */
 
 import type { Element } from './element';
@@ -9,8 +9,7 @@ import type { Element } from './element';
 /** The render function a plugin module must export. */
 export type RenderFn = (item: Element, ui: ElementUI) => HTMLElement | Promise<HTMLElement>;
 
-// "in the true QNTX vision, i wanted plugins to be able to provide their own ui easily"
-// This is the whole of it: a module that exports these two.
+// A plugin provides its own UI. This is the whole of it: a module that exports these two.
 export interface ElementModule {
     render: RenderFn;
     def?: ElementDef;
@@ -30,10 +29,10 @@ export interface ElementDef {
 
 // ── UI interface ─────────────────────────────────────────────────────
 
-/** UI interface injected into glyph render functions. */
+/** UI interface injected into element render functions. */
 export interface ElementUI {
     /**
-     * Create a canvas-placed glyph with title bar, drag, and resize.
+     * Create a canvas-placed element with title bar, drag, and resize.
      * Returns a content area — the scrollable body below the title bar.
      * Append plugin content into `content`, not `element`.
      */
@@ -43,7 +42,7 @@ export interface ElementUI {
     preventDrag(...elements: HTMLElement[]): void;
 
     /**
-     * Fetch from this glyph's HTTP endpoints.
+     * Fetch from this element's HTTP endpoints.
      * Path is relative to /api/{name}/ — e.g., pluginFetch('/execute', ...).
      */
     pluginFetch(path: string, opts?: FetchOpts): Promise<Response>;
@@ -56,7 +55,7 @@ export interface ElementUI {
         error(msg: string, ...args: unknown[]): void;
     };
 
-    /** Register a cleanup function called when the glyph is removed. */
+    /** Register a cleanup function called when the element is removed. */
     onCleanup(fn: () => void): void;
 
     /** Create a text input with drag protection already applied. */
@@ -73,28 +72,28 @@ export interface ElementUI {
     statusLine(): { element: HTMLElement; show(msg: string, isError?: boolean): void; clear(): void };
 
     /**
-     * Open a WebSocket to this glyph's WS endpoint.
+     * Open a WebSocket to this element's WS endpoint.
      * Constructs the full URL from backend config — no hardcoded ports.
      */
     pluginWebSocket(params?: Record<string, string>): WebSocket;
 
     /**
-     * Subscribe to meld events — called when another glyph melds onto this one.
+     * Subscribe to meld events — called when another element melds onto this one.
      * Returns unsubscribe function.
      */
     onMeld(callback: (event: MeldEvent) => void): () => void;
 
-    /** Load this glyph's persisted config from the server. Returns null if no config saved. */
+    /** Load this element's persisted config from the server. Returns null if no config saved. */
     loadConfig(): Promise<Record<string, unknown> | null>;
 
-    /** Save config for this glyph to the server. */
+    /** Save config for this element to the server. */
     saveConfig(config: Record<string, unknown>): Promise<void>;
 
     // The real API is right there: a module reads the store through this alone.
     attestations(query: AttestationQuery): Promise<Attestation[]>;
 
     /**
-     * Spawn a result glyph below this glyph on the canvas.
+     * Spawn a result element below this element on the canvas.
      * Fires a DOM event — the canvas workspace handles positioning, state, and meld.
      */
     spawnResult(result: SpawnResultDetail['result']): void;
@@ -104,26 +103,26 @@ export interface ElementUI {
      * fetch — the src of an embed, an image, a video.
      *
      * pluginFetch answers with a Response, which an <embed> cannot take. The
-     * node is not always the origin the page came from, so a glyph cannot
+     * node is not always the origin the page came from, so an element cannot
      * write a relative path and be right.
      */
     nodeUrl(path: string): string;
 
     /**
-     * What was persisted with this glyph, or nothing when it holds none yet.
+     * What was persisted with this element, or nothing when it holds none yet.
      *
-     * A glyph on a canvas keeps one string of its own — the note's text, the
+     * An element on a canvas keeps one string of its own — the note's text, the
      * editor's code, the doc's file reference. Every built-in reads it; a
-     * published module could not, which is what kept a stateful glyph inside
+     * published module could not, which is what kept a stateful element inside
      * the shell.
      */
     content(): string | undefined;
 
     /**
-     * Persist this glyph's content, debounced.
+     * Persist this element's content, debounced.
      *
      * Call it on every change; it writes once the changes stop, the same as
-     * every built-in that saves as you type. The glyph reads it back through
+     * every built-in that saves as you type. The element reads it back through
      * content() when the canvas next draws it.
      */
     saveContent(content: string): void;
@@ -156,7 +155,7 @@ export interface Attestation {
     signer_did?: string;
 }
 
-/** Detail payload for the glyph:spawn-result DOM event. */
+/** Detail payload for the element:spawn-result DOM event. */
 export interface SpawnResultDetail {
     elementId: string;
     name: string;
@@ -170,15 +169,15 @@ export interface SpawnResultDetail {
     };
 }
 
-/** Data passed to onMeld callbacks when a glyph melds onto this one. */
+/** Data passed to onMeld callbacks when an element melds onto this one. */
 export interface MeldEvent {
-    /** ID of the glyph that melded onto this one */
+    /** ID of the element that melded onto this one */
     elementId: string;
-    /** Symbol of the melded glyph */
+    /** Symbol of the melded element */
     symbol: string;
     /** Direction the meld came from (the edge direction) */
     direction: string;
-    /** Content of the melded glyph (source code, URL, markdown, etc.) */
+    /** Content of the melded element (source code, URL, markdown, etc.) */
     content: string;
 }
 
@@ -191,12 +190,12 @@ export interface ElementOpts {
     dragHandle?: HTMLElement;
     /** Extra options forwarded to makeDraggable (e.g. ignoreButtons). */
     draggableOptions?: Partial<MakeDraggableOptions>;
-    /** Use minHeight instead of fixed height (for auto-sizing glyphs). */
+    /** Use minHeight instead of fixed height (for auto-sizing elements). */
     useMinHeight?: boolean;
     /**
-     * The ⬆ that lifts this glyph off the canvas into a window and puts it
-     * back. On by default for a glyph with a title bar: it is the canvas's own
-     * affordance and every placed glyph has it. False for one that has no
+     * The ⬆ that lifts this element off the canvas into a window and puts it
+     * back. On by default for an element with a title bar: it is the canvas's own
+     * affordance and every placed element has it. False for one that has no
      * business becoming a window.
      */
     lift?: boolean;
@@ -213,6 +212,6 @@ export interface MakeDraggableOptions {
     ignoreButtons?: boolean;
     /** Label used in log messages, e.g. "PyElement". */
     logLabel?: string;
-    /** The prompt glyph object (if this is a prompt being made draggable) */
+    /** The prompt element object (if this is a prompt being made draggable) */
     promptElement?: Element;
 }

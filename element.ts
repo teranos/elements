@@ -1,11 +1,11 @@
 /**
  * Element - The universal primitive
  *
- * A glyph is exactly ONE DOM element for its entire lifetime.
+ * An element is exactly ONE DOM element for its entire lifetime.
  * It morphs between forms through smooth animations, but the element
  * identity never changes. The forms are named in ./form.ts.
  *
- * All glyphs are container glyphs - they can hold child glyphs in various layout strategies.
+ * All elements are container elements - they can hold child elements in various layout strategies.
  *
  * This file contains just the Element interface and shared constants.
  * Form logic lives in ./forms/*
@@ -31,8 +31,8 @@ export interface Element {
     // Lifecycle hooks
     onClose?: () => void;
 
-    // Fractal container support - all glyphs can contain children
-    children?: Element[];                  // Child glyphs this glyph contains
+    // Fractal container support - all elements can contain children
+    children?: Element[];                  // Child elements this element contains
     layoutStrategy?: 'flow' | 'grid' | 'custom';  // How to layout children (default: flow)
     onSpawnMenu?: () => string[];        // Symbols that can be spawned inside (right-click)
 
@@ -40,7 +40,7 @@ export interface Element {
     x?: number;                          // X position in pixels
     y?: number;                          // Y position in pixels
 
-    // Size metadata (for resizable glyphs)
+    // Size metadata (for resizable elements)
     width?: number;                      // Custom width in pixels
     height?: number;                     // Custom height in pixels
 
@@ -90,7 +90,7 @@ export function getRestDuration(): number {
 }
 
 /**
- * How long a glyph's body may show nothing before the runtime says so.
+ * How long an element's body may show nothing before the runtime says so.
  *
  * Long enough for a slow answer over a slow link, short enough that a body
  * which is never coming stops being mistaken for one that is. content-watch.ts
@@ -116,8 +116,8 @@ export const PANEL_OVERLAY_BG = 'rgba(0, 0, 0, 0.4)';
 export const PANEL_Z_INDEX = '10003';  // Above system drawer (10002)
 export const MORPHING_Z_INDEX = '10004';  // Above panels while a morph animates
 
-// Canvas glyph dimensions
-export const CANVAS_ELEMENT_TITLE_BAR_HEIGHT = 32; // Title bar height for canvas-placed glyphs
+// Canvas element dimensions
+export const CANVAS_ELEMENT_TITLE_BAR_HEIGHT = 32; // Title bar height for canvas-placed elements
 export const CANVAS_ELEMENT_CONTENT_PADDING = 8; // Content element padding (reduced from CONTENT_PADDING)
 export const CONTENT_INNER_PADDING = 4; // .content CSS padding
 

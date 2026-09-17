@@ -1,5 +1,5 @@
 /**
- * Shared content rendering for glyph forms.
+ * Shared content rendering for element forms.
  *
  * Two paths: restore from stash (same DOM nodes) or fresh render via callbacks.
  * Used by window.ts and panel.ts.
@@ -50,7 +50,7 @@ export function renderContent(
 
         log.debug(seg, `[${logLabel}] Restored stashed content for ${item.id}`);
 
-        // A stash that holds chrome and no body is how a glyph comes back from
+        // A stash that holds chrome and no body is how an element comes back from
         // the tray as a title bar over nothing: `restored` is true, so nothing
         // here renders fresh content, and renderContent() is never called again
         // for the life of the element. Say so rather than show it.
@@ -78,7 +78,7 @@ export function renderContent(
         // Add content area with error boundary
         try {
             // Use the pre-rendered content when the caller pre-measured for
-            // fit-content sizing (packages/glyphs/forms/window.ts);
+            // fit-content sizing (forms/window.ts);
             // otherwise render fresh. Ensures renderContent() runs exactly once.
             const content = preRenderedContent ?? item.renderContent();
             const contentArea = document.createElement('div');
@@ -124,7 +124,7 @@ function createGenericTitleBar(item: Element): HTMLElement {
         titleBar.appendChild(createSymbolSpan(item.symbol));
     }
     const titleText = document.createElement('span');
-    // Titles are plain text — hosts strip any markup before passing the glyph
+    // Titles are plain text — hosts strip any markup before passing the element
     titleText.textContent = item.title;
     titleText.style.flex = '1';
     titleBar.appendChild(titleText);

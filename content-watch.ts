@@ -1,5 +1,5 @@
 /**
- * Whether a glyph's body ever arrived.
+ * Whether an element's body ever arrived.
  *
  * A morph commits geometry and mounts content afterwards, so there is a state
  * the Morph Axioma does not admit: committed, and incomplete. Chrome on the
@@ -11,15 +11,15 @@
  * body drawing. A body that draws is `present` and the watch ends. A body still
  * showing nothing when its deadline passes is `refused`, and it says so where it
  * happened, in the box where the content should have been — logging alone is
- * hiding (web/ts/market-glyph.ts).
+ * hiding.
  *
  * Scope: a window or panel opened from a tray dot mounts through
- * forms/render-content.ts, and a glyph lifted off the canvas mounts
+ * forms/render-content.ts, and an element lifted off the canvas mounts
  * through forms/canvas-window.ts. Both arm the watch, so both are
  * covered — they are two constructors for the one `window` row, and saying
  * "every window" without saying which constructor is how they drifted in the
  * first place. Not covered: `workspace` (forms/canvas.ts renders
- * straight into the viewport), `canvasPlaced`, and host glyphs that build their
+ * straight into the viewport), `canvasPlaced`, and host elements that build their
  * own content area. They call `declareContent` or they are not covered.
  */
 
@@ -30,7 +30,7 @@ import { isSettled, type ContentState } from './content-state';
 
 /**
  * Who the body belongs to. A `Element` satisfies it, and so does a path that has
- * only the element and a title — canvas-window.ts lifts a glyph it was never
+ * only the element and a title — canvas-window.ts lifts an element it was never
  * handed the data for.
  */
 export interface ContentSubject {
@@ -59,7 +59,7 @@ const DRAWS_WITHOUT_WORDS = 'img, svg, canvas, video, input, textarea, select, i
  * a test environment, where every box measures zero.
  *
  * "Loading tokens…" counts. The question is not whether the data arrived, it is
- * whether the glyph is showing the user anything while it waits.
+ * whether the element is showing the user anything while it waits.
  */
 export function showsSomething(contentArea: HTMLElement): boolean {
     const text = contentArea.textContent;
@@ -77,9 +77,9 @@ export function showsSomething(contentArea: HTMLElement): boolean {
 /**
  * Watch a body until it draws, or until the deadline says it never will.
  *
- * Settles immediately when the glyph rendered synchronously, so a glyph that
+ * Settles immediately when the element rendered synchronously, so an element that
  * shows a placeholder costs nothing. Re-arming replaces any watch the element
- * already had: a glyph reopened is one element, and one element is one watch
+ * already had: an element reopened is one element, and one element is one watch
  * (AXIOMAS.md, Element Axioma).
  */
 export function watchContent(
@@ -108,7 +108,7 @@ export function watchContent(
 
     if (typeof MutationObserver === 'function') {
         watch.observer = new MutationObserver(() => {
-            // The glyph may have declared its own state while we waited.
+            // The element may have declared its own state while we waited.
             const said = getContentState(element);
             if (said !== null && isSettled(said)) {
                 disarmContentWatch(element);
@@ -139,7 +139,7 @@ export function watchContent(
 }
 
 /**
- * End a watch. Called when a glyph settles, and when its content is stashed —
+ * End a watch. Called when an element settles, and when its content is stashed —
  * a body off the DOM is not a body that failed to draw (forms/stash.ts).
  */
 export function disarmContentWatch(element: HTMLElement): void {
@@ -156,10 +156,10 @@ export function isWatched(element: HTMLElement): boolean {
 }
 
 /**
- * A glyph's own word on what it is showing, from anywhere inside its body.
+ * An element's own word on what it is showing, from anywhere inside its body.
  *
  * `empty` is the one state the runtime cannot infer: "No access tokens." draws,
- * so it reads as `present`, and only the glyph knows the difference between
+ * so it reads as `present`, and only the element knows the difference between
  * showing data and showing that there is none.
  */
 export function declareContent(node: Node, state: ContentState): void {
@@ -169,7 +169,7 @@ export function declareContent(node: Node, state: ContentState): void {
     setContentState(element, state);
 }
 
-/** The glyph element a node sits inside, or null if it sits in no glyph. */
+/** The element a node sits inside, or null if it sits in no element. */
 function owningElement(node: Node): HTMLElement | null {
     const start = node.nodeType === 1 ? (node as HTMLElement) : node.parentElement;
     return start?.closest('[data-element-id]') as HTMLElement | null ?? null;
@@ -178,7 +178,7 @@ function owningElement(node: Node): HTMLElement | null {
 /**
  * Say, in the body, that nothing came.
  *
- * Every variable in scope goes on the line and into the box: which glyph, which
+ * Every variable in scope goes on the line and into the box: which element, which
  * form mounted it, how long it waited. A refusal a reader cannot act on
  * is the silence this file exists to end.
  */
@@ -187,7 +187,7 @@ function refuse(contentArea: HTMLElement, item: ContentSubject, logLabel: string
     const seg = getLogSegment();
 
     // Warn, not Error: the node handled it and would rather it stopped
-    // happening (docs/sentry.md, "Level means what it says").
+    // happening.
     log.warn(seg, `[${logLabel}] ${item.id} drew nothing in ${waitedMs}ms`, {
         item: item.id,
         title: item.title,

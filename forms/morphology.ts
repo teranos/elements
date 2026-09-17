@@ -19,7 +19,7 @@ import { applyRestingDotGeometry } from '../tray/proximity';
 const MORPHING_CLASS = 'morphing';
 
 /**
- * Verify the glyph axiom: exactly one DOM element for this glyph.
+ * Verify the element axiom: exactly one DOM element for this element.
  * Calls the tracking verifier, then checks for duplicate data-element-id attributes.
  */
 export function verifyElementAxiom(
@@ -39,17 +39,17 @@ export function verifyElementAxiom(
 
 /** Handle returned by prepareMorphTo — the morph transaction's class lifecycle. */
 export interface MorphPreparation {
-    /** Rect the glyph occupied before the morph — the animation's origin. */
+    /** Rect the element occupied before the morph — the animation's origin. */
     rect: DOMRect;
     /**
      * Commit: the morph class leaves with the morph; the settled class(es)
-     * carry the rules that still apply. The glyph's own classes stay.
+     * carry the rules that still apply. The element's own classes stay.
      *
      * Called with nothing when a form has no rules beyond the ones
      * [data-form] already carries — a window is that case.
      */
     commitClass(settledClasses?: string): void;
-    /** Abandon: the glyph keeps the classes it had (Morph Axioma). */
+    /** Abandon: the element keeps the classes it had (Morph Axioma). */
     rollbackClass(): void;
 }
 
@@ -57,18 +57,17 @@ export interface MorphPreparation {
  * Morph-to preamble shared by all forms.
  * Verifies axiom, captures current rect, detaches, clears proximity text,
  * reparents to body with fixed positioning, and records which form
- * the glyph is entering.
+ * the element is entering.
  *
  * `form` is a parameter because this runs for window, panel and
  * workspace alike. It used to mark all three "window state" — one bit was all
  * setWindowState() had, so the three destinations arrived indistinguishable.
  *
  * The morph class says a morph is in flight and nothing more. There used to be
- * one per destination — glyph-morphing-to-panel and glyph-morphing-to-canvas
- * were strings no stylesheet ever read — and the destination is the attribute's
- * to say.
+ * one per destination, strings no stylesheet ever read, and the destination is
+ * the attribute's to say.
  *
- * The morph class is added, not assigned — the glyph keeps its own classes
+ * The morph class is added, not assigned — the element keeps its own classes
  * through the morph. The dot class leaves with the dot state. The caller
  * ends the transaction through the returned handle: commitClass() on animation
  * finish, rollbackClass() on cancel.
@@ -115,7 +114,7 @@ export function prepareMorphTo(
 }
 
 /**
- * Calculate the target position for minimizing to the glyph tray.
+ * Calculate the target position for minimizing to the element tray.
  * If elementId is provided, targets that dot's position.
  * Otherwise targets the end of the tray (where new dots append).
  */
@@ -154,7 +153,7 @@ export function calculateTrayTarget(elementId?: string): { x: number; y: number 
 }
 
 /**
- * Reset a glyph element to its resting state after minimize animation completes.
+ * Reset a element to its resting state after minimize animation completes.
  * Clears state flags, removes from DOM, wipes inline styles, restores base class,
  * and hands back to the tray via onMorphComplete.
  */
@@ -171,7 +170,7 @@ export function resetElement(
     setProximityText(element, false);
     element.remove();
     // The paint is read off the element, so the wipe takes the layout and not
-    // what the glyph is (Element Axioma).
+    // what the element is (Element Axioma).
     const was = readPaint(element);
     element.style.cssText = '';
     element.className = 'dot';

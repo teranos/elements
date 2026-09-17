@@ -2,7 +2,7 @@
  * What a window is once its morph has committed.
  *
  * There are two constructors for the one `window` row in FORMS —
- * a tray dot opening (window.ts) and a canvas glyph being lifted
+ * a tray dot opening (window.ts) and a canvas element being lifted
  * (canvas-window.ts) — and they drifted: 520x420 against a content-sized box,
  * a base z-index that never rose against one that did, a cap on one and none
  * on the other. The table names the state; nothing said what the state is.
@@ -103,9 +103,9 @@ describe('Spike: an axis the content owns', () => {
 });
 
 describe('Jenny: stacking, and the way back', () => {
-    // "why doesnt clicking on a glyph move it up its z compared to the other
+    // "why doesnt clicking on an element move it up its z compared to the other
     //  ones on screen?" — answered for the tray dot's window and not for the
-    //  canvas glyph's, because only one of the two constructors raised.
+    //  canvas element's, because only one of the two constructors raised.
     test('a press raises a settled window above one settled after it', () => {
         const first = windowEl();
         const second = windowEl();
@@ -118,7 +118,7 @@ describe('Jenny: stacking, and the way back', () => {
         expect(z(first)).toBeGreaterThan(z(second));
     });
 
-    test('settling twice presses once — a reopened glyph is one element, not two listeners', () => {
+    test('settling twice presses once — a reopened element is one element, not two listeners', () => {
         const el = windowEl();
         settleWindow(el, BOX);
         settleWindow(el, BOX);
@@ -131,7 +131,7 @@ describe('Jenny: stacking, and the way back', () => {
     });
 
     // A style the window adds and the canvas never takes back rides home with
-    // the glyph and changes what it is on the canvas. The list is the canvas
+    // the element and changes what it is on the canvas. The list is the canvas
     // path's; the writing is the settle's; nothing but a test holds the two
     // together.
     test('the way back clears everything the settle wrote', () => {

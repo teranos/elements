@@ -104,7 +104,7 @@ function createMorphAnimation(
  * Begin a morph transaction that ends at the tray dot.
  *
  * The 8px point is written into the keyframes, so this one is told where the
- * dot is and not how big it is. The glyph takes the new state on finish, or
+ * dot is and not how big it is. The element takes the new state on finish, or
  * the attempt is abandoned.
  */
 export function beginMorphToDot(
@@ -150,9 +150,9 @@ export function beginMorphToDot(
  * Named for the only thing its callers share: window, panel, workspace and
  * canvasExpanded all end at a box. It reads the element's computed radius and
  * opacity as its starting frame, so it can begin from a dot, a
- * proximity-expanded dot, or a glyph already placed on the canvas.
+ * proximity-expanded dot, or an element already placed on the canvas.
  *
- * The glyph takes the new state on finish, or the attempt is abandoned.
+ * The element takes the new state on finish, or the attempt is abandoned.
  */
 export function beginMorphToBox(
     element: HTMLElement,
@@ -210,7 +210,7 @@ export function beginMorphToCanvasPlaced(
     const bgColor = computedStyle.backgroundColor;
 
     const keyframes: Keyframe[] = [
-        // From: edge to edge — a window, or a glyph filling the viewport
+        // From: edge to edge — a window, or an element filling the viewport
         {
             left: `${fromRect.left}px`,
             top: `${fromRect.top}px`,

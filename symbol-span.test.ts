@@ -2,7 +2,7 @@
  * Symbol rendering — one field, one mechanism (SYMRD).
  *
  * Personas:
- * - Tim: happy path — glyph.symbol becomes DOM through one helper
+ * - Tim: happy path — item.symbol becomes DOM through one helper
  * - Spike: edge cases — no symbol, symbol carried across a cursor morph
  * - Jenny: the paths that used to be blind — generic title bars, canvas-placed
  */
@@ -19,15 +19,15 @@ beforeEach(() => {
 
 describe('Tim: the symbol span', () => {
     test('createSymbolSpan renders the symbol as .symbol', () => {
-        const span = createSymbolSpan('⍟');
+        const span = createSymbolSpan('●');
         expect(span.classList.contains('symbol')).toBe(true);
-        expect(span.textContent).toBe('⍟');
+        expect(span.textContent).toBe('●');
     });
 
     // Title bar CSS gives flex: 1 to its first span — the symbol must not
     // take it from the title.
     test('the symbol keeps its natural width', () => {
-        const span = createSymbolSpan('⍟');
+        const span = createSymbolSpan('●');
         // happy-dom normalizes flex: none to its longhand form
         expect(['none', '0 0 auto']).toContain(span.style.flex);
     });
@@ -50,7 +50,7 @@ describe('Spike: symbol carried across a cursor morph', () => {
     });
 });
 
-describe('Jenny: native renderers display glyph.symbol', () => {
+describe('Jenny: native renderers display item.symbol', () => {
     function makeElement(overrides: Partial<Element> = {}): Element {
         return {
             id: 'sym-test-1',
@@ -61,11 +61,11 @@ describe('Jenny: native renderers display glyph.symbol', () => {
     }
 
     // canvas-placed only showed a symbol handed over from the cursor morph;
-    // a glyph placed any other way had none, and hosts recreated the span
-    // themselves. glyph.symbol is enough now.
-    test('canvasPlaced renders glyph.symbol when no symbolElement is carried', () => {
+    // an element placed any other way had none, and hosts recreated the span
+    // themselves. item.symbol is enough now.
+    test('canvasPlaced renders item.symbol when no symbolElement is carried', () => {
         const { titleBar } = canvasPlaced({
-            item: makeElement({ symbol: '⍟' }),
+            item: makeElement({ symbol: '●' }),
             className: 'canvas-test-element',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             titleBar: { label: 'Self' },
@@ -74,7 +74,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
 
         const span = titleBar!.querySelector('.symbol');
         expect(span).not.toBeNull();
-        expect(span!.textContent).toBe('⍟');
+        expect(span!.textContent).toBe('●');
     });
 
     test('canvasPlaced still reuses a carried symbolElement — same element', () => {
@@ -83,7 +83,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
         carried.textContent = 'ax';
 
         const { titleBar } = canvasPlaced({
-            item: makeElement({ symbol: 'ax', symbolElement: carried }),
+            item: makeElement({ symbol: '■', symbolElement: carried }),
             className: 'canvas-test-element',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             titleBar: { label: 'AX' },
@@ -99,11 +99,11 @@ describe('Jenny: native renderers display glyph.symbol', () => {
         const element = document.createElement('div');
         document.body.appendChild(element);
 
-        const { titleBar } = renderContent(element, makeElement({ symbol: '⍟' }), 'Test');
+        const { titleBar } = renderContent(element, makeElement({ symbol: '●' }), 'Test');
 
         const symbol = titleBar.querySelector('.symbol');
         expect(symbol).not.toBeNull();
-        expect(symbol!.textContent).toBe('⍟');
+        expect(symbol!.textContent).toBe('●');
         expect(titleBar.textContent).toContain('Self');
     });
 

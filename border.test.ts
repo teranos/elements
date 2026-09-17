@@ -1,14 +1,14 @@
 /**
  * Border as visual identity.
  *
- * "When I pick up note glyph as window and minimise it, it never loses
+ * "When I pick up note element as window and minimise it, it never loses
  *  color, i want the border to be treated similarly"
  *
  * Like color, the border lives on the Element datum and every form
- * wears it — the dot a glyph minimizes into included.
+ * wears it — the dot an element minimizes into included.
  *
  * Personas:
- * - Tim: happy path — every form wears the glyph's border
+ * - Tim: happy path — every form wears the element's border
  * - Spike: no border on the datum → the form's own border decides
  * - Jenny: window → tray adopt keeps the border, like color
  */
@@ -45,7 +45,7 @@ describe('Tim: every form wears the border', () => {
         tray.remove('border-dot-1');
     });
 
-    test('a canvas-placed glyph wears it', () => {
+    test('a canvas-placed element wears it', () => {
         const { element } = canvasPlaced({
             item: makeElement('border-canvas-1', { border: BORDER }),
             className: 'canvas-test-element',
@@ -58,7 +58,7 @@ describe('Tim: every form wears the border', () => {
 
     // The minimize reset wipes cssText — identity comes back from the datum,
     // exactly the way color does.
-    test('the dot a glyph resets into wears it', () => {
+    test('the dot an element resets into wears it', () => {
         const item = makeElement('border-reset-1', { border: BORDER, color: '#221100' });
         const el = document.createElement('div');
         el.style.cssText = 'width: 600px; border: 1px solid red;';

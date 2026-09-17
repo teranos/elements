@@ -163,7 +163,7 @@ describe('Tim: edge-graph basics', () => {
 
 describe('Spike: edge-graph edge cases', () => {
     describe('isPortFree', () => {
-        test('same glyph, same direction, different roles are independent', () => {
+        test('same element, same direction, different roles are independent', () => {
             const edges = [{ from: 'a', to: 'b', direction: 'right' }];
             // a has outgoing right occupied, but incoming right is free
             expect(isPortFree('a', 'right', 'outgoing', edges)).toBe(false);

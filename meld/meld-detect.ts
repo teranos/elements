@@ -1,7 +1,7 @@
 /**
- * Meld detection — proximity checks and target finding for glyph melding.
+ * Meld detection — proximity checks and target finding for element melding.
  *
- * Determines which glyphs are close enough to meld and in which direction.
+ * Determines which elements are close enough to meld and in which direction.
  * Bidirectional: checks both forward (dragged→nearby) and reverse (nearby→dragged).
  */
 
@@ -10,7 +10,7 @@ import { getCanvasHost } from '../config';
 
 // Configuration
 export const PROXIMITY_THRESHOLD = 100; // px - distance at which proximity feedback starts
-export const MELD_THRESHOLD = 30; // px - distance at which glyphs meld
+export const MELD_THRESHOLD = 30; // px - distance at which elements meld
 const MIN_ALIGNMENT = 0.3; // fraction - minimum overlap required on the alignment axis (30%)
 
 /**
@@ -52,7 +52,7 @@ export function checkDirectionalProximity(
 ): number {
     // Angular disambiguation: use center-to-center vector to reject directions
     // that don't match the spatial relationship. Prevents 'right' from winning
-    // when a glyph is clearly below (and vice versa).
+    // when an element is clearly below (and vice versa).
     const dx = Math.abs((targetRect.left + targetRect.width / 2) - (initiatorRect.left + initiatorRect.width / 2));
     const dy = Math.abs((targetRect.top + targetRect.height / 2) - (initiatorRect.top + initiatorRect.height / 2));
 
@@ -108,7 +108,7 @@ export function checkDirectionalProximity(
 }
 
 /**
- * Find nearest meldable target for a dragged glyph
+ * Find nearest meldable target for a dragged element
  *
  * Checks both directions:
  * 1. Forward: dragged element initiates meld toward nearby targets
@@ -162,7 +162,7 @@ export function findMeldTarget(draggedElement: HTMLElement): {
                 const targetRect = targetElement.getBoundingClientRect();
 
                 for (const direction of directions) {
-                    // Axiom: one glyph per side — skip if target's incoming port is occupied
+                    // Axiom: one element per side — skip if target's incoming port is occupied
                     if (targetComp) {
                         const targetId = targetElement.dataset.elementId;
                         if (targetId) {
@@ -202,7 +202,7 @@ export function findMeldTarget(draggedElement: HTMLElement): {
                 const nearbyRect = nearbyElement.getBoundingClientRect();
 
                 for (const direction of directions) {
-                    // Axiom: one glyph per side — skip if nearby's outgoing port is occupied
+                    // Axiom: one element per side — skip if nearby's outgoing port is occupied
                     if (nearbyComp) {
                         const nearbyId = nearbyElement.dataset.elementId;
                         if (nearbyId) {

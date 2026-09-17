@@ -39,7 +39,7 @@ describe('Tim: the element carries the name', () => {
 });
 
 describe('Spike: one at a time', () => {
-    // Element Axioma: one element for the glyph's whole lifetime. It is in one
+    // Element Axioma: one element for the element's whole lifetime. It is in one
     // form at a time, so recording a second replaces the first rather
     // than adding to it.
     test('recording a form replaces the one before it', () => {
@@ -71,7 +71,7 @@ describe('Jenny: the boolean this replaces', () => {
         expect(isInWindowState(el)).toBe(true);
     });
 
-    // The boolean was set true by canvas-expanded.ts for a glyph filling the
+    // The boolean was set true by canvas-expanded.ts for an element filling the
     // viewport, which is not a window. That is what it meant; the shim keeps
     // meaning it.
     test('the old getter is true for canvasExpanded, as it always was', () => {

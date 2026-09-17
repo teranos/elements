@@ -1,12 +1,12 @@
 /**
  * Paint survives a change of form because it is on the element.
  *
- * Element Axioma: a glyph is exactly one DOM element for its entire lifetime,
+ * Element Axioma: an element is exactly one DOM element for its entire lifetime,
  * and everything about it survives every transition. Inline styles are wiped on
  * a morph because geometry is the form's — a tray dot is not laid out
  * like a canvas frame. Paint is not the form's, so wiping it and then
  * re-reading it from the Element datum makes the datum authoritative over the
- * element, which is the thing the axiom denies. A glyph whose datum names no
+ * element, which is the thing the axiom denies. An element whose datum names no
  * colour used to lose what it was painted and come back as the default.
  */
 
@@ -65,7 +65,7 @@ describe('paint across a wipe', () => {
     });
 });
 
-describe('a glyph whose datum names no colour', () => {
+describe('an element whose datum names no colour', () => {
     test('keeps its paint when the tray adopts it', () => {
         const el = document.createElement('div');
         el.style.backgroundColor = PAINTED;

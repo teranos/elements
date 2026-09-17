@@ -1,9 +1,9 @@
 /**
  * @qntx/glyphs — Element runtime and type definitions.
  *
- * The glyph is the universal UI primitive. This package provides the core
+ * The element is the universal UI primitive. This package provides the core
  * runtime (tray, proximity engine, morph transactions, forms) and
- * type definitions for glyph development.
+ * type definitions for element development.
  *
  * Host apps call configureElements() at startup to wire in their logger
  * and persistence. Without configuration, safe defaults apply.
@@ -47,7 +47,7 @@ export {
 } from './element';
 export type { Element } from './element';
 
-// The forms a glyph can take — the list the type, the stylesheets and
+// The forms an element can take — the list the type, the stylesheets and
 // the morph functions all read from. AXIOMAS.md names the noun; this names them.
 export { FORMS, TRAY_DESTINATIONS, isForm, isTrayDestination } from './form';
 export type { Form, FormTable, TrayDestination } from './form';
@@ -75,7 +75,7 @@ export {
     getContentState,
 } from './dataset';
 
-// What a glyph's body is showing — the states, and the watch that settles them.
+// What an element's body is showing — the states, and the watch that settles them.
 // A form with chrome and an empty body is a state the form
 // table cannot name; these name it.
 export { CONTENT_STATES, isContentState, isSettled } from './content-state';
@@ -91,7 +91,7 @@ export {
 // Proximity engine
 export { Proximity, applyRestingDotGeometry } from './tray/proximity';
 
-// Symbol rendering — the one way glyph.symbol becomes DOM
+// Symbol rendering — the one way item.symbol becomes DOM
 export { createSymbolSpan, settleSymbolSpan } from './symbol-span';
 
 // Morph transactions — Web Animations API, taken or abandoned
@@ -137,7 +137,7 @@ export type { ExpandToWindowConfig } from './expand-to-window';
 // Window drag — standalone, no canvas dependency
 export { setupWindowDrag, teardownWindowDrag } from './window-drag';
 
-// Placement — where a glyph lands when nothing says where
+// Placement — where an element lands when nothing says where
 export { findPlacement, occupiedRects, overlapArea, placementCost, clampToViewport } from './placement';
 export type { PlacementOpts, Rect, Size } from './placement';
 

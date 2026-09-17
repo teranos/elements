@@ -1,12 +1,12 @@
 /**
- * DOM Content Stash — preserves glyph identity across form morphs.
+ * DOM Content Stash — preserves element identity across form morphs.
  *
  * Instead of destroying children with innerHTML = '', forms
  * stash them off-DOM in a DocumentFragment. On next maximize, the
  * stashed content is restored — same DOM nodes, same event handlers,
  * same scroll positions.
  *
- * WeakMap: stash is GC'd when the element is GC'd (page refresh, glyph close).
+ * WeakMap: stash is GC'd when the element is GC'd (page refresh, element close).
  */
 
 import { removeWindowControls } from './title-bar-controls';

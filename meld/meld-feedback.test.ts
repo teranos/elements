@@ -1,8 +1,8 @@
 /**
  * Meld feedback — the glow must give back what it took.
  *
- * A glyph that owns an inline boxShadow (a note's post-it shadow) keeps it:
- * everything about a glyph survives every transition (Element Axioma).
+ * An element that owns an inline boxShadow (a note's post-it shadow) keeps it:
+ * everything about an element survives every transition (Element Axioma).
  *
  * Personas:
  * - Tim: happy path — glow on, glow off, own shadow back
@@ -29,7 +29,7 @@ beforeEach(() => {
 });
 
 describe('Tim: glow on, glow off', () => {
-    test('within meld range both glyphs glow and wear their classes', () => {
+    test('within meld range both elements glow and wear their classes', () => {
         applyMeldFeedback(initiator, target, MELD_THRESHOLD - 1);
 
         expect(initiator.style.boxShadow).not.toBe('');
@@ -50,7 +50,7 @@ describe('Tim: glow on, glow off', () => {
 
     // Drag a note near anything meldable and its post-it shadow must not be
     // gone for good.
-    test('a glyph that owns a shadow gets it back', () => {
+    test('an element that owns a shadow gets it back', () => {
         target.style.boxShadow = '2px 2px 8px rgba(0, 0, 0, 0.15)';
 
         applyMeldFeedback(initiator, target, MELD_THRESHOLD - 1);
