@@ -31,4 +31,4 @@ Bun.serve({
     },
 });
 
-console.log(`@qntx/glyphs examples → http://localhost:${PORT}`);
+console.log(`@teranos/elements examples → http://localhost:${PORT}`);

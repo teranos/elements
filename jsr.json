@@ -1,6 +1,6 @@
 {
-  "name": "@qntx/glyphs",
-  "version": "0.13.0",
+  "name": "@teranos/elements",
+  "version": "1.0.0",
   "license": "MIT",
   "exports": "./index.ts"
 }

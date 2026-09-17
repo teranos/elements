@@ -1,0 +1,56 @@
+{
+  "jobs": {
+    "publish": {
+      "name": "Publish to JSR",
+      "permissions": {
+        "contents": "read",
+        "id-token": "write"
+      },
+      "runs-on": "ubuntu-latest",
+      "steps": [
+        {
+          "uses": "actions/checkout@v6"
+        },
+        {
+          "uses": "oven-sh/setup-bun@v2",
+          "with": {
+            "bun-version": "1.3.9"
+          }
+        },
+        {
+          "run": "bun install --frozen-lockfile"
+        },
+        {
+          "run": "bun run typecheck"
+        },
+        {
+          "name": "Tests under happy-dom",
+          "run": "bun test"
+        },
+        {
+          "env": {
+            "USE_JSDOM": 1
+          },
+          "name": "Tests under JSDOM",
+          "run": "bun test"
+        },
+        {
+          "name": "The version must be new: a version JSR already has would be skipped in silence",
+          "run": "bun run .github/jsr-version-is-new.ts"
+        },
+        {
+          "name": "Publish",
+          "run": "npx jsr publish"
+        }
+      ]
+    }
+  },
+  "name": "Publish",
+  "on": {
+    "push": {
+      "branches": [
+        "main"
+      ]
+    }
+  }
+}

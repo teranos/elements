@@ -1,5 +1,5 @@
 /**
- * @qntx/glyphs configuration
+ * @teranos/elements configuration
  *
  * Dependency injection for host-specific implementations.
  * Call configureElements() at startup to wire in your app's logger

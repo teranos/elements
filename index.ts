@@ -1,5 +1,5 @@
 /**
- * @qntx/glyphs — Element runtime and type definitions.
+ * @teranos/elements — Element runtime and type definitions.
  *
  * The element is the universal UI primitive. This package provides the core
  * runtime (tray, proximity engine, morph transactions, forms) and
@@ -9,8 +9,8 @@
  * and persistence. Without configuration, safe defaults apply.
  *
  * Usage:
- *   import { configureElements, Proximity } from '@qntx/glyphs';
- *   import type { Element, ElementUI, RenderFn } from '@qntx/glyphs';
+ *   import { configureElements, Proximity } from '@teranos/elements';
+ *   import type { Element, ElementUI, RenderFn } from '@teranos/elements';
  */
 
 // Configuration / dependency injection

@@ -1,4 +1,4 @@
-# @qntx/glyphs
+# @teranos/elements
 
 [AXIOMAS.md](AXIOMAS.md) — read it before changing anything here. [VISION.md](VISION.md) — why the axioms exist.
 
@@ -54,7 +54,7 @@ Tests live with the package source and pin the package. Host behavior (persisten
 
 ## Publishing
 
-[JSR](https://jsr.io/@qntx/glyphs) holds the versions published before this repository existed. This repository has no publish workflow yet, so nothing committed here reaches JSR until one exists. JSR skips a version that already exists, so a change without a bump to `version` in `jsr.json` never ships.
+[JSR](https://jsr.io/@teranos/elements) holds every published version. Every push to main publishes, tests gating it, from `.github/workflows/publish.yml`. JSR skips a version it already has without a word, so the workflow fails instead when `version` in `jsr.json` has not moved: a commit on main either ships or is red.
 
 ## Boundary
 

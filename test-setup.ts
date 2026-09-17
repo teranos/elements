@@ -1,5 +1,5 @@
 /**
- * Test setup for @qntx/glyphs — provides DOM environment.
+ * Test setup for @teranos/elements — provides DOM environment.
  *
  * Uses happy-dom for local runs, JSDOM when USE_JSDOM=1 (CI).
  */
