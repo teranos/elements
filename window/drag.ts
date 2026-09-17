@@ -7,8 +7,8 @@
  * No canvas awareness — works with any fixed-position element.
  */
 
-import { setLastPosition } from './dataset';
-import { reflowBox } from './window-reflow';
+import { setLastPosition } from '../dataset';
+import { reflowBox } from './reflow';
 
 const DRAG_KEY = '__elementWindowDrag';
 

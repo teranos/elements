@@ -28,8 +28,8 @@ import {
     MAX_VIEWPORT_WIDTH_RATIO,
     MAX_VIEWPORT_HEIGHT_RATIO,
 } from '../element';
-import { setNaturalWidth } from '../window-drag';
-import { raise, raiseOnInteract } from '../z-order';
+import { setNaturalWidth } from './drag';
+import { raise, raiseOnInteract } from './z-order';
 
 /**
  * The box a morph animated to.
@@ -64,7 +64,7 @@ export function settleWindow(element: HTMLElement, box: WindowBox): void {
     element.style.height = box.heightStyle ?? `${box.height}px`;
 
     // No declared, remembered or measured box outranks the screen it landed on
-    // — a phone may be the primary screen (placement.ts, clampToViewport).
+    // — a phone may be the primary screen (window/placement.ts, clampToViewport).
     element.style.maxWidth = `${Math.floor(window.innerWidth * MAX_VIEWPORT_WIDTH_RATIO)}px`;
     element.style.maxHeight = `${Math.floor(window.innerHeight * MAX_VIEWPORT_HEIGHT_RATIO)}px`;
 

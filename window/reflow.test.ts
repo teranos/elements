@@ -4,8 +4,8 @@
  */
 
 import { describe, test, expect } from 'bun:test';
-import { reflowBox } from './window-reflow';
-import { MIN_WINDOW_WIDTH } from './element';
+import { reflowBox } from './reflow';
+import { MIN_WINDOW_WIDTH } from '../element';
 
 const VIEWPORT = 1000;
 

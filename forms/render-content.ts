@@ -78,7 +78,7 @@ export function renderContent(
         // Add content area with error boundary
         try {
             // Use the pre-rendered content when the caller pre-measured for
-            // fit-content sizing (forms/window.ts);
+            // fit-content sizing (window/window.ts);
             // otherwise render fresh. Ensures renderContent() runs exactly once.
             const content = preRenderedContent ?? item.renderContent();
             const contentArea = document.createElement('div');

@@ -98,7 +98,7 @@ export function getRestDuration(): number {
  */
 export const CONTENT_DEADLINE_MS = 10000;
 
-// Window form constants (used by forms/window.ts)
+// Window form constants (used by window/window.ts)
 export const DEFAULT_WINDOW_WIDTH = '800px';
 export const DEFAULT_WINDOW_HEIGHT = '600px';
 export const WINDOW_BORDER_RADIUS = '8px';

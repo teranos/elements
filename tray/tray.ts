@@ -33,7 +33,7 @@ import { Proximity, applyRestingDotGeometry } from './proximity';
 import { type Element, getOpenDuration, DEFAULT_COLOR } from '../element';
 import { readPaint, wearPaint } from '../paint';
 import { getForm, setElementId, setSymbol } from '../dataset';
-import { morphDotToWindow } from '../forms/window';
+import { morphDotToWindow } from '../window/window';
 import { morphDotToWorkspace } from '../forms/canvas';
 import { morphDotToPanel } from '../forms/panel';
 import { setupTouchBrowse } from './touch-browse';

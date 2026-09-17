@@ -6,7 +6,7 @@
  */
 
 import { describe, test, expect, afterEach } from 'bun:test';
-import { configureElements, getWindowBorderRadius } from './config';
+import { configureElements, getWindowBorderRadius } from '../config';
 
 const HISTORICAL = '8px';
 

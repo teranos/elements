@@ -135,17 +135,17 @@ export { wireExpandToWindow } from './expand-to-window';
 export type { ExpandToWindowConfig } from './expand-to-window';
 
 // Window drag — standalone, no canvas dependency
-export { setupWindowDrag, teardownWindowDrag } from './window-drag';
+export { setupWindowDrag, teardownWindowDrag } from './window/drag';
 
 // Placement — where an element lands when nothing says where
-export { findPlacement, occupiedRects, overlapArea, placementCost, clampToViewport } from './placement';
-export type { PlacementOpts, Rect, Size } from './placement';
+export { findPlacement, occupiedRects, overlapArea, placementCost, clampToViewport } from './window/placement';
+export type { PlacementOpts, Rect, Size } from './window/placement';
 
 // Stacking — the last window touched is the one in front
-export { raise, raiseOnInteract } from './z-order';
+export { raise, raiseOnInteract } from './window/z-order';
 
 // Forms — every morph names both ends, in the names the table holds
-export { morphDotToWindow, morphWindowToDot } from './forms/window';
+export { morphDotToWindow, morphWindowToDot } from './window/window';
 export { morphDotToWorkspace, morphWorkspaceToDot } from './forms/canvas';
 export { morphDotToPanel, morphPanelToDot } from './forms/panel';
 export {
@@ -153,7 +153,7 @@ export {
     morphToWindow,
     /** @deprecated Renamed to `morphWindowToDot`. */
     morphFromWindow,
-} from './forms/window';
+} from './window/window';
 export {
     /** @deprecated Renamed to `morphDotToWorkspace`. */
     morphToCanvas,
@@ -247,8 +247,8 @@ export {
 } from './canvas-cleanup';
 
 // Where a dragged window sits and how wide it is
-export { reflowBox } from './window-reflow';
-export type { Box } from './window-reflow';
+export { reflowBox } from './window/reflow';
+export type { Box } from './window/reflow';
 
 // ElementUI DOM primitives — the pure half of the ElementUI factory
 export { createInput, createButton, createStatusLine } from './ui-primitives';

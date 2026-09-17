@@ -9,7 +9,7 @@
  * a window there.
  */
 
-import { MAX_VIEWPORT_WIDTH_RATIO } from './element';
+import { MAX_VIEWPORT_WIDTH_RATIO } from '../element';
 
 /**
  * `contentWidth` is what the element's content measured. Zero is an element that

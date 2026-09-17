@@ -44,7 +44,7 @@ export interface FormTable {
      */
     readonly proximity: { readonly opensFromTray: false };
 
-    /** Floating, with chrome. forms/window.ts. */
+    /** Floating, with chrome. window/window.ts. */
     readonly window: { readonly opensFromTray: true };
 
     /**

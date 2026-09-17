@@ -6,7 +6,7 @@
  */
 
 import { describe, test, expect } from 'bun:test';
-import { fitsAsWindow } from './window-fits';
+import { fitsAsWindow } from './fits';
 
 describe('Tim', () => {
     test('a small element on a laptop is a window', () => {

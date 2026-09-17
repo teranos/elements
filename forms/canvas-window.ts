@@ -1,7 +1,7 @@
 /**
  * Canvas-Window Form — morph a canvas-placed element into a floating window and back.
  *
- * Unlike the tray→window path (forms/window.ts) which clears the element
+ * Unlike the tray→window path (window/window.ts) which clears the element
  * and rebuilds via renderContent(), this path wraps/unwraps existing children so
  * DOM state (scroll position, textarea content, rendered markdown) is preserved.
  *
@@ -9,7 +9,7 @@
  */
 
 import { getLogger, getLogSegment, getCanvasBridge } from '../config';
-import { findPlacement, occupiedRects, clampToViewport } from '../placement';
+import { findPlacement, occupiedRects, clampToViewport } from '../window/placement';
 import {
     setCanvasOrigin,
     getCanvasOrigin,
@@ -21,7 +21,7 @@ import {
     getSymbol,
     getElementId,
 } from '../dataset';
-import { settleWindow } from './settle-window';
+import { settleWindow } from '../window/settle';
 import { watchContent, disarmContentWatch } from '../content-watch';
 import { createSymbolSpan } from '../symbol-span';
 import { beginMorphToBox, beginMorphToDot, beginMorphToCanvasPlaced } from '../morph-transaction';
@@ -30,7 +30,7 @@ import {
     getRestDuration,
 } from '../element';
 import { addWindowControls, removeWindowControls } from './title-bar-controls';
-import { setupWindowDrag, teardownWindowDrag } from '../window-drag';
+import { setupWindowDrag, teardownWindowDrag } from '../window/drag';
 import { calculateTrayTarget } from './morphology';
 import { readPaint, wearPaint } from '../paint';
 import { stashContent } from './stash';
@@ -211,7 +211,7 @@ export function morphCanvasPlacedToWindow(
         { x: targetX, y: targetY, width: targetW, height: targetH },
         getOpenDuration(),
     ).then(() => {
-        // What a window is, wherever it came from (forms/settle-window.ts).
+        // What a window is, wherever it came from (window/settle.ts).
         // This path used to write its own version of that block, and the two
         // drifted: no cap on the box, and a z-index sitting at the base that no
         // press ever raised, so an element lifted off the canvas opened under every

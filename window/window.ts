@@ -10,20 +10,20 @@
 
 import { getLogger, getLogSegment } from '../config';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
-import { addWindowControls } from './title-bar-controls';
+import { addWindowControls } from '../forms/title-bar-controls';
 import { disarmContentWatch } from '../content-watch';
-import { stashContent } from './stash';
-import { renderContent } from './render-content';
-import { setupWindowDrag, teardownWindowDrag } from '../window-drag';
-import { fitsAsWindow } from '../window-fits';
-import { morphDotToPanel } from './panel';
-import { findPlacement, occupiedRects, clampToViewport } from '../placement';
+import { stashContent } from '../forms/stash';
+import { renderContent } from '../forms/render-content';
+import { setupWindowDrag, teardownWindowDrag } from './drag';
+import { fitsAsWindow } from './fits';
+import { morphDotToPanel } from '../forms/panel';
+import { findPlacement, occupiedRects, clampToViewport } from './placement';
 import {
     getLastPosition,
     setLastPosition,
 } from '../dataset';
-import { prepareMorphTo, calculateTrayTarget, resetElement } from './morphology';
-import { settleWindow } from './settle-window';
+import { prepareMorphTo, calculateTrayTarget, resetElement } from '../forms/morphology';
+import { settleWindow } from './settle';
 import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import {
     getOpenDuration,
@@ -140,7 +140,7 @@ export function morphDotToWindow(
 
         // What a window is, wherever it came from — the box, the cap, the
         // shadow, the column that clips, its place in the stack
-        // (forms/settle-window.ts). Per-axis size ownership is this
+        // (window/settle.ts). Per-axis size ownership is this
         // path's alone, so the style each axis takes is passed in.
         settleWindow(element, {
             x: targetX,
