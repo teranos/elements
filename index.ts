@@ -127,12 +127,12 @@ export {
     morphCanvasPlacedToWindow,
     morphWindowToCanvasPlaced,
     placeWindowOnCanvas,
-} from './forms/canvas-window';
-export type { CanvasWindowConfig } from './forms/canvas-window';
+} from './canvas/window';
+export type { CanvasWindowConfig } from './canvas/window';
 
 // Expand-to-window — unified lifecycle wiring
-export { wireExpandToWindow } from './expand-to-window';
-export type { ExpandToWindowConfig } from './expand-to-window';
+export { wireExpandToWindow } from './canvas/expand-to-window';
+export type { ExpandToWindowConfig } from './canvas/expand-to-window';
 
 // Window drag — standalone, no canvas dependency
 export { setupWindowDrag, teardownWindowDrag } from './window/drag';
@@ -146,7 +146,7 @@ export { raise, raiseOnInteract } from './window/z-order';
 
 // Forms — every morph names both ends, in the names the table holds
 export { morphDotToWindow, morphWindowToDot } from './window/window';
-export { morphDotToWorkspace, morphWorkspaceToDot } from './forms/canvas';
+export { morphDotToWorkspace, morphWorkspaceToDot } from './canvas/workspace';
 export { morphDotToPanel, morphPanelToDot } from './forms/panel';
 export {
     /** @deprecated Renamed to `morphDotToWindow`. */
@@ -159,7 +159,7 @@ export {
     morphToCanvas,
     /** @deprecated Renamed to `morphWorkspaceToDot`. */
     morphFromCanvas,
-} from './forms/canvas';
+} from './canvas/workspace';
 export {
     /** @deprecated Renamed to `morphDotToPanel`. */
     morphToPanel,
@@ -168,18 +168,18 @@ export {
 } from './forms/panel';
 
 // Cursor form — transient placement preview
-export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './forms/cursor';
+export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './canvas/cursor';
 
 // Canvas-placed factory (CPLCD)
-export { canvasPlaced } from './forms/canvas-placed';
-export type { CanvasPlacedConfig, CanvasPlacedResult } from './forms/canvas-placed';
+export { canvasPlaced } from './canvas/placed';
+export type { CanvasPlacedConfig, CanvasPlacedResult } from './canvas/placed';
 
 // The tray singleton
 export { tray } from './tray/tray';
 
 // Composition types — canonical, package-owned (CTYPE)
-export type { CompositionEdge, CompositionState, EdgeDirection } from './composition';
-export { buildEdgesFromChain, extractElementIds } from './composition';
+export type { CompositionEdge, CompositionState, EdgeDirection } from './canvas/composition';
+export { buildEdgesFromChain, extractElementIds } from './canvas/composition';
 
 // Edge graph — pure DAG traversal and layout (EWALK + GRDLP)
 export {
@@ -188,7 +188,7 @@ export {
     isPortFree,
     isConnectedGraph,
     computeGridPositions,
-} from './edge-graph';
+} from './canvas/edge-graph';
 
 // Touch browse
 export { setupTouchBrowse, findPeakedElement } from './tray/touch-browse';
@@ -202,8 +202,8 @@ export {
     checkDirectionalProximity,
     PROXIMITY_THRESHOLD,
     MELD_THRESHOLD,
-} from './meld/meld-detect';
-export { applyMeldFeedback, clearMeldFeedback } from './meld/meld-feedback';
+} from './canvas/meld/detect';
+export { applyMeldFeedback, clearMeldFeedback } from './canvas/meld/feedback';
 export {
     performMeld,
     extendComposition,
@@ -211,7 +211,7 @@ export {
     isMeldedComposition,
     unmeldComposition,
     detachElement,
-} from './meld/meld-composition';
+} from './canvas/meld/composition';
 export {
     MELDABILITY,
     getInitiatorClasses,
@@ -223,20 +223,20 @@ export {
     getElementClass,
     getMeldOptions,
     selectPreferredMeldOption,
-} from './meld/meldability';
-export type { PortRule, MeldOption } from './meld/meldability';
+} from './canvas/meld/meldability';
+export type { PortRule, MeldOption } from './canvas/meld/meldability';
 
 // Canvas drag interaction (DRAGR)
 export {
     makeDraggable,
     applyCanvasElementLayout,
     preventDrag,
-} from './canvas-drag';
-export type { CanvasElementLayoutOptions } from './canvas-drag';
+} from './canvas/drag';
+export type { CanvasElementLayoutOptions } from './canvas/drag';
 
 // Canvas resize interaction
-export { makeResizable } from './canvas-resize';
-export type { MakeResizableOptions } from './canvas-resize';
+export { makeResizable } from './canvas/resize';
+export type { MakeResizableOptions } from './canvas/resize';
 
 // Element lifecycle cleanup
 export {
@@ -244,14 +244,14 @@ export {
     runCleanup,
     cleanupResizeObserver,
     setupElementResizeObserver,
-} from './canvas-cleanup';
+} from './canvas/cleanup';
 
 // Where a dragged window sits and how wide it is
 export { reflowBox } from './window/reflow';
 export type { Box } from './window/reflow';
 
 // ElementUI DOM primitives — the pure half of the ElementUI factory
-export { createInput, createButton, createStatusLine } from './ui-primitives';
+export { createInput, createButton, createStatusLine } from './canvas/ui-primitives';
 
 // ElementUI interface and related types
 export type {
@@ -266,4 +266,4 @@ export type {
     MakeDraggableOptions,
     AttestationQuery,
     Attestation,
-} from './element-ui';
+} from './canvas/element-ui';

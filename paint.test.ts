@@ -12,7 +12,7 @@
 
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { tray } from './tray/tray';
-import { canvasPlaced } from './forms/canvas-placed';
+import { canvasPlaced } from './canvas/placed';
 import { resetElement } from './forms/morphology';
 import { readPaint, wearPaint } from './paint';
 import { DEFAULT_COLOR } from './element';

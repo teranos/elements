@@ -61,7 +61,7 @@ Tests live with the package source and pin the package. Host behavior (persisten
 Where this package ends and a host begins. The test that settles each line is in [CLAUDE.md](CLAUDE.md).
 
 - **Canvas workspace orchestration is the host's.** Pan, zoom, selection, spawn, and thread state are the host's to wire to its own persistence and sync. The package owns the interaction layer the workspace consumes: drag, resize, meld, placement, z-order, touch browse.
-- **ElementUI's I/O is the host's.** `pluginFetch`, `pluginWebSocket`, `onMeld`, and config persistence belong to the host factory. The DOM building blocks (`createInput`, `createButton`, `createStatusLine`) are package-owned in `ui-primitives.ts`; the host factory delegates to them.
+- **ElementUI's I/O is the host's.** `pluginFetch`, `pluginWebSocket`, `onMeld`, and config persistence belong to the host factory. The DOM building blocks (`createInput`, `createButton`, `createStatusLine`) are package-owned in `canvas/ui-primitives.ts`; the host factory delegates to them.
 - **Titles arrive plain.** Callers strip markup before passing items.
 
 ## Morph classes

@@ -10,8 +10,8 @@
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { applyMeldFeedback, clearMeldFeedback, clearFeedbackShadow } from './meld-feedback';
-import { PROXIMITY_THRESHOLD, MELD_THRESHOLD } from './meld-detect';
+import { applyMeldFeedback, clearMeldFeedback, clearFeedbackShadow } from './feedback';
+import { PROXIMITY_THRESHOLD, MELD_THRESHOLD } from './detect';
 
 let canvas: HTMLElement;
 let initiator: HTMLElement;

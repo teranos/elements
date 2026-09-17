@@ -34,7 +34,7 @@ import { type Element, getOpenDuration, DEFAULT_COLOR } from '../element';
 import { readPaint, wearPaint } from '../paint';
 import { getForm, setElementId, setSymbol } from '../dataset';
 import { morphDotToWindow } from '../window/window';
-import { morphDotToWorkspace } from '../forms/canvas';
+import { morphDotToWorkspace } from '../canvas/workspace';
 import { morphDotToPanel } from '../forms/panel';
 import { setupTouchBrowse } from './touch-browse';
 import { suppressSelectionUntilRelease } from '../morph-transaction';

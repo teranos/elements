@@ -6,10 +6,10 @@
  * selection, and composition state.
  */
 
-import type { Element } from './element';
+import type { Element } from '../element';
 import type { MakeDraggableOptions } from './element-ui';
-import { getForm } from './dataset';
-import { getLogger, getLogSegment, getCanvasHost } from './config';
+import { getForm } from '../dataset';
+import { getLogger, getLogSegment, getCanvasHost } from '../config';
 import {
     canInitiateMeld,
     canReceiveMeld,
@@ -17,13 +17,13 @@ import {
     checkDirectionalProximity,
     PROXIMITY_THRESHOLD,
     MELD_THRESHOLD,
-} from './meld/meld-detect';
-import { applyMeldFeedback, clearMeldFeedback } from './meld/meld-feedback';
+} from './meld/detect';
+import { applyMeldFeedback, clearMeldFeedback } from './meld/feedback';
 import {
     performMeld,
     extendComposition,
     isMeldedComposition,
-} from './meld/meld-composition';
+} from './meld/composition';
 import {
     getMeldOptions,
     selectPreferredMeldOption,

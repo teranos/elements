@@ -5,8 +5,8 @@
  * Final dimensions are persisted via CanvasHost.
  */
 
-import type { Element } from './element';
-import { getLogger, getLogSegment, getCanvasHost } from './config';
+import type { Element } from '../element';
+import { getLogger, getLogSegment, getCanvasHost } from '../config';
 
 export interface MakeResizableOptions {
     /** Label used in log messages, e.g. "PyElement". */

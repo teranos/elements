@@ -16,7 +16,7 @@
 
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { settleWindow } from './settle';
-import { WINDOW_STYLE_PROPS } from '../forms/canvas-window';
+import { WINDOW_STYLE_PROPS } from '../canvas/window';
 import { resetZOrder } from './z-order';
 import { MAX_VIEWPORT_WIDTH_RATIO, MAX_VIEWPORT_HEIGHT_RATIO } from '../element';
 

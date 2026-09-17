@@ -10,7 +10,7 @@
  */
 
 import type { EdgeDirection } from './meldability';
-import { PROXIMITY_THRESHOLD, MELD_THRESHOLD } from './meld-detect';
+import { PROXIMITY_THRESHOLD, MELD_THRESHOLD } from './detect';
 
 // The saved pre-feedback shadow lives on the element while the glow does.
 // Its presence (even empty) also marks the element for cleanup — including

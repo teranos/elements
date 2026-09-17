@@ -12,8 +12,8 @@ import {
     prepareCursorForPlacement,
     commitCursorPlacement,
 } from './cursor';
-import { canvasPlaced } from './canvas-placed';
-import { applyCanvasElementLayout } from '../canvas-drag';
+import { canvasPlaced } from './placed';
+import { applyCanvasElementLayout } from './drag';
 import type { Element } from '../element';
 
 let el: HTMLElement;

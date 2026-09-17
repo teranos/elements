@@ -7,7 +7,7 @@
  * blocks to these.
  */
 
-import { preventDrag } from './canvas-drag';
+import { preventDrag } from './drag';
 
 /** Create a text input with drag protection already applied. */
 export function createInput(opts?: { label?: string; placeholder?: string; value?: string; type?: string }): HTMLElement {

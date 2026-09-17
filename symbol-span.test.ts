@@ -9,7 +9,7 @@
 
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { createSymbolSpan, settleSymbolSpan } from './symbol-span';
-import { canvasPlaced } from './forms/canvas-placed';
+import { canvasPlaced } from './canvas/placed';
 import { renderContent } from './forms/render-content';
 import type { Element } from './element';
 

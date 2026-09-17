@@ -29,11 +29,11 @@ import {
     getOpenDuration,
     getRestDuration,
 } from '../element';
-import { addWindowControls, removeWindowControls } from './title-bar-controls';
+import { addWindowControls, removeWindowControls } from '../forms/title-bar-controls';
 import { setupWindowDrag, teardownWindowDrag } from '../window/drag';
-import { calculateTrayTarget } from './morphology';
+import { calculateTrayTarget } from '../forms/morphology';
 import { readPaint, wearPaint } from '../paint';
-import { stashContent } from './stash';
+import { stashContent } from '../forms/stash';
 
 // ── Default window dimensions ────────────────────────────────────────
 

@@ -6,7 +6,7 @@
  */
 
 import { getInitiatorClasses, getTargetClasses, getCompatibleDirections, getElementClass, isPortFree, type EdgeDirection } from './meldability';
-import { getCanvasHost } from '../config';
+import { getCanvasHost } from '../../config';
 
 // Configuration
 export const PROXIMITY_THRESHOLD = 100; // px - distance at which proximity feedback starts

@@ -12,7 +12,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { suppressElementStyles, restoreElementStyles } from './canvas-window';
+import { suppressElementStyles, restoreElementStyles } from './window';
 
 let element: HTMLElement;
 

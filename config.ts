@@ -8,7 +8,7 @@
  * Defaults are safe no-ops so the package works standalone.
  */
 
-import type { CompositionState } from './composition';
+import type { CompositionState } from './canvas/composition';
 
 export interface Logger {
     debug(segment: string, message: string, metadata?: Record<string, unknown>): void;

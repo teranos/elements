@@ -5,8 +5,8 @@
  * and ResizeObserver management for content-driven auto-sizing.
  */
 
-import { CANVAS_ELEMENT_TITLE_BAR_HEIGHT, MAX_VIEWPORT_HEIGHT_RATIO } from './element';
-import { getLogger, getLogSegment } from './config';
+import { CANVAS_ELEMENT_TITLE_BAR_HEIGHT, MAX_VIEWPORT_HEIGHT_RATIO } from '../element';
+import { getLogger, getLogSegment } from '../config';
 
 // ── Cleanup registry ────────────────────────────────────────────────
 

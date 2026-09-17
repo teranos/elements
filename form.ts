@@ -55,10 +55,9 @@ export interface FormTable {
 
     /**
      * "Canvas Form - Fullscreen, no chrome" — the workspace itself,
-     * which is an element. forms/canvas.ts.
+     * which is an element. canvas/workspace.ts.
      *
-     * Named for what it is rather than for its file, the one row where those
-     * differ. `canvas` sat one suffix from `canvasPlaced` while meaning the
+     * `canvas` sat one suffix from `canvasPlaced` while meaning the
      * opposite thing — the surface, not an element on it. The word was already
      * here: canvas-placed.ts calls its subjects "elements on the canvas workspace".
      */
@@ -66,7 +65,7 @@ export interface FormTable {
 
     /**
      * "Canvas-Placed Form" — an element sitting on that workspace, with
-     * container, position, drag, title bar and resize. forms/canvas-placed.ts.
+     * container, position, drag, title bar and resize. canvas/placed.ts.
      * Reached by being placed, not by a dot being opened.
      */
     readonly canvasPlaced: { readonly opensFromTray: false };

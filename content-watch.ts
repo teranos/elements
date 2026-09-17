@@ -15,10 +15,10 @@
  *
  * Scope: a window or panel opened from a tray dot mounts through
  * forms/render-content.ts, and an element lifted off the canvas mounts
- * through forms/canvas-window.ts. Both arm the watch, so both are
+ * through canvas/window.ts. Both arm the watch, so both are
  * covered — they are two constructors for the one `window` row, and saying
  * "every window" without saying which constructor is how they drifted in the
- * first place. Not covered: `workspace` (forms/canvas.ts renders
+ * first place. Not covered: `workspace` (canvas/workspace.ts renders
  * straight into the viewport), `canvasPlaced`, and host elements that build their
  * own content area. They call `declareContent` or they are not covered.
  */

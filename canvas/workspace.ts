@@ -14,7 +14,7 @@ import { getLogger, getLogSegment } from '../config';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import { getOpenDuration, getRestDuration } from '../element';
-import { prepareMorphTo, calculateTrayTarget, resetElement } from './morphology';
+import { prepareMorphTo, calculateTrayTarget, resetElement } from '../forms/morphology';
 
 /**
  * Morph an element to fullscreen canvas (no chrome)

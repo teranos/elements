@@ -2,7 +2,7 @@
  * ElementUI — type definitions for building elements.
  */
 
-import type { Element } from './element';
+import type { Element } from '../element';
 
 // ── Render contract ──────────────────────────────────────────────────
 

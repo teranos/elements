@@ -6,14 +6,14 @@
  * passes a config object and gets the full bidirectional morph for free.
  */
 
-import { getLogger, getLogSegment, removeCanvasElement } from './config';
-import { getForm } from './dataset';
-import { getTray } from './tray/tray';
-import type { Element } from './element';
+import { getLogger, getLogSegment, removeCanvasElement } from '../config';
+import { getForm } from '../dataset';
+import { getTray } from '../tray/tray';
+import type { Element } from '../element';
 import {
     morphCanvasPlacedToWindow,
     placeWindowOnCanvas,
-} from './forms/canvas-window';
+} from './window';
 
 // ── Public API ───────────────────────────────────────────────────────
 

@@ -12,12 +12,12 @@
  * CSS grid's row-height coupling and flexbox's inability to express row offsets.
  */
 
-import { getLogger, getLogSegment, getCanvasHost } from '../config';
-import type { Element } from '../element';
+import { getLogger, getLogSegment, getCanvasHost } from '../../config';
+import type { Element } from '../../element';
 import type { CompositionEdge, EdgeDirection } from '../composition';
 import { computeGridPositions, isConnectedGraph } from '../edge-graph';
 import { extractElementIds } from '../composition';
-import { clearMeldFeedback, clearFeedbackShadow } from './meld-feedback';
+import { clearMeldFeedback, clearFeedbackShadow } from './feedback';
 
 const UNMELD_OFFSET = 20; // px - spacing between elements when unmelding
 const UNMELD_DURATION_MS = 200; // animation duration for unmeld slide

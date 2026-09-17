@@ -15,10 +15,10 @@ import type { Element } from '../element';
 import { DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { setSymbol } from '../dataset';
 import { createSymbolSpan, settleSymbolSpan } from '../symbol-span';
-import { applyCanvasElementLayout, makeDraggable, preventDrag } from '../canvas-drag';
-import { makeResizable } from '../canvas-resize';
-import { storeCleanup } from '../canvas-cleanup';
-import type { MakeDraggableOptions } from '../element-ui';
+import { applyCanvasElementLayout, makeDraggable, preventDrag } from './drag';
+import { makeResizable } from './resize';
+import { storeCleanup } from './cleanup';
+import type { MakeDraggableOptions } from './element-ui';
 
 // ── Config ──────────────────────────────────────────────────────────
 
