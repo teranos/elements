@@ -2,8 +2,12 @@
   "name": "@qntx/glyphs",
   "description": "Element runtime — tray, proximity engine, morph transactions, forms",
   "types": "index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "devDependencies": {
     "happy-dom": "20.0.11",
-    "jsdom": "27.4.0"
+    "jsdom": "27.4.0",
+    "typescript": "5.7.2"
   }
 }

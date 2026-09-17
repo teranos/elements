@@ -1,0 +1,46 @@
+{
+  "jobs": {
+    "test": {
+      "name": "TypeScript",
+      "runs-on": "ubuntu-latest",
+      "steps": [
+        {
+          "uses": "actions/checkout@v6"
+        },
+        {
+          "uses": "oven-sh/setup-bun@v2",
+          "with": {
+            "bun-version": "1.3.9"
+          }
+        },
+        {
+          "run": "bun install --frozen-lockfile"
+        },
+        {
+          "run": "bun run typecheck"
+        },
+        {
+          "name": "Tests under happy-dom",
+          "run": "bun test"
+        },
+        {
+          "env": {
+            "USE_JSDOM": 1
+          },
+          "name": "Tests under JSDOM",
+          "run": "bun test"
+        }
+      ]
+    }
+  },
+  "name": "TypeScript",
+  "on": {
+    "pull_request": null,
+    "push": {
+      "branches": [
+        "main"
+      ]
+    },
+    "workflow_dispatch": null
+  }
+}
