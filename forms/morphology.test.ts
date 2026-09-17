@@ -21,17 +21,17 @@ import type { Element } from '../element';
 
 const noVerify = () => {};
 
-function trayDot(ownClasses: string[] = []): { element: HTMLElement; glyph: Element } {
+function trayDot(ownClasses: string[] = []): { element: HTMLElement; item: Element } {
     const element = document.createElement('div');
     element.className = ['glyph-run-glyph', ...ownClasses].join(' ');
     setElementId(element, 'morph-test-1');
     document.body.appendChild(element);
-    const glyph: Element = {
+    const item: Element = {
         id: 'morph-test-1',
         title: 'Morph Test',
         renderContent: () => document.createElement('div'),
     };
-    return { element, glyph };
+    return { element, item };
 }
 
 beforeEach(() => {
@@ -40,24 +40,24 @@ beforeEach(() => {
 
 describe('Tim: open and commit', () => {
     test('the morph class is added, the dot class leaves with the dot state', () => {
-        const { element, glyph } = trayDot();
-        prepareMorphTo(element, glyph, noVerify, 'window', '1000');
+        const { element, item } = trayDot();
+        prepareMorphTo(element, item, noVerify, 'window', '1000');
 
         expect(element.classList.contains('glyph-morphing')).toBe(true);
         expect(element.classList.contains('glyph-run-glyph')).toBe(false);
     });
 
     test('one morph class, whatever the destination — the attribute says which', () => {
-        const { element, glyph } = trayDot();
-        prepareMorphTo(element, glyph, noVerify, 'panel', '10003');
+        const { element, item } = trayDot();
+        prepareMorphTo(element, item, noVerify, 'panel', '10003');
 
         expect(element.classList.contains('glyph-morphing')).toBe(true);
         expect(getForm(element)).toBe('panel');
     });
 
     test('commit swaps the morph class for the settled class', () => {
-        const { element, glyph } = trayDot();
-        const morph = prepareMorphTo(element, glyph, noVerify, 'panel', '10003');
+        const { element, item } = trayDot();
+        const morph = prepareMorphTo(element, item, noVerify, 'panel', '10003');
 
         morph.commitClass('glyph-panel');
 
@@ -66,8 +66,8 @@ describe('Tim: open and commit', () => {
     });
 
     test('commit can settle several classes at once (panel)', () => {
-        const { element, glyph } = trayDot();
-        const morph = prepareMorphTo(element, glyph, noVerify, 'panel', '10003');
+        const { element, item } = trayDot();
+        const morph = prepareMorphTo(element, item, noVerify, 'panel', '10003');
 
         morph.commitClass('glyph-panel glyph-panel--fullscreen glyph-panel--from-top');
 
@@ -78,8 +78,8 @@ describe('Tim: open and commit', () => {
     });
 
     test('the glyph keeps its own classes through open and commit', () => {
-        const { element, glyph } = trayDot(['glyph-error']);
-        const morph = prepareMorphTo(element, glyph, noVerify, 'window', '1000');
+        const { element, item } = trayDot(['glyph-error']);
+        const morph = prepareMorphTo(element, item, noVerify, 'window', '1000');
         expect(element.classList.contains('glyph-error')).toBe(true);
 
         morph.commitClass();
@@ -91,9 +91,9 @@ describe('Spike: rollback', () => {
     // Morph Axioma: the attempt is abandoned and the glyph keeps the state
     // it had.
     test('an abandoned morph restores exactly the classes the glyph had', () => {
-        const { element, glyph } = trayDot(['glyph-error']);
+        const { element, item } = trayDot(['glyph-error']);
         const before = element.className;
-        const morph = prepareMorphTo(element, glyph, noVerify, 'window', '1000');
+        const morph = prepareMorphTo(element, item, noVerify, 'window', '1000');
 
         morph.rollbackClass();
 
@@ -107,8 +107,8 @@ describe('Jenny: a window settles into no class of its own', () => {
     // morph. [data-form="window"] spans both, so the class is the
     // attribute wearing a second name and the morph commits without one.
     test('commit with nothing to settle leaves the morph class gone and adds none', () => {
-        const { element, glyph } = trayDot();
-        const morph = prepareMorphTo(element, glyph, noVerify, 'window', '1000');
+        const { element, item } = trayDot();
+        const morph = prepareMorphTo(element, item, noVerify, 'window', '1000');
 
         morph.commitClass();
 
@@ -118,8 +118,8 @@ describe('Jenny: a window settles into no class of its own', () => {
     });
 
     test('an empty string settles nothing rather than throwing on a blank class', () => {
-        const { element, glyph } = trayDot();
-        const morph = prepareMorphTo(element, glyph, noVerify, 'window', '1000');
+        const { element, item } = trayDot();
+        const morph = prepareMorphTo(element, item, noVerify, 'window', '1000');
 
         expect(() => { morph.commitClass(''); }).not.toThrow();
         expect(element.classList.contains('glyph-morphing')).toBe(false);

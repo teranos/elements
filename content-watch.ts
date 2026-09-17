@@ -85,7 +85,7 @@ export function showsSomething(contentArea: HTMLElement): boolean {
 export function watchContent(
     element: HTMLElement,
     contentArea: HTMLElement,
-    glyph: ContentSubject,
+    item: ContentSubject,
     logLabel: string,
     deadlineMs: number = CONTENT_DEADLINE_MS,
 ): void {
@@ -134,7 +134,7 @@ export function watchContent(
             return;
         }
         settle('refused');
-        refuse(contentArea, glyph, logLabel, deadlineMs);
+        refuse(contentArea, item, logLabel, deadlineMs);
     }, deadlineMs);
 }
 
@@ -182,15 +182,15 @@ function owningElement(node: Node): HTMLElement | null {
  * form mounted it, how long it waited. A refusal a reader cannot act on
  * is the silence this file exists to end.
  */
-function refuse(contentArea: HTMLElement, glyph: ContentSubject, logLabel: string, waitedMs: number): void {
+function refuse(contentArea: HTMLElement, item: ContentSubject, logLabel: string, waitedMs: number): void {
     const log = getLogger();
     const seg = getLogSegment();
 
     // Warn, not Error: the node handled it and would rather it stopped
     // happening (docs/sentry.md, "Level means what it says").
-    log.warn(seg, `[${logLabel}] ${glyph.id} drew nothing in ${waitedMs}ms`, {
-        glyph: glyph.id,
-        title: glyph.title,
+    log.warn(seg, `[${logLabel}] ${item.id} drew nothing in ${waitedMs}ms`, {
+        item: item.id,
+        title: item.title,
         form: logLabel,
         waitedMs,
     });
@@ -212,7 +212,7 @@ function refuse(contentArea: HTMLElement, glyph: ContentSubject, logLabel: strin
     const which = document.createElement('div');
     which.style.opacity = '0.8';
     which.style.fontSize = '12px';
-    which.textContent = `${glyph.id} · ${logLabel} · still empty after ${waitedMs}ms`;
+    which.textContent = `${item.id} · ${logLabel} · still empty after ${waitedMs}ms`;
     box.appendChild(which);
 
     contentArea.appendChild(box);

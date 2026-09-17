@@ -20,7 +20,7 @@ export interface RenderContentResult {
 
 export function renderContent(
     element: HTMLElement,
-    glyph: Element,
+    item: Element,
     logLabel: string,
     preRenderedContent?: HTMLElement,
 ): RenderContentResult {
@@ -36,7 +36,7 @@ export function renderContent(
         titleBar = element.querySelector('.glyph-title-bar') as HTMLElement;
         if (!titleBar) {
             // Stash had no title bar — create generic
-            titleBar = createGenericTitleBar(glyph);
+            titleBar = createGenericTitleBar(item);
             element.insertBefore(titleBar, element.firstChild);
         }
 
@@ -48,7 +48,7 @@ export function renderContent(
             }
         }
 
-        log.debug(seg, `[${logLabel}] Restored stashed content for ${glyph.id}`);
+        log.debug(seg, `[${logLabel}] Restored stashed content for ${item.id}`);
 
         // A stash that holds chrome and no body is how a glyph comes back from
         // the tray as a title bar over nothing: `restored` is true, so nothing
@@ -56,21 +56,21 @@ export function renderContent(
         // for the life of the element. Say so rather than show it.
         if (!contentElement) {
             setContentState(element, 'refused');
-            log.warn(seg, `[${logLabel}] ${glyph.id} restored with chrome and no body`, {
-                glyph: glyph.id,
-                title: glyph.title,
+            log.warn(seg, `[${logLabel}] ${item.id} restored with chrome and no body`, {
+                item: item.id,
+                title: item.title,
                 form: logLabel,
                 children: element.children.length,
             });
         } else {
-            watchContent(element, contentElement, glyph, logLabel);
+            watchContent(element, contentElement, item, logLabel);
         }
     } else {
         // No stash: initial creation — use renderTitleBar/renderContent callbacks
-        if (glyph.renderTitleBar) {
-            titleBar = glyph.renderTitleBar();
+        if (item.renderTitleBar) {
+            titleBar = item.renderTitleBar();
         } else {
-            titleBar = createGenericTitleBar(glyph);
+            titleBar = createGenericTitleBar(item);
         }
 
         element.appendChild(titleBar);
@@ -80,16 +80,16 @@ export function renderContent(
             // Use the pre-rendered content when the caller pre-measured for
             // fit-content sizing (packages/glyphs/forms/window.ts);
             // otherwise render fresh. Ensures renderContent() runs exactly once.
-            const content = preRenderedContent ?? glyph.renderContent();
+            const content = preRenderedContent ?? item.renderContent();
             const contentArea = document.createElement('div');
             contentArea.classList.add('glyph-content-area');
             contentArea.style.padding = `${CANVAS_ELEMENT_CONTENT_PADDING}px`;
             contentArea.appendChild(content);
             element.appendChild(contentArea);
             contentElement = contentArea;
-            watchContent(element, contentArea, glyph, logLabel);
+            watchContent(element, contentArea, item, logLabel);
         } catch (error) {
-            log.error(seg, `[${logLabel} ${glyph.id}] Error rendering content: ${error instanceof Error ? error.message : String(error)}`);
+            log.error(seg, `[${logLabel} ${item.id}] Error rendering content: ${error instanceof Error ? error.message : String(error)}`);
             const errorContent = document.createElement('div');
             errorContent.className = 'glyph-content-area';
             errorContent.style.color = 'var(--color-error)';
@@ -117,15 +117,15 @@ export function renderContent(
     return { titleBar, contentElement };
 }
 
-function createGenericTitleBar(glyph: Element): HTMLElement {
+function createGenericTitleBar(item: Element): HTMLElement {
     const titleBar = document.createElement('div');
     titleBar.className = 'glyph-title-bar';
-    if (glyph.symbol) {
-        titleBar.appendChild(createSymbolSpan(glyph.symbol));
+    if (item.symbol) {
+        titleBar.appendChild(createSymbolSpan(item.symbol));
     }
     const titleText = document.createElement('span');
     // Titles are plain text — hosts strip any markup before passing the glyph
-    titleText.textContent = glyph.title;
+    titleText.textContent = item.title;
     titleText.style.flex = '1';
     titleBar.appendChild(titleText);
     return titleBar;

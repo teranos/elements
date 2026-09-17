@@ -258,7 +258,7 @@ export function performMeld(
     log.info(seg, '[MeldSystem] Meld complete - elements reparented and persisted', {
         compositionId,
         edges: edges.length,
-        glyphs: extractElementIds(edges)
+        elements: extractElementIds(edges)
     });
 
     return composition;
@@ -344,7 +344,7 @@ export function extendComposition(
     log.info(seg, '[MeldSystem] Composition extended', {
         newId,
         edges: allEdges.length,
-        glyphs: extractElementIds(allEdges)
+        elements: extractElementIds(allEdges)
     });
 
     return compositionElement;
@@ -355,17 +355,17 @@ export function extendComposition(
  * Used when restoring compositions on page load
  */
 export function reconstructMeld(
-    glyphElements: HTMLElement[],
+    members: HTMLElement[],
     edges: CompositionEdge[],
     compositionId: string,
     x: number,
     y: number
 ): HTMLElement {
-    if (glyphElements.length === 0) {
+    if (members.length === 0) {
         throw new Error(`Cannot reconstruct meld: no glyph elements provided for composition ${compositionId}`);
     }
 
-    const canvas = glyphElements[0].parentElement;
+    const canvas = members[0].parentElement;
     if (!canvas) {
         throw new Error(`Cannot reconstruct meld: no canvas parent for composition ${compositionId}`);
     }
@@ -374,7 +374,7 @@ export function reconstructMeld(
     const seg = getLogSegment();
 
     log.info(seg, '[MeldSystem] Reconstructing meld from storage', {
-        glyphCount: glyphElements.length,
+        elementCount: members.length,
         edgeCount: edges.length
     });
 
@@ -390,7 +390,7 @@ export function reconstructMeld(
     composition.style.top = `${y}px`;
 
     // Clear positioning from glyphs and reparent
-    glyphElements.forEach(element => {
+    members.forEach(element => {
         element.style.position = 'relative';
         element.style.left = '0';
         element.style.top = '0';
@@ -401,11 +401,11 @@ export function reconstructMeld(
     canvas.appendChild(composition);
 
     // Apply grid layout from edge graph
-    applyColumnLayout(composition, glyphElements, edges);
+    applyColumnLayout(composition, members, edges);
 
     log.info(seg, '[MeldSystem] Meld reconstructed', {
         compositionId,
-        glyphCount: glyphElements.length
+        elementCount: members.length
     });
 
     return composition;
@@ -453,7 +453,7 @@ export function detachElement(elementId: string, composition: HTMLElement): {
         log.info(seg, '[MeldSystem] detachElement: 2-glyph composition, delegating to full unmeld');
         const result = unmeldComposition(composition);
         if (!result) return null;
-        const detached = result.glyphElements.find(
+        const detached = result.members.find(
             el => (el.getAttribute('data-element-id') || el.dataset.elementId) === elementId
         );
         if (!detached) return null;
@@ -470,7 +470,7 @@ export function detachElement(elementId: string, composition: HTMLElement): {
         log.info(seg, `[MeldSystem] detachElement: removing ${elementId} disconnects graph, delegating to full unmeld`);
         const result = unmeldComposition(composition);
         if (!result) return null;
-        const detached = result.glyphElements.find(
+        const detached = result.members.find(
             el => (el.getAttribute('data-element-id') || el.dataset.elementId) === elementId
         );
         if (!detached) return null;
@@ -565,7 +565,7 @@ export function isMeldedComposition(element: HTMLElement): boolean {
  * Returns the unmelded elements so caller can restore drag handlers.
  */
 export function unmeldComposition(composition: HTMLElement): {
-    glyphElements: HTMLElement[];
+    members: HTMLElement[];
 } | null {
     const log = getLogger();
     const seg = getLogSegment();
@@ -586,9 +586,9 @@ export function unmeldComposition(composition: HTMLElement): {
     const compositionId = composition.getAttribute('data-element-id') || '';
 
     // Find all child glyphs in composition
-    const glyphElements = Array.from(composition.querySelectorAll('[data-element-id]')) as HTMLElement[];
+    const members = Array.from(composition.querySelectorAll('[data-element-id]')) as HTMLElement[];
 
-    if (glyphElements.length === 0) {
+    if (members.length === 0) {
         log.error(seg, '[MeldSystem] No glyphs found in composition - removing corrupted composition');
         if (compositionId) {
             canvasHost.removeComposition(compositionId);
@@ -613,7 +613,7 @@ export function unmeldComposition(composition: HTMLElement): {
 
     // Use each glyph's inner position within the composition to compute canvas position.
     // Elements slide out from their composition position to a spread-out arrangement.
-    glyphElements.forEach((element, i) => {
+    members.forEach((element, i) => {
         const innerLeft = parseFloat(element.style.left) || 0;
         const innerTop = parseFloat(element.style.top) || 0;
 
@@ -663,11 +663,11 @@ export function unmeldComposition(composition: HTMLElement): {
 
     log.info(seg, '[MeldSystem] Unmeld complete - elements restored and removed from storage', {
         compositionId,
-        glyphCount: glyphElements.length
+        elementCount: members.length
     });
 
     // Return elements so caller can restore drag handlers
     return {
-        glyphElements
+        members
     };
 }

@@ -28,7 +28,7 @@ const DEADLINE = 20;
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-function glyphFixture(id: string = 'tokens-glyph'): Element {
+function fixture(id: string = 'tokens-glyph'): Element {
     return {
         id,
         title: 'Access Tokens',
@@ -68,7 +68,7 @@ beforeEach(() => {
 describe('Tim: a body that draws', () => {
     test('settles present at mount when the glyph rendered synchronously', () => {
         const { element, contentArea } = opened(text('Loading tokens…'));
-        watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
+        watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
 
         expect(getContentState(element)).toBe('present');
         expect(isWatched(element)).toBe(false);
@@ -82,7 +82,7 @@ describe('Tim: a body that draws', () => {
     test('settles present when the body draws later', async () => {
         const body = document.createElement('div');
         const { element, contentArea } = opened(body);
-        watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
+        watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
         expect(getContentState(element)).toBe('pending');
 
         body.appendChild(text('ci-runner'));
@@ -95,7 +95,7 @@ describe('Tim: a body that draws', () => {
     test('a body that drew before the deadline is never refused', async () => {
         const body = document.createElement('div');
         const { element, contentArea } = opened(body);
-        watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
+        watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
 
         body.appendChild(text('ci-runner'));
         await sleep(DEADLINE * 3);
@@ -108,7 +108,7 @@ describe('Tim: a body that draws', () => {
 describe('Spike: a body that never draws', () => {
     test('is refused when the deadline passes', async () => {
         const { element, contentArea } = opened(document.createElement('div'));
-        watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
+        watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
         expect(getContentState(element)).toBe('pending');
 
         await sleep(DEADLINE * 3);
@@ -119,7 +119,7 @@ describe('Spike: a body that never draws', () => {
 
     test('says so in the body, naming the glyph and how long it waited', async () => {
         const { element, contentArea } = opened();
-        watchContent(element, contentArea, glyphFixture(), 'Panel', DEADLINE);
+        watchContent(element, contentArea, fixture(), 'Panel', DEADLINE);
         await sleep(DEADLINE * 3);
 
         const said = contentArea.textContent ?? '';
@@ -142,7 +142,7 @@ describe('Spike: a body that never draws', () => {
 
     test('disarming stops the deadline', async () => {
         const { element, contentArea } = opened();
-        watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
+        watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
         disarmContentWatch(element);
 
         await sleep(DEADLINE * 3);
@@ -156,7 +156,7 @@ describe('Jenny: the glyph\'s own word', () => {
     test('a glyph may declare empty from anywhere inside its body', async () => {
         const body = document.createElement('div');
         const { element, contentArea } = opened(body);
-        watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
+        watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
 
         declareContent(body, 'empty');
         await sleep(DEADLINE * 3);
@@ -167,7 +167,7 @@ describe('Jenny: the glyph\'s own word', () => {
 
     test('a declared state is not overridden by the deadline', async () => {
         const { element, contentArea } = opened();
-        watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
+        watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
 
         declareContent(contentArea, 'refused');
         await sleep(DEADLINE * 3);
@@ -185,8 +185,8 @@ describe('Jenny: the glyph\'s own word', () => {
 
     test('one element, one watch — re-arming replaces the last', async () => {
         const { element, contentArea } = opened();
-        watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
-        watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE * 6);
+        watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
+        watchContent(element, contentArea, fixture(), 'Window', DEADLINE * 6);
 
         await sleep(DEADLINE * 3);
         // The first deadline is gone with the first watch; the second still runs.
@@ -198,7 +198,7 @@ describe('Jenny: the glyph\'s own word', () => {
 
     test('stashing to the tray ends the watch — a stashed body did not fail', async () => {
         const { element, contentArea } = opened();
-        watchContent(element, contentArea, glyphFixture(), 'Window', DEADLINE);
+        watchContent(element, contentArea, fixture(), 'Window', DEADLINE);
 
         stashContent(element);
         await sleep(DEADLINE * 3);

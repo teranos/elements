@@ -24,7 +24,7 @@ export function renderBorderSpecimen(): void {
     area.dataset.canvasId = 'border-canvas';
     root.appendChild(area);
 
-    const glyph: Element = {
+    const item: Element = {
         id: 'border-specimen',
         title: 'Border',
         symbol: '▣',
@@ -38,7 +38,7 @@ export function renderBorderSpecimen(): void {
     expand.title = 'Expand to window';
 
     const { element } = canvasPlaced({
-        glyph,
+        item,
         className: 'canvas-border-specimen',
         defaults: { x: 16, y: 40, width: 240, height: 150 },
         titleBar: { label: 'owns its border', actions: [expand] },

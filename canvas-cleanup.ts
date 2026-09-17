@@ -66,7 +66,7 @@ export function cleanupResizeObserver(element: HTMLElement, elementId?: string):
  * @param heightOffset - Pixels to add to content height (default: CANVAS_ELEMENT_TITLE_BAR_HEIGHT)
  */
 export function setupElementResizeObserver(
-    glyphElement: HTMLElement,
+    element: HTMLElement,
     contentElement: HTMLElement,
     label: string,
     heightOffset?: number,
@@ -74,7 +74,7 @@ export function setupElementResizeObserver(
     const log = getLogger();
     const seg = getLogSegment();
 
-    cleanupResizeObserver(glyphElement, label);
+    cleanupResizeObserver(element, label);
 
     const offset = heightOffset ?? CANVAS_ELEMENT_TITLE_BAR_HEIGHT;
     const maxHeight = window.innerHeight * MAX_VIEWPORT_HEIGHT_RATIO;
@@ -83,11 +83,11 @@ export function setupElementResizeObserver(
         for (const entry of entries) {
             const contentHeight = entry.contentRect.height;
             const totalHeight = Math.min(contentHeight + offset, maxHeight);
-            glyphElement.style.minHeight = `${totalHeight}px`;
+            element.style.minHeight = `${totalHeight}px`;
             log.debug(seg, `[${label}] Auto-resized to ${totalHeight}px (content: ${contentHeight}px)`);
         }
     });
 
     resizeObserver.observe(contentElement);
-    (glyphElement as any).__resizeObserver = resizeObserver;
+    (element as any).__resizeObserver = resizeObserver;
 }

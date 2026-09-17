@@ -63,21 +63,21 @@ function findBestAnchorInComposition(
     let bestRole: 'from' | 'to' = 'to';
     let bestDistance = Infinity;
 
-    const glyphElements = compositionElement.querySelectorAll('[data-element-id]');
-    for (const el of glyphElements) {
-        const glyphEl = el as HTMLElement;
-        const elementId = glyphEl.dataset.elementId;
+    const members = compositionElement.querySelectorAll('[data-element-id]');
+    for (const el of members) {
+        const member = el as HTMLElement;
+        const elementId = member.dataset.elementId;
         if (!elementId) continue;
 
-        const glyphClass = getElementClass(glyphEl);
-        if (!glyphClass) continue;
+        const memberClass = getElementClass(member);
+        if (!memberClass) continue;
 
-        const glyphRect = glyphEl.getBoundingClientRect();
+        const memberRect = member.getBoundingClientRect();
 
         // Append: composition glyph → standalone (outgoing port)
-        for (const dir of getCompatibleDirections(glyphClass, standaloneClass)) {
+        for (const dir of getCompatibleDirections(memberClass, standaloneClass)) {
             if (!isPortFree(elementId, dir, 'outgoing', edges)) continue;
-            const dist = checkDirectionalProximity(glyphRect, standaloneRect, dir);
+            const dist = checkDirectionalProximity(memberRect, standaloneRect, dir);
             if (dist < bestDistance) {
                 bestDistance = dist;
                 bestId = elementId;
@@ -87,9 +87,9 @@ function findBestAnchorInComposition(
         }
 
         // Prepend: standalone → composition glyph (incoming port)
-        for (const dir of getCompatibleDirections(standaloneClass, glyphClass)) {
+        for (const dir of getCompatibleDirections(standaloneClass, memberClass)) {
             if (!isPortFree(elementId, dir, 'incoming', edges)) continue;
-            const dist = checkDirectionalProximity(standaloneRect, glyphRect, dir);
+            const dist = checkDirectionalProximity(standaloneRect, memberRect, dir);
             if (dist < bestDistance) {
                 bestDistance = dist;
                 bestId = elementId;
@@ -175,7 +175,7 @@ export function preventDrag(...elements: HTMLElement[]): void {
 export function makeDraggable(
     element: HTMLElement,
     handle: HTMLElement,
-    glyph: Element,
+    item: Element,
     opts: MakeDraggableOptions = {},
 ): () => void {
     const { ignoreButtons = false, logLabel = 'Element' } = opts;
@@ -198,7 +198,7 @@ export function makeDraggable(
 
     // Multi-selection drag support
     let isMultiDrag = false;
-    let multiDragElements: Array<{ element: HTMLElement; startX: number; startY: number; glyph: Element }> = [];
+    let multiDragElements: Array<{ element: HTMLElement; startX: number; startY: number; item: Element }> = [];
 
     const handleMouseMove = (e: MouseEvent) => {
         if (!isDragging) return;
@@ -284,8 +284,8 @@ export function makeDraggable(
                 dragController?.abort();
 
                 const [meldInitiator, meldTarget, meldInitiatorItem, meldTargetItem] = meldInfo.reversed
-                    ? [nearbyElement, element, nearbyItem, glyph]
-                    : [element, nearbyElement, glyph, nearbyItem];
+                    ? [nearbyElement, element, nearbyItem, item]
+                    : [element, nearbyElement, item, nearbyItem];
 
                 const targetComp = meldTarget.closest('.melded-composition') as HTMLElement | null;
                 const initiatorComp = meldInitiator.closest('.melded-composition') as HTMLElement | null;
@@ -378,7 +378,7 @@ export function makeDraggable(
                 log.warn(seg, `[${logLabel}] Composition ${compositionId} not found in storage`);
             }
         } else if (isMultiDrag) {
-            for (const { element: el, glyph: g } of multiDragElements) {
+            for (const { element: el, item: g } of multiDragElements) {
                 const x = Math.round(parseFloat(el.style.left) || 0);
                 const y = Math.round(parseFloat(el.style.top) || 0);
                 g.x = x;
@@ -402,21 +402,21 @@ export function makeDraggable(
         } else {
             const x = Math.round(parseFloat(element.style.left) || 0);
             const y = Math.round(parseFloat(element.style.top) || 0);
-            glyph.x = x;
-            glyph.y = y;
-            if (glyph.symbol) {
-                const existing = canvasHost.getCanvasElements().find(g => g.id === glyph.id);
+            item.x = x;
+            item.y = y;
+            if (item.symbol) {
+                const existing = canvasHost.getCanvasElements().find(g => g.id === item.id);
                 canvasHost.saveCanvasElement({
                     ...existing,
-                    id: glyph.id,
-                    symbol: glyph.symbol,
+                    id: item.id,
+                    symbol: item.symbol,
                     x,
                     y,
-                    width: glyph.width,
-                    height: glyph.height,
+                    width: item.width,
+                    height: item.height,
                 });
             }
-            log.debug(seg, `[${logLabel}] Finished dragging ${glyph.id}`);
+            log.debug(seg, `[${logLabel}] Finished dragging ${item.id}`);
         }
 
         dragController?.abort();
@@ -453,7 +453,7 @@ export function makeDraggable(
         const canvasId = (element.closest('[data-canvas-id]') as HTMLElement | null)?.dataset?.canvasId ?? 'canvas-workspace';
         dragCanvasId = canvasId;
         const selectedIds = canvasHost.getSelectedElementIds(canvasId);
-        if (selectedIds.length > 1 && canvasHost.isElementSelected(canvasId, glyph.id)) {
+        if (selectedIds.length > 1 && canvasHost.isElementSelected(canvasId, item.id)) {
             isMultiDrag = true;
             const canvas = element.parentElement;
             if (canvas) {
@@ -461,7 +461,7 @@ export function makeDraggable(
                     const el = canvas.querySelector(`[data-element-id="${id}"]`) as HTMLElement | null;
                     if (el) {
                         const elRect = el.getBoundingClientRect();
-                        const glyphData: Element = {
+                        const itemData: Element = {
                             id,
                             title: el.dataset.glyphTitle || 'Element',
                             symbol: el.dataset.symbol,
@@ -473,7 +473,7 @@ export function makeDraggable(
                             element: el,
                             startX: el.offsetLeft,
                             startY: el.offsetTop,
-                            glyph: glyphData
+                            item: itemData
                         });
                         el.classList.add('is-dragging');
                         el.style.zIndex = element.style.zIndex;
@@ -486,7 +486,7 @@ export function makeDraggable(
         document.addEventListener('mousemove', handleMouseMove, { signal: dragController.signal });
         document.addEventListener('mouseup', handleMouseUp, { signal: dragController.signal });
 
-        log.debug(seg, `[${logLabel}] Started dragging ${isMultiDrag ? `${selectedIds.length} glyphs` : glyph.id}`);
+        log.debug(seg, `[${logLabel}] Started dragging ${isMultiDrag ? `${selectedIds.length} glyphs` : item.id}`);
     }, { signal: setupController.signal });
 
     return () => {

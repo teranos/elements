@@ -65,7 +65,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
     // themselves. glyph.symbol is enough now.
     test('canvasPlaced renders glyph.symbol when no symbolElement is carried', () => {
         const { titleBar } = canvasPlaced({
-            glyph: makeElement({ symbol: '⍟' }),
+            item: makeElement({ symbol: '⍟' }),
             className: 'canvas-test-glyph',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             titleBar: { label: 'Self' },
@@ -83,7 +83,7 @@ describe('Jenny: native renderers display glyph.symbol', () => {
         carried.textContent = 'ax';
 
         const { titleBar } = canvasPlaced({
-            glyph: makeElement({ symbol: 'ax', symbolElement: carried }),
+            item: makeElement({ symbol: 'ax', symbolElement: carried }),
             className: 'canvas-test-glyph',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             titleBar: { label: 'AX' },

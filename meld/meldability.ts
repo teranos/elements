@@ -140,10 +140,10 @@ export function areClassesCompatible(initiatorClass: string, targetClass: string
  * Extract glyph IDs from a composition element's children
  */
 export function getCompositionElementIds(composition: HTMLElement): string[] {
-    const glyphElements = composition.querySelectorAll('[data-element-id]');
+    const members = composition.querySelectorAll('[data-element-id]');
     const elementIds: string[] = [];
 
-    glyphElements.forEach(el => {
+    members.forEach(el => {
         const id = el.getAttribute('data-element-id');
         if (id) elementIds.push(id);
     });

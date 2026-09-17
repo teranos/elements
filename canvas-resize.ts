@@ -28,7 +28,7 @@ export interface MakeResizableOptions {
 export function makeResizable(
     element: HTMLElement,
     handle: HTMLElement,
-    glyph: Element,
+    item: Element,
     opts: MakeResizableOptions = {},
 ): () => void {
     const { logLabel = 'Element', minWidth = 200, minHeight = 120 } = opts;
@@ -68,17 +68,17 @@ export function makeResizable(
         const finalWidth = element.offsetWidth;
         const finalHeight = element.offsetHeight;
 
-        glyph.width = finalWidth;
-        glyph.height = finalHeight;
+        item.width = finalWidth;
+        item.height = finalHeight;
 
-        if (glyph.symbol && glyph.x !== undefined && glyph.y !== undefined) {
-            const existing = canvasHost.getCanvasElements().find(g => g.id === glyph.id);
+        if (item.symbol && item.x !== undefined && item.y !== undefined) {
+            const existing = canvasHost.getCanvasElements().find(g => g.id === item.id);
             canvasHost.saveCanvasElement({
                 ...existing,
-                id: glyph.id,
-                symbol: glyph.symbol,
-                x: glyph.x,
-                y: glyph.y,
+                id: item.id,
+                symbol: item.symbol,
+                x: item.x,
+                y: item.y,
                 width: finalWidth,
                 height: finalHeight,
             });

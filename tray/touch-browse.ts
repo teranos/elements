@@ -31,18 +31,18 @@ export interface TouchBrowseHost {
 export function findPeakedElement(host: TouchBrowseHost): { element: HTMLElement; item: Element } | null {
     if (!host.indicatorContainer) return null;
 
-    const glyphs = Array.from(
+    const dots = Array.from(
         host.indicatorContainer.querySelectorAll('.glyph-run-glyph')
     ) as HTMLElement[];
 
     let bestProximity = 0;
     let bestElement: HTMLElement | null = null;
 
-    glyphs.forEach((glyph) => {
-        const { proximityRaw } = host.proximity.calculateProximity(glyph);
+    dots.forEach((dot) => {
+        const { proximityRaw } = host.proximity.calculateProximity(dot);
         if (proximityRaw > bestProximity) {
             bestProximity = proximityRaw;
-            bestElement = glyph;
+            bestElement = dot;
         }
     });
 

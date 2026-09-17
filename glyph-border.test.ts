@@ -47,7 +47,7 @@ describe('Tim: every form wears the border', () => {
 
     test('a canvas-placed glyph wears it', () => {
         const { element } = canvasPlaced({
-            glyph: makeElement('border-canvas-1', { border: BORDER }),
+            item: makeElement('border-canvas-1', { border: BORDER }),
             className: 'canvas-test-glyph',
             defaults: { x: 0, y: 0, width: 100, height: 100 },
             logLabel: 'Test',

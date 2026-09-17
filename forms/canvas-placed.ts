@@ -23,7 +23,7 @@ import type { MakeDraggableOptions } from '../element-ui';
 // ── Config ──────────────────────────────────────────────────────────
 
 export interface CanvasPlacedConfig {
-    glyph: Element;
+    item: Element;
     /** Type-specific CSS class (e.g. 'canvas-py-glyph'). Joined with 'canvas-glyph'. */
     className: string;
     /** Default position and size when glyph has no saved layout. */
@@ -54,24 +54,24 @@ export interface CanvasPlacedResult {
 // ── Factory ─────────────────────────────────────────────────────────
 
 export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
-    const { glyph, className, defaults, logLabel } = config;
+    const { item, className, defaults, logLabel } = config;
 
     // Container — reuse cursor element from placement mode if available
-    const element = config.element ?? glyph.cursorElement ?? document.createElement('div');
+    const element = config.element ?? item.cursorElement ?? document.createElement('div');
     element.className = `${className} canvas-glyph`;
-    element.dataset.elementId = glyph.id;
-    setSymbol(element, glyph.symbol);
-    element.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
-    element.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
-    if (glyph.border) element.style.border = glyph.border;
+    element.dataset.elementId = item.id;
+    setSymbol(element, item.symbol);
+    element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
+    element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
+    if (item.border) element.style.border = item.border;
     element.style.backdropFilter = 'blur(2px)';
 
     // Layout
     applyCanvasElementLayout(element, {
-        x: glyph.x ?? defaults.x,
-        y: glyph.y ?? defaults.y,
-        width: glyph.width ?? defaults.width,
-        height: glyph.height ?? defaults.height,
+        x: item.x ?? defaults.x,
+        y: item.y ?? defaults.y,
+        width: item.width ?? defaults.width,
+        height: item.height ?? defaults.height,
         useMinHeight: config.useMinHeight,
     });
 
@@ -83,10 +83,10 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
 
         // Symbol — reuse the span carried across the cursor morph, or render
         // glyph.symbol natively
-        if (glyph.symbolElement) {
-            titleBar.appendChild(settleSymbolSpan(glyph.symbolElement));
-        } else if (glyph.symbol) {
-            titleBar.appendChild(createSymbolSpan(glyph.symbol));
+        if (item.symbolElement) {
+            titleBar.appendChild(settleSymbolSpan(item.symbolElement));
+        } else if (item.symbol) {
+            titleBar.appendChild(createSymbolSpan(item.symbol));
         }
 
         const label = document.createElement('span');
@@ -105,7 +105,7 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
 
     // Drag
     const dragHandle = config.dragHandle ?? titleBar ?? element;
-    const cleanupDrag = makeDraggable(element, dragHandle, glyph, {
+    const cleanupDrag = makeDraggable(element, dragHandle, item, {
         logLabel,
         ...config.draggableOptions,
     });
@@ -120,7 +120,7 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
         element.appendChild(handle);
 
         const resizeOpts = typeof config.resizable === 'object' ? config.resizable : {};
-        const cleanupResize = makeResizable(element, handle, glyph, {
+        const cleanupResize = makeResizable(element, handle, item, {
             logLabel,
             ...resizeOpts,
         });

@@ -21,14 +21,14 @@ import { prepareMorphTo, calculateTrayTarget, resetElement } from './morphology'
  */
 export function morphDotToWorkspace(
     element: HTMLElement,
-    glyph: Element,
+    item: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
-    onMinimize: (element: HTMLElement, glyph: Element) => void
+    onMinimize: (element: HTMLElement, item: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();
-    const morph = prepareMorphTo(element, glyph, verifyElement, 'workspace', '1000');
-    const glyphRect = morph.rect;
+    const morph = prepareMorphTo(element, item, verifyElement, 'workspace', '1000');
+    const fromRect = morph.rect;
 
     // Target: full viewport
     const targetX = 0;
@@ -39,12 +39,12 @@ export function morphDotToWorkspace(
     // BEGIN TRANSACTION: Start the morph animation
     beginMorphToBox(
         element,
-        glyphRect,
+        fromRect,
         { x: targetX, y: targetY, width: targetWidth, height: targetHeight },
         getOpenDuration()
     ).then(() => {
         // COMMIT PHASE: Animation completed successfully
-        log.debug(seg, `[Canvas] Animation committed for ${glyph.id}`);
+        log.debug(seg, `[Canvas] Animation committed for ${item.id}`);
 
         // Apply final fullscreen state - NO CHROME
         element.style.position = 'fixed';
@@ -53,10 +53,10 @@ export function morphDotToWorkspace(
         element.style.width = '100vw';
         element.style.height = '100vh';
         element.style.borderRadius = '0'; // No rounded corners
-        element.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
-        if (glyph.border) element.style.border = glyph.border;
+        element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
+        if (item.border) element.style.border = item.border;
         element.style.backdropFilter = 'blur(2px)';
-        element.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
+        element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
         element.style.boxShadow = 'none'; // No shadow
         element.style.padding = '0'; // No padding
         element.style.opacity = '1';
@@ -73,7 +73,7 @@ export function morphDotToWorkspace(
         minimizeBtn.className = 'canvas-minimize-btn';
         minimizeBtn.onclick = () => morphWorkspaceToDot(
             element,
-            glyph,
+            item,
             verifyElement,
             onMinimize
         );
@@ -81,12 +81,12 @@ export function morphDotToWorkspace(
 
         // Add content (fills viewport)
         try {
-            const content = glyph.renderContent();
+            const content = item.renderContent();
             content.style.flex = '1'; // Take all space
             content.style.overflow = 'hidden';
             element.appendChild(content);
         } catch (error) {
-            log.error(seg, `[Canvas ${glyph.id}] Error rendering content: ${error instanceof Error ? error.message : String(error)}`);
+            log.error(seg, `[Canvas ${item.id}] Error rendering content: ${error instanceof Error ? error.message : String(error)}`);
             const errorContent = document.createElement('div');
             errorContent.style.padding = '16px';
             errorContent.style.flex = '1';
@@ -107,7 +107,7 @@ export function morphDotToWorkspace(
         }
     }).catch(error => {
         // ROLLBACK: Animation failed — the glyph keeps the classes it had
-        log.warn(seg, `[Canvas] Animation failed for ${glyph.id}: ${error instanceof Error ? error.message : String(error)}`);
+        log.warn(seg, `[Canvas] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         morph.rollbackClass();
     });
 }
@@ -117,14 +117,14 @@ export function morphDotToWorkspace(
  */
 export function morphWorkspaceToDot(
     canvasElement: HTMLElement,
-    glyph: Element,
+    item: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
-    onMorphComplete: (element: HTMLElement, glyph: Element) => void
+    onMorphComplete: (element: HTMLElement, item: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();
-    verifyElement(glyph.id, canvasElement);
-    log.debug(seg, `[Canvas] Minimizing ${glyph.id}`);
+    verifyElement(item.id, canvasElement);
+    log.debug(seg, `[Canvas] Minimizing ${item.id}`);
 
     // Get current canvas state
     const currentRect = canvasElement.getBoundingClientRect();
@@ -133,14 +133,14 @@ export function morphWorkspaceToDot(
     canvasElement.innerHTML = '';
     canvasElement.textContent = '';
 
-    const trayTarget = calculateTrayTarget(glyph.id);
+    const trayTarget = calculateTrayTarget(item.id);
 
     beginMorphToDot(canvasElement, currentRect, trayTarget, getRestDuration())
         .then(() => {
-            resetElement(canvasElement, glyph, 'Canvas', onMorphComplete);
+            resetElement(canvasElement, item, 'Canvas', onMorphComplete);
         })
         .catch(error => {
-            log.warn(seg, `[Canvas] Animation failed for ${glyph.id}: ${error instanceof Error ? error.message : String(error)}`);
+            log.warn(seg, `[Canvas] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         });
 }
 

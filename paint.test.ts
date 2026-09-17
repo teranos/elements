@@ -20,7 +20,7 @@ import type { Element } from './element';
 
 const PAINTED = 'rgb(5, 16, 11)';
 
-function glyph(id: string, overrides: Partial<Element> = {}): Element {
+function make(id: string, overrides: Partial<Element> = {}): Element {
     return {
         id,
         title: 'CRIER',
@@ -71,16 +71,16 @@ describe('a glyph whose datum names no colour', () => {
         el.style.backgroundColor = PAINTED;
         document.body.appendChild(el);
 
-        tray.adopt(el, glyph('paint-adopt-1'));
+        tray.adopt(el, make('paint-adopt-1'));
 
         expect(el.style.backgroundColor).toBe(PAINTED);
         tray.remove('paint-adopt-1');
     });
 
     test('keeps its paint through the minimize reset', () => {
-        const item = glyph('paint-reset-1');
+        const item = make('paint-reset-1');
         const { element } = canvasPlaced({
-            glyph: item,
+            item: item,
             className: 'canvas-glyph glyph-crier',
             defaults: { x: 0, y: 0, width: 400, height: 300 },
             logLabel: 'CRIER',
@@ -97,7 +97,7 @@ describe('a glyph whose datum names no colour', () => {
 
     test('a canvas frame is painted, so there is something to keep', () => {
         const { element } = canvasPlaced({
-            glyph: glyph('paint-frame-1'),
+            item: make('paint-frame-1'),
             className: 'canvas-glyph glyph-crier',
             defaults: { x: 0, y: 0, width: 400, height: 300 },
             logLabel: 'CRIER',

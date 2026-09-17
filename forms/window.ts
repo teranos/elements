@@ -38,10 +38,10 @@ import {
  */
 export function morphDotToWindow(
     element: HTMLElement,
-    glyph: Element,
+    item: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
     onRemove: (id: string) => void,
-    onMinimize: (element: HTMLElement, glyph: Element) => void
+    onMinimize: (element: HTMLElement, item: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();
@@ -52,14 +52,14 @@ export function morphDotToWindow(
     // Same for height. Pre-render + measure the content when either axis is
     // content-owned so the morph animation targets the final box directly
     // (no post-animation resize flash).
-    const widthOwnedByWindow = glyph.initialWidth != null;
-    const heightOwnedByWindow = glyph.initialHeight != null;
+    const widthOwnedByWindow = item.initialWidth != null;
+    const heightOwnedByWindow = item.initialHeight != null;
 
     let preRenderedContent: HTMLElement | null = null;
     let measuredWidth = 0;
     let measuredHeight = 0;
     if (!widthOwnedByWindow || !heightOwnedByWindow) {
-        preRenderedContent = glyph.renderContent();
+        preRenderedContent = item.renderContent();
         const measurer = document.createElement('div');
         measurer.style.position = 'fixed';
         measurer.style.left = '-99999px';
@@ -79,13 +79,13 @@ export function morphDotToWindow(
     // Asked before a transaction opens, because which form this is
     // cannot be decided halfway through becoming one (Morph Axioma).
     if (!fitsAsWindow(measuredWidth, window.innerWidth)) {
-        morphDotToPanel(element, glyph, verifyElement, onRemove, onMinimize, preRenderedContent ?? undefined);
+        morphDotToPanel(element, item, verifyElement, onRemove, onMinimize, preRenderedContent ?? undefined);
         return;
     }
 
     // settleWindow() hands out the settled stacking value on commit.
-    const morph = prepareMorphTo(element, glyph, verifyElement, 'window', MORPHING_Z_INDEX);
-    const glyphRect = morph.rect;
+    const morph = prepareMorphTo(element, item, verifyElement, 'window', MORPHING_Z_INDEX);
+    const fromRect = morph.rect;
 
     const titleBarHeight = parseInt(TITLE_BAR_HEIGHT);
     // No declared or measured size outranks the screen it lands on — a phone
@@ -94,8 +94,8 @@ export function morphDotToWindow(
     const sized = clampToViewport({
         x: 0,
         y: 0,
-        width: widthOwnedByWindow ? parseInt(glyph.initialWidth!) : measuredWidth,
-        height: heightOwnedByWindow ? parseInt(glyph.initialHeight!) : measuredHeight + titleBarHeight,
+        width: widthOwnedByWindow ? parseInt(item.initialWidth!) : measuredWidth,
+        height: heightOwnedByWindow ? parseInt(item.initialHeight!) : measuredHeight + titleBarHeight,
     }, viewport);
     const windowWidth = sized.width;
     const windowHeight = sized.height;
@@ -105,7 +105,7 @@ export function morphDotToWindow(
 
     // Remembered position, then a declared default, then the emptiest place
     // we can find. Centring every glyph put each new one on top of the last.
-    const chosen = (rememberedPos || glyph.defaultX !== undefined)
+    const chosen = (rememberedPos || item.defaultX !== undefined)
         ? null
         : findPlacement(
             { width: windowWidth, height: windowHeight },
@@ -115,8 +115,8 @@ export function morphDotToWindow(
 
     // A remembered or declared position must not park the title bar off-screen
     const { x: targetX, y: targetY } = clampToViewport({
-        x: rememberedPos?.x ?? glyph.defaultX ?? chosen!.x,
-        y: rememberedPos?.y ?? glyph.defaultY ?? chosen!.y,
+        x: rememberedPos?.x ?? item.defaultX ?? chosen!.x,
+        y: rememberedPos?.y ?? item.defaultY ?? chosen!.y,
         width: windowWidth,
         height: windowHeight,
     }, viewport);
@@ -124,12 +124,12 @@ export function morphDotToWindow(
     // BEGIN TRANSACTION: Start the morph animation
     beginMorphToBox(
         element,
-        glyphRect,
+        fromRect,
         { x: targetX, y: targetY, width: windowWidth, height: windowHeight },
         getOpenDuration()
     ).then(() => {
         // COMMIT PHASE: Animation completed successfully
-        log.debug(seg, `[Window] Animation committed for ${glyph.id}`);
+        log.debug(seg, `[Window] Animation committed for ${item.id}`);
 
         // The morph class leaves with the morph. A window settles into no class
         // of its own: .glyph-window carried one declaration, pointer-events:
@@ -154,36 +154,36 @@ export function morphDotToWindow(
         // What the glyph wears is data on the glyph and never a property of a
         // form (VISION.md). The canvas path reaches the same place by
         // leaving on the element what it already wore.
-        element.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
-        if (glyph.border) element.style.border = glyph.border;
+        element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
+        if (item.border) element.style.border = item.border;
         element.style.backdropFilter = 'blur(2px)';
         element.style.padding = '0';
         element.style.opacity = '1';
-        element.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
+        element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
 
         // Restore stashed content or render fresh (shared with panel.ts).
         // preRenderedContent is populated when we measured for fit-content
         // sizing above; passing it in avoids a second renderContent() call.
         const { titleBar } = renderContent(
             element,
-            glyph,
+            item,
             'Window',
             preRenderedContent ?? undefined,
         );
 
         // Add window controls (minimize/close) to the title bar
         addWindowControls(titleBar, {
-            onMinimize: () => morphWindowToDot(element, glyph, verifyElement, onMinimize),
-            onClose: glyph.onClose ? () => {
+            onMinimize: () => morphWindowToDot(element, item, verifyElement, onMinimize),
+            onClose: item.onClose ? () => {
                 teardownWindowDrag(element);
                 // A closed glyph is not a glyph that failed to draw.
                 disarmContentWatch(element);
-                onRemove(glyph.id);
+                onRemove(item.id);
                 element.remove();
                 try {
-                    glyph.onClose!();
+                    item.onClose!();
                 } catch (error) {
-                    log.error(seg, `[Window ${glyph.id}] Error in onClose callback: ${error instanceof Error ? error.message : String(error)}`);
+                    log.error(seg, `[Window ${item.id}] Error in onClose callback: ${error instanceof Error ? error.message : String(error)}`);
                 }
             } : undefined,
         });
@@ -197,7 +197,7 @@ export function morphDotToWindow(
         setupWindowDrag(element, titleBar);
     }).catch(error => {
         // ROLLBACK: Animation was cancelled or failed
-        log.warn(seg, `[Window] Animation failed for ${glyph.id}: ${error instanceof Error ? error.message : String(error)}`);
+        log.warn(seg, `[Window] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         // Element stays in glyph state with the classes it had, can retry
         morph.rollbackClass();
     });
@@ -209,14 +209,14 @@ export function morphDotToWindow(
  */
 export function morphWindowToDot(
     windowElement: HTMLElement,
-    glyph: Element,
+    item: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
-    onMorphComplete: (element: HTMLElement, glyph: Element) => void
+    onMorphComplete: (element: HTMLElement, item: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();
-    verifyElement(glyph.id, windowElement);
-    log.debug(seg, `[Window] Minimizing ${glyph.id}`);
+    verifyElement(item.id, windowElement);
+    log.debug(seg, `[Window] Minimizing ${item.id}`);
 
     // Get current window state before clearing anything
     const currentRect = windowElement.getBoundingClientRect();
@@ -230,15 +230,15 @@ export function morphWindowToDot(
     // Stash content (strips window controls, preserves glyph identity off-DOM)
     stashContent(windowElement);
 
-    const trayTarget = calculateTrayTarget(glyph.id);
+    const trayTarget = calculateTrayTarget(item.id);
 
     beginMorphToDot(windowElement, currentRect, trayTarget, getRestDuration())
         .then(() => {
-            resetElement(windowElement, glyph, 'Window', onMorphComplete);
+            resetElement(windowElement, item, 'Window', onMorphComplete);
         })
         .catch(error => {
             // Animation was cancelled or failed
-            log.warn(seg, `[Window] Animation failed for ${glyph.id}: ${error instanceof Error ? error.message : String(error)}`);
+            log.warn(seg, `[Window] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
             // Element stays in window state, can retry
         });
 }

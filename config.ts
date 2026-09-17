@@ -40,7 +40,7 @@ export interface CanvasElementData {
 
 /** Host-provided canvas state — persistence, transform, selection, sync. */
 export interface CanvasHost {
-    saveCanvasElement(glyph: CanvasElementData): void;
+    saveCanvasElement(item: CanvasElementData): void;
     getCanvasElements(canvasId?: string): CanvasElementData[];
     getTransform(canvasId: string): { panX: number; panY: number; scale: number };
     getSelectedElementIds(canvasId: string): string[];

@@ -7,13 +7,13 @@ import type { Element } from './element';
 // ── Render contract ──────────────────────────────────────────────────
 
 /** The render function a plugin module must export. */
-export type RenderFn = (glyph: Element, ui: ElementUI) => HTMLElement | Promise<HTMLElement>;
+export type RenderFn = (item: Element, ui: ElementUI) => HTMLElement | Promise<HTMLElement>;
 
 // "in the true QNTX vision, i wanted plugins to be able to provide their own ui easily"
 // This is the whole of it: a module that exports these two.
 export interface ElementModule {
     render: RenderFn;
-    glyphDef?: ElementDef;
+    def?: ElementDef;
 }
 
 /** Self-describing metadata exported by pure TS plugin modules. */
@@ -37,7 +37,7 @@ export interface ElementUI {
      * Returns a content area — the scrollable body below the title bar.
      * Append plugin content into `content`, not `element`.
      */
-    glyph(opts: ElementOpts): { element: HTMLElement; titleBar: HTMLElement | null; content: HTMLElement };
+    element(opts: ElementOpts): { element: HTMLElement; titleBar: HTMLElement | null; content: HTMLElement };
 
     /** Prevent drag from starting on interactive children. */
     preventDrag(...elements: HTMLElement[]): void;

@@ -15,10 +15,10 @@ import { describe, test, expect } from 'bun:test';
 import { getMeldOptions, isPortFree } from './meldability';
 
 /** Helper: build a composition DOM with children matching the edge IDs */
-function compWith(...glyphs: Array<{ id: string; cls: string }>): HTMLElement {
+function compWith(...specs: Array<{ id: string; cls: string }>): HTMLElement {
     const comp = document.createElement('div');
     comp.className = 'melded-composition';
-    for (const g of glyphs) {
+    for (const g of specs) {
         const el = document.createElement('div');
         el.className = g.cls;
         el.setAttribute('data-element-id', g.id);

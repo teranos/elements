@@ -16,10 +16,10 @@ const CURSOR_CLASS = 'glyph-cursor';
  * Create a cursor glyph element displaying the given symbol.
  * The element is positioned fixed and ignores pointer events.
  */
-export function createCursorElement(symbol: string, glyphType: string): HTMLElement {
+export function createCursorElement(symbol: string, elementType: string): HTMLElement {
     const el = document.createElement('div');
     el.className = CURSOR_CLASS;
-    el.setAttribute('data-glyph-type', glyphType);
+    el.setAttribute('data-glyph-type', elementType);
     el.style.position = 'fixed';
     el.style.pointerEvents = 'none';
     el.style.zIndex = '10003';

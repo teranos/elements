@@ -48,7 +48,7 @@ class Tray {
     private elements: Map<string, HTMLElement> = new Map();
 
     // Track click handlers separately for proper cleanup (prevents memory leaks)
-    private glyphClickHandlers: WeakMap<HTMLElement, (e: MouseEvent) => void> = new WeakMap();
+    private clickHandlers: WeakMap<HTMLElement, (e: MouseEvent) => void> = new WeakMap();
 
     // Proximity morphing handler
     private proximity: Proximity = new Proximity();
@@ -102,7 +102,7 @@ class Tray {
         };
 
         // Store handler in WeakMap for proper cleanup
-        this.glyphClickHandlers.set(element, clickHandler);
+        this.clickHandlers.set(element, clickHandler);
         element.addEventListener('click', clickHandler);
 
         // The press is what starts a selection; click already fires on mouseup,
@@ -351,7 +351,7 @@ class Tray {
             log.debug(seg, `[Element ${item.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
             this.morphElement(element, item);
         };
-        this.glyphClickHandlers.set(element, clickHandler);
+        this.clickHandlers.set(element, clickHandler);
         element.addEventListener('click', clickHandler);
 
         // Add to tray
@@ -401,7 +401,7 @@ class Tray {
                 );
             }
             // Remove click handler before removing element
-            const handler = this.glyphClickHandlers.get(tracked);
+            const handler = this.clickHandlers.get(tracked);
             if (handler) {
                 tracked.removeEventListener('click', handler);
                 // WeakMap will automatically clean up when element is GC'd
@@ -481,13 +481,13 @@ class Tray {
     /**
      * Re-attach a morphed glyph back to the indicator container
      */
-    private reattachElementToIndicator(element: HTMLElement, glyph: Element): void {
+    private reattachElementToIndicator(element: HTMLElement, item: Element): void {
         const log = getLogger();
         const seg = getLogSegment();
         if (!this.indicatorContainer) return;
 
         // Remove any existing handler to avoid duplicates
-        const existingHandler = this.glyphClickHandlers.get(element);
+        const existingHandler = this.clickHandlers.get(element);
         if (existingHandler) {
             element.removeEventListener('click', existingHandler);
         }
@@ -496,18 +496,18 @@ class Tray {
         // (Event listeners can be lost during certain DOM manipulations)
         const clickHandler = (e: MouseEvent) => {
             e.stopPropagation();
-            log.debug(seg, `[Element ${glyph.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
-            this.morphElement(element, glyph);
+            log.debug(seg, `[Element ${item.id}] Click detected, form: ${getForm(element) ?? 'none'}`);
+            this.morphElement(element, item);
         };
 
-        this.glyphClickHandlers.set(element, clickHandler);
+        this.clickHandlers.set(element, clickHandler);
         element.addEventListener('click', clickHandler);
 
         // Insert at the correct position in the indicator container
-        const glyphIndex = Array.from(this.items.keys()).indexOf(glyph.id);
-        const glyphs = Array.from(this.indicatorContainer.children);
-        if (glyphIndex < glyphs.length) {
-            this.indicatorContainer.insertBefore(element, glyphs[glyphIndex]);
+        const index = Array.from(this.items.keys()).indexOf(item.id);
+        const dots = Array.from(this.indicatorContainer.children);
+        if (index < dots.length) {
+            this.indicatorContainer.insertBefore(element, dots[index]);
         } else {
             this.indicatorContainer.appendChild(element);
         }

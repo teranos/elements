@@ -445,16 +445,16 @@ export function placeWindowOnCanvas(
 
     // 5. Element dimensions (from stored origin or default)
     const origin = getCanvasOrigin(element);
-    const glyphW = origin?.width ?? 400;
-    const glyphH = origin?.height ?? 250;
+    const originW = origin?.width ?? 400;
+    const originH = origin?.height ?? 250;
 
     // 6. Animation target: same screen position, glyph size scaled by canvas zoom
     const scale = bridge ? bridge.getScale(canvasId) : 1;
     const toRect = {
         x: windowRect.left,
         y: windowRect.top,
-        width: glyphW * scale,
-        height: glyphH * scale,
+        width: originW * scale,
+        height: originH * scale,
     };
 
     // 7. Animate
@@ -479,8 +479,8 @@ export function placeWindowOnCanvas(
             element.style.position = 'absolute';
             element.style.left = `${Math.round(canvasPos.x)}px`;
             element.style.top = `${Math.round(canvasPos.y)}px`;
-            element.style.width = `${glyphW}px`;
-            element.style.height = `${glyphH}px`;
+            element.style.width = `${originW}px`;
+            element.style.height = `${originH}px`;
 
             // 12. Reparent to canvas content layer
             contentLayer.appendChild(element);

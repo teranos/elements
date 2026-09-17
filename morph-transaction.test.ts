@@ -8,11 +8,11 @@
 
 import { describe, test, expect } from 'bun:test';
 import { beginMorphToCanvasPlaced, beginRestoreMorph, beginMorphToDot, beginMinimizeMorph } from './morph-transaction';
-import * as glyphs from './index';
+import * as elements from './index';
 
 describe('Tim: the new name', () => {
     test('beginMorphToCanvasPlaced is what the package exports', () => {
-        expect(glyphs.beginMorphToCanvasPlaced).toBe(beginMorphToCanvasPlaced);
+        expect(elements.beginMorphToCanvasPlaced).toBe(beginMorphToCanvasPlaced);
     });
 });
 
@@ -24,7 +24,7 @@ describe('Spike: the old name', () => {
     });
 
     test('is still exported, so a consumer on 0.10.0 keeps compiling', () => {
-        expect(glyphs.beginRestoreMorph).toBe(beginMorphToCanvasPlaced);
+        expect(elements.beginRestoreMorph).toBe(beginMorphToCanvasPlaced);
     });
 });
 
@@ -39,9 +39,9 @@ describe('Tim: every morph names both ends', () => {
         ['morphDotToPanel', 'morphToPanel'],
         ['morphPanelToDot', 'morphFromPanel'],
     ])('%s is exported, and %s is the same function', (now, before) => {
-        const current = (glyphs as unknown as Record<string, unknown>)[now];
+        const current = (elements as unknown as Record<string, unknown>)[now];
         expect(typeof current).toBe('function');
-        expect((glyphs as unknown as Record<string, unknown>)[before]).toBe(current);
+        expect((elements as unknown as Record<string, unknown>)[before]).toBe(current);
     });
 
     test('beginMinimizeMorph is beginMorphToDot', () => {

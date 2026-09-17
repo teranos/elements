@@ -99,14 +99,14 @@ export class Proximity {
     /**
      * Calculate proximity metrics for a glyph element
      */
-    public calculateProximity(glyph: HTMLElement): {
+    public calculateProximity(dot: HTMLElement): {
         distance: number;
         distanceX: number;
         distanceY: number;
         proximityRaw: number;
         isVerticalApproach: boolean;
     } {
-        const rect = glyph.getBoundingClientRect();
+        const rect = dot.getBoundingClientRect();
         let distanceX = 0, distanceY = 0;
 
         // Horizontal distance to nearest edge
@@ -156,26 +156,26 @@ export class Proximity {
         this.proximityRAF = requestAnimationFrame(() => {
             if (!indicatorContainer || isRestoring) return;
 
-            const glyphs = Array.from(indicatorContainer.querySelectorAll('.glyph-run-glyph')) as HTMLElement[];
+            const dots = Array.from(indicatorContainer.querySelectorAll('.glyph-run-glyph')) as HTMLElement[];
 
             // Read at use time — the host may have configured geometry after construction
-            const dot = getDotGeometry();
+            const geometry = getDotGeometry();
 
             // First pass: check if any glyph is highly proximate (gives baseline boost to all)
             let maxProximityRaw = 0;
-            glyphs.forEach((glyph) => {
-                const { proximityRaw } = this.calculateProximity(glyph);
+            dots.forEach((dot) => {
+                const { proximityRaw } = this.calculateProximity(dot);
                 maxProximityRaw = Math.max(maxProximityRaw, proximityRaw);
             });
 
             // Calculate baseline boost when any glyph is nearly fully expanded
             const baselineBoost = maxProximityRaw > this.BASELINE_BOOST_TRIGGER ? this.BASELINE_BOOST_AMOUNT : 0;
 
-            glyphs.forEach((glyph) => {
-                const elementId = glyph.dataset.elementId ?? '';
+            dots.forEach((dot) => {
+                const elementId = dot.dataset.elementId ?? '';
                 const item = items.get(elementId);
 
-                const { proximityRaw, isVerticalApproach } = this.calculateProximity(glyph);
+                const { proximityRaw, isVerticalApproach } = this.calculateProximity(dot);
 
                 // Apply different easing based on approach direction
                 let proximity: number;
@@ -210,24 +210,24 @@ export class Proximity {
                 proximity = Math.min(1.0, proximity + baselineBoost);
 
                 // Interpolate dimensions to match actual tray item size
-                const width = dot.minWidth + (dot.maxWidth - dot.minWidth) * proximity;
-                const height = dot.minHeight + (dot.maxHeight - dot.minHeight) * proximity;
+                const width = geometry.minWidth + (geometry.maxWidth - geometry.minWidth) * proximity;
+                const height = geometry.minHeight + (geometry.maxHeight - geometry.minHeight) * proximity;
 
                 // Interpolate border radius (starts at max, goes to 0 for full item)
-                const borderRadius = dot.borderRadiusMax * (1 - proximity);
+                const borderRadius = geometry.borderRadiusMax * (1 - proximity);
 
                 // Use the glyph's own color
                 const color = item?.color ?? DEFAULT_COLOR;
 
                 // Apply morphing styles
-                glyph.style.width = `${width}px`;
-                glyph.style.height = `${height}px`;
-                glyph.style.borderRadius = `${borderRadius}px`;
-                glyph.style.backgroundColor = color;
+                dot.style.width = `${width}px`;
+                dot.style.height = `${height}px`;
+                dot.style.borderRadius = `${borderRadius}px`;
+                dot.style.backgroundColor = color;
                 // Visual identity, like color — the dot wears the glyph's border
-                if (item?.border) glyph.style.border = item.border;
-                glyph.style.backdropFilter = 'blur(2px)';
-                glyph.style.filter = glyph.matches(':hover') ? 'brightness(1.2)' : '';
+                if (item?.border) dot.style.border = item.border;
+                dot.style.backdropFilter = 'blur(2px)';
+                dot.style.filter = dot.matches(':hover') ? 'brightness(1.2)' : '';
 
                 // Show title text when proximity exceeds threshold
                 if (proximity > this.TEXT_FADE_THRESHOLD && item) {
@@ -235,30 +235,30 @@ export class Proximity {
                     const title = item.symbol ? `${item.symbol} ${item.title}` : item.title;
 
                     // Add text content if not already present
-                    if (!hasProximityText(glyph)) {
-                        glyph.style.display = 'flex';
-                        glyph.style.alignItems = 'center';
-                        glyph.style.justifyContent = 'flex-start'; // Left-align text (normal)
-                        glyph.style.padding = '6px 10px';
-                        glyph.style.whiteSpace = 'nowrap';
-                        glyph.textContent = title;
-                        setProximityText(glyph, true);
+                    if (!hasProximityText(dot)) {
+                        dot.style.display = 'flex';
+                        dot.style.alignItems = 'center';
+                        dot.style.justifyContent = 'flex-start'; // Left-align text (normal)
+                        dot.style.padding = '6px 10px';
+                        dot.style.whiteSpace = 'nowrap';
+                        dot.textContent = title;
+                        setProximityText(dot, true);
                     }
                     // Fade in text based on proximity (above threshold)
-                    glyph.style.opacity = String(this.TEXT_FADE_THRESHOLD + (proximity - this.TEXT_FADE_THRESHOLD));
+                    dot.style.opacity = String(this.TEXT_FADE_THRESHOLD + (proximity - this.TEXT_FADE_THRESHOLD));
                 } else {
                     // Hide text when far away
-                    if (hasProximityText(glyph)) {
-                        glyph.textContent = '';
-                        glyph.style.display = '';
-                        glyph.style.alignItems = '';
-                        glyph.style.justifyContent = '';
-                        glyph.style.padding = '';
-                        glyph.style.whiteSpace = '';
-                        glyph.style.textAlign = '';
-                        setProximityText(glyph, false);
+                    if (hasProximityText(dot)) {
+                        dot.textContent = '';
+                        dot.style.display = '';
+                        dot.style.alignItems = '';
+                        dot.style.justifyContent = '';
+                        dot.style.padding = '';
+                        dot.style.whiteSpace = '';
+                        dot.style.textAlign = '';
+                        setProximityText(dot, false);
                     }
-                    glyph.style.opacity = '1';
+                    dot.style.opacity = '1';
                 }
             });
 

@@ -150,18 +150,18 @@ function attachResizeHandle(
  */
 export function morphDotToPanel(
     element: HTMLElement,
-    glyph: Element,
+    item: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
     onRemove: (id: string) => void,
-    onMinimize: (element: HTMLElement, glyph: Element) => void,
+    onMinimize: (element: HTMLElement, item: Element) => void,
     // Content already rendered by a caller that measured it before deciding
     // this is a panel. Rendering again would build the glyph's content twice.
     preRenderedContent?: HTMLElement,
 ): void {
     const log = getLogger();
     const seg = getLogSegment();
-    const morph = prepareMorphTo(element, glyph, verifyElement, 'panel', PANEL_Z_INDEX);
-    const glyphRect = morph.rect;
+    const morph = prepareMorphTo(element, item, verifyElement, 'panel', PANEL_Z_INDEX);
+    const fromRect = morph.rect;
 
     const direction = detectSlideDirection();
 
@@ -177,7 +177,7 @@ export function morphDotToPanel(
     const escapeHandler = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
             document.removeEventListener('keydown', escapeHandler);
-            morphPanelToDot(element, glyph, verifyElement, onMinimize);
+            morphPanelToDot(element, item, verifyElement, onMinimize);
         }
     };
     document.addEventListener('keydown', escapeHandler);
@@ -185,11 +185,11 @@ export function morphDotToPanel(
 
     beginMorphToBox(
         element,
-        glyphRect,
+        fromRect,
         { x: targetX, y: targetY, width: panelWidth, height: panelHeight },
         getOpenDuration()
     ).then(() => {
-        log.debug(seg, `[Panel] Animation committed for ${glyph.id}`);
+        log.debug(seg, `[Panel] Animation committed for ${item.id}`);
 
         const directionClass = direction === 'from-top' ? 'glyph-panel--from-top' : 'glyph-panel--from-bottom';
         // Morph class leaves with the morph; the glyph's own classes survive
@@ -201,17 +201,17 @@ export function morphDotToPanel(
         element.style.width = `${panelWidth}px`;
         element.style.height = `${panelHeight}px`;
         element.style.zIndex = PANEL_Z_INDEX;
-        element.style.backgroundColor = glyph.color ?? DEFAULT_COLOR;
-        element.style.color = glyph.textColor ?? DEFAULT_TEXT_COLOR;
-        if (glyph.border) element.style.border = glyph.border;
+        element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
+        element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
+        if (item.border) element.style.border = item.border;
 
         // Restore stashed content or render fresh (shared with window.ts)
-        const { titleBar } = renderContent(element, glyph, 'Panel', preRenderedContent);
+        const { titleBar } = renderContent(element, item, 'Panel', preRenderedContent);
 
         // Add window controls (minimize/close) to the title bar
         addWindowControls(titleBar, {
-            onMinimize: () => morphPanelToDot(element, glyph, verifyElement, onMinimize),
-            onClose: glyph.onClose ? () => {
+            onMinimize: () => morphPanelToDot(element, item, verifyElement, onMinimize),
+            onClose: item.onClose ? () => {
                 const handler = escapeHandlers.get(element);
                 if (handler) {
                     document.removeEventListener('keydown', handler);
@@ -220,10 +220,10 @@ export function morphDotToPanel(
                 cleanupResize(element);
                 // A closed glyph is not a glyph that failed to draw.
                 disarmContentWatch(element);
-                onRemove(glyph.id);
+                onRemove(item.id);
                 element.remove();
-                try { glyph.onClose!(); } catch (error) {
-                    log.error(seg, `[Panel ${glyph.id}] Error in onClose: ${error instanceof Error ? error.message : String(error)}`);
+                try { item.onClose!(); } catch (error) {
+                    log.error(seg, `[Panel ${item.id}] Error in onClose: ${error instanceof Error ? error.message : String(error)}`);
                 }
             } : undefined,
         });
@@ -232,7 +232,7 @@ export function morphDotToPanel(
         const cleanupFn = attachResizeHandle(element, direction);
         resizeCleanups.set(element, cleanupFn);
     }).catch(error => {
-        log.warn(seg, `[Panel] Animation failed for ${glyph.id}: ${error instanceof Error ? error.message : String(error)}`);
+        log.warn(seg, `[Panel] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         const handler = escapeHandlers.get(element);
         if (handler) {
             document.removeEventListener('keydown', handler);
@@ -244,8 +244,8 @@ export function morphDotToPanel(
         element.style.cssText = '';
         morph.rollbackClass();
         applyRestingDotGeometry(element);
-        setElementId(element, glyph.id);
-        onMinimize(element, glyph);
+        setElementId(element, item.id);
+        onMinimize(element, item);
     });
 }
 
@@ -263,9 +263,9 @@ function cleanupResize(element: HTMLElement): void {
  */
 export function morphPanelToDot(
     panelElement: HTMLElement,
-    glyph: Element,
+    item: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
-    onMorphComplete: (element: HTMLElement, glyph: Element) => void
+    onMorphComplete: (element: HTMLElement, item: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();
@@ -273,8 +273,8 @@ export function morphPanelToDot(
     if (minimizing.has(panelElement)) return;
     minimizing.add(panelElement);
 
-    verifyElement(glyph.id, panelElement);
-    log.debug(seg, `[Panel] Minimizing ${glyph.id}`);
+    verifyElement(item.id, panelElement);
+    log.debug(seg, `[Panel] Minimizing ${item.id}`);
 
     const currentRect = panelElement.getBoundingClientRect();
 
@@ -291,15 +291,15 @@ export function morphPanelToDot(
     // Stash content (strips window controls, preserves glyph identity off-DOM)
     stashContent(panelElement);
 
-    const trayTarget = calculateTrayTarget(glyph.id);
+    const trayTarget = calculateTrayTarget(item.id);
 
     beginMorphToDot(panelElement, currentRect, trayTarget, getRestDuration())
         .then(() => {
             minimizing.delete(panelElement);
-            resetElement(panelElement, glyph, 'Panel', onMorphComplete);
+            resetElement(panelElement, item, 'Panel', onMorphComplete);
         })
         .catch(error => {
-            log.warn(seg, `[Panel] Animation failed for ${glyph.id}: ${error instanceof Error ? error.message : String(error)}`);
+            log.warn(seg, `[Panel] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
             minimizing.delete(panelElement);
         });
 }

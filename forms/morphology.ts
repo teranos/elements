@@ -75,14 +75,14 @@ export interface MorphPreparation {
  */
 export function prepareMorphTo(
     element: HTMLElement,
-    glyph: Element,
+    item: Element,
     verifyElement: (id: string, element: HTMLElement) => void,
     form: Form,
     zIndex: string
 ): MorphPreparation {
-    verifyElementAxiom(glyph.id, element, verifyElement);
+    verifyElementAxiom(item.id, element, verifyElement);
 
-    const glyphRect = element.getBoundingClientRect();
+    const fromRect = element.getBoundingClientRect();
 
     // THE ELEMENT ITSELF TAKES THE FORM - NO CLONING
     element.remove();
@@ -102,7 +102,7 @@ export function prepareMorphTo(
     setForm(element, form);
 
     return {
-        rect: glyphRect,
+        rect: fromRect,
         commitClass(settledClasses?: string): void {
             element.classList.remove(MORPHING_CLASS);
             const settled = (settledClasses ?? '').split(' ').filter(c => c !== '');
@@ -160,13 +160,13 @@ export function calculateTrayTarget(elementId?: string): { x: number; y: number 
  */
 export function resetElement(
     element: HTMLElement,
-    glyph: Element,
+    item: Element,
     label: string,
-    onMorphComplete: (element: HTMLElement, glyph: Element) => void
+    onMorphComplete: (element: HTMLElement, item: Element) => void
 ): void {
     const log = getLogger();
     const seg = getLogSegment();
-    log.debug(seg, `[${label}] Animation complete for ${glyph.id}`);
+    log.debug(seg, `[${label}] Animation complete for ${item.id}`);
     setForm(element, 'dot');
     setProximityText(element, false);
     element.remove();
@@ -176,6 +176,6 @@ export function resetElement(
     element.style.cssText = '';
     element.className = 'glyph-run-glyph';
     applyRestingDotGeometry(element);
-    wearPaint(element, was, glyph);
-    onMorphComplete(element, glyph);
+    wearPaint(element, was, item);
+    onMorphComplete(element, item);
 }
