@@ -11,7 +11,7 @@ This package is the element runtime: tray, proximity engine, morph transactions,
 Every element renderer follows the same shape: take an `Element`, return a DOM element.
 
 ```typescript
-import type { Element } from '@qntx/glyphs';
+import type { Element } from '@teranos/elements';
 
 function createMyElement(item: Element): HTMLElement {
     // build DOM from item.id, item.title, item.content, item.symbol
