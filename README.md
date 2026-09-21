@@ -1,5 +1,4 @@
-# @teranos/elements
-
+# elements
 [AXIOMAS.md](AXIOMAS.md) — read it before changing anything here. [VISION.md](VISION.md) — why the axioms exist.
 
 An element is exactly one DOM element for its entire lifetime. It morphs between forms — dot, proximity-expanded, window, panel, canvas — through smooth animations, but the element identity never changes.
