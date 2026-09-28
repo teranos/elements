@@ -10,6 +10,7 @@
 
 import { getLogger, getLogSegment } from '../config';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
+import { wearIdentity } from '../paint';
 import { addWindowControls } from '../forms/title-bar-controls';
 import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
@@ -153,7 +154,7 @@ export function morphDotToWindow(
         // form (VISION.md). The canvas path reaches the same place by
         // leaving on the element what it already wore.
         element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
-        if (item.border) element.style.border = item.border;
+        wearIdentity(element, item);
         element.style.backdropFilter = 'blur(2px)';
         element.style.padding = '0';
         element.style.opacity = '1';

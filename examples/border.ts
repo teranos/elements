@@ -31,6 +31,8 @@ export function renderBorderSpecimen(): void {
         symbol: 'U',
         // Visual identity on the datum — every form wears it
         border: OWNED_BORDER,
+        // "and it glows green a bit, its borders"
+        glow: '0 0 6px rgba(57, 255, 20, 0.5)',
         renderContent: () => document.createElement('div'),
     };
 

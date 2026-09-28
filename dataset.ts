@@ -47,6 +47,18 @@ export function setLastPosition(element: HTMLElement, x: number, y: number): voi
 }
 
 /**
+ * The element's own glow, or '' when it has none. On the element, so no wipe of its styles takes it.
+ */
+export function getGlow(element: HTMLElement): string {
+    return element.dataset.glow ?? '';
+}
+
+export function setGlow(element: HTMLElement, glow: string | undefined): void {
+    if (glow) element.dataset.glow = glow;
+    else delete element.dataset.glow;
+}
+
+/**
  * The size a person gave this window, or null when nobody has.
  */
 export function getLastSize(element: HTMLElement): { width: number, height: number } | null {

@@ -14,6 +14,7 @@
 import type { Element } from '../element';
 import { DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { setSymbol } from '../dataset';
+import { wearIdentity, wearShadow } from '../paint';
 import { createSymbolSpan, settleSymbolSpan } from '../symbol-span';
 import { applyCanvasElementLayout, makeDraggable, preventDrag } from './drag';
 import { makeResizable } from './resize';
@@ -66,7 +67,8 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
     setSymbol(element, item.symbol);
     element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
     element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
-    if (item.border) element.style.border = item.border;
+    wearIdentity(element, item);
+    wearShadow(element, '');
     element.style.backdropFilter = 'blur(2px)';
 
     // Layout

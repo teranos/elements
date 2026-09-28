@@ -18,6 +18,7 @@ import { type Element, DEFAULT_COLOR } from '../element';
 import { hasProximityText, setProximityText } from '../dataset';
 import { getDotGeometry } from '../config';
 import { wearRestSymbol } from './rest-symbol';
+import { wearIdentity } from '../paint';
 
 /**
  * Apply the resting (proximity 0) geometry to a dot element.
@@ -226,7 +227,7 @@ export class Proximity {
                 dot.style.borderRadius = `${borderRadius}px`;
                 dot.style.backgroundColor = color;
                 // Visual identity, like color — the dot wears the element's border
-                if (item?.border) dot.style.border = item.border;
+                if (item) wearIdentity(dot, item);
                 dot.style.backdropFilter = 'blur(2px)';
                 dot.style.filter = dot.matches(':hover') ? 'brightness(1.2)' : '';
 

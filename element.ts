@@ -52,6 +52,7 @@ export interface Element {
     color?: string;      // Background color (default: DEFAULT_COLOR)
     textColor?: string;  // Text color (default: 'rgb(255,255,255)')
     border?: string;     // CSS border shorthand (default: the form's own border)
+    glow?: string;       // CSS box-shadow of the element's own light, worn beside a form's shadow
 
     // Pre-existing DOM element from cursor form (placement mode).
     // When set, canvasPlaced reuses this element instead of creating a new one.

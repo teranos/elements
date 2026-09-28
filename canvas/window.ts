@@ -33,7 +33,7 @@ import { addWindowControls, removeWindowControls } from '../forms/title-bar-cont
 import { setupWindowDrag, teardownWindowDrag } from '../window/drag';
 import { setupWindowResize, teardownWindowResize } from '../window/resize';
 import { calculateTrayTarget } from '../forms/morphology';
-import { readPaint, wearPaint } from '../paint';
+import { readPaint, wearPaint, wearShadow } from '../paint';
 import { stashContent } from '../content/stash';
 import { holdBody } from '../content/body';
 
@@ -333,6 +333,8 @@ export function morphWindowToCanvasPlaced(
                 (element.style as any)[prop] = '';
             }
             restoreElementStyles(element);
+            // The window's shadow went with its styles; the element's own glow did not.
+            wearShadow(element, '');
 
             // 8. Restore canvas layout from origin
             element.style.position = 'absolute';
@@ -485,6 +487,8 @@ export function placeWindowOnCanvas(
                 (element.style as any)[prop] = '';
             }
             restoreElementStyles(element);
+            // The window's shadow went with its styles; the element's own glow did not.
+            wearShadow(element, '');
 
             // 11. Place at computed canvas-local position
             element.style.position = 'absolute';
