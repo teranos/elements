@@ -12,6 +12,7 @@
 
 import { getLogger, getLogSegment } from '../config';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
+import { wearIdentity, wearShadow } from '../paint';
 import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import { getOpenDuration, getRestDuration } from '../element';
 import { prepareMorphTo, calculateTrayTarget, resetElement } from '../forms/morphology';
@@ -54,10 +55,10 @@ export function morphDotToWorkspace(
         element.style.height = '100vh';
         element.style.borderRadius = '0'; // No rounded corners
         element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
-        if (item.border) element.style.border = item.border;
+        wearIdentity(element, item);
         element.style.backdropFilter = 'blur(2px)';
         element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
-        element.style.boxShadow = 'none'; // No shadow
+        wearShadow(element, 'none'); // No shadow of the form's; the element's own glow stays
         element.style.padding = '0'; // No padding
         element.style.opacity = '1';
 
@@ -143,19 +144,3 @@ export function morphWorkspaceToDot(
             log.warn(seg, `[Canvas] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         });
 }
-
-/**
- * @deprecated Renamed to {@link morphDotToWorkspace} — the canvas it named is the workspace, one suffix from `canvasPlaced` and the opposite thing.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphToCanvas: typeof morphDotToWorkspace = morphDotToWorkspace;
-
-/**
- * @deprecated Renamed to {@link morphWorkspaceToDot} — same canvas, same suffix, and the destination was unsaid.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphFromCanvas: typeof morphWorkspaceToDot = morphWorkspaceToDot;

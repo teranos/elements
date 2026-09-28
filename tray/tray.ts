@@ -28,11 +28,13 @@
  * Every element MUST be created through the createElement factory.
  */
 
-import { getLogger, getLogSegment, getPersistence } from '../config';
+import { getLogger, getLogSegment, getPersistence, getTrayZIndex } from '../config';
 import { Proximity, applyRestingDotGeometry } from './proximity';
 import { type Element, getOpenDuration, DEFAULT_COLOR } from '../element';
-import { readPaint, wearPaint } from '../paint';
+import { readPaint, wearPaint, wearIdentity, wearShadow } from '../paint';
+import { holdable } from '../hold';
 import { getForm, setElementId, setSymbol } from '../dataset';
+import { wearRestSymbol } from './rest-symbol';
 import { morphDotToWindow } from '../window/window';
 import { morphDotToWorkspace } from '../canvas/workspace';
 import { morphDotToPanel } from '../forms/panel';
@@ -87,9 +89,12 @@ class Tray {
         element.className = 'dot';
         applyRestingDotGeometry(element);
         element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
-        if (item.border) element.style.border = item.border;
+        wearIdentity(element, item);
+        wearShadow(element, '');
+        holdable(element);
         setElementId(element, item.id);
         setSymbol(element, item.symbol);
+        wearRestSymbol(element, item.symbol);
 
         // Track this element
         this.elements.set(item.id, element);
@@ -104,10 +109,6 @@ class Tray {
         // Store handler in WeakMap for proper cleanup
         this.clickHandlers.set(element, clickHandler);
         element.addEventListener('click', clickHandler);
-
-        // The press is what starts a selection; click already fires on mouseup,
-        // by which time the range exists.
-        element.addEventListener('mousedown', suppressSelectionUntilRelease);
 
         return element;
     }
@@ -138,11 +139,21 @@ class Tray {
         this.element = document.createElement('div');
         this.element.className = 'tray';
         this.element.setAttribute('data-empty', 'true');
+        // Above every window, so a dot opening under the pointer is never behind one.
+        this.element.style.zIndex = String(getTrayZIndex());
+        // A title the pointer brings out is never text to select, whatever the drag started on.
+        this.element.style.userSelect = 'none';
+        this.element.style.setProperty('-webkit-user-select', 'none');
 
         // Container for collapsed elements
         this.indicatorContainer = document.createElement('div');
         this.indicatorContainer.className = 'tray-dots';
         this.element.appendChild(this.indicatorContainer);
+
+        // The press is what starts a selection; click already fires on mouseup,
+        // by which time the range exists. Heard on the tray and not on the
+        // element: the element is the window too, and a window's text is selectable.
+        this.indicatorContainer.addEventListener('mousedown', suppressSelectionUntilRelease);
 
         document.body.appendChild(this.element);
 
@@ -342,8 +353,11 @@ class Tray {
         element.className = 'dot';
         applyRestingDotGeometry(element);
         wearPaint(element, was, item);
+        wearIdentity(element, item);
+        holdable(element);
         setElementId(element, item.id);
         setSymbol(element, item.symbol);
+        wearRestSymbol(element, item.symbol);
 
         // Attach click handler
         const clickHandler = (e: MouseEvent) => {
@@ -511,6 +525,9 @@ class Tray {
         } else {
             this.indicatorContainer.appendChild(element);
         }
+
+        // Back at rest, so it shows its symbol again.
+        wearRestSymbol(element, item.symbol);
 
         // Re-enable proximity morphing
         this.isRestoring = false;

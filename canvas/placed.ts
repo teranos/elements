@@ -14,10 +14,13 @@
 import type { Element } from '../element';
 import { DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { setSymbol } from '../dataset';
+import { wearIdentity, wearShadow } from '../paint';
+import { holdable } from '../hold';
 import { createSymbolSpan, settleSymbolSpan } from '../symbol-span';
 import { applyCanvasElementLayout, makeDraggable, preventDrag } from './drag';
 import { makeResizable } from './resize';
 import { storeCleanup } from './cleanup';
+import { createCorner } from '../corner';
 import type { MakeDraggableOptions } from './element-ui';
 
 // ── Config ──────────────────────────────────────────────────────────
@@ -36,8 +39,10 @@ export interface CanvasPlacedConfig {
     draggableOptions?: Partial<MakeDraggableOptions>;
     /** Enable resize handle. Pass object for custom min dimensions. */
     resizable?: boolean | { minWidth?: number; minHeight?: number };
-    /** Extra CSS class(es) for the resize handle (e.g. 'resize-handle--small'). */
+    /** Extra CSS class(es) for how the resize handle looks (e.g. 'resize-handle--small'). */
     resizeHandleClass?: string;
+    /** Size of the resize handle in pixels. Default: CORNER_SIZE. */
+    resizeHandleSize?: number;
     /** Label for drag/resize log messages (e.g. 'PyElement'). */
     logLabel: string;
     /** Use minHeight instead of height (for auto-sizing elements). */
@@ -63,7 +68,9 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
     setSymbol(element, item.symbol);
     element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
     element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
-    if (item.border) element.style.border = item.border;
+    wearIdentity(element, item);
+    wearShadow(element, '');
+    holdable(element);
     element.style.backdropFilter = 'blur(2px)';
 
     // Layout
@@ -113,10 +120,10 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
 
     // Resize
     if (config.resizable) {
-        const handle = document.createElement('div');
-        handle.className = config.resizeHandleClass
-            ? `resize-handle ${config.resizeHandleClass}`
-            : 'resize-handle';
+        const handle = createCorner(config.resizeHandleSize);
+        if (config.resizeHandleClass) {
+            handle.classList.add(...config.resizeHandleClass.split(' ').filter(name => name !== ''));
+        }
         element.appendChild(handle);
 
         const resizeOpts = typeof config.resizable === 'object' ? config.resizable : {};

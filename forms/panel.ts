@@ -19,6 +19,7 @@
 import { getLogger, getLogSegment } from '../config';
 import { applyRestingDotGeometry } from '../tray/proximity';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
+import { wearIdentity, wearShadow } from '../paint';
 import { addWindowControls } from './title-bar-controls';
 import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
@@ -203,7 +204,8 @@ export function morphDotToPanel(
         element.style.zIndex = PANEL_Z_INDEX;
         element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
         element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
-        if (item.border) element.style.border = item.border;
+        wearIdentity(element, item);
+        wearShadow(element, '');
 
         // Restore stashed content or render fresh (shared with window.ts)
         const { titleBar } = renderContent(element, item, 'Panel', preRenderedContent);
@@ -303,19 +305,3 @@ export function morphPanelToDot(
             minimizing.delete(panelElement);
         });
 }
-
-/**
- * @deprecated Renamed to {@link morphDotToPanel} — the tray dot is where it starts.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphToPanel: typeof morphDotToPanel = morphDotToPanel;
-
-/**
- * @deprecated Renamed to {@link morphPanelToDot} — the destination was unsaid.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphFromPanel: typeof morphPanelToDot = morphPanelToDot;

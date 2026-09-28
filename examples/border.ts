@@ -26,10 +26,15 @@ export function renderBorderSpecimen(): void {
 
     const item: Element = {
         id: 'border-specimen',
-        title: 'Border',
-        symbol: '▣',
+        // "this one becomes Uranium"
+        title: 'Uranium',
+        symbol: 'U',
         // Visual identity on the datum — every form wears it
         border: OWNED_BORDER,
+        // "and it glows green a bit, its borders"
+        glow: '0 0 6px rgba(57, 255, 20, 0.5)',
+        // "pciking up uranium the held click, is a state chance the uranium glows more"
+        heldGlow: '0 0 18px rgba(57, 255, 20, 0.9)',
         renderContent: () => document.createElement('div'),
     };
 
@@ -41,7 +46,7 @@ export function renderBorderSpecimen(): void {
         item,
         className: 'canvas-border-specimen',
         defaults: { x: 16, y: 40, width: 240, height: 150 },
-        titleBar: { label: 'owns its border', actions: [expand] },
+        titleBar: { label: 'Uranium', actions: [expand] },
         logLabel: 'BorderSpecimen',
     });
 
@@ -53,7 +58,7 @@ export function renderBorderSpecimen(): void {
     expand.addEventListener('click', () => {
         if (getForm(element) === 'window') return;
         morphCanvasPlacedToWindow(element, {
-            title: 'Border',
+            title: 'Uranium',
             canvasId: 'border-canvas',
             onRestoreComplete: () => {},
         });

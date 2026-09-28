@@ -29,6 +29,7 @@ import {
     MAX_VIEWPORT_HEIGHT_RATIO,
 } from '../element';
 import { setNaturalWidth } from './drag';
+import { wearShadow } from '../paint';
 import { raise, raiseOnInteract } from './z-order';
 
 /**
@@ -69,7 +70,8 @@ export function settleWindow(element: HTMLElement, box: WindowBox): void {
     element.style.maxHeight = `${Math.floor(window.innerHeight * MAX_VIEWPORT_HEIGHT_RATIO)}px`;
 
     element.style.borderRadius = getWindowBorderRadius();
-    element.style.boxShadow = WINDOW_BOX_SHADOW;
+    // The window's shadow, and the element's own glow beside it.
+    wearShadow(element, WINDOW_BOX_SHADOW);
 
     // A window holds a title bar above a body that clips.
     element.style.display = 'flex';

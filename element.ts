@@ -23,8 +23,7 @@ export interface Element {
     // Form configuration
     opensAs?: TrayDestination;  // What this opens as from the tray. Default: 'window'
     // TODO: Add 'programmature' form type for full code editor that can minimize to tray
-    initialWidth?: string;               // Initial dimensions (e.g., "800px")
-    initialHeight?: string;
+    // No size: an element never declares how big it is. A window measures its content.
     defaultX?: number;                   // Default position
     defaultY?: number;
 
@@ -53,6 +52,8 @@ export interface Element {
     color?: string;      // Background color (default: DEFAULT_COLOR)
     textColor?: string;  // Text color (default: 'rgb(255,255,255)')
     border?: string;     // CSS border shorthand (default: the form's own border)
+    glow?: string;       // CSS box-shadow of the element's own light, worn beside a form's shadow
+    heldGlow?: string;   // The glow while it is held (hold.ts). Absent, a held element keeps its glow.
 
     // Pre-existing DOM element from cursor form (placement mode).
     // When set, canvasPlaced reuses this element instead of creating a new one.
@@ -99,8 +100,6 @@ export function getRestDuration(): number {
 export const CONTENT_DEADLINE_MS = 10000;
 
 // Window form constants (used by window/window.ts)
-export const DEFAULT_WINDOW_WIDTH = '800px';
-export const DEFAULT_WINDOW_HEIGHT = '600px';
 export const WINDOW_BORDER_RADIUS = '8px';
 export const WINDOW_BOX_SHADOW = '0 4px 12px rgba(0, 0, 0, 0.15)';
 

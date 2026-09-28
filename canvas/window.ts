@@ -31,14 +31,18 @@ import {
 } from '../element';
 import { addWindowControls, removeWindowControls } from '../forms/title-bar-controls';
 import { setupWindowDrag, teardownWindowDrag } from '../window/drag';
+import { setupWindowResize, teardownWindowResize } from '../window/resize';
 import { calculateTrayTarget } from '../forms/morphology';
-import { readPaint, wearPaint } from '../paint';
+import { readPaint, wearPaint, wearShadow } from '../paint';
 import { stashContent } from '../content/stash';
+import { holdBody } from '../content/body';
 
-// ── Default window dimensions ────────────────────────────────────────
-
-const DEFAULT_WIDTH = 520;
-const DEFAULT_HEIGHT = 420;
+/**
+ * The size a lifted element had on the canvas, which is the size its window keeps (Element Axioma).
+ */
+export function liftedSize(element: HTMLElement): { width: number, height: number } {
+    return { width: element.offsetWidth, height: element.offsetHeight };
+}
 
 // Key for storing original canvas parent on the element
 const CANVAS_PARENT_KEY = '__canvasParent';
@@ -118,12 +122,13 @@ export function morphCanvasPlacedToWindow(
     const seg = getLogSegment();
     const { title, canvasId, onClose } = config;
 
-    // 1. Save canvas-local position for morph-back
+    // 1. Save canvas-local position for morph-back, and the size the window keeps
+    const kept = liftedSize(element);
     setCanvasOrigin(element, {
         x: element.offsetLeft,
         y: element.offsetTop,
-        width: element.offsetWidth,
-        height: element.offsetHeight,
+        width: kept.width,
+        height: kept.height,
         canvasId,
     });
 
@@ -138,6 +143,7 @@ export function morphCanvasPlacedToWindow(
     const contentDiv = document.createElement('div');
     contentDiv.className = 'canvas-window-content content-area';
     contentDiv.style.padding = '0';
+    holdBody(contentDiv);
     const children = Array.from(element.childNodes);
     for (const child of children) {
         if (child === existingTitleBar) continue;
@@ -184,11 +190,11 @@ export function morphCanvasPlacedToWindow(
     // 9. Mark window state
     setForm(element, 'window');
 
-    // 10. Calculate target window rect — the default box answers to the
+    // 10. Calculate target window rect — the kept size answers to the
     //     viewport (a phone may be the screen), and a remembered position
     //     must not park the controls off-screen
     const viewport = { width: window.innerWidth, height: window.innerHeight };
-    const sized = clampToViewport({ x: 0, y: 0, width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT }, viewport);
+    const sized = clampToViewport({ x: 0, y: 0, width: kept.width, height: kept.height }, viewport);
     const targetW = sized.width;
     const targetH = sized.height;
     const remembered = getLastPosition(element);
@@ -225,6 +231,8 @@ export function morphCanvasPlacedToWindow(
 
         // Set up window dragging
         setupWindowDrag(element, titleBar);
+        // Every window has a corner a person can size it by.
+        setupWindowResize(element);
 
         // The body is the children this element already had, so it usually draws
         // at once. It is watched all the same: an element lifted off the canvas
@@ -284,6 +292,7 @@ export function morphWindowToCanvasPlaced(
 
     // 2. Tear down window drag
     teardownWindowDrag(element);
+    teardownWindowResize(element);
 
     // 3. Read canvas origin, convert to current screen coords
     const origin = getCanvasOrigin(element);
@@ -324,6 +333,8 @@ export function morphWindowToCanvasPlaced(
                 (element.style as any)[prop] = '';
             }
             restoreElementStyles(element);
+            // The window's shadow went with its styles; the element's own glow did not.
+            wearShadow(element, '');
 
             // 8. Restore canvas layout from origin
             element.style.position = 'absolute';
@@ -369,6 +380,7 @@ function minimizeCanvasWindowToTray(
 
     // 2. Tear down window drag
     teardownWindowDrag(element);
+    teardownWindowResize(element);
 
     // 3. Find tray target position
     const trayTarget = calculateTrayTarget(element.dataset.elementId);
@@ -435,6 +447,7 @@ export function placeWindowOnCanvas(
 
     // 3. Tear down window drag
     teardownWindowDrag(element);
+    teardownWindowResize(element);
 
     // 4. Convert window position to canvas-local coordinates
     const relX = windowRect.left - canvasRect.left;
@@ -474,6 +487,8 @@ export function placeWindowOnCanvas(
                 (element.style as any)[prop] = '';
             }
             restoreElementStyles(element);
+            // The window's shadow went with its styles; the element's own glow did not.
+            wearShadow(element, '');
 
             // 11. Place at computed canvas-local position
             element.style.position = 'absolute';

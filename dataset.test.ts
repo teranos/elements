@@ -1,7 +1,5 @@
 import { describe, test, expect, beforeEach } from 'bun:test';
 import {
-    isInWindowState,
-    setWindowState,
     getLastPosition,
     setLastPosition,
     hasProximityText,
@@ -24,27 +22,6 @@ beforeEach(() => {
 // ── Tim (happy path) ────────────────────────────────────────────────
 
 describe('Tim: dataset helpers', () => {
-    // Deprecated in favour of setForm/getForm, and kept
-    // working on the same store — form-dataset.test.ts covers what it
-    // can and cannot say.
-    describe('window state', () => {
-        test('default is not window state', () => {
-            expect(isInWindowState(el)).toBe(false);
-        });
-
-        test('set true then check', () => {
-            setWindowState(el, true);
-            expect(isInWindowState(el)).toBe(true);
-        });
-
-        test('set true then false clears', () => {
-            setWindowState(el, true);
-            setWindowState(el, false);
-            expect(isInWindowState(el)).toBe(false);
-            expect(el.dataset.form).toBeUndefined();
-        });
-    });
-
     describe('last position', () => {
         test('no position by default', () => {
             expect(getLastPosition(el)).toBeNull();
@@ -173,11 +150,6 @@ describe('Spike: dataset edge cases', () => {
     test('setLastPosition with negative coordinates', () => {
         setLastPosition(el, -50, -100);
         expect(getLastPosition(el)).toEqual({ x: -50, y: -100 });
-    });
-
-    test('setWindowState false on fresh element is a no-op', () => {
-        setWindowState(el, false);
-        expect(isInWindowState(el)).toBe(false);
     });
 
     test('overwrite element ID', () => {

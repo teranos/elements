@@ -24,8 +24,6 @@ export {
     CONTENT_DEADLINE_MS,
     getOpenDuration,
     getRestDuration,
-    DEFAULT_WINDOW_WIDTH,
-    DEFAULT_WINDOW_HEIGHT,
     WINDOW_BORDER_RADIUS,
     WINDOW_BOX_SHADOW,
     TITLE_BAR_HEIGHT,
@@ -56,12 +54,10 @@ export type { Form, FormTable, TrayDestination } from './form';
 export {
     setForm,
     getForm,
-    /** @deprecated Use `getForm`. */
-    isInWindowState,
-    /** @deprecated Use `setForm`. */
-    setWindowState,
     getLastPosition,
     setLastPosition,
+    getLastSize,
+    setLastSize,
     hasProximityText,
     setProximityText,
     getElementId,
@@ -97,12 +93,8 @@ export { createSymbolSpan, settleSymbolSpan } from './symbol-span';
 // Morph transactions — Web Animations API, taken or abandoned
 export {
     beginMorphToDot,
-    /** @deprecated Renamed to `beginMorphToDot`. */
-    beginMinimizeMorph,
     beginMorphToBox,
     beginMorphToCanvasPlaced,
-    /** @deprecated Renamed to `beginMorphToCanvasPlaced`. */
-    beginRestoreMorph,
     cancelMorph,
 } from './morph-transaction';
 
@@ -137,6 +129,12 @@ export type { ExpandToWindowConfig } from './canvas/expand-to-window';
 // Window drag — standalone, no canvas dependency
 export { setupWindowDrag, teardownWindowDrag } from './window/drag';
 
+// Window resize — the one way a window takes a size it was not measured to
+export { setupWindowResize, teardownWindowResize } from './window/resize';
+
+// The resize corner — placed and sized by the package, dressed by the host
+export { createCorner, CORNER_SIZE } from './corner';
+
 // Placement — where an element lands when nothing says where
 export { findPlacement, occupiedRects, overlapArea, placementCost, clampToViewport } from './window/placement';
 export type { PlacementOpts, Rect, Size } from './window/placement';
@@ -144,28 +142,13 @@ export type { PlacementOpts, Rect, Size } from './window/placement';
 // Stacking — the last window touched is the one in front
 export { raise, raiseOnInteract } from './window/z-order';
 
+// Held — a press until it is let go: the held one glows, the rest dim a little
+export { holdable, isHeld, heldElement, FOCUS_DIM, FOCUS_TRANSITION_MS } from './hold';
+
 // Forms — every morph names both ends, in the names the table holds
 export { morphDotToWindow, morphWindowToDot } from './window/window';
 export { morphDotToWorkspace, morphWorkspaceToDot } from './canvas/workspace';
 export { morphDotToPanel, morphPanelToDot } from './forms/panel';
-export {
-    /** @deprecated Renamed to `morphDotToWindow`. */
-    morphToWindow,
-    /** @deprecated Renamed to `morphWindowToDot`. */
-    morphFromWindow,
-} from './window/window';
-export {
-    /** @deprecated Renamed to `morphDotToWorkspace`. */
-    morphToCanvas,
-    /** @deprecated Renamed to `morphWorkspaceToDot`. */
-    morphFromCanvas,
-} from './canvas/workspace';
-export {
-    /** @deprecated Renamed to `morphDotToPanel`. */
-    morphToPanel,
-    /** @deprecated Renamed to `morphPanelToDot`. */
-    morphFromPanel,
-} from './forms/panel';
 
 // Cursor form — transient placement preview
 export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './canvas/cursor';

@@ -30,33 +30,6 @@ export function getForm(element: HTMLElement): Form | null {
 }
 
 /**
- * @deprecated Use {@link getForm}. One bit cannot hold a seven-name
- * list: this is true for `window` and for `canvasExpanded`, and false for
- * `panel`, `workspace` and a dot alike — so it can say what an element is not far
- * better than what it is.
- *
- * It reads the same store {@link setForm} writes, so it stays correct
- * about what it could ever say.
- */
-export function isInWindowState(element: HTMLElement): boolean {
-    const m = getForm(element);
-    return m === 'window' || m === 'canvasExpanded';
-}
-
-/**
- * @deprecated Use {@link setForm}, which takes the name instead of a
- * bit. `false` here meant "not a window" and left three different destinations
- * — dot, canvasPlaced, workspace — indistinguishable at the far end of a morph.
- */
-export function setWindowState(element: HTMLElement, isWindow: boolean): void {
-    if (isWindow) {
-        setForm(element, 'window');
-    } else {
-        delete element.dataset.form;
-    }
-}
-
-/**
  * Get last saved position of window
  */
 export function getLastPosition(element: HTMLElement): { x: number, y: number } | null {
@@ -71,6 +44,55 @@ export function getLastPosition(element: HTMLElement): { x: number, y: number } 
 export function setLastPosition(element: HTMLElement, x: number, y: number): void {
     element.dataset.lastX = String(x);
     element.dataset.lastY = String(y);
+}
+
+/**
+ * The element's own glow, or '' when it has none. On the element, so no wipe of its styles takes it.
+ */
+export function getGlow(element: HTMLElement): string {
+    return element.dataset.glow ?? '';
+}
+
+export function setGlow(element: HTMLElement, glow: string | undefined): void {
+    if (glow) element.dataset.glow = glow;
+    else delete element.dataset.glow;
+}
+
+/** The glow while held, or '' when it has none. */
+export function getHeldGlow(element: HTMLElement): string {
+    return element.dataset.heldGlow ?? '';
+}
+
+export function setHeldGlow(element: HTMLElement, glow: string | undefined): void {
+    if (glow) element.dataset.heldGlow = glow;
+    else delete element.dataset.heldGlow;
+}
+
+/** Whether the element is held: pressed, and not yet let go (hold.ts). */
+export function getHeld(element: HTMLElement): boolean {
+    return element.dataset.held === 'true';
+}
+
+export function setHeld(element: HTMLElement, held: boolean): void {
+    if (held) element.dataset.held = 'true';
+    else delete element.dataset.held;
+}
+
+/**
+ * The size a person gave this window, or null when nobody has.
+ */
+export function getLastSize(element: HTMLElement): { width: number, height: number } | null {
+    const width = parseFloat(element.dataset.lastWidth ?? '');
+    const height = parseFloat(element.dataset.lastHeight ?? '');
+    return isNaN(width) || isNaN(height) ? null : { width, height };
+}
+
+/**
+ * Keep the size a person gave this window, so it survives the tray (Element Axioma).
+ */
+export function setLastSize(element: HTMLElement, width: number, height: number): void {
+    element.dataset.lastWidth = String(width);
+    element.dataset.lastHeight = String(height);
 }
 
 /**

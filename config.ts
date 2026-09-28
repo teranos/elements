@@ -93,6 +93,10 @@ export interface ElementConfig {
     dotGeometry?: DotGeometry;
     /** Corner radius of an opened window. Written inline, so CSS cannot reach it. */
     windowBorderRadius?: string;
+    /** A resting tray dot shows its element's symbol. Off unless a host turns it on. */
+    dotSymbol?: boolean;
+    /** The tray's layer. Every window stays below it; a host may keep its own layers above it. */
+    trayZIndex?: number;
 }
 
 // Default no-op logger
@@ -142,6 +146,8 @@ let config: {
     removeCanvasElement: ((elementId: string) => void) | null;
     dotGeometry: Required<DotGeometry>;
     windowBorderRadius: string;
+    dotSymbol: boolean;
+    trayZIndex: number;
 } = {
     logger: noopLogger,
     logSegment: 'ELEMENT',
@@ -151,6 +157,8 @@ let config: {
     removeCanvasElement: null,
     dotGeometry: defaultDotGeometry,
     windowBorderRadius: '8px',
+    dotSymbol: false,
+    trayZIndex: 100002,
 };
 
 /**
@@ -165,6 +173,8 @@ export function configureElements(opts: ElementConfig): void {
     if (opts.canvasHost) config.canvasHost = opts.canvasHost;
     if (opts.removeCanvasElement) config.removeCanvasElement = opts.removeCanvasElement;
     if (opts.windowBorderRadius !== undefined) config.windowBorderRadius = opts.windowBorderRadius;
+    if (opts.dotSymbol !== undefined) config.dotSymbol = opts.dotSymbol;
+    if (typeof opts.trayZIndex === 'number') config.trayZIndex = opts.trayZIndex;
     if (opts.dotGeometry) {
         // Field by field, so a partial geometry merges instead of replacing, and
         // so 0 means 0 (a truthiness check would silently drop a zero radius).
@@ -177,6 +187,16 @@ export function configureElements(opts: ElementConfig): void {
         if (typeof g.borderRadiusMax === 'number') merged.borderRadiusMax = g.borderRadiusMax;
         config.dotGeometry = merged;
     }
+}
+
+/** The tray's layer, above every window. */
+export function getTrayZIndex(): number {
+    return config.trayZIndex;
+}
+
+/** Whether a resting tray dot shows its element's symbol. */
+export function getDotSymbol(): boolean {
+    return config.dotSymbol;
 }
 
 /** Get the active logger */

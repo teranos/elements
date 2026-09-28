@@ -10,17 +10,20 @@
 
 import { getLogger, getLogSegment } from '../config';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
+import { wearIdentity } from '../paint';
 import { addWindowControls } from '../forms/title-bar-controls';
 import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
 import { renderContent } from '../content/render';
 import { setupWindowDrag, teardownWindowDrag } from './drag';
+import { setupWindowResize, teardownWindowResize } from './resize';
 import { fitsAsWindow } from './fits';
 import { morphDotToPanel } from '../forms/panel';
 import { findPlacement, occupiedRects, clampToViewport } from './placement';
 import {
     getLastPosition,
     setLastPosition,
+    getLastSize,
 } from '../dataset';
 import { prepareMorphTo, calculateTrayTarget, resetElement } from '../forms/morphology';
 import { settleWindow } from './settle';
@@ -46,19 +49,15 @@ export function morphDotToWindow(
     const log = getLogger();
     const seg = getLogSegment();
 
-    // Size ownership per axis:
-    //   initialWidth set  → window owns width  (explicit px, content clips/scrolls)
-    //   initialWidth unset → content owns width (`fit-content`, window wraps)
-    // Same for height. Pre-render + measure the content when either axis is
-    // content-owned so the morph animation targets the final box directly
-    // (no post-animation resize flash).
-    const widthOwnedByWindow = item.initialWidth != null;
-    const heightOwnedByWindow = item.initialHeight != null;
+    // An element never declares its size. A window is the size a person gave
+    // it (window/resize.ts), kept across the tray, or else what its content
+    // measures — so the morph animation targets the final box directly.
+    const given = getLastSize(element);
 
     let preRenderedContent: HTMLElement | null = null;
     let measuredWidth = 0;
     let measuredHeight = 0;
-    if (!widthOwnedByWindow || !heightOwnedByWindow) {
+    if (!given) {
         preRenderedContent = item.renderContent();
         const measurer = document.createElement('div');
         measurer.style.position = 'fixed';
@@ -78,7 +77,7 @@ export function morphDotToWindow(
 
     // Asked before a transaction opens, because which form this is
     // cannot be decided halfway through becoming one (Morph Axioma).
-    if (!fitsAsWindow(measuredWidth, window.innerWidth)) {
+    if (!fitsAsWindow(given?.width ?? measuredWidth, window.innerWidth)) {
         morphDotToPanel(element, item, verifyElement, onRemove, onMinimize, preRenderedContent ?? undefined);
         return;
     }
@@ -94,8 +93,8 @@ export function morphDotToWindow(
     const sized = clampToViewport({
         x: 0,
         y: 0,
-        width: widthOwnedByWindow ? parseInt(item.initialWidth!) : measuredWidth,
-        height: heightOwnedByWindow ? parseInt(item.initialHeight!) : measuredHeight + titleBarHeight,
+        width: given?.width ?? measuredWidth,
+        height: given?.height ?? measuredHeight + titleBarHeight,
     }, viewport);
     const windowWidth = sized.width;
     const windowHeight = sized.height;
@@ -147,15 +146,15 @@ export function morphDotToWindow(
             y: targetY,
             width: windowWidth,
             height: windowHeight,
-            widthStyle: widthOwnedByWindow ? undefined : 'fit-content',
-            heightStyle: heightOwnedByWindow ? undefined : 'fit-content',
+            widthStyle: given ? undefined : 'fit-content',
+            heightStyle: given ? undefined : 'fit-content',
         });
 
         // What the element wears is data on the element and never a property of a
         // form (VISION.md). The canvas path reaches the same place by
         // leaving on the element what it already wore.
         element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
-        if (item.border) element.style.border = item.border;
+        wearIdentity(element, item);
         element.style.backdropFilter = 'blur(2px)';
         element.style.padding = '0';
         element.style.opacity = '1';
@@ -176,6 +175,7 @@ export function morphDotToWindow(
             onMinimize: () => morphWindowToDot(element, item, verifyElement, onMinimize),
             onClose: item.onClose ? () => {
                 teardownWindowDrag(element);
+                teardownWindowResize(element);
                 // A closed element is not an element that failed to draw.
                 disarmContentWatch(element);
                 onRemove(item.id);
@@ -188,13 +188,13 @@ export function morphDotToWindow(
             } : undefined,
         });
 
-        // Width/height are owned per-axis (see morphDotToWindow prologue).
-        // No ResizeObserver — `fit-content` handles growth/shrink naturally
-        // when content owns the axis; explicit px handles the window-owned axis.
+        // No ResizeObserver — `fit-content` follows the content as it grows.
 
         // Make window draggable. The width a drag reflows from was recorded by
         // the settle, which is the one place that knows the box.
         setupWindowDrag(element, titleBar);
+        // The corner is how a person gives it a size, and the body scrolls then.
+        setupWindowResize(element);
     }).catch(error => {
         // ROLLBACK: Animation was cancelled or failed
         log.warn(seg, `[Window] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
@@ -226,6 +226,8 @@ export function morphWindowToDot(
 
     // Tear down window drag handlers before stashing (prevents handler accumulation)
     teardownWindowDrag(windowElement);
+    // The corner is the window's, not the content's: it is not stashed.
+    teardownWindowResize(windowElement);
 
     // Stash content (strips window controls, preserves element identity off-DOM)
     stashContent(windowElement);
@@ -242,19 +244,3 @@ export function morphWindowToDot(
             // Element stays in window state, can retry
         });
 }
-
-/**
- * @deprecated Renamed to {@link morphDotToWindow} — the tray dot is where it starts, and `To`/`From` left that unsaid.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphToWindow: typeof morphDotToWindow = morphDotToWindow;
-
-/**
- * @deprecated Renamed to {@link morphWindowToDot} — `From` named the origin and left the destination to be guessed.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphFromWindow: typeof morphWindowToDot = morphWindowToDot;
