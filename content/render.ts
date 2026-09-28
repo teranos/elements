@@ -12,6 +12,7 @@ import { createSymbolSpan } from '../symbol-span';
 import { restoreContent } from './stash';
 import { setContentState } from '../dataset';
 import { watchContent } from './watch';
+import { holdBody } from './body';
 
 export interface RenderContentResult {
     titleBar: HTMLElement;
@@ -84,6 +85,7 @@ export function renderContent(
             const contentArea = document.createElement('div');
             contentArea.classList.add('content-area');
             contentArea.style.padding = `${CANVAS_ELEMENT_CONTENT_PADDING}px`;
+            holdBody(contentArea);
             contentArea.appendChild(content);
             element.appendChild(contentArea);
             contentElement = contentArea;

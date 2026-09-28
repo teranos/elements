@@ -34,6 +34,7 @@ import { setupWindowDrag, teardownWindowDrag } from '../window/drag';
 import { calculateTrayTarget } from '../forms/morphology';
 import { readPaint, wearPaint } from '../paint';
 import { stashContent } from '../content/stash';
+import { holdBody } from '../content/body';
 
 // ── Default window dimensions ────────────────────────────────────────
 
@@ -138,6 +139,7 @@ export function morphCanvasPlacedToWindow(
     const contentDiv = document.createElement('div');
     contentDiv.className = 'canvas-window-content content-area';
     contentDiv.style.padding = '0';
+    holdBody(contentDiv);
     const children = Array.from(element.childNodes);
     for (const child of children) {
         if (child === existingTitleBar) continue;
