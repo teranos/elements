@@ -32,6 +32,7 @@ import { getLogger, getLogSegment, getPersistence, getTrayZIndex } from '../conf
 import { Proximity, applyRestingDotGeometry } from './proximity';
 import { type Element, getOpenDuration, DEFAULT_COLOR } from '../element';
 import { readPaint, wearPaint, wearIdentity, wearShadow } from '../paint';
+import { holdable } from '../hold';
 import { getForm, setElementId, setSymbol } from '../dataset';
 import { wearRestSymbol } from './rest-symbol';
 import { morphDotToWindow } from '../window/window';
@@ -90,6 +91,7 @@ class Tray {
         element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
         wearIdentity(element, item);
         wearShadow(element, '');
+        holdable(element);
         setElementId(element, item.id);
         setSymbol(element, item.symbol);
         wearRestSymbol(element, item.symbol);
@@ -351,6 +353,8 @@ class Tray {
         element.className = 'dot';
         applyRestingDotGeometry(element);
         wearPaint(element, was, item);
+        wearIdentity(element, item);
+        holdable(element);
         setElementId(element, item.id);
         setSymbol(element, item.symbol);
         wearRestSymbol(element, item.symbol);

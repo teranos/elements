@@ -142,6 +142,9 @@ export type { PlacementOpts, Rect, Size } from './window/placement';
 // Stacking — the last window touched is the one in front
 export { raise, raiseOnInteract } from './window/z-order';
 
+// Held — a press until it is let go: the held one glows, the rest dim a little
+export { holdable, isHeld, heldElement, FOCUS_DIM, FOCUS_TRANSITION_MS } from './hold';
+
 // Forms — every morph names both ends, in the names the table holds
 export { morphDotToWindow, morphWindowToDot } from './window/window';
 export { morphDotToWorkspace, morphWorkspaceToDot } from './canvas/workspace';

@@ -33,6 +33,8 @@ export function renderBorderSpecimen(): void {
         border: OWNED_BORDER,
         // "and it glows green a bit, its borders"
         glow: '0 0 6px rgba(57, 255, 20, 0.5)',
+        // "pciking up uranium the held click, is a state chance the uranium glows more"
+        heldGlow: '0 0 18px rgba(57, 255, 20, 0.9)',
         renderContent: () => document.createElement('div'),
     };
 

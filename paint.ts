@@ -14,29 +14,41 @@
  */
 
 import { DEFAULT_COLOR } from './element';
-import { getGlow, setGlow } from './dataset';
+import { getGlow, setGlow, getHeldGlow, setHeldGlow, getHeld } from './dataset';
 
 /**
- * What an element is, written onto it from its datum: its border and its glow.
+ * What an element is, written onto it from its datum: its border and its glows.
  * Every form that builds an element calls this, so no form forgets one of them.
  */
-export function wearIdentity(element: HTMLElement, item: { border?: string; glow?: string }): void {
+export function wearIdentity(element: HTMLElement, item: { border?: string; glow?: string; heldGlow?: string }): void {
     if (item.border) element.style.border = item.border;
     if (item.glow !== undefined) setGlow(element, item.glow);
+    if (item.heldGlow !== undefined) setHeldGlow(element, item.heldGlow);
 }
+
+// The shadow each element's form last asked for, so a hold can wear the element
+// again without knowing what form it is in.
+const formShadows = new WeakMap<HTMLElement, string>();
 
 /**
  * Write a form's shadow, with the element's own glow beside it. A form never
  * writes box-shadow any other way, or it would put out the glow.
  */
 export function wearShadow(element: HTMLElement, formShadow: string): void {
-    const glow = getGlow(element);
+    formShadows.set(element, formShadow);
+    // Held, it wears its held glow if it has one.
+    const glow = (getHeld(element) && getHeldGlow(element)) || getGlow(element);
     const form = formShadow === 'none' ? '' : formShadow;
     if (!glow) {
         element.style.boxShadow = formShadow;
         return;
     }
     element.style.boxShadow = form ? `${glow}, ${form}` : glow;
+}
+
+/** Wear the element's shadow again, under the form it is already in. */
+export function rewearShadow(element: HTMLElement): void {
+    wearShadow(element, formShadows.get(element) ?? '');
 }
 
 /** What an element is wearing now. */

@@ -58,6 +58,26 @@ export function setGlow(element: HTMLElement, glow: string | undefined): void {
     else delete element.dataset.glow;
 }
 
+/** The glow while held, or '' when it has none. */
+export function getHeldGlow(element: HTMLElement): string {
+    return element.dataset.heldGlow ?? '';
+}
+
+export function setHeldGlow(element: HTMLElement, glow: string | undefined): void {
+    if (glow) element.dataset.heldGlow = glow;
+    else delete element.dataset.heldGlow;
+}
+
+/** Whether the element is held: pressed, and not yet let go (hold.ts). */
+export function getHeld(element: HTMLElement): boolean {
+    return element.dataset.held === 'true';
+}
+
+export function setHeld(element: HTMLElement, held: boolean): void {
+    if (held) element.dataset.held = 'true';
+    else delete element.dataset.held;
+}
+
 /**
  * The size a person gave this window, or null when nobody has.
  */
