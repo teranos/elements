@@ -24,8 +24,6 @@ export {
     CONTENT_DEADLINE_MS,
     getOpenDuration,
     getRestDuration,
-    DEFAULT_WINDOW_WIDTH,
-    DEFAULT_WINDOW_HEIGHT,
     WINDOW_BORDER_RADIUS,
     WINDOW_BOX_SHADOW,
     TITLE_BAR_HEIGHT,

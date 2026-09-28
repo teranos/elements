@@ -12,7 +12,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { suppressElementStyles, restoreElementStyles } from './window';
+import { suppressElementStyles, restoreElementStyles, liftedSize } from './window';
 
 let element: HTMLElement;
 
@@ -48,6 +48,16 @@ describe('Tim: the border is inherently part of the element', () => {
 
         restoreElementStyles(element);
         expect(element.style.minHeight).toBe('120px');
+    });
+});
+
+// "why not keep the size it was on the canvas as well"
+describe('Tim: a lifted element keeps the size it had on the canvas', () => {
+    test('the window is the canvas element\'s own box, not a default', () => {
+        Object.defineProperty(element, 'offsetWidth', { value: 312 });
+        Object.defineProperty(element, 'offsetHeight', { value: 188 });
+
+        expect(liftedSize(element)).toEqual({ width: 312, height: 188 });
     });
 });
 

@@ -31,9 +31,7 @@ function specimenElement(index: number): Element {
         // all wear them.
         border: index === 1 ? '2px dashed #ffd43b' : undefined,
         opensAs: 'window',
-        initialWidth: `${WINDOW_WIDTH}px`,
-        // No initialHeight — the engine measures the content and commits
-        // fit-content, the way a consumer's windows do.
+        // No size: the engine measures the content below and commits fit-content.
         color: index === 1 ? '#6b21a8' : '#000',
         textColor: '#fff',
         renderContent: () => {

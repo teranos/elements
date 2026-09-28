@@ -22,6 +22,7 @@ import { findPlacement, occupiedRects, clampToViewport } from './placement';
 import {
     getLastPosition,
     setLastPosition,
+    getLastSize,
 } from '../dataset';
 import { prepareMorphTo, calculateTrayTarget, resetElement } from '../forms/morphology';
 import { settleWindow } from './settle';
@@ -47,19 +48,15 @@ export function morphDotToWindow(
     const log = getLogger();
     const seg = getLogSegment();
 
-    // Size ownership per axis:
-    //   initialWidth set  → window owns width  (explicit px, content clips/scrolls)
-    //   initialWidth unset → content owns width (`fit-content`, window wraps)
-    // Same for height. Pre-render + measure the content when either axis is
-    // content-owned so the morph animation targets the final box directly
-    // (no post-animation resize flash).
-    const widthOwnedByWindow = item.initialWidth != null;
-    const heightOwnedByWindow = item.initialHeight != null;
+    // An element never declares its size. A window is the size a person gave
+    // it (window/resize.ts), kept across the tray, or else what its content
+    // measures — so the morph animation targets the final box directly.
+    const given = getLastSize(element);
 
     let preRenderedContent: HTMLElement | null = null;
     let measuredWidth = 0;
     let measuredHeight = 0;
-    if (!widthOwnedByWindow || !heightOwnedByWindow) {
+    if (!given) {
         preRenderedContent = item.renderContent();
         const measurer = document.createElement('div');
         measurer.style.position = 'fixed';
@@ -79,7 +76,7 @@ export function morphDotToWindow(
 
     // Asked before a transaction opens, because which form this is
     // cannot be decided halfway through becoming one (Morph Axioma).
-    if (!fitsAsWindow(measuredWidth, window.innerWidth)) {
+    if (!fitsAsWindow(given?.width ?? measuredWidth, window.innerWidth)) {
         morphDotToPanel(element, item, verifyElement, onRemove, onMinimize, preRenderedContent ?? undefined);
         return;
     }
@@ -95,8 +92,8 @@ export function morphDotToWindow(
     const sized = clampToViewport({
         x: 0,
         y: 0,
-        width: widthOwnedByWindow ? parseInt(item.initialWidth!) : measuredWidth,
-        height: heightOwnedByWindow ? parseInt(item.initialHeight!) : measuredHeight + titleBarHeight,
+        width: given?.width ?? measuredWidth,
+        height: given?.height ?? measuredHeight + titleBarHeight,
     }, viewport);
     const windowWidth = sized.width;
     const windowHeight = sized.height;
@@ -148,8 +145,8 @@ export function morphDotToWindow(
             y: targetY,
             width: windowWidth,
             height: windowHeight,
-            widthStyle: widthOwnedByWindow ? undefined : 'fit-content',
-            heightStyle: heightOwnedByWindow ? undefined : 'fit-content',
+            widthStyle: given ? undefined : 'fit-content',
+            heightStyle: given ? undefined : 'fit-content',
         });
 
         // What the element wears is data on the element and never a property of a
@@ -190,9 +187,7 @@ export function morphDotToWindow(
             } : undefined,
         });
 
-        // Width/height are owned per-axis (see morphDotToWindow prologue).
-        // No ResizeObserver — `fit-content` handles growth/shrink naturally
-        // when content owns the axis; explicit px handles the window-owned axis.
+        // No ResizeObserver — `fit-content` follows the content as it grows.
 
         // Make window draggable. The width a drag reflows from was recorded by
         // the settle, which is the one place that knows the box.

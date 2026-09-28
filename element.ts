@@ -23,8 +23,7 @@ export interface Element {
     // Form configuration
     opensAs?: TrayDestination;  // What this opens as from the tray. Default: 'window'
     // TODO: Add 'programmature' form type for full code editor that can minimize to tray
-    initialWidth?: string;               // Initial dimensions (e.g., "800px")
-    initialHeight?: string;
+    // No size: an element never declares how big it is. A window measures its content.
     defaultX?: number;                   // Default position
     defaultY?: number;
 
@@ -99,8 +98,6 @@ export function getRestDuration(): number {
 export const CONTENT_DEADLINE_MS = 10000;
 
 // Window form constants (used by window/window.ts)
-export const DEFAULT_WINDOW_WIDTH = '800px';
-export const DEFAULT_WINDOW_HEIGHT = '600px';
 export const WINDOW_BORDER_RADIUS = '8px';
 export const WINDOW_BOX_SHADOW = '0 4px 12px rgba(0, 0, 0, 0.15)';
 
