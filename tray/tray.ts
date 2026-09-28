@@ -142,6 +142,9 @@ class Tray {
         this.element.setAttribute('data-empty', 'true');
         // Above every window, so a dot opening under the pointer is never behind one.
         this.element.style.zIndex = String(getTrayZIndex());
+        // A title the pointer brings out is never text to select, whatever the drag started on.
+        this.element.style.userSelect = 'none';
+        this.element.style.setProperty('-webkit-user-select', 'none');
 
         // Container for collapsed elements
         this.indicatorContainer = document.createElement('div');

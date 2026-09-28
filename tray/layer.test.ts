@@ -16,3 +16,13 @@ describe('Tim: the tray owns its layer', () => {
         expect(element.style.zIndex).toBe(String(getTrayZIndex()));
     });
 });
+
+// "i should never be able to get into a situation where i select text of the Proximate expanded elements title text"
+describe('Spike: nothing in the tray can be selected', () => {
+    test('the tray refuses a selection, wherever it started', () => {
+        tray.init();
+        const element = document.querySelector('.tray') as HTMLElement;
+
+        expect(element.style.userSelect).toBe('none');
+    });
+});
