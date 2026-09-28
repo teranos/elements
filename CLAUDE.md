@@ -2,6 +2,8 @@
 
 [README.md](README.md) — what this project is.
 
+`bun examples/serve.ts` runs the live examples at http://localhost:5180 — look at a change there, not only in tests.
+
 Strict TDD.
 
 Organize tests by persona: Tim (happy path), Spike (edge cases), Jenny (complex scenarios).
