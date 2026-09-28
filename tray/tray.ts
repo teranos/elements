@@ -28,7 +28,7 @@
  * Every element MUST be created through the createElement factory.
  */
 
-import { getLogger, getLogSegment, getPersistence } from '../config';
+import { getLogger, getLogSegment, getPersistence, getTrayZIndex } from '../config';
 import { Proximity, applyRestingDotGeometry } from './proximity';
 import { type Element, getOpenDuration, DEFAULT_COLOR } from '../element';
 import { readPaint, wearPaint } from '../paint';
@@ -140,6 +140,8 @@ class Tray {
         this.element = document.createElement('div');
         this.element.className = 'tray';
         this.element.setAttribute('data-empty', 'true');
+        // Above every window, so a dot opening under the pointer is never behind one.
+        this.element.style.zIndex = String(getTrayZIndex());
 
         // Container for collapsed elements
         this.indicatorContainer = document.createElement('div');

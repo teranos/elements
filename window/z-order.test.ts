@@ -7,6 +7,7 @@
 
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { raise, raiseOnInteract, currentTop, resetZOrder } from './z-order';
+import { configureElements } from '../config';
 
 beforeEach(() => {
     resetZOrder();
@@ -72,5 +73,18 @@ describe('Tim: stacking', () => {
         const el = windowEl();
         raise(el);
         expect(el.style.getPropertyPriority('z-index')).toBe('');
+    });
+});
+
+// "Tray ~Proximity based morph needs to happen at a higher z than where the windows reside"
+describe('Spike: a window never reaches the tray', () => {
+    test('however often it is raised, a window stays under the tray', () => {
+        configureElements({ trayZIndex: 10010 });
+        const el = windowEl();
+
+        for (let i = 0; i < 50; i++) raise(el);
+
+        expect(z(el)).toBeLessThan(10010);
+        configureElements({ trayZIndex: 100002 });
     });
 });

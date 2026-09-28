@@ -6,7 +6,9 @@
  * increasing value instead, so the last one touched is the one in front.
  */
 
-// Above the panel layer, below the tray at 100002.
+import { getTrayZIndex } from '../config';
+
+// Above the panel layer, below the tray (configureElements({ trayZIndex })).
 const BASE = 10002;
 
 let top = BASE;
@@ -18,7 +20,9 @@ let top = BASE;
  * commit, so no host rule outranks this.
  */
 export function raise(element: HTMLElement): void {
-    element.style.zIndex = String(++top);
+    // A window never reaches the tray, however often it is touched.
+    top = Math.min(top + 1, getTrayZIndex() - 1);
+    element.style.zIndex = String(top);
 }
 
 // Which elements already answer a press. An element is one element for its whole
