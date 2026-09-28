@@ -107,10 +107,6 @@ class Tray {
         this.clickHandlers.set(element, clickHandler);
         element.addEventListener('click', clickHandler);
 
-        // The press is what starts a selection; click already fires on mouseup,
-        // by which time the range exists.
-        element.addEventListener('mousedown', suppressSelectionUntilRelease);
-
         return element;
     }
     // Deferred items to add after init
@@ -150,6 +146,11 @@ class Tray {
         this.indicatorContainer = document.createElement('div');
         this.indicatorContainer.className = 'tray-dots';
         this.element.appendChild(this.indicatorContainer);
+
+        // The press is what starts a selection; click already fires on mouseup,
+        // by which time the range exists. Heard on the tray and not on the
+        // element: the element is the window too, and a window's text is selectable.
+        this.indicatorContainer.addEventListener('mousedown', suppressSelectionUntilRelease);
 
         document.body.appendChild(this.element);
 
