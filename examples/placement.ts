@@ -21,6 +21,24 @@ const SYMBOLS = [
 ];
 const TRAY_SIZE = SYMBOLS.length;
 
+// "in the exampe have element 2 be having a lot of content"
+// More than a screen holds, as QNTX's i element does: the window fits it up to the screen, and its body scrolls.
+const FLOWS_OVER = 2;
+const FLOW_OVER_LINES = 80;
+
+function flowOver(): HTMLElement {
+    const el = document.createElement('div');
+    el.className = 'content';
+    for (let i = 0; i < FLOW_OVER_LINES; i++) {
+        const line = document.createElement('div');
+        // "3 times on one line"
+        line.style.whiteSpace = 'nowrap';
+        line.textContent = 'FLOW OVER FLOW OVER FLOW OVER';
+        el.appendChild(line);
+    }
+    return el;
+}
+
 function specimenElement(index: number): Element {
     return {
         id: `placement-${index}`,
@@ -32,9 +50,10 @@ function specimenElement(index: number): Element {
         border: index === 1 ? '2px dashed #ffd43b' : undefined,
         opensAs: 'window',
         // No size: the engine measures the content below and commits fit-content.
-        color: index === 1 ? '#6b21a8' : '#000',
-        textColor: '#fff',
+        color: index === 1 ? '#6b21a8' : index === FLOWS_OVER ? '#ff0000' : '#000',
+        textColor: index === FLOWS_OVER ? '#000' : '#fff',
         renderContent: () => {
+            if (index === FLOWS_OVER) return flowOver();
             const el = document.createElement('div');
             el.className = 'content';
             el.style.maxWidth = `${WINDOW_WIDTH - 2 - 16}px`;
