@@ -1,16 +1,15 @@
 // A held press is a state of its own: the element is picked up.
 // "pciking up uranium the held click, is a state chance the uranium glows more"
-// "when held, we focus on it, the rest should be lower brightness"
-// "but not too much lower"
 
 // Personas:
 // - Tim: a press holds an element until it is let go, and it glows more
-// - Spike: an element with no held glow, and one wired twice
+// - Spike: an element with no held glow, one wired twice, and the rest untouched
 
-// - Jenny: while one is held the rest dim, and come back as they were
+// - Jenny: every element can be picked up
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { holdable, isHeld, FOCUS_DIM, FOCUS_TRANSITION_MS } from './hold';
+import { holdable, isHeld } from './hold';
+import * as elements from './index';
 import { wearIdentity, wearShadow } from './paint';
 import { tray } from './tray/tray';
 import { canvasPlaced } from './canvas/placed';
@@ -87,56 +86,23 @@ describe('Spike: no held glow, and wired twice', () => {
     });
 });
 
-describe('Jenny: the rest dims while one is held', () => {
-    test('the others dim, a little; the held one does not', () => {
-        const held = element('uranium');
-        const other = element('iron');
-
-        press(held);
-
-        expect(other.style.filter).toBe(`brightness(${FOCUS_DIM})`);
-        expect(held.style.filter).not.toContain('brightness');
-        expect(FOCUS_DIM).toBeGreaterThanOrEqual(0.8);
-        release();
-    });
-
-    test('let go, the others wear what they wore before', () => {
+// "OK, SO THE CLICK FOCUS BEHAVIOUR, I DONT LIKE IT ANYMORE, REMOVE IT FROM THE ELEMENTS PACKAGE"
+describe('Spike: holding one leaves the rest as they are', () => {
+    test('another element is not dimmed, and its transition is not touched', () => {
         const held = element('uranium');
         const other = element('iron');
         other.style.filter = 'saturate(2)';
-
-        press(held);
-        release();
-
-        expect(other.style.filter).toBe('saturate(2)');
-    });
-});
-
-// "the brightness transision needs to be slown down to 750ms"
-describe('Jenny: the rest dim slowly, and come back slowly', () => {
-    test('the dimming eases over 750ms', () => {
-        const held = element('uranium');
-        const other = element('iron');
-
-        press(held);
-
-        expect(FOCUS_TRANSITION_MS).toBe(750);
-        expect(other.style.transition).toContain('filter');
-        expect(other.style.transition).toContain('750ms');
-        release();
-    });
-
-    test('once the way back has eased, the transition it had is its own again', async () => {
-        const held = element('uranium');
-        const other = element('iron');
         other.style.transition = 'opacity 200ms';
 
         press(held);
-        release();
-        expect(other.style.transition).toContain('750ms');
 
-        await Bun.sleep(FOCUS_TRANSITION_MS + 50);
+        expect(other.style.filter).toBe('saturate(2)');
         expect(other.style.transition).toBe('opacity 200ms');
+        release();
+    });
+
+    test.each(['FOCUS_DIM', 'FOCUS_TRANSITION_MS', 'heldElement'])('%s is not exported', (name) => {
+        expect(name in (elements as unknown as Record<string, unknown>)).toBe(false);
     });
 });
 

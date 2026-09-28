@@ -19,7 +19,6 @@ import { hasProximityText, setProximityText } from '../dataset';
 import { getDotGeometry } from '../config';
 import { wearRestSymbol } from './rest-symbol';
 import { wearIdentity } from '../paint';
-import { focusFilter } from '../hold';
 
 /**
  * Apply the resting (proximity 0) geometry to a dot element.
@@ -230,8 +229,7 @@ export class Proximity {
                 // Visual identity, like color — the dot wears the element's border
                 if (item) wearIdentity(dot, item);
                 dot.style.backdropFilter = 'blur(2px)';
-                // Dimmed while another element is held (hold.ts), or this frame would undo it.
-                dot.style.filter = focusFilter(dot, dot.matches(':hover') ? 'brightness(1.2)' : '');
+                dot.style.filter = dot.matches(':hover') ? 'brightness(1.2)' : '';
 
                 // Show title text when proximity exceeds threshold
                 if (proximity > this.TEXT_FADE_THRESHOLD && item) {
