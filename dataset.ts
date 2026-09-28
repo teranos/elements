@@ -74,6 +74,23 @@ export function setLastPosition(element: HTMLElement, x: number, y: number): voi
 }
 
 /**
+ * The size a person gave this window, or null when nobody has.
+ */
+export function getLastSize(element: HTMLElement): { width: number, height: number } | null {
+    const width = parseFloat(element.dataset.lastWidth ?? '');
+    const height = parseFloat(element.dataset.lastHeight ?? '');
+    return isNaN(width) || isNaN(height) ? null : { width, height };
+}
+
+/**
+ * Keep the size a person gave this window, so it survives the tray (Element Axioma).
+ */
+export function setLastSize(element: HTMLElement, width: number, height: number): void {
+    element.dataset.lastWidth = String(width);
+    element.dataset.lastHeight = String(height);
+}
+
+/**
  * Check if element has proximity text showing
  */
 export function hasProximityText(element: HTMLElement): boolean {

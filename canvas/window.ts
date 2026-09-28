@@ -31,6 +31,7 @@ import {
 } from '../element';
 import { addWindowControls, removeWindowControls } from '../forms/title-bar-controls';
 import { setupWindowDrag, teardownWindowDrag } from '../window/drag';
+import { setupWindowResize, teardownWindowResize } from '../window/resize';
 import { calculateTrayTarget } from '../forms/morphology';
 import { readPaint, wearPaint } from '../paint';
 import { stashContent } from '../content/stash';
@@ -227,6 +228,8 @@ export function morphCanvasPlacedToWindow(
 
         // Set up window dragging
         setupWindowDrag(element, titleBar);
+        // Every window has a corner a person can size it by.
+        setupWindowResize(element);
 
         // The body is the children this element already had, so it usually draws
         // at once. It is watched all the same: an element lifted off the canvas
@@ -286,6 +289,7 @@ export function morphWindowToCanvasPlaced(
 
     // 2. Tear down window drag
     teardownWindowDrag(element);
+    teardownWindowResize(element);
 
     // 3. Read canvas origin, convert to current screen coords
     const origin = getCanvasOrigin(element);
@@ -371,6 +375,7 @@ function minimizeCanvasWindowToTray(
 
     // 2. Tear down window drag
     teardownWindowDrag(element);
+    teardownWindowResize(element);
 
     // 3. Find tray target position
     const trayTarget = calculateTrayTarget(element.dataset.elementId);
@@ -437,6 +442,7 @@ export function placeWindowOnCanvas(
 
     // 3. Tear down window drag
     teardownWindowDrag(element);
+    teardownWindowResize(element);
 
     // 4. Convert window position to canvas-local coordinates
     const relX = windowRect.left - canvasRect.left;

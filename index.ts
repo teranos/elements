@@ -62,6 +62,8 @@ export {
     setWindowState,
     getLastPosition,
     setLastPosition,
+    getLastSize,
+    setLastSize,
     hasProximityText,
     setProximityText,
     getElementId,
@@ -136,6 +138,12 @@ export type { ExpandToWindowConfig } from './canvas/expand-to-window';
 
 // Window drag — standalone, no canvas dependency
 export { setupWindowDrag, teardownWindowDrag } from './window/drag';
+
+// Window resize — the one way a window takes a size it was not measured to
+export { setupWindowResize, teardownWindowResize } from './window/resize';
+
+// The resize corner — placed and sized by the package, dressed by the host
+export { createCorner, CORNER_SIZE } from './corner';
 
 // Placement — where an element lands when nothing says where
 export { findPlacement, occupiedRects, overlapArea, placementCost, clampToViewport } from './window/placement';

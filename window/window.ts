@@ -15,6 +15,7 @@ import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
 import { renderContent } from '../content/render';
 import { setupWindowDrag, teardownWindowDrag } from './drag';
+import { setupWindowResize, teardownWindowResize } from './resize';
 import { fitsAsWindow } from './fits';
 import { morphDotToPanel } from '../forms/panel';
 import { findPlacement, occupiedRects, clampToViewport } from './placement';
@@ -176,6 +177,7 @@ export function morphDotToWindow(
             onMinimize: () => morphWindowToDot(element, item, verifyElement, onMinimize),
             onClose: item.onClose ? () => {
                 teardownWindowDrag(element);
+                teardownWindowResize(element);
                 // A closed element is not an element that failed to draw.
                 disarmContentWatch(element);
                 onRemove(item.id);
@@ -195,6 +197,8 @@ export function morphDotToWindow(
         // Make window draggable. The width a drag reflows from was recorded by
         // the settle, which is the one place that knows the box.
         setupWindowDrag(element, titleBar);
+        // The corner is how a person gives it a size, and the body scrolls then.
+        setupWindowResize(element);
     }).catch(error => {
         // ROLLBACK: Animation was cancelled or failed
         log.warn(seg, `[Window] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
@@ -226,6 +230,8 @@ export function morphWindowToDot(
 
     // Tear down window drag handlers before stashing (prevents handler accumulation)
     teardownWindowDrag(windowElement);
+    // The corner is the window's, not the content's: it is not stashed.
+    teardownWindowResize(windowElement);
 
     // Stash content (strips window controls, preserves element identity off-DOM)
     stashContent(windowElement);
