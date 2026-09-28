@@ -30,33 +30,6 @@ export function getForm(element: HTMLElement): Form | null {
 }
 
 /**
- * @deprecated Use {@link getForm}. One bit cannot hold a seven-name
- * list: this is true for `window` and for `canvasExpanded`, and false for
- * `panel`, `workspace` and a dot alike — so it can say what an element is not far
- * better than what it is.
- *
- * It reads the same store {@link setForm} writes, so it stays correct
- * about what it could ever say.
- */
-export function isInWindowState(element: HTMLElement): boolean {
-    const m = getForm(element);
-    return m === 'window' || m === 'canvasExpanded';
-}
-
-/**
- * @deprecated Use {@link setForm}, which takes the name instead of a
- * bit. `false` here meant "not a window" and left three different destinations
- * — dot, canvasPlaced, workspace — indistinguishable at the far end of a morph.
- */
-export function setWindowState(element: HTMLElement, isWindow: boolean): void {
-    if (isWindow) {
-        setForm(element, 'window');
-    } else {
-        delete element.dataset.form;
-    }
-}
-
-/**
  * Get last saved position of window
  */
 export function getLastPosition(element: HTMLElement): { x: number, y: number } | null {

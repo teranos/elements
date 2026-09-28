@@ -238,22 +238,6 @@ export function beginMorphToCanvasPlaced(
 }
 
 /**
- * @deprecated Renamed to {@link beginMorphToCanvasPlaced}. "Restore" is the
- * vocabulary of a window manager, and the window manager it came from is gone.
- * AXIOMAS.md names a morph by the forms it moves between, and every
- * caller of this one ends at canvasPlaced.
- *
- * The old name is the same function, so a consumer that keeps calling it is
- * unaffected — the build says the name has moved, nothing else changes.
- */
-export const beginRestoreMorph: (
-    element: HTMLElement,
-    fromRect: DOMRect,
-    toRect: { x: number; y: number; width: number; height: number },
-    duration: number
-) => Promise<void> = beginMorphToCanvasPlaced;
-
-/**
  * Cancel any active morph for an element
  * Used when element is being removed or state is changing unexpectedly
  */
@@ -264,11 +248,3 @@ export function cancelMorph(element: HTMLElement): void {
         activeAnimations.delete(element);
     }
 }
-
-/**
- * @deprecated Renamed to {@link beginMorphToDot} — "minimize" is window-manager vocabulary; all four callers end at the tray dot, which is a row in FORMS.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const beginMinimizeMorph: typeof beginMorphToDot = beginMorphToDot;

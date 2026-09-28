@@ -143,19 +143,3 @@ export function morphWorkspaceToDot(
             log.warn(seg, `[Canvas] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         });
 }
-
-/**
- * @deprecated Renamed to {@link morphDotToWorkspace} — the canvas it named is the workspace, one suffix from `canvasPlaced` and the opposite thing.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphToCanvas: typeof morphDotToWorkspace = morphDotToWorkspace;
-
-/**
- * @deprecated Renamed to {@link morphWorkspaceToDot} — same canvas, same suffix, and the destination was unsaid.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphFromCanvas: typeof morphWorkspaceToDot = morphWorkspaceToDot;

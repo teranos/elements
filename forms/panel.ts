@@ -303,19 +303,3 @@ export function morphPanelToDot(
             minimizing.delete(panelElement);
         });
 }
-
-/**
- * @deprecated Renamed to {@link morphDotToPanel} — the tray dot is where it starts.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphToPanel: typeof morphDotToPanel = morphDotToPanel;
-
-/**
- * @deprecated Renamed to {@link morphPanelToDot} — the destination was unsaid.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphFromPanel: typeof morphPanelToDot = morphPanelToDot;

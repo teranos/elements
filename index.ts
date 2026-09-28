@@ -54,10 +54,6 @@ export type { Form, FormTable, TrayDestination } from './form';
 export {
     setForm,
     getForm,
-    /** @deprecated Use `getForm`. */
-    isInWindowState,
-    /** @deprecated Use `setForm`. */
-    setWindowState,
     getLastPosition,
     setLastPosition,
     getLastSize,
@@ -97,12 +93,8 @@ export { createSymbolSpan, settleSymbolSpan } from './symbol-span';
 // Morph transactions — Web Animations API, taken or abandoned
 export {
     beginMorphToDot,
-    /** @deprecated Renamed to `beginMorphToDot`. */
-    beginMinimizeMorph,
     beginMorphToBox,
     beginMorphToCanvasPlaced,
-    /** @deprecated Renamed to `beginMorphToCanvasPlaced`. */
-    beginRestoreMorph,
     cancelMorph,
 } from './morph-transaction';
 
@@ -154,24 +146,6 @@ export { raise, raiseOnInteract } from './window/z-order';
 export { morphDotToWindow, morphWindowToDot } from './window/window';
 export { morphDotToWorkspace, morphWorkspaceToDot } from './canvas/workspace';
 export { morphDotToPanel, morphPanelToDot } from './forms/panel';
-export {
-    /** @deprecated Renamed to `morphDotToWindow`. */
-    morphToWindow,
-    /** @deprecated Renamed to `morphWindowToDot`. */
-    morphFromWindow,
-} from './window/window';
-export {
-    /** @deprecated Renamed to `morphDotToWorkspace`. */
-    morphToCanvas,
-    /** @deprecated Renamed to `morphWorkspaceToDot`. */
-    morphFromCanvas,
-} from './canvas/workspace';
-export {
-    /** @deprecated Renamed to `morphDotToPanel`. */
-    morphToPanel,
-    /** @deprecated Renamed to `morphPanelToDot`. */
-    morphFromPanel,
-} from './forms/panel';
 
 // Cursor form — transient placement preview
 export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './canvas/cursor';

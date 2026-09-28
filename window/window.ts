@@ -243,19 +243,3 @@ export function morphWindowToDot(
             // Element stays in window state, can retry
         });
 }
-
-/**
- * @deprecated Renamed to {@link morphDotToWindow} — the tray dot is where it starts, and `To`/`From` left that unsaid.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphToWindow: typeof morphDotToWindow = morphDotToWindow;
-
-/**
- * @deprecated Renamed to {@link morphWindowToDot} — `From` named the origin and left the destination to be guessed.
- *
- * Every morph now says both ends, in the names the table holds. This is the
- * same function, so a consumer still on it is unaffected.
- */
-export const morphFromWindow: typeof morphWindowToDot = morphWindowToDot;
