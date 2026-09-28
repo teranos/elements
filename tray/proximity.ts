@@ -17,6 +17,7 @@
 import { type Element, DEFAULT_COLOR } from '../element';
 import { hasProximityText, setProximityText } from '../dataset';
 import { getDotGeometry } from '../config';
+import { wearRestSymbol } from './rest-symbol';
 
 /**
  * Apply the resting (proximity 0) geometry to a dot element.
@@ -257,6 +258,8 @@ export class Proximity {
                         dot.style.whiteSpace = '';
                         dot.style.textAlign = '';
                         setProximityText(dot, false);
+                        // The title left; the dot is at rest again.
+                        wearRestSymbol(dot, item?.symbol);
                     }
                     dot.style.opacity = '1';
                 }

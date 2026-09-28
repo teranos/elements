@@ -8,6 +8,7 @@ import { renderBorderSpecimen } from './border';
 configureElements({
     dotGeometry: { minWidth: 20, minHeight: 20 },
     windowBorderRadius: '0',
+    dotSymbol: true,
 });
 tray.init();
 

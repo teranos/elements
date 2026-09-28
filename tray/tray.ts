@@ -33,6 +33,7 @@ import { Proximity, applyRestingDotGeometry } from './proximity';
 import { type Element, getOpenDuration, DEFAULT_COLOR } from '../element';
 import { readPaint, wearPaint } from '../paint';
 import { getForm, setElementId, setSymbol } from '../dataset';
+import { wearRestSymbol } from './rest-symbol';
 import { morphDotToWindow } from '../window/window';
 import { morphDotToWorkspace } from '../canvas/workspace';
 import { morphDotToPanel } from '../forms/panel';
@@ -90,6 +91,7 @@ class Tray {
         if (item.border) element.style.border = item.border;
         setElementId(element, item.id);
         setSymbol(element, item.symbol);
+        wearRestSymbol(element, item.symbol);
 
         // Track this element
         this.elements.set(item.id, element);
@@ -344,6 +346,7 @@ class Tray {
         wearPaint(element, was, item);
         setElementId(element, item.id);
         setSymbol(element, item.symbol);
+        wearRestSymbol(element, item.symbol);
 
         // Attach click handler
         const clickHandler = (e: MouseEvent) => {
@@ -511,6 +514,9 @@ class Tray {
         } else {
             this.indicatorContainer.appendChild(element);
         }
+
+        // Back at rest, so it shows its symbol again.
+        wearRestSymbol(element, item.symbol);
 
         // Re-enable proximity morphing
         this.isRestoring = false;

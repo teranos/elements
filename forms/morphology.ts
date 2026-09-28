@@ -11,6 +11,7 @@ import type { Form } from '../form';
 import { setForm, setProximityText, hasProximityText } from '../dataset';
 import { getLogger, getLogSegment } from '../config';
 import { applyRestingDotGeometry } from '../tray/proximity';
+import { removeRestSymbol } from '../tray/rest-symbol';
 
 /**
  * On the element for the length of a morph, and nothing else. Which morph is
@@ -90,6 +91,8 @@ export function prepareMorphTo(
         element.textContent = '';
         setProximityText(element, false);
     }
+    // A dot's symbol is not the form's content: it stays with the rest.
+    removeRestSymbol(element);
 
     const previousClassName = element.className;
     element.classList.remove('dot');

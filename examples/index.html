@@ -62,6 +62,11 @@
 
     .dot:hover { filter: brightness(1.6); }
 
+    /* The symbol's place in the dot is the package's; its font is the page's. */
+    .dot-symbol {
+      font: 700 11px/1 var(--font-mono);
+    }
+
     /* Position and stacking during a morph are written inline by prepareMorphTo.
        data-form is written at morph start and stays, so one selector
        covers a window from its first frame through to the settled state.
