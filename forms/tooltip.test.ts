@@ -308,3 +308,52 @@ describe('Motion: "it grows out of its place" (VISION.md), and back', () => {
         expect(tip!.isConnected).toBe(false);
     });
 });
+
+describe('Says: "For one changing value, direct view of time and value"', () => {
+    let saysRelease: () => void;
+    let asked: number[] = [];
+    const along = (x: number) => anchor.dispatchEvent(new (realm().MouseEvent)('pointermove', { clientX: x, bubbles: true }));
+    const enterAt = (x: number) => anchor.dispatchEvent(new (realm().MouseEvent)('pointerenter', { clientX: x }));
+
+    beforeEach(() => {
+        release();
+        asked = [];
+        saysRelease = tooltipFrom(anchor, make, TIMING, (at) => {
+            asked.push(at.x);
+            return at.x < 50 ? '10:00 · 1' : '11:00 · 4';
+        });
+    });
+
+    afterEach(() => saysRelease());
+
+    test('what it says is what is under the pointer, not the title', async () => {
+        enterAt(10);
+        await wait(TIMING.delay + 5);
+        const [tip] = tooltips();
+        expect(tip!.querySelector('.tooltip-title')!.textContent).toBe('10:00 · 1');
+    });
+
+    test('and it follows the pointer', async () => {
+        enterAt(10);
+        await wait(TIMING.delay + 5);
+        along(90);
+        expect(tooltips()[0]!.querySelector('.tooltip-title')!.textContent).toBe('11:00 · 4');
+    });
+
+    test('once grown it holds still, and the element keeps its own title', async () => {
+        enterAt(10);
+        await wait(TIMING.delay + TIMING.expandAfter + 10);
+        const [tip] = tooltips();
+        const said = tip!.querySelector('.tooltip-said')!.textContent;
+        along(90);
+        expect(tip!.querySelector('.tooltip-said')!.textContent).toBe(said);
+        expect(tip!.textContent).toContain('the bigger picture');
+    });
+
+    test('a tap says what is under the finger', () => {
+        const ev = new (realm().MouseEvent)('click', { clientX: 90, bubbles: true });
+        touched(anchor, 'pointerdown');
+        anchor.dispatchEvent(ev);
+        expect(tooltips()[0]!.querySelector('.tooltip-title')!.textContent).toBe('11:00 · 4');
+    });
+});
