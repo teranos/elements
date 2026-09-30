@@ -150,6 +150,8 @@ export { morphDotToWindow, morphWindowToDot } from './window/window';
 export { morphDotToWorkspace, morphWorkspaceToDot } from './canvas/workspace';
 export { morphDotToPanel, morphPanelToDot } from './forms/panel';
 export { tooltipFrom } from './forms/tooltip';
+export { beginMorphToTooltip, beginMorphToAnchor } from './morph-transaction';
+export type { TooltipBox } from './morph-transaction';
 export type { TooltipTiming } from './forms/tooltip';
 
 // Cursor form — transient placement preview

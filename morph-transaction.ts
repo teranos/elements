@@ -248,3 +248,55 @@ export function cancelMorph(element: HTMLElement): void {
         activeAnimations.delete(element);
     }
 }
+
+/** Where a tooltip morph starts or ends. */
+export interface TooltipBox {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+function boxFrame(box: TooltipBox, opacity: string): Keyframe {
+    return {
+        left: `${box.x}px`,
+        top: `${box.y}px`,
+        width: `${box.width}px`,
+        height: `${box.height}px`,
+        opacity,
+    };
+}
+
+// A DOM without the Web Animations API (the test DOMs) takes the new state at once.
+function runOrTake(element: HTMLElement, keyframes: Keyframe[], duration: number, name: string): Promise<void> {
+    if (typeof element.animate !== 'function') return Promise.resolve();
+    return createMorphAnimation(element, keyframes, duration, name);
+}
+
+/**
+ * Begin a morph that ends at a tooltip: out of the text it is said from, or
+ * grown from what it said into the bigger picture. Out of the text it starts
+ * unseen and arrives whole.
+ */
+export function beginMorphToTooltip(
+    element: HTMLElement,
+    from: TooltipBox,
+    to: TooltipBox,
+    duration: number,
+    fromOpacity = '1',
+): Promise<void> {
+    return runOrTake(element, [boxFrame(from, fromOpacity), boxFrame(to, '1')], duration, 'ToTooltip');
+}
+
+/**
+ * Begin a morph that ends back in the text a tooltip was said from: "the same
+ * road driven backwards" (VISION.md), arriving unseen.
+ */
+export function beginMorphToAnchor(
+    element: HTMLElement,
+    from: TooltipBox,
+    anchor: TooltipBox,
+    duration: number,
+): Promise<void> {
+    return runOrTake(element, [boxFrame(from, '1'), boxFrame(anchor, '0')], duration, 'ToAnchor');
+}

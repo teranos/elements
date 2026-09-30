@@ -234,13 +234,77 @@ describe('Touch: "The tap should just open the tooltip, and the tooltip should l
         expect(tooltips()).toHaveLength(0);
     });
 
-    test('a tap somewhere else lets it go', () => {
+    test('a tap somewhere else lets it go', async () => {
         tap(anchor);
         touched(document.body, 'pointerdown');
+        await wait(1);
         expect(tooltips()).toHaveLength(0);
     });
 
     test('resting a finger on the text selects nothing', () => {
         expect(anchor.style.userSelect).toBe('none');
+    });
+});
+
+describe('Motion: "it grows out of its place" (VISION.md), and back', () => {
+    type Played = { element: HTMLElement; keyframes: Keyframe[] };
+    let played: Played[] = [];
+    const proto = (globalThis.window as unknown as { HTMLElement: typeof HTMLElement }).HTMLElement.prototype;
+    const had = (proto as unknown as { animate?: unknown }).animate;
+
+    beforeEach(() => {
+        played = [];
+        // A stand-in for the Web Animations API, which the test DOMs lack: it
+        // records the road and finishes on the next turn.
+        (proto as unknown as { animate: unknown }).animate = function (this: HTMLElement, keyframes: Keyframe[]) {
+            played.push({ element: this, keyframes });
+            const handlers: Record<string, (() => void)[]> = {};
+            const animation = {
+                addEventListener: (type: string, fn: () => void) => { (handlers[type] ??= []).push(fn); },
+                removeEventListener: () => {},
+                cancel: () => { (handlers.cancel ?? []).forEach((fn) => fn()); },
+            };
+            setTimeout(() => (handlers.finish ?? []).forEach((fn) => fn()), 1);
+            return animation;
+        };
+        anchor.getBoundingClientRect = () => ({ left: 10, top: 20, width: 80, height: 14, right: 90, bottom: 34, x: 10, y: 20, toJSON: () => ({}) }) as DOMRect;
+    });
+
+    afterEach(() => {
+        (proto as unknown as { animate: unknown }).animate = had;
+    });
+
+    const along = (el: HTMLElement) => played.filter((p) => p.element === el).map((p) => p.keyframes);
+
+    test('the tooltip grows out of the text, unseen at first', async () => {
+        enter(anchor);
+        await wait(TIMING.delay + 5);
+        const [tip] = tooltips();
+        const [appear] = along(tip!);
+        expect(appear![0]).toMatchObject({ left: '10px', top: '20px', width: '80px', height: '14px', opacity: '0' });
+        expect(appear![appear!.length - 1]!.opacity).toBe('1');
+    });
+
+    test('growing into the bigger picture is a road too, from what it said', async () => {
+        enter(anchor);
+        await wait(TIMING.delay + TIMING.expandAfter + 10);
+        const [tip] = tooltips();
+        const roads = along(tip!);
+        expect(roads).toHaveLength(2);
+        expect(roads[1]![0]!.opacity).toBe('1');
+        expect(roads[1]![1]!.opacity).toBe('1');
+    });
+
+    test('left, it goes back into the text, and is gone once it arrives', async () => {
+        enter(anchor);
+        await wait(TIMING.delay + 5);
+        const [tip] = tooltips();
+        leave(anchor);
+        await wait(TIMING.grace + 1);
+        const roads = along(tip!);
+        const back = roads[roads.length - 1]!;
+        expect(back[back.length - 1]).toMatchObject({ left: '10px', top: '20px', width: '80px', height: '14px', opacity: '0' });
+        await wait(10);
+        expect(tip!.isConnected).toBe(false);
     });
 });

@@ -90,6 +90,13 @@ export function getRestDuration(): number {
     return getPrefersReducedMotion() ? 0 : REST_DURATION_MS;
 }
 
+// A tooltip grows out of the text it is said from, and back into it.
+export const TOOLTIP_DURATION_MS = 180;
+
+export function getTooltipDuration(): number {
+    return getPrefersReducedMotion() ? 0 : TOOLTIP_DURATION_MS;
+}
+
 /**
  * How long an element's body may show nothing before the runtime says so.
  *

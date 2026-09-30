@@ -11,7 +11,8 @@
  * the same element that takes the window and keeps the content it grew into.
  */
 
-import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR, MIN_WINDOW_WIDTH, TITLE_BAR_HEIGHT, CANVAS_ELEMENT_CONTENT_PADDING } from '../element';
+import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR, MIN_WINDOW_WIDTH, TITLE_BAR_HEIGHT, CANVAS_ELEMENT_CONTENT_PADDING, getTooltipDuration } from '../element';
+import { beginMorphToTooltip, beginMorphToAnchor, cancelMorph, type TooltipBox } from '../morph-transaction';
 import { setForm, getForm, setElementId, getElementId, setSymbol, setLastSize } from '../dataset';
 import { wearIdentity } from '../paint';
 import { createSymbolSpan } from '../symbol-span';
@@ -31,6 +32,52 @@ export interface TooltipTiming {
 }
 
 const TOOLTIP_Z_INDEX = '10005';
+
+function boxOf(el: HTMLElement): TooltipBox {
+    const r = el.getBoundingClientRect();
+    return { x: r.left, y: r.top, width: r.width, height: r.height };
+}
+
+/**
+ * While the box moves, what it says keeps the width it will have, so the words
+ * are uncovered rather than rewrapped at every frame. Returns what lets go.
+ */
+function holdWhileMoving(element: HTMLElement): () => void {
+    const held = Array.from(element.children) as HTMLElement[];
+    for (const child of held) child.style.width = `${child.getBoundingClientRect().width}px`;
+    element.style.overflow = 'hidden';
+    return () => {
+        for (const child of held) child.style.width = '';
+        element.style.overflow = '';
+    };
+}
+
+// What lets go of the hold a road is keeping, so a road stopped midway can let go at once.
+const holding = new WeakMap<HTMLElement, () => void>();
+
+/** Moves the element along a road, holding what it says; the road may be abandoned. */
+function travel(element: HTMLElement, road: () => Promise<void>): Promise<void> {
+    holding.get(element)?.();
+    const hold = holdWhileMoving(element);
+    let held = true;
+    const letGo = () => {
+        if (!held) return;
+        held = false;
+        hold();
+        if (holding.get(element) === letGo) holding.delete(element);
+    };
+    holding.set(element, letGo);
+    return road().then(letGo, (err: unknown) => {
+        letGo();
+        throw err;
+    });
+}
+
+/** Stops whatever road the element is on, where it is, and lets go of what it held. */
+function halt(element: HTMLElement): void {
+    cancelMorph(element);
+    holding.get(element)?.();
+}
 
 /** The tooltip itself: a new element each time, in tooltip form, beside the anchor. */
 function sayBeside(anchor: HTMLElement, item: Element): HTMLElement {
@@ -65,6 +112,10 @@ function sayBeside(anchor: HTMLElement, item: Element): HTMLElement {
 
     document.body.appendChild(element);
     place(element, anchor);
+    // "it grows out of its place" (VISION.md): out of the text, unseen at first.
+    const to = boxOf(element);
+    travel(element, () => beginMorphToTooltip(element, boxOf(anchor), to, getTooltipDuration(), '0'))
+        .catch(() => { /* a road abandoned for another: the element takes that one */ });
     return element;
 }
 
@@ -81,6 +132,10 @@ function place(element: HTMLElement, anchor: HTMLElement): void {
 
 /** The bigger picture: the element's content, below what the tooltip said. */
 function grow(element: HTMLElement, anchor: HTMLElement, item: Element): void {
+    // From wherever it is now, even partway out of the text; where it ends is
+    // measured with no road running, or the road would be measured instead.
+    const from = boxOf(element);
+    halt(element);
     const area = document.createElement('div');
     area.className = 'content-area';
     area.appendChild(item.renderContent());
@@ -90,6 +145,17 @@ function grow(element: HTMLElement, anchor: HTMLElement, item: Element): void {
     element.style.pointerEvents = 'auto';
     element.style.cursor = 'pointer';
     place(element, anchor);
+    const to = boxOf(element);
+    travel(element, () => beginMorphToTooltip(element, from, to, getTooltipDuration()))
+        .catch(() => { /* a road abandoned for another: the element takes that one */ });
+}
+
+/** Left: back into the text it was said from, the same road driven backwards, and gone. */
+function unsay(element: HTMLElement, anchor: HTMLElement): void {
+    element.style.pointerEvents = 'none';
+    const gone = () => element.remove();
+    travel(element, () => beginMorphToAnchor(element, boxOf(element), boxOf(anchor), getTooltipDuration()))
+        .then(gone, gone);
 }
 
 /** A click takes Window Form: the same element, keeping the content it grew into. */
@@ -163,7 +229,7 @@ export function tooltipFrom(anchor: HTMLElement, make: () => Element, timing: To
     const abandon = () => {
         stop(saying); stop(growing); stop(lingering);
         saying = null; growing = null; lingering = null;
-        if (current && getForm(current.element) === 'tooltip') current.element.remove();
+        if (current && getForm(current.element) === 'tooltip') unsay(current.element, anchor);
         current = null;
     };
 
