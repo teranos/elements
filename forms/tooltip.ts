@@ -26,6 +26,8 @@ export interface TooltipTiming {
     expandAfter?: number;
     /** Ms between the pointer leaving and the tooltip going, so it can cross onto the tooltip (default 120). */
     grace?: number;
+    /** On touch, ms a tapped tooltip stays for the next tap before it goes (default 1400). */
+    linger?: number;
 }
 
 const TOOLTIP_Z_INDEX = '10005';
@@ -44,6 +46,10 @@ function sayBeside(anchor: HTMLElement, item: Element): HTMLElement {
     element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
     // Said, not yet something to act on: the pointer passes through until it grows.
     element.style.pointerEvents = 'none';
+    // A finger resting on it is not selecting it.
+    element.style.userSelect = 'none';
+    element.style.setProperty('-webkit-user-select', 'none');
+    element.style.setProperty('-webkit-touch-callout', 'none');
     wearIdentity(element, item);
 
     const said = document.createElement('div');
@@ -122,26 +128,41 @@ function toWindow(element: HTMLElement, item: Element): void {
 
 /**
  * Hovering `anchor` says a new element beside it, made by `make` each time.
+ *
+ * A finger does not hover: "The tap should just open the tooltip, and the
+ * tooltip should linger for 1.4 sec. Tap again within those 1.4 sec and it
+ * expands, tap again and you get your window."
+ *
  * Returns what takes the behavior off the anchor again.
  */
 export function tooltipFrom(anchor: HTMLElement, make: () => Element, timing: TooltipTiming = {}): () => void {
     const delay = timing.delay ?? 300;
     const expandAfter = timing.expandAfter ?? 1000;
     const grace = timing.grace ?? 120;
+    const linger = timing.linger ?? 1400;
 
     let saying: ReturnType<typeof setTimeout> | null = null;
     let growing: ReturnType<typeof setTimeout> | null = null;
     let going: ReturnType<typeof setTimeout> | null = null;
+    let lingering: ReturnType<typeof setTimeout> | null = null;
     let current: { element: HTMLElement; item: Element } | null = null;
     let onTooltip = false;
     let onAnchor = false;
+    // What pressed last: a tap is a click that a finger made.
+    let finger = false;
 
     const stop = (t: ReturnType<typeof setTimeout> | null) => { if (t) clearTimeout(t); };
+    const isTouch = (e: Event) => (e as PointerEvent).pointerType === 'touch';
+
+    // Resting a finger on the text is not selecting it.
+    anchor.style.userSelect = 'none';
+    anchor.style.setProperty('-webkit-user-select', 'none');
+    anchor.style.setProperty('-webkit-touch-callout', 'none');
 
     // Abandoned: the element born into tooltip form goes, unless it became a window.
     const abandon = () => {
-        stop(saying); stop(growing);
-        saying = null; growing = null;
+        stop(saying); stop(growing); stop(lingering);
+        saying = null; growing = null; lingering = null;
         if (current && getForm(current.element) === 'tooltip') current.element.remove();
         current = null;
     };
@@ -154,47 +175,104 @@ export function tooltipFrom(anchor: HTMLElement, make: () => Element, timing: To
         }, grace);
     };
 
-    const enterAnchor = () => {
+    const commit = () => {
+        if (!current) return;
+        const { element, item } = current;
+        // Committed: it is no longer this anchor's to take away.
+        current = null;
+        onTooltip = false;
+        stop(lingering);
+        lingering = null;
+        toWindow(element, item);
+    };
+
+    const say = (): HTMLElement => {
+        const item = make();
+        const element = sayBeside(anchor, item);
+        current = { element, item };
+
+        element.addEventListener('pointerenter', (e) => { if (isTouch(e)) return; onTooltip = true; stop(going); });
+        element.addEventListener('pointerleave', (e) => {
+            if (isTouch(e)) return;
+            onTooltip = false;
+            if (current?.element === element) maybeGo();
+        });
+        element.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (current?.element !== element || getForm(element) !== 'tooltip') return;
+            if (finger) { tapped(); return; }
+            if (element.dataset.expanded === 'true') commit();
+        });
+        return element;
+    };
+
+    // One tap moves it one step: said, grown, window.
+    const tapped = () => {
+        stop(going); stop(saying); stop(growing);
+        going = null; saying = null; growing = null;
+        if (!current) {
+            const element = say();
+            // Tapped, it is something to tap again.
+            element.style.pointerEvents = 'auto';
+            lingering = setTimeout(() => {
+                lingering = null;
+                if (current?.element === element && element.dataset.expanded !== 'true') abandon();
+            }, linger);
+            return;
+        }
+        if (current.element.dataset.expanded !== 'true') {
+            stop(lingering);
+            lingering = null;
+            grow(current.element, anchor, current.item);
+            return;
+        }
+        commit();
+    };
+
+    const enterAnchor = (e: Event) => {
+        if (isTouch(e)) return;
         onAnchor = true;
         stop(going);
         if (current || saying) return;
         saying = setTimeout(() => {
             saying = null;
-            const item = make();
-            const element = sayBeside(anchor, item);
-            current = { element, item };
-
-            element.addEventListener('pointerenter', () => { onTooltip = true; stop(going); });
-            element.addEventListener('pointerleave', () => {
-                onTooltip = false;
-                if (current?.element === element) maybeGo();
-            });
-            element.addEventListener('click', () => {
-                if (element.dataset.expanded !== 'true' || getForm(element) !== 'tooltip') return;
-                // Committed: it is no longer this anchor's to take away.
-                current = null;
-                onTooltip = false;
-                toWindow(element, item);
-            });
-
+            const element = say();
             growing = setTimeout(() => {
                 growing = null;
-                if (current?.element === element) grow(element, anchor, item);
+                if (current?.element === element) grow(element, anchor, current.item);
             }, expandAfter);
         }, delay);
     };
 
-    const leaveAnchor = () => {
+    const leaveAnchor = (e: Event) => {
+        if (isTouch(e)) return;
         onAnchor = false;
         maybeGo();
     };
 
+    const clickAnchor = () => {
+        if (finger) tapped();
+    };
+
+    // Which pointer pressed, anywhere; a finger pressing elsewhere lets it go.
+    const pressed = (e: Event) => {
+        finger = isTouch(e);
+        if (!finger || !current) return;
+        const target = e.target as Node | null;
+        if (target && (anchor.contains(target) || current.element.contains(target))) return;
+        abandon();
+    };
+
     anchor.addEventListener('pointerenter', enterAnchor);
     anchor.addEventListener('pointerleave', leaveAnchor);
+    anchor.addEventListener('click', clickAnchor);
+    document.addEventListener('pointerdown', pressed, true);
 
     return () => {
         anchor.removeEventListener('pointerenter', enterAnchor);
         anchor.removeEventListener('pointerleave', leaveAnchor);
+        anchor.removeEventListener('click', clickAnchor);
+        document.removeEventListener('pointerdown', pressed, true);
         stop(going);
         abandon();
     };

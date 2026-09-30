@@ -20,7 +20,7 @@ import { hasStash } from '../content/stash';
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const realm = () => globalThis.window as unknown as { Event: typeof Event; MouseEvent: typeof MouseEvent };
 
-const TIMING = { delay: 10, expandAfter: 30, grace: 5 };
+const TIMING = { delay: 10, expandAfter: 30, grace: 5, linger: 40 };
 
 let anchor: HTMLElement;
 let owner: HTMLElement;
@@ -45,6 +45,18 @@ function make(): Element {
 const enter = (el: HTMLElement) => el.dispatchEvent(new (realm().Event)('pointerenter'));
 const leave = (el: HTMLElement) => el.dispatchEvent(new (realm().Event)('pointerleave'));
 const click = (el: HTMLElement) => el.dispatchEvent(new (realm().MouseEvent)('click', { bubbles: true }));
+// A finger: the pointer says it is a touch, and a tap ends in a click.
+const touched = (el: EventTarget, type: string) => {
+    const ev = new (realm().Event)(type, { bubbles: type !== 'pointerenter' && type !== 'pointerleave' });
+    Object.defineProperty(ev, 'pointerType', { value: 'touch' });
+    el.dispatchEvent(ev);
+};
+const tap = (el: HTMLElement) => {
+    touched(el, 'pointerenter');
+    touched(el, 'pointerdown');
+    touched(el, 'pointerup');
+    click(el);
+};
 const tooltips = () => Array.from(document.querySelectorAll<HTMLElement>('[data-form="tooltip"]'));
 
 beforeEach(() => {
@@ -171,5 +183,64 @@ describe('Jenny: moving and coming back', () => {
         await wait(TIMING.delay + 5);
         expect(getForm(tip!)).toBe('window');
         expect(tooltips().map((t) => getElementId(t))).toEqual(['said-2']);
+    });
+});
+
+describe('Touch: "The tap should just open the tooltip, and the tooltip should linger for 1.4 sec"', () => {
+    test('a tap opens the tooltip at once', () => {
+        tap(anchor);
+        expect(tooltips()).toHaveLength(1);
+        expect(tooltips()[0]!.dataset.expanded).toBeUndefined();
+    });
+
+    test('it lingers, then goes', async () => {
+        tap(anchor);
+        await wait(TIMING.linger - 20);
+        expect(tooltips()).toHaveLength(1);
+        await wait(40);
+        expect(tooltips()).toHaveLength(0);
+    });
+
+    test('"Tap again within those 1.4 sec and it expands"', async () => {
+        tap(anchor);
+        const [tip] = tooltips();
+        tap(tip!);
+        expect(tip!.dataset.expanded).toBe('true');
+        // Expanded, it stays for the next tap rather than lingering out.
+        await wait(TIMING.linger + 10);
+        expect(tooltips()).toEqual([tip!]);
+    });
+
+    test('"tap again and you get your window"', () => {
+        tap(anchor);
+        const [tip] = tooltips();
+        tap(tip!);
+        tap(tip!);
+        expect(getForm(tip!)).toBe('window');
+    });
+
+    test('tapping the text again counts as tapping the tooltip', () => {
+        tap(anchor);
+        const [tip] = tooltips();
+        tap(anchor);
+        expect(tip!.dataset.expanded).toBe('true');
+        tap(anchor);
+        expect(getForm(tip!)).toBe('window');
+    });
+
+    test('a finger resting on the text does not start the hover timer', async () => {
+        touched(anchor, 'pointerenter');
+        await wait(TIMING.delay + TIMING.expandAfter + 10);
+        expect(tooltips()).toHaveLength(0);
+    });
+
+    test('a tap somewhere else lets it go', () => {
+        tap(anchor);
+        touched(document.body, 'pointerdown');
+        expect(tooltips()).toHaveLength(0);
+    });
+
+    test('resting a finger on the text selects nothing', () => {
+        expect(anchor.style.userSelect).toBe('none');
     });
 });
