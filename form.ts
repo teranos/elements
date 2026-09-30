@@ -94,6 +94,13 @@ export interface FormTable {
      * a click. Never opened from a dot.
      */
     readonly tooltip: { readonly opensFromTray: false };
+
+    /**
+     * "It really feels like a button. Until you click it." forms/button.ts:
+     * no intermediary stage and no hover expand; a click takes Window Form, the
+     * same element, leaving a gap where it was. Where it rests, not the tray.
+     */
+    readonly button: { readonly opensFromTray: false };
 }
 
 // Annotated here rather than only on FORMS: a literal assigned straight
@@ -109,6 +116,7 @@ const TABLE: FormTable = {
     canvasExpanded: { opensFromTray: false },
     cursor: { opensFromTray: false },
     tooltip: { opensFromTray: false },
+    button: { opensFromTray: false },
 };
 
 export const FORMS: FormTable = Object.freeze(TABLE);

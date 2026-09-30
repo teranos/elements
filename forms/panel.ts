@@ -21,6 +21,7 @@ import { applyRestingDotGeometry } from '../tray/proximity';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { wearIdentity, wearShadow } from '../paint';
 import { addWindowControls } from './title-bar-controls';
+import { homeOf } from './home';
 import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
 import { renderContent } from '../content/render';
@@ -213,6 +214,7 @@ export function morphDotToPanel(
         // Add window controls (minimize/close) to the title bar
         addWindowControls(titleBar, {
             onMinimize: () => morphPanelToDot(element, item, verifyElement, onMinimize),
+            onReturn: homeOf(element),
             onClose: item.onClose ? () => {
                 const handler = escapeHandlers.get(element);
                 if (handler) {
@@ -261,6 +263,28 @@ function cleanupResize(element: HTMLElement): void {
 }
 
 /**
+ * What a panel takes with it when it goes, wherever it goes: its Escape, its
+ * edge, and its content into the stash. Returns where it was, for the road out.
+ */
+export function leavePanel(panelElement: HTMLElement): DOMRect {
+    const currentRect = panelElement.getBoundingClientRect();
+
+    // Clean up escape handler
+    const handler = escapeHandlers.get(panelElement);
+    if (handler) {
+        document.removeEventListener('keydown', handler);
+        escapeHandlers.delete(panelElement);
+    }
+
+    // Clean up resize handle
+    cleanupResize(panelElement);
+
+    // Stash content (strips window controls, preserves element identity off-DOM)
+    stashContent(panelElement);
+    return currentRect;
+}
+
+/**
  * Morph a panel back into an element (dot)
  */
 export function morphPanelToDot(
@@ -278,20 +302,7 @@ export function morphPanelToDot(
     verifyElement(item.id, panelElement);
     log.debug(seg, `[Panel] Minimizing ${item.id}`);
 
-    const currentRect = panelElement.getBoundingClientRect();
-
-    // Clean up escape handler
-    const handler = escapeHandlers.get(panelElement);
-    if (handler) {
-        document.removeEventListener('keydown', handler);
-        escapeHandlers.delete(panelElement);
-    }
-
-    // Clean up resize handle
-    cleanupResize(panelElement);
-
-    // Stash content (strips window controls, preserves element identity off-DOM)
-    stashContent(panelElement);
+    const currentRect = leavePanel(panelElement);
 
     const trayTarget = calculateTrayTarget(item.id);
 
