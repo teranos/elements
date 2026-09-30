@@ -16,6 +16,7 @@ import { tooltipFrom } from './tooltip';
 import { getForm, getElementId } from '../dataset';
 import type { Element } from '../element';
 import { hasStash } from '../content/stash';
+import { currentTop } from '../window/z-order';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const realm = () => globalThis.window as unknown as { Event: typeof Event; MouseEvent: typeof MouseEvent };
@@ -355,5 +356,36 @@ describe('Says: "For one changing value, direct view of time and value"', () => 
         touched(anchor, 'pointerdown');
         anchor.dispatchEvent(ev);
         expect(tooltips()[0]!.querySelector('.tooltip-title')!.textContent).toBe('11:00 · 4');
+    });
+});
+
+describe('Jenny: many anchors, many windows', () => {
+    test('a tooltip opens in front of every window, on the same stack', async () => {
+        const before = currentTop();
+        enter(anchor);
+        await wait(TIMING.delay + 5);
+        const [tip] = tooltips();
+        expect(Number(tip!.style.zIndex)).toBeGreaterThan(before);
+        expect(tip!.style.zIndex).toBe(String(currentTop()));
+    });
+
+    test('an anchor with nothing said asks nothing of the document', () => {
+        const doc = document as unknown as { addEventListener: (...a: unknown[]) => void };
+        const had = doc.addEventListener;
+        let added = 0;
+        doc.addEventListener = (...a: unknown[]) => { added++; had.apply(document, a); };
+        const other = document.createElement('span');
+        document.body.appendChild(other);
+        const off = tooltipFrom(other, make, TIMING);
+        doc.addEventListener = had;
+        off();
+        expect(added).toBe(0);
+    });
+
+    test('a finger tapping elsewhere still lets an open tooltip go', async () => {
+        tap(anchor);
+        touched(document.body, 'pointerdown');
+        await wait(1);
+        expect(tooltips()).toHaveLength(0);
     });
 });
