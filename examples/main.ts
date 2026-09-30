@@ -2,6 +2,7 @@ import { configureElements } from '../config';
 import { tray } from '../tray/tray';
 import { renderPlacementSpecimen } from './placement';
 import { renderBorderSpecimen } from './border';
+import { renderTooltipSpecimen } from './tooltip';
 
 // Resting dot doubled from the 10px default — a 10px dot on a black page is
 // hard to aim at.
@@ -14,3 +15,4 @@ tray.init();
 
 renderPlacementSpecimen();
 renderBorderSpecimen();
+renderTooltipSpecimen();

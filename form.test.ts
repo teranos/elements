@@ -28,6 +28,7 @@ describe('Tim: the table', () => {
             'dot',
             'panel',
             'proximity',
+            'tooltip',
             'window',
             'workspace',
         ]);
@@ -91,6 +92,10 @@ describe('Spike: the tray opens onto a subset', () => {
 
     test('canvasPlaced is not a destination — it is reached by placing, not by opening a dot', () => {
         expect(FORMS.canvasPlaced.opensFromTray).toBe(false);
+    });
+
+    test('tooltip is not a destination — it is born from something pointed at, never opened from a dot', () => {
+        expect(FORMS.tooltip.opensFromTray).toBe(false);
     });
 
     test('canvasExpanded is not a destination — it is reached from a placed element', () => {
