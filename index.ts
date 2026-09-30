@@ -152,7 +152,7 @@ export { morphDotToPanel, morphPanelToDot } from './forms/panel';
 export { tooltipFrom } from './forms/tooltip';
 export { beginMorphToTooltip, beginMorphToAnchor } from './morph-transaction';
 export type { TooltipBox } from './morph-transaction';
-export type { TooltipTiming } from './forms/tooltip';
+export type { TooltipTiming, Says, Anchor } from './forms/tooltip';
 
 // Cursor form — transient placement preview
 export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './canvas/cursor';

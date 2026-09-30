@@ -19,6 +19,7 @@ import { createSymbolSpan } from '../symbol-span';
 import { stashContent } from '../content/stash';
 import { morphDotToWindow } from '../window/window';
 import { tray } from '../tray/tray';
+import { raise } from '../window/z-order';
 
 export interface TooltipTiming {
     /** Hover in ms before the tooltip is said (default 300). */
@@ -31,9 +32,18 @@ export interface TooltipTiming {
     linger?: number;
 }
 
-const TOOLTIP_Z_INDEX = '10005';
 
-function boxOf(el: HTMLElement): TooltipBox {
+/**
+ * What a tooltip says before it grows, asked where the pointer is and asked
+ * again as it moves: "For one changing value, direct view of time and value".
+ * Absent, it says the element's title.
+ */
+export type Says = (at: { x: number; y: number }) => string;
+
+/** What a tooltip is said from: text, or a mark in a drawing. */
+export type Anchor = HTMLElement | SVGElement;
+
+function boxOf(el: Anchor): TooltipBox {
     const r = el.getBoundingClientRect();
     return { x: r.left, y: r.top, width: r.width, height: r.height };
 }
@@ -80,7 +90,7 @@ function halt(element: HTMLElement): void {
 }
 
 /** The tooltip itself: a new element each time, in tooltip form, beside the anchor. */
-function sayBeside(anchor: HTMLElement, item: Element): HTMLElement {
+function sayBeside(anchor: Anchor, item: Element, text?: string): HTMLElement {
     const element = document.createElement('div');
     element.className = 'tooltip';
     setElementId(element, item.id);
@@ -88,7 +98,8 @@ function sayBeside(anchor: HTMLElement, item: Element): HTMLElement {
     setForm(element, 'tooltip');
 
     element.style.position = 'fixed';
-    element.style.zIndex = TOOLTIP_Z_INDEX;
+    // In front of every window: on the same stack, so the window it may become starts there.
+    raise(element);
     element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
     element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
     // Said, not yet something to act on: the pointer passes through until it grows.
@@ -106,7 +117,8 @@ function sayBeside(anchor: HTMLElement, item: Element): HTMLElement {
     said.style.alignItems = 'center';
     if (item.symbol) said.appendChild(createSymbolSpan(item.symbol));
     const title = document.createElement('span');
-    title.textContent = item.title;
+    title.className = 'tooltip-title';
+    title.textContent = text ?? item.title;
     said.appendChild(title);
     element.appendChild(said);
 
@@ -120,7 +132,7 @@ function sayBeside(anchor: HTMLElement, item: Element): HTMLElement {
 }
 
 /** Below the anchor, on the screen. */
-function place(element: HTMLElement, anchor: HTMLElement): void {
+function place(element: HTMLElement, anchor: Anchor): void {
     const at = anchor.getBoundingClientRect();
     const size = element.getBoundingClientRect();
     const left = Math.max(4, Math.min(at.left, window.innerWidth - size.width - 4));
@@ -131,7 +143,7 @@ function place(element: HTMLElement, anchor: HTMLElement): void {
 }
 
 /** The bigger picture: the element's content, below what the tooltip said. */
-function grow(element: HTMLElement, anchor: HTMLElement, item: Element): void {
+function grow(element: HTMLElement, anchor: Anchor, item: Element): void {
     // From wherever it is now, even partway out of the text; where it ends is
     // measured with no road running, or the road would be measured instead.
     const from = boxOf(element);
@@ -151,7 +163,7 @@ function grow(element: HTMLElement, anchor: HTMLElement, item: Element): void {
 }
 
 /** Left: back into the text it was said from, the same road driven backwards, and gone. */
-function unsay(element: HTMLElement, anchor: HTMLElement): void {
+function unsay(element: HTMLElement, anchor: Anchor): void {
     element.style.pointerEvents = 'none';
     const gone = () => element.remove();
     travel(element, () => beginMorphToAnchor(element, boxOf(element), boxOf(anchor), getTooltipDuration()))
@@ -201,7 +213,7 @@ function toWindow(element: HTMLElement, item: Element): void {
  *
  * Returns what takes the behavior off the anchor again.
  */
-export function tooltipFrom(anchor: HTMLElement, make: () => Element, timing: TooltipTiming = {}): () => void {
+export function tooltipFrom(anchor: Anchor, make: () => Element, timing: TooltipTiming = {}, says?: Says): () => void {
     const delay = timing.delay ?? 300;
     const expandAfter = timing.expandAfter ?? 1000;
     const grace = timing.grace ?? 120;
@@ -216,9 +228,25 @@ export function tooltipFrom(anchor: HTMLElement, make: () => Element, timing: To
     let onAnchor = false;
     // What pressed last: a tap is a click that a finger made.
     let finger = false;
+    // Where the pointer is, for what the tooltip says.
+    const pointer = { x: 0, y: 0 };
+    const at = (e: Event) => {
+        const { clientX, clientY } = e as MouseEvent;
+        if (typeof clientX === 'number') pointer.x = clientX;
+        if (typeof clientY === 'number') pointer.y = clientY;
+    };
 
     const stop = (t: ReturnType<typeof setTimeout> | null) => { if (t) clearTimeout(t); };
     const isTouch = (e: Event) => (e as PointerEvent).pointerType === 'touch';
+
+    // A finger pressing anywhere else lets an open tooltip go. Asked of the
+    // document only while something is said, so an anchor at rest costs nothing.
+    const outside = (e: Event) => {
+        if (!isTouch(e) || !current) return;
+        const target = e.target as Node | null;
+        if (target && (anchor.contains(target) || current.element.contains(target))) return;
+        abandon();
+    };
 
     // Resting a finger on the text is not selecting it.
     anchor.style.userSelect = 'none';
@@ -231,6 +259,7 @@ export function tooltipFrom(anchor: HTMLElement, make: () => Element, timing: To
         saying = null; growing = null; lingering = null;
         if (current && getForm(current.element) === 'tooltip') unsay(current.element, anchor);
         current = null;
+        document.removeEventListener('pointerdown', outside, true);
     };
 
     const maybeGo = () => {
@@ -246,6 +275,7 @@ export function tooltipFrom(anchor: HTMLElement, make: () => Element, timing: To
         const { element, item } = current;
         // Committed: it is no longer this anchor's to take away.
         current = null;
+        document.removeEventListener('pointerdown', outside, true);
         onTooltip = false;
         stop(lingering);
         lingering = null;
@@ -254,8 +284,10 @@ export function tooltipFrom(anchor: HTMLElement, make: () => Element, timing: To
 
     const say = (): HTMLElement => {
         const item = make();
-        const element = sayBeside(anchor, item);
+        const element = sayBeside(anchor, item, says?.(pointer));
         current = { element, item };
+        document.addEventListener('pointerdown', outside, true);
+        element.addEventListener('pointerdown', pressed);
 
         element.addEventListener('pointerenter', (e) => { if (isTouch(e)) return; onTooltip = true; stop(going); });
         element.addEventListener('pointerleave', (e) => {
@@ -296,6 +328,7 @@ export function tooltipFrom(anchor: HTMLElement, make: () => Element, timing: To
     };
 
     const enterAnchor = (e: Event) => {
+        at(e);
         if (isTouch(e)) return;
         onAnchor = true;
         stop(going);
@@ -316,29 +349,37 @@ export function tooltipFrom(anchor: HTMLElement, make: () => Element, timing: To
         maybeGo();
     };
 
-    const clickAnchor = () => {
+    const clickAnchor = (e: Event) => {
+        at(e);
         if (finger) tapped();
     };
 
-    // Which pointer pressed, anywhere; a finger pressing elsewhere lets it go.
+    // The one changing value follows the pointer; grown, the tooltip holds still.
+    const moveAnchor = (e: Event) => {
+        at(e);
+        if (!says || !current || current.element.dataset.expanded === 'true') return;
+        const title = current.element.querySelector('.tooltip-title');
+        if (title) title.textContent = says(pointer);
+        place(current.element, anchor);
+    };
+
+    // Which pointer pressed the anchor or its tooltip: a tap is a click a finger made.
     const pressed = (e: Event) => {
         finger = isTouch(e);
-        if (!finger || !current) return;
-        const target = e.target as Node | null;
-        if (target && (anchor.contains(target) || current.element.contains(target))) return;
-        abandon();
     };
 
     anchor.addEventListener('pointerenter', enterAnchor);
     anchor.addEventListener('pointerleave', leaveAnchor);
     anchor.addEventListener('click', clickAnchor);
-    document.addEventListener('pointerdown', pressed, true);
+    anchor.addEventListener('pointermove', moveAnchor);
+    anchor.addEventListener('pointerdown', pressed);
 
     return () => {
         anchor.removeEventListener('pointerenter', enterAnchor);
         anchor.removeEventListener('pointerleave', leaveAnchor);
         anchor.removeEventListener('click', clickAnchor);
-        document.removeEventListener('pointerdown', pressed, true);
+        anchor.removeEventListener('pointermove', moveAnchor);
+        anchor.removeEventListener('pointerdown', pressed);
         stop(going);
         abandon();
     };
