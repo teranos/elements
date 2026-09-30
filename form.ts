@@ -86,6 +86,14 @@ export interface FormTable {
      * chrome, and do not participate in the tray morph lifecycle."
      */
     readonly cursor: { readonly opensFromTray: false };
+
+    /**
+     * Said beside something pointed at. forms/tooltip.ts: "tooltip is a form an
+     * element can be in" — a new element every time, born after a short hover,
+     * grown into the bigger picture after a longer one, and taken to a window by
+     * a click. Never opened from a dot.
+     */
+    readonly tooltip: { readonly opensFromTray: false };
 }
 
 // Annotated here rather than only on FORMS: a literal assigned straight
@@ -100,6 +108,7 @@ const TABLE: FormTable = {
     canvasPlaced: { opensFromTray: false },
     canvasExpanded: { opensFromTray: false },
     cursor: { opensFromTray: false },
+    tooltip: { opensFromTray: false },
 };
 
 export const FORMS: FormTable = Object.freeze(TABLE);
