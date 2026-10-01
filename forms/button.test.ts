@@ -267,6 +267,21 @@ describe('Jenny: out of the tray, and everything kept', () => {
         expect(down(button)).not.toBeNull();
     });
 
+    test('opened out of the tray, the down arrow still brings it back to its place', async () => {
+        click(button);
+        await wait(SETTLED);
+        minimize(button)!.click();
+        await wait(SETTLED);
+        tray.open('bismuth');
+        await wait(SETTLED);
+        down(button)!.click();
+        await wait(SETTLED);
+        expect(getForm(button)).toBe('button');
+        expect(button.previousSibling).toBe(before);
+        expect(tray.has('bismuth')).toBe(false);
+        expect(gaps()).toHaveLength(0);
+    });
+
     test('one click on the gap moves it out of the tray', async () => {
         click(button);
         await wait(SETTLED);

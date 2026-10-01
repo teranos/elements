@@ -206,6 +206,9 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
         } else {
             return;
         }
+        // Opened out of the tray, the tray still answers its press: let go of it
+        // first, or the press that brings it back opens it again.
+        if (tray.has(item.id)) tray.remove(item.id);
 
         returning = true;
         const to = boxOf(gap);
