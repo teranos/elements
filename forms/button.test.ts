@@ -214,6 +214,19 @@ describe('Tim: button, window, gap, button again', () => {
         expect(gaps()).toHaveLength(0);
     });
 
+    test('two taps on the hole bring it back too, though a finger numbers each tap the first', async () => {
+        click(button);
+        await wait(SETTLED);
+        const gap = gaps()[0]!;
+        click(gap, 1);
+        await wait(5);
+        click(gap, 1);
+        await wait(BETWEEN + SETTLED);
+        expect(getForm(button)).toBe('button');
+        expect(button.previousSibling).toBe(before);
+        expect(gaps()).toHaveLength(0);
+    });
+
     test('coming back is a road too, ending where the gap is', async () => {
         click(button);
         await wait(SETTLED);

@@ -35,7 +35,7 @@ import { getLogger, getLogSegment } from '../config';
 export interface ButtonOptions {
     /** The host's button class, so it looks like every other button on the page. */
     className?: string;
-    /** Ms a click on the gap waits for a second one before it locates (default 250). */
+    /** Ms a click on the gap waits for a second one before it locates (default 300). */
     between?: number;
 }
 
@@ -117,7 +117,8 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
     const log = getLogger();
     const seg = getLogSegment();
     const className = options.className ?? '';
-    const between = options.between ?? 250;
+    // A double tap is slower than a double click.
+    const between = options.between ?? 300;
 
     const element = document.createElement('div');
     setElementId(element, item.id);
@@ -327,9 +328,12 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
 
     // One click locates, two bring it back: the first of two waits to see.
     function onGap(e: MouseEvent): void {
+        // A second press while the first still waits is the second of two, as a
+        // finger taps it: a phone numbers every tap the first.
+        const second = locating !== null || e.detail >= 2;
         if (locating) clearTimeout(locating);
         locating = null;
-        if (e.detail >= 2) {
+        if (second) {
             comeBack();
             return;
         }
