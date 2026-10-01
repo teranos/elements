@@ -87,6 +87,9 @@ beforeEach(() => {
     after = document.createElement('span');
     button = buttonFrom(item(), { className: 'host-button', between: BETWEEN });
     host.append(before, button, after);
+    // What holds the button has a surface of its own, for the hole to go through.
+    host.style.backgroundColor = 'rgb(34, 34, 34)';
+    host.getBoundingClientRect = () => ({ left: 30, top: 50, width: 240, height: 110, right: 270, bottom: 160, x: 30, y: 50, toJSON: () => ({}) }) as DOMRect;
     document.body.appendChild(host);
     button.getBoundingClientRect = () => ({ left: 40, top: 60, width: 90, height: 24, right: 130, bottom: 84, x: 40, y: 60, toJSON: () => ({}) }) as DOMRect;
 });
@@ -124,6 +127,22 @@ describe('Tim: button, window, gap, button again', () => {
         expect(gap!.style.height).toBe('24px');
         expect(gap!.style.visibility).not.toBe('hidden');
         expect(gap!.textContent).toBe('');
+    });
+
+    test('the gap is a transparent hole 🕳️ through what holds it, where the button was', () => {
+        click(button);
+        expect(host.style.getPropertyValue('mask-size')).toBe('100% 100%, 90px 24px');
+        expect(host.style.getPropertyValue('mask-position')).toBe('0px 0px, 10px 10px');
+        expect(host.style.getPropertyValue('mask-composite')).toBe('exclude');
+    });
+
+    test('back in its place, the hole closes', async () => {
+        click(button);
+        await wait(SETTLED);
+        down(button)!.click();
+        await wait(SETTLED);
+        expect(host.style.getPropertyValue('mask-size')).toBe('');
+        expect(host.style.getPropertyValue('mask-image')).toBe('');
     });
 
     test('the window has a down arrow, which brings it back to its place as a button', async () => {
@@ -178,6 +197,16 @@ describe('Spike: what does not happen', () => {
         const [gap] = gaps();
         expect(gap!.hasAttribute('data-element-id')).toBe(false);
         expect(gap!.getAttribute('data-form')).toBeNull();
+    });
+
+    test('the hole goes through the nearest thing with a surface, not through one without', () => {
+        const bare = document.createElement('div');
+        const lone = buttonFrom({ ...item(), id: 'lone' }, { between: BETWEEN });
+        bare.appendChild(lone);
+        host.appendChild(bare);
+        click(lone);
+        expect(bare.style.getPropertyValue('mask-image')).toBe('');
+        expect(host.style.getPropertyValue('mask-image')).not.toBe('');
     });
 
     test('a click on the window is not a click on the button', async () => {
