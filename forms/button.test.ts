@@ -134,6 +134,23 @@ describe('Tim: button, window, gap, button again', () => {
         expect(button.textContent).toBe('Press Me');
     });
 
+    test('it starts its road on the page itself, where a holder cannot move its first frame', () => {
+        // A holder that is a containing block (a transform, a filter) measures a
+        // fixed element from itself: pinned inside it, the button reads as
+        // somewhere it never was.
+        button.getBoundingClientRect = () => {
+            const pinnedInHolder = button.style.position === 'fixed' && button.parentElement !== document.body;
+            const left = pinnedInHolder ? 56 : 40;
+            const top = pinnedInHolder ? 620 : 60;
+            return { left, top, width: 90, height: 24, right: left + 90, bottom: top + 24, x: left, y: top, toJSON: () => ({}) } as DOMRect;
+        };
+        played = [];
+        click(button);
+        expect(button.parentElement).toBe(document.body);
+        const road = played.find((p) => p.element === button)!;
+        expect(road.keyframes[0]).toMatchObject({ left: '40px', top: '60px', width: '90px', height: '24px' });
+    });
+
     test('the body travels with it from the first frame, drawn once', async () => {
         click(button);
         expect(button.querySelector('.bismuth-body')).not.toBeNull();

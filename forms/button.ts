@@ -237,12 +237,16 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
         gap.addEventListener('click', onGap);
 
         // Where it is stays where the road starts, once the gap takes its place.
+        // Onto the page first: inside a holder that is a containing block (a
+        // transform, a filter), fixed is measured from the holder, and the first
+        // frame would put it somewhere it never was.
+        element.before(gap);
+        document.body.appendChild(element);
         element.style.position = 'fixed';
         element.style.left = `${at.left}px`;
         element.style.top = `${at.top}px`;
         element.style.width = `${at.width}px`;
         element.style.height = `${at.height}px`;
-        element.before(gap);
         close = pierce(gap, { x: at.left, y: at.top, width: at.width, height: at.height });
         // What the button said is the window's title now, and it never left.
         carry();
