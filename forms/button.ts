@@ -18,8 +18,12 @@
  */
 
 import { type Element } from '../element';
-import { getRestDuration } from '../element';
-import { setForm, getForm, setElementId, getElementId } from '../dataset';
+import { getRestDuration, MIN_WINDOW_WIDTH, CANVAS_ELEMENT_CONTENT_PADDING } from '../element';
+import { setForm, getForm, setElementId, getElementId, getLastSize, setLastSize } from '../dataset';
+import { stashContent, restoreContent, hasStash } from '../content/stash';
+import { holdBody } from '../content/body';
+import { createSymbolSpan } from '../symbol-span';
+import { removeRestSymbol } from '../tray/rest-symbol';
 import { beginMorphToButton, cancelMorph, type TooltipBox } from '../morph-transaction';
 import { morphDotToWindow, leaveWindow } from '../window/window';
 import { leavePanel } from './panel';
@@ -118,6 +122,12 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
     const element = document.createElement('div');
     setElementId(element, item.id);
 
+    // What it says, one node for its whole life: the button's words, then the
+    // window's title, then the button's words again (Element Axioma).
+    const label = document.createElement('span');
+    label.className = 'button-label';
+    label.textContent = item.title;
+
     let gap: HTMLElement | null = null;
     let close: () => void = () => {};
     let locating: ReturnType<typeof setTimeout> | null = null;
@@ -128,7 +138,11 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
     const rest = () => {
         element.style.cssText = '';
         element.className = className;
-        element.textContent = item.title;
+        // The body it had as a window waits for the next one; the words stay out.
+        label.remove();
+        label.style.flex = '';
+        if (element.firstChild) stashContent(element);
+        element.appendChild(label);
         element.setAttribute('role', 'button');
         element.tabIndex = 0;
         setForm(element, 'button');
@@ -140,10 +154,71 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
         }
     };
 
+    /** Its title bar, saying what the button said. */
+    const titleBarOf = (): HTMLElement => {
+        const bar = Array.from(element.children).find((c) => c.classList.contains('title-bar')) as HTMLElement | undefined;
+        if (bar) return bar;
+        const made = document.createElement('div');
+        made.className = 'title-bar';
+        if (item.symbol) made.appendChild(createSymbolSpan(item.symbol));
+        element.insertBefore(made, element.firstChild);
+        return made;
+    };
+
+    /**
+     * The window it is becoming, around the words it already says: the body it
+     * had, or its first one. It travels with the element from the first frame.
+     */
+    const carry = () => {
+        label.remove();
+        if (hasStash(element)) restoreContent(element);
+        const bar = titleBarOf();
+        const symbol = bar.querySelector(':scope > .symbol');
+        bar.insertBefore(label, symbol ? symbol.nextSibling : bar.firstChild);
+        label.style.flex = '1';
+        if (!Array.from(element.children).some((c) => c !== bar)) {
+            const area = document.createElement('div');
+            area.className = 'content-area';
+            area.style.padding = `${CANVAS_ELEMENT_CONTENT_PADDING}px`;
+            holdBody(area);
+            area.appendChild(item.renderContent());
+            element.appendChild(area);
+        }
+        // Laid out as a window is while it travels: a column that clips.
+        element.style.display = 'flex';
+        element.style.flexDirection = 'column';
+        element.style.overflow = 'hidden';
+        element.style.padding = '0';
+    };
+
+    /** The size the window will be, measured off what it carries, so nothing is drawn twice. */
+    const measure = (border: { across: number; down: number }) => {
+        if (getLastSize(element)) return;
+        const measurer = document.createElement('div');
+        measurer.style.position = 'fixed';
+        measurer.style.left = '-99999px';
+        measurer.style.top = '0';
+        measurer.style.visibility = 'hidden';
+        const children = Array.from(element.children);
+        measurer.append(...children);
+        document.body.appendChild(measurer);
+        // Rounded up: text a fraction of a pixel wider than its box wraps.
+        const box = measurer.getBoundingClientRect();
+        const width = Math.ceil(Math.max(box.width, measurer.scrollWidth));
+        const height = Math.ceil(Math.max(box.height, measurer.scrollHeight));
+        element.append(...children);
+        measurer.remove();
+        setLastSize(element, Math.max(MIN_WINDOW_WIDTH, width + border.across), height + border.down);
+    };
+
     const open = () => {
         if (getForm(element) !== 'button' || returning) return;
         const at = element.getBoundingClientRect();
         const style = window.getComputedStyle(element);
+        const border = {
+            across: (parseFloat(style.borderLeftWidth) || 0) + (parseFloat(style.borderRightWidth) || 0),
+            down: (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0),
+        };
 
         // The hole it leaves: its size and its place in the flow, and nothing to see.
         gap = document.createElement('div');
@@ -169,8 +244,9 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
         element.style.height = `${at.height}px`;
         element.before(gap);
         close = pierce(gap, { x: at.left, y: at.top, width: at.width, height: at.height });
-        // What the button said is not the window's: the title bar says it now.
-        element.textContent = '';
+        // What the button said is the window's title now, and it never left.
+        carry();
+        measure(border);
         element.removeAttribute('role');
         element.removeAttribute('tabindex');
 
@@ -203,6 +279,7 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
             from = boxOf(element);
             // Out of the tray, and no longer the tray's.
             tray.remove(item.id);
+            removeRestSymbol(element);
         } else {
             return;
         }
@@ -220,6 +297,11 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
         element.style.top = `${from.y}px`;
         element.style.width = `${from.width}px`;
         element.style.height = `${from.height}px`;
+        // It goes back saying what it says, its body with it.
+        if (hasStash(element)) restoreContent(element);
+        element.style.display = 'flex';
+        element.style.flexDirection = 'column';
+        element.style.overflow = 'hidden';
         if (!element.isConnected) document.body.appendChild(element);
         raise(element);
         setForm(element, 'button');

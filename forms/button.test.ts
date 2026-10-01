@@ -117,6 +117,32 @@ describe('Tim: button, window, gap, button again', () => {
         expect(document.querySelectorAll('[data-element-id="bismuth"]')).toHaveLength(1);
     });
 
+    test('what it says is one node for its whole life: into the title bar, and back', async () => {
+        const label = button.querySelector('.button-label');
+        expect(label).not.toBeNull();
+        expect(label!.textContent).toBe('Press Me');
+        click(button);
+        // From the first frame, not once it has arrived.
+        expect(button.querySelector('.title-bar .button-label')).toBe(label);
+        await wait(SETTLED);
+        expect(button.querySelector('.title-bar .button-label')).toBe(label);
+        down(button)!.click();
+        // On the way back it still says it.
+        expect(button.contains(label)).toBe(true);
+        await wait(SETTLED);
+        expect(button.firstChild).toBe(label);
+        expect(button.textContent).toBe('Press Me');
+    });
+
+    test('the body travels with it from the first frame, drawn once', async () => {
+        click(button);
+        expect(button.querySelector('.bismuth-body')).not.toBeNull();
+        await wait(SETTLED);
+        expect(rendered).toBe(1);
+        expect(button.querySelectorAll('.title-bar')).toHaveLength(1);
+        expect(button.querySelectorAll('.bismuth-body')).toHaveLength(1);
+    });
+
     test('where it was is a transparent gap, the size it was', () => {
         click(button);
         const [gap] = gaps();
@@ -280,6 +306,21 @@ describe('Jenny: out of the tray, and everything kept', () => {
         expect(button.previousSibling).toBe(before);
         expect(tray.has('bismuth')).toBe(false);
         expect(gaps()).toHaveLength(0);
+    });
+
+    test('through the tray and back, it is still the same words', async () => {
+        const label = button.querySelector('.button-label');
+        click(button);
+        await wait(SETTLED);
+        minimize(button)!.click();
+        await wait(SETTLED);
+        tray.open('bismuth');
+        await wait(SETTLED);
+        expect(button.querySelector('.title-bar .button-label')).toBe(label);
+        expect(button.querySelectorAll('.title-bar')).toHaveLength(1);
+        twice(gaps()[0]!);
+        await wait(SETTLED);
+        expect(button.firstChild).toBe(label);
     });
 
     test('one click on the gap moves it out of the tray', async () => {
