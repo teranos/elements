@@ -13,8 +13,6 @@
  *
  * The gap is a hole, not an element: it carries no id and no form, so the
  * element it stands open for is still exactly one DOM element (Element Axioma).
- * "A transparent hole 🕳️": it goes through what holds the button, so what is
- * behind that shows where the button was.
  */
 
 import { type Element } from '../element';
@@ -41,53 +39,6 @@ const BLINK_MS = 320;
 function boxOf(el: HTMLElement): TooltipBox {
     const r = el.getBoundingClientRect();
     return { x: r.left, y: r.top, width: r.width, height: r.height };
-}
-
-// What a hole is cut with, each written with and without the prefix WebKit still wants.
-const MASK = ['mask-image', 'mask-size', 'mask-position', 'mask-repeat', 'mask-composite'];
-
-/** Whether something is painted, so a hole in it is something to see through. */
-function hasSurface(el: HTMLElement): boolean {
-    const style = window.getComputedStyle(el);
-    const color = style.backgroundColor;
-    const painted = color !== '' && color !== 'transparent' && color !== 'rgba(0, 0, 0, 0)';
-    const image = style.backgroundImage;
-    return painted || (image !== '' && image !== 'none');
-}
-
-/**
- * Cuts the hole through the nearest thing holding the gap that has a surface,
- * the page itself aside. Returns what closes it again.
- */
-function pierce(gap: HTMLElement, at: TooltipBox): () => void {
-    let surface = gap.parentElement;
-    while (surface && surface !== document.body && !hasSurface(surface)) surface = surface.parentElement;
-    if (!surface || surface === document.body) return () => {};
-    const held = surface;
-    const was = new Map<string, string>();
-    for (const name of MASK) {
-        was.set(name, held.style.getPropertyValue(name));
-        was.set(`-webkit-${name}`, held.style.getPropertyValue(`-webkit-${name}`));
-    }
-    const box = held.getBoundingClientRect();
-    const cut: Record<string, string> = {
-        'mask-image': 'linear-gradient(#000, #000), linear-gradient(#000, #000)',
-        'mask-size': `100% 100%, ${at.width}px ${at.height}px`,
-        'mask-position': `0px 0px, ${at.x - box.left}px ${at.y - box.top}px`,
-        'mask-repeat': 'no-repeat',
-        'mask-composite': 'exclude',
-    };
-    for (const name of MASK) {
-        held.style.setProperty(name, cut[name]!);
-        // WebKit's composite says it in its own words.
-        held.style.setProperty(`-webkit-${name}`, name === 'mask-composite' ? 'xor' : cut[name]!);
-    }
-    return () => {
-        for (const [name, value] of was) {
-            if (value === '') held.style.removeProperty(name);
-            else held.style.setProperty(name, value);
-        }
-    };
 }
 
 /** "slight fast blink twice on borders and titlebar". */
@@ -119,7 +70,6 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
     setElementId(element, item.id);
 
     let gap: HTMLElement | null = null;
-    let close: () => void = () => {};
     let locating: ReturnType<typeof setTimeout> | null = null;
     // On its way back: not yet a button, no longer anything else.
     let returning = false;
@@ -168,7 +118,6 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
         element.style.width = `${at.width}px`;
         element.style.height = `${at.height}px`;
         element.before(gap);
-        close = pierce(gap, { x: at.left, y: at.top, width: at.width, height: at.height });
         // What the button said is not the window's: the title bar says it now.
         element.textContent = '';
         element.removeAttribute('role');
@@ -227,8 +176,6 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
                 rest();
                 gap?.replaceWith(element);
                 gap = null;
-                close();
-                close = () => {};
             })
             .catch((err: unknown) => {
                 returning = false;
