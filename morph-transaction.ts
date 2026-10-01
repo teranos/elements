@@ -300,16 +300,3 @@ export function beginMorphToAnchor(
 ): Promise<void> {
     return runOrTake(element, [boxFrame(from, '1'), boxFrame(anchor, '0')], duration, 'ToAnchor');
 }
-
-/**
- * Begin a morph that ends at a button's place: from wherever the element is,
- * into the gap it left (forms/button.ts).
- */
-export function beginMorphToButton(
-    element: HTMLElement,
-    from: TooltipBox,
-    to: TooltipBox,
-    duration: number,
-): Promise<void> {
-    return runOrTake(element, [boxFrame(from, '1'), boxFrame(to, '1')], duration, 'ToButton');
-}

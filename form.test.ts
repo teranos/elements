@@ -22,7 +22,6 @@ const names = Object.keys(FORMS) as Form[];
 describe('Tim: the table', () => {
     test('names every form the package implements', () => {
         expect([...names].sort()).toEqual([
-            'button',
             'canvasExpanded',
             'canvasPlaced',
             'cursor',

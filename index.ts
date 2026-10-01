@@ -150,9 +150,7 @@ export { morphDotToWindow, morphWindowToDot } from './window/window';
 export { morphDotToWorkspace, morphWorkspaceToDot } from './canvas/workspace';
 export { morphDotToPanel, morphPanelToDot } from './forms/panel';
 export { tooltipFrom } from './forms/tooltip';
-export { buttonFrom } from './forms/button';
-export type { ButtonOptions } from './forms/button';
-export { beginMorphToTooltip, beginMorphToAnchor, beginMorphToButton } from './morph-transaction';
+export { beginMorphToTooltip, beginMorphToAnchor } from './morph-transaction';
 export type { TooltipBox } from './morph-transaction';
 export type { TooltipTiming, Says, Anchor } from './forms/tooltip';
 
