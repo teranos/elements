@@ -11,6 +11,8 @@ const WINDOW_CONTROLS_CLASS = 'window-controls';
 export interface WindowControlsConfig {
     onMinimize: () => void;
     onClose?: () => void;
+    /** An element with a place of its own (forms/button.ts): the down arrow takes it back there. */
+    onReturn?: () => void;
 }
 
 /** Append minimize/close buttons to an existing element title bar. */
@@ -24,6 +26,15 @@ export function addWindowControls(titleBar: HTMLElement, config: WindowControlsC
     container.style.gap = '2px';
     container.style.flexShrink = '0';
     container.style.marginLeft = 'auto';
+
+    if (config.onReturn) {
+        const downBtn = document.createElement('button');
+        downBtn.textContent = '\u2193'; // ↓
+        downBtn.title = 'Back to its place';
+        downBtn.setAttribute('aria-label', 'Back to its place');
+        downBtn.onclick = config.onReturn;
+        container.appendChild(downBtn);
+    }
 
     const minimizeBtn = document.createElement('button');
     minimizeBtn.textContent = '\u2212'; // −

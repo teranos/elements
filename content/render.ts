@@ -27,7 +27,9 @@ export function renderContent(
 ): RenderContentResult {
     const log = getLogger();
     const seg = getLogSegment();
-    const restored = restoreContent(element);
+    // An element that arrives already carrying its title bar brought its body
+    // with it (forms/button.ts): restored, not drawn a second time.
+    const restored = restoreContent(element) || carriesTitleBar(element);
 
     let titleBar: HTMLElement;
     let contentElement: HTMLElement | null = null;
@@ -117,6 +119,10 @@ export function renderContent(
     }
 
     return { titleBar, contentElement };
+}
+
+function carriesTitleBar(element: HTMLElement): boolean {
+    return Array.from(element.children).some((child) => child.classList.contains('title-bar'));
 }
 
 function createGenericTitleBar(item: Element): HTMLElement {

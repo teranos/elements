@@ -12,6 +12,7 @@ import { getLogger, getLogSegment } from '../config';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { wearIdentity } from '../paint';
 import { addWindowControls } from '../forms/title-bar-controls';
+import { homeOf } from '../forms/home';
 import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
 import { renderContent } from '../content/render';
@@ -173,6 +174,7 @@ export function morphDotToWindow(
         // Add window controls (minimize/close) to the title bar
         addWindowControls(titleBar, {
             onMinimize: () => morphWindowToDot(element, item, verifyElement, onMinimize),
+            onReturn: homeOf(element),
             onClose: item.onClose ? () => {
                 teardownWindowDrag(element);
                 teardownWindowResize(element);
@@ -204,6 +206,28 @@ export function morphDotToWindow(
 }
 
 /**
+ * What a window takes with it when it goes, wherever it goes: its place for next
+ * time, its drag and its corner, and its content into the stash. Returns where
+ * it was, for the road out.
+ */
+export function leaveWindow(windowElement: HTMLElement): DOMRect {
+    // Get current window state before clearing anything
+    const currentRect = windowElement.getBoundingClientRect();
+
+    // Remember window position for next time it opens
+    setLastPosition(windowElement, currentRect.left, currentRect.top);
+
+    // Tear down window drag handlers before stashing (prevents handler accumulation)
+    teardownWindowDrag(windowElement);
+    // The corner is the window's, not the content's: it is not stashed.
+    teardownWindowResize(windowElement);
+
+    // Stash content (strips window controls, preserves element identity off-DOM)
+    stashContent(windowElement);
+    return currentRect;
+}
+
+/**
  * Morph a window back into an element (dot)
  * THE SAME ELEMENT morphs back - no new elements created
  */
@@ -218,19 +242,7 @@ export function morphWindowToDot(
     verifyElement(item.id, windowElement);
     log.debug(seg, `[Window] Minimizing ${item.id}`);
 
-    // Get current window state before clearing anything
-    const currentRect = windowElement.getBoundingClientRect();
-
-    // Remember window position for next time it opens
-    setLastPosition(windowElement, currentRect.left, currentRect.top);
-
-    // Tear down window drag handlers before stashing (prevents handler accumulation)
-    teardownWindowDrag(windowElement);
-    // The corner is the window's, not the content's: it is not stashed.
-    teardownWindowResize(windowElement);
-
-    // Stash content (strips window controls, preserves element identity off-DOM)
-    stashContent(windowElement);
+    const currentRect = leaveWindow(windowElement);
 
     const trayTarget = calculateTrayTarget(item.id);
 
