@@ -18,6 +18,7 @@ import type { Element } from '../element';
 import { hasStash } from '../content/stash';
 import { currentTop } from '../window/z-order';
 import { playAnimations, type Played } from '../test-animations';
+import { expectAxiom } from '../test-axiom';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const realm = () => globalThis.window as unknown as { Event: typeof Event; MouseEvent: typeof MouseEvent };
@@ -105,7 +106,7 @@ describe('Tim: hover, tooltip, expanded, window', () => {
         enter(tip!);
         click(tip!);
         expect(getForm(tip!)).toBe('window');
-        expect(document.querySelectorAll('[data-element-id="said-1"]')).toHaveLength(1);
+        expectAxiom('said-1', tip!);
         // The content it grew into is kept for the window, not drawn again: it
         // waits in the stash the window restores from when the morph commits.
         expect(body).not.toBeNull();

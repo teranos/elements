@@ -19,6 +19,7 @@ import { getForm } from '../dataset';
 import type { Element } from '../element';
 import { tray } from '../tray/tray';
 import { playAnimations, type Played, type Road } from '../test-animations';
+import { expectAxiom } from '../test-axiom';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const realm = () => globalThis.window as unknown as { Event: typeof Event; MouseEvent: typeof MouseEvent; HTMLElement: typeof HTMLElement };
@@ -83,6 +84,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    // Whatever a test did, it ends with the one element it began with.
+    expectAxiom('bismuth', button);
     animations.restore();
     if (tray.has('bismuth')) tray.remove('bismuth');
 });
@@ -100,6 +103,7 @@ describe('Tim: button, window, gap, button again', () => {
         click(button);
         expect(getForm(button)).toBe('window');
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(getForm(button)).toBe('window');
         expect(button.querySelector('.bismuth-body')).not.toBeNull();
         expect(document.querySelectorAll('[data-element-id="bismuth"]')).toHaveLength(1);
@@ -113,11 +117,13 @@ describe('Tim: button, window, gap, button again', () => {
         // From the first frame, not once it has arrived.
         expect(button.querySelector('.title-bar .button-label')).toBe(label);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(button.querySelector('.title-bar .button-label')).toBe(label);
         down(button)!.click();
         // On the way back it still says it.
         expect(button.contains(label)).toBe(true);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(button.firstChild).toBe(label);
         expect(button.textContent).toBe('Press Me');
     });
@@ -143,6 +149,7 @@ describe('Tim: button, window, gap, button again', () => {
         click(button);
         expect(button.querySelector('.bismuth-body')).not.toBeNull();
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(rendered).toBe(1);
         expect(button.querySelectorAll('.title-bar')).toHaveLength(1);
         expect(button.querySelectorAll('.bismuth-body')).toHaveLength(1);
@@ -170,8 +177,10 @@ describe('Tim: button, window, gap, button again', () => {
     test('back in its place, the hole closes', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         down(button)!.click();
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(host.style.getPropertyValue('mask-size')).toBe('');
         expect(host.style.getPropertyValue('mask-image')).toBe('');
     });
@@ -179,11 +188,13 @@ describe('Tim: button, window, gap, button again', () => {
     test('the window has a down arrow, which brings it back to its place as a button', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         const arrow = down(button);
         expect(arrow).not.toBeNull();
         expect(arrow!.textContent).toBe('↓');
         arrow!.click();
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(getForm(button)).toBe('button');
         expect(button.previousSibling).toBe(before);
         expect(button.nextSibling).toBe(after);
@@ -195,8 +206,10 @@ describe('Tim: button, window, gap, button again', () => {
     test('two clicks on the gap bring it back from wherever it is to its place', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         twice(gaps()[0]!);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(getForm(button)).toBe('button');
         expect(button.previousSibling).toBe(before);
         expect(gaps()).toHaveLength(0);
@@ -205,6 +218,7 @@ describe('Tim: button, window, gap, button again', () => {
     test('two taps on the hole bring it back too, though a finger numbers each tap the first', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         const gap = gaps()[0]!;
         click(gap, 1);
         await wait(5);
@@ -218,6 +232,7 @@ describe('Tim: button, window, gap, button again', () => {
     test('coming back is a road too, ending where the gap is', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         const gap = gaps()[0]!;
         gap.getBoundingClientRect = () => ({ left: 40, top: 60, width: 90, height: 24, right: 130, bottom: 84, x: 40, y: 60, toJSON: () => ({}) }) as DOMRect;
         played.length = 0;
@@ -256,8 +271,10 @@ describe('Spike: what does not happen', () => {
     test('a click on the window is not a click on the button', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(getForm(button)).toBe('window');
         expect(gaps()).toHaveLength(1);
     });
@@ -265,6 +282,7 @@ describe('Spike: what does not happen', () => {
     test('one click on the gap locates: it stays where it is, in front', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         const gap = gaps()[0]!;
         const was = Number(button.style.zIndex);
         played.length = 0;
@@ -278,6 +296,7 @@ describe('Spike: what does not happen', () => {
     test('locating blinks the borders and the title bar twice', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         played.length = 0;
         click(gaps()[0]!, 1);
         await wait(BETWEEN + 10);
@@ -290,6 +309,7 @@ describe('Spike: what does not happen', () => {
     test('the first of two clicks does not locate', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         played.length = 0;
         twice(gaps()[0]!);
         await wait(BETWEEN + 10);
@@ -301,12 +321,15 @@ describe('Jenny: out of the tray, and everything kept', () => {
     test('minimized, it rests in the tray, and its window still has the down arrow', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         minimize(button)!.click();
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(getForm(button)).toBe('dot');
         expect(tray.has('bismuth')).toBe(true);
         tray.open('bismuth');
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(getForm(button)).toBe('window');
         expect(down(button)).not.toBeNull();
     });
@@ -314,12 +337,16 @@ describe('Jenny: out of the tray, and everything kept', () => {
     test('opened out of the tray, the down arrow still brings it back to its place', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         minimize(button)!.click();
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         tray.open('bismuth');
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         down(button)!.click();
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(getForm(button)).toBe('button');
         expect(button.previousSibling).toBe(before);
         expect(tray.has('bismuth')).toBe(false);
@@ -330,22 +357,28 @@ describe('Jenny: out of the tray, and everything kept', () => {
         const label = button.querySelector('.button-label');
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         minimize(button)!.click();
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         tray.open('bismuth');
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(button.querySelector('.title-bar .button-label')).toBe(label);
         expect(button.querySelectorAll('.title-bar')).toHaveLength(1);
         twice(gaps()[0]!);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(button.firstChild).toBe(label);
     });
 
     test('one click on the gap moves it out of the tray', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         minimize(button)!.click();
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         click(gaps()[0]!, 1);
         await wait(BETWEEN + SETTLED);
         expect(getForm(button)).toBe('window');
@@ -354,10 +387,13 @@ describe('Jenny: out of the tray, and everything kept', () => {
     test('two clicks on the gap bring it back from the tray to its place', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         minimize(button)!.click();
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         twice(gaps()[0]!);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(getForm(button)).toBe('button');
         expect(tray.has('bismuth')).toBe(false);
         expect(button.previousSibling).toBe(before);
@@ -368,12 +404,15 @@ describe('Jenny: out of the tray, and everything kept', () => {
     test('opened again, it is the content it had, not drawn again', async () => {
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         const body = button.querySelector('.bismuth-body');
         down(button)!.click();
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         const drawn = rendered;
         click(button);
         await wait(SETTLED);
+        expectAxiom('bismuth', button);
         expect(button.querySelector('.bismuth-body')).toBe(body);
         expect(rendered).toBeLessThanOrEqual(drawn + 1);
     });
