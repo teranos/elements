@@ -31,6 +31,45 @@
           "run": "bun test"
         }
       ]
+    },
+    "browser": {
+      "name": "Browser",
+      "runs-on": "ubuntu-latest",
+      "steps": [
+        {
+          "uses": "actions/checkout@v6"
+        },
+        {
+          "uses": "oven-sh/setup-bun@v2",
+          "with": {
+            "bun-version": "1.3.9"
+          }
+        },
+        {
+          "run": "bun install --frozen-lockfile"
+        },
+        {
+          "name": "Chromium and WebKit, as the pinned @playwright/test wants them",
+          "run": "npx playwright install --with-deps chromium webkit"
+        },
+        {
+          "name": "Desktop, Pixel 7 and iPhone 15",
+          "run": "npx playwright test -c browser",
+          "env": {
+            "CI": "1"
+          }
+        },
+        {
+          "name": "What the browser saw",
+          "if": "failure()",
+          "uses": "actions/upload-artifact@v4",
+          "with": {
+            "name": "browser-report",
+            "path": "browser/playwright-report\nbrowser/test-results",
+            "retention-days": 14
+          }
+        }
+      ]
     }
   },
   "name": "TypeScript",
