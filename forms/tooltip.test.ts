@@ -17,6 +17,7 @@ import { getForm, getElementId } from '../dataset';
 import type { Element } from '../element';
 import { hasStash } from '../content/stash';
 import { currentTop } from '../window/z-order';
+import { playAnimations, type Played } from '../test-animations';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const realm = () => globalThis.window as unknown as { Event: typeof Event; MouseEvent: typeof MouseEvent };
@@ -248,34 +249,19 @@ describe('Touch: "The tap should just open the tooltip, and the tooltip should l
 });
 
 describe('Motion: "it grows out of its place" (VISION.md), and back', () => {
-    type Played = { element: HTMLElement; keyframes: Keyframe[] };
-    let played: Played[] = [];
-    const proto = (globalThis.window as unknown as { HTMLElement: typeof HTMLElement }).HTMLElement.prototype;
-    const had = (proto as unknown as { animate?: unknown }).animate;
+    let animations: Played;
 
     beforeEach(() => {
-        played = [];
-        // A stand-in for the Web Animations API, which the test DOMs lack: it
-        // records the road and finishes on the next turn.
-        (proto as unknown as { animate: unknown }).animate = function (this: HTMLElement, keyframes: Keyframe[]) {
-            played.push({ element: this, keyframes });
-            const handlers: Record<string, (() => void)[]> = {};
-            const animation = {
-                addEventListener: (type: string, fn: () => void) => { (handlers[type] ??= []).push(fn); },
-                removeEventListener: () => {},
-                cancel: () => { (handlers.cancel ?? []).forEach((fn) => fn()); },
-            };
-            setTimeout(() => (handlers.finish ?? []).forEach((fn) => fn()), 1);
-            return animation;
-        };
+        // Every road recorded, each finishing on the next turn (test-animations.ts).
+        animations = playAnimations();
         anchor.getBoundingClientRect = () => ({ left: 10, top: 20, width: 80, height: 14, right: 90, bottom: 34, x: 10, y: 20, toJSON: () => ({}) }) as DOMRect;
     });
 
     afterEach(() => {
-        (proto as unknown as { animate: unknown }).animate = had;
+        animations.restore();
     });
 
-    const along = (el: HTMLElement) => played.filter((p) => p.element === el).map((p) => p.keyframes);
+    const along = (el: HTMLElement) => animations.of(el);
 
     test('the tooltip grows out of the text, unseen at first', async () => {
         enter(anchor);

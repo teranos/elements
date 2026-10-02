@@ -18,18 +18,17 @@ import { buttonFrom } from './button';
 import { getForm } from '../dataset';
 import type { Element } from '../element';
 import { tray } from '../tray/tray';
+import { playAnimations, type Played, type Road } from '../test-animations';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const realm = () => globalThis.window as unknown as { Event: typeof Event; MouseEvent: typeof MouseEvent; HTMLElement: typeof HTMLElement };
 
 const BETWEEN = 20;
-// A morph finishes on the next turn (the stand-in below); this is well past it.
+// A morph finishes on the next turn (test-animations.ts); this is well past it.
 const SETTLED = 15;
 
-type Played = { element: HTMLElement; keyframes: Keyframe[] };
-let played: Played[] = [];
-const proto = realm().HTMLElement.prototype;
-const had = (proto as unknown as { animate?: unknown }).animate;
+let animations: Played;
+let played: Road[] = [];
 
 let rendered = 0;
 let host: HTMLElement;
@@ -64,20 +63,9 @@ const down = (el: HTMLElement) => el.querySelector<HTMLElement>('.window-control
 const minimize = (el: HTMLElement) => el.querySelector<HTMLElement>('.window-controls [aria-label="Minimize"]');
 
 beforeEach(() => {
-    played = [];
-    // A stand-in for the Web Animations API, which the test DOMs lack: it
-    // records the road and finishes on the next turn.
-    (proto as unknown as { animate: unknown }).animate = function (this: HTMLElement, keyframes: Keyframe[]) {
-        played.push({ element: this, keyframes });
-        const handlers: Record<string, (() => void)[]> = {};
-        const animation = {
-            addEventListener: (type: string, fn: () => void) => { (handlers[type] ??= []).push(fn); },
-            removeEventListener: () => {},
-            cancel: () => { (handlers.cancel ?? []).forEach((fn) => fn()); },
-        };
-        setTimeout(() => (handlers.finish ?? []).forEach((fn) => fn()), 1);
-        return animation;
-    };
+    // Every road recorded, each finishing on the next turn (test-animations.ts).
+    animations = playAnimations();
+    played = animations.roads;
 
     document.body.innerHTML = '';
     tray.init();
@@ -95,7 +83,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-    (proto as unknown as { animate: unknown }).animate = had;
+    animations.restore();
     if (tray.has('bismuth')) tray.remove('bismuth');
 });
 
@@ -144,7 +132,7 @@ describe('Tim: button, window, gap, button again', () => {
             const top = pinnedInHolder ? 620 : 60;
             return { left, top, width: 90, height: 24, right: left + 90, bottom: top + 24, x: left, y: top, toJSON: () => ({}) } as DOMRect;
         };
-        played = [];
+        played.length = 0;
         click(button);
         expect(button.parentElement).toBe(document.body);
         const road = played.find((p) => p.element === button)!;
@@ -232,7 +220,7 @@ describe('Tim: button, window, gap, button again', () => {
         await wait(SETTLED);
         const gap = gaps()[0]!;
         gap.getBoundingClientRect = () => ({ left: 40, top: 60, width: 90, height: 24, right: 130, bottom: 84, x: 40, y: 60, toJSON: () => ({}) }) as DOMRect;
-        played = [];
+        played.length = 0;
         twice(gap);
         const road = played.find((p) => p.element === button)!;
         expect(road.keyframes[road.keyframes.length - 1]).toMatchObject({ left: '40px', top: '60px', width: '90px', height: '24px' });
@@ -279,7 +267,7 @@ describe('Spike: what does not happen', () => {
         await wait(SETTLED);
         const gap = gaps()[0]!;
         const was = Number(button.style.zIndex);
-        played = [];
+        played.length = 0;
         click(gap, 1);
         await wait(BETWEEN + 10);
         expect(getForm(button)).toBe('window');
@@ -290,7 +278,7 @@ describe('Spike: what does not happen', () => {
     test('locating blinks the borders and the title bar twice', async () => {
         click(button);
         await wait(SETTLED);
-        played = [];
+        played.length = 0;
         click(gaps()[0]!, 1);
         await wait(BETWEEN + 10);
         const onBorder = played.find((p) => p.element === button)!;
@@ -302,7 +290,7 @@ describe('Spike: what does not happen', () => {
     test('the first of two clicks does not locate', async () => {
         click(button);
         await wait(SETTLED);
-        played = [];
+        played.length = 0;
         twice(gaps()[0]!);
         await wait(BETWEEN + 10);
         expect(played.some((p) => p.element.classList.contains('title-bar'))).toBe(false);
