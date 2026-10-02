@@ -109,6 +109,14 @@ test('through the tray and out again, ↓ still brings it back to its place', as
     await expect(element(page)).toHaveAttribute('data-form', 'dot');
     await press(page, element(page));
     await expect(element(page)).toHaveAttribute('data-form', /window|panel/);
+    if (!touching()) {
+        // A person leaves the dot they pressed and comes to ↓ across the window,
+        // so the tray they left is no longer reaching out under the pointer.
+        const body = await element(page).boundingBox();
+        const arrow = await down(page).boundingBox();
+        await page.mouse.move(body!.x + 10, body!.y + body!.height - 10, { steps: 10 });
+        await page.mouse.move(arrow!.x + arrow!.width / 2, arrow!.y + arrow!.height / 2, { steps: 10 });
+    }
     await press(page, down(page));
     await expect(element(page)).toHaveAttribute('data-form', 'button');
     // Not opened again by the same press.
@@ -121,6 +129,8 @@ test('through the tray and out again, ↓ still brings it back to its place', as
 test('twice on the hole, as this device does it twice, brings it back', async ({ page }) => {
     await press(page, element(page));
     await expect(hole(page)).toHaveCount(1);
+    // Opened, not opening: until then the window is still on its way to where it settles.
+    await expect(down(page)).toBeVisible();
     // The window may lie over the hole; the hole is pressed where it is, as a person would after moving the window.
     await page.evaluate((id) => {
         const el = document.querySelector(`[data-element-id="${id}"]`) as HTMLElement;
@@ -128,8 +138,16 @@ test('twice on the hole, as this device does it twice, brings it back', async ({
         el.style.top = `${window.innerHeight - el.offsetHeight}px`;
     }, ID);
     if (touching()) {
-        await hole(page).tap();
-        await hole(page).tap();
+        // A thumb's double tap: two taps on the same spot, with nothing between
+        // them. Each locator tap waits for the page to settle first, which on a
+        // slow runner put more than the hole's 300ms between them.
+        const at = await hole(page).boundingBox();
+        const x = at!.x + at!.width / 2;
+        const y = at!.y + at!.height / 2;
+        const started = Date.now();
+        await page.touchscreen.tap(x, y);
+        await page.touchscreen.tap(x, y);
+        expect(Date.now() - started, 'the two taps were a double tap').toBeLessThan(300);
     } else {
         await hole(page).dblclick();
     }
