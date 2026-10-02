@@ -92,15 +92,6 @@ export interface ElementUI {
     // The real API is right there: a module reads the store through this alone.
     attestations(query: AttestationQuery): Promise<Attestation[]>;
 
-    // "it should use the sigil"
-    // Asks the node one of its sigils, by signum and sigil, with what it takes,
-    // and answers what the sigil gives: sigil('transcripts', 'read', { session }).
-    sigil(signum: string, sigil: string, sent?: Record<string, string>): Promise<unknown>;
-
-    // "it should, and the pattern already exists"
-    // Opens one attestation as its own element, as the host opens one pressed anywhere else.
-    openAttestation(attestation: Attestation): void;
-
     /**
      * Spawn a result element below this element on the canvas.
      * Fires a DOM event — the canvas workspace handles positioning, state, and meld.
