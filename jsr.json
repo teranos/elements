@@ -2,5 +2,10 @@
   "name": "@teranos/elements",
   "version": "1.5.0",
   "license": "MIT",
-  "exports": "./index.ts"
+  "exports": "./index.ts",
+  "publish": {
+    "exclude": [
+      "browser"
+    ]
+  }
 }

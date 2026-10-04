@@ -79,4 +79,15 @@ if (USE_JSDOM) {
     globalThis.localStorage = window.localStorage;
     // @ts-ignore
     globalThis.MutationObserver = window.MutationObserver;
+    // What JSDOM's branch hands out bare, handed out here too: a bare
+    // getComputedStyle was undefined, and a bare Event or MouseEvent was Bun's
+    // own, which happy-dom's elements do not take. Either failed in silence.
+    // @ts-ignore
+    globalThis.getComputedStyle = window.getComputedStyle.bind(window);
+    // @ts-ignore
+    globalThis.Element = window.Element;
+    // @ts-ignore
+    globalThis.Event = window.Event;
+    // @ts-ignore
+    globalThis.MouseEvent = window.MouseEvent;
 }

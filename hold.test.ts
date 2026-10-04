@@ -38,8 +38,12 @@ function press(el: HTMLElement): void {
     el.dispatchEvent(new (W().MouseEvent)('mousedown', { bubbles: true }));
 }
 
+// A real mouseup lands on what is under the pointer and is caught on its way
+// past the window. Sent to the window itself, JSDOM's selector engine kept the
+// window as the last mouse target, and any later :hover asked a node whether
+// it contains the window: it threw, failing the proximity tests that ran after.
 function release(): void {
-    W().dispatchEvent(new (W().MouseEvent)('mouseup', {}));
+    document.body.dispatchEvent(new (W().MouseEvent)('mouseup', { bubbles: true }));
 }
 
 describe('Tim: a press picks an element up', () => {
