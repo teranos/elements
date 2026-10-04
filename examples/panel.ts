@@ -15,6 +15,7 @@ export function renderPanelSpecimen(): void {
         title: 'Krypton',
         symbol: 'Kr',
         opensAs: 'panel',
+        color: '#000',
         renderContent: () => {
             const body = document.createElement('div');
             body.className = 'content';
