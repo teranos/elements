@@ -10,6 +10,7 @@
 
 import { getLogger, getLogSegment, getCanvasBridge } from '../config';
 import { findPlacement, occupiedRects, clampToViewport } from '../window/placement';
+import { safeArea } from '../safe-area';
 import {
     setCanvasOrigin,
     getCanvasOrigin,
@@ -193,7 +194,8 @@ export function morphCanvasPlacedToWindow(
     // 10. Calculate target window rect — the kept size answers to the
     //     viewport (a phone may be the screen), and a remembered position
     //     must not park the controls off-screen
-    const viewport = { width: window.innerWidth, height: window.innerHeight };
+    // Inside the safe area, where its controls can be pressed (safe-area.ts).
+    const viewport = safeArea();
     const sized = clampToViewport({ x: 0, y: 0, width: kept.width, height: kept.height }, viewport);
     const targetW = sized.width;
     const targetH = sized.height;
@@ -201,11 +203,11 @@ export function morphCanvasPlacedToWindow(
     const chosen = remembered ? null : findPlacement(
         { width: targetW, height: targetH },
         occupiedRects(element),
-        viewport,
+        { width: viewport.width, height: viewport.height },
     );
     const { x: targetX, y: targetY } = clampToViewport({
-        x: remembered?.x ?? chosen!.x,
-        y: remembered?.y ?? chosen!.y,
+        x: remembered?.x ?? viewport.x + chosen!.x,
+        y: remembered?.y ?? viewport.y + chosen!.y,
         width: targetW,
         height: targetH,
     }, viewport);

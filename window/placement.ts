@@ -156,10 +156,13 @@ export function findPlacement(
  * title bar and controls included — stays reachable. Every window morph
  * target goes through here before it animates.
  */
-export function clampToViewport(box: Rect, viewport: Size): Rect {
+export function clampToViewport(box: Rect, viewport: Size & { x?: number; y?: number }): Rect {
+    // The area may start away from the screen's corner: the safe area (safe-area.ts).
+    const left = viewport.x ?? 0;
+    const top = viewport.y ?? 0;
     const width = Math.min(box.width, Math.floor(viewport.width * MAX_VIEWPORT_WIDTH_RATIO));
     const height = Math.min(box.height, Math.floor(viewport.height * MAX_VIEWPORT_HEIGHT_RATIO));
-    const x = Math.min(Math.max(box.x, 0), Math.max(0, viewport.width - width));
-    const y = Math.min(Math.max(box.y, 0), Math.max(0, viewport.height - height));
+    const x = Math.min(Math.max(box.x, left), left + Math.max(0, viewport.width - width));
+    const y = Math.min(Math.max(box.y, top), top + Math.max(0, viewport.height - height));
     return { x, y, width, height };
 }
