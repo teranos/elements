@@ -22,6 +22,7 @@
  * position and a half-typed textarea survive the lift.
  */
 
+import { safeArea } from '../safe-area';
 import { getWindowBorderRadius } from '../config';
 import {
     WINDOW_BOX_SHADOW,
@@ -66,8 +67,9 @@ export function settleWindow(element: HTMLElement, box: WindowBox): void {
 
     // No declared, remembered or measured box outranks the screen it landed on
     // — a phone may be the primary screen (window/placement.ts, clampToViewport).
-    element.style.maxWidth = `${Math.floor(window.innerWidth * MAX_VIEWPORT_WIDTH_RATIO)}px`;
-    element.style.maxHeight = `${Math.floor(window.innerHeight * MAX_VIEWPORT_HEIGHT_RATIO)}px`;
+    const area = safeArea();
+    element.style.maxWidth = `${Math.floor(area.width * MAX_VIEWPORT_WIDTH_RATIO)}px`;
+    element.style.maxHeight = `${Math.floor(area.height * MAX_VIEWPORT_HEIGHT_RATIO)}px`;
 
     element.style.borderRadius = getWindowBorderRadius();
     // The window's shadow, and the element's own glow beside it.

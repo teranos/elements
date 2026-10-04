@@ -21,6 +21,7 @@ import { setupWindowResize, teardownWindowResize } from './resize';
 import { fitsAsWindow } from './fits';
 import { morphDotToPanel } from '../forms/panel';
 import { findPlacement, occupiedRects, clampToViewport } from './placement';
+import { safeArea } from '../safe-area';
 import {
     getLastPosition,
     setLastPosition,
@@ -90,7 +91,9 @@ export function morphDotToWindow(
     const titleBarHeight = parseInt(TITLE_BAR_HEIGHT);
     // No declared or measured size outranks the screen it lands on — a phone
     // may be the primary screen. Size clamps before placement searches with it.
-    const viewport = { width: window.innerWidth, height: window.innerHeight };
+    // The area a window may take is the safe area: its title bar and controls
+    // are what a finger has to reach (safe-area.ts).
+    const viewport = safeArea();
     const sized = clampToViewport({
         x: 0,
         y: 0,
@@ -110,13 +113,13 @@ export function morphDotToWindow(
         : findPlacement(
             { width: windowWidth, height: windowHeight },
             occupiedRects(element),
-            { width: window.innerWidth, height: window.innerHeight },
+            { width: viewport.width, height: viewport.height },
         );
 
     // A remembered or declared position must not park the title bar off-screen
     const { x: targetX, y: targetY } = clampToViewport({
-        x: rememberedPos?.x ?? item.defaultX ?? chosen!.x,
-        y: rememberedPos?.y ?? item.defaultY ?? chosen!.y,
+        x: rememberedPos?.x ?? item.defaultX ?? viewport.x + chosen!.x,
+        y: rememberedPos?.y ?? item.defaultY ?? viewport.y + chosen!.y,
         width: windowWidth,
         height: windowHeight,
     }, viewport);

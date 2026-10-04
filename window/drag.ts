@@ -7,6 +7,7 @@
  * No canvas awareness — works with any fixed-position element.
  */
 
+import { safeArea } from '../safe-area';
 import { setLastPosition } from '../dataset';
 import { reflowBox } from './reflow';
 
@@ -135,7 +136,11 @@ function applyDragPosition(el: HTMLElement, newX: number, newY: number, floor: n
     el.style.left = `${box.left}px`;
     el.style.maxWidth = `${box.width}px`;
 
-    el.style.top = `${Math.max(0, Math.min(window.innerHeight - TITLE_BAR_VISIBLE, newY))}px`;
+    // Not dragged above the safe area, where the device keeps its own things
+    // over the title bar, nor below it, where the home indicator is (safe-area.ts).
+    const area = safeArea();
+    const lowest = area.y + area.height - TITLE_BAR_VISIBLE;
+    el.style.top = `${Math.max(area.y, Math.min(lowest, newY))}px`;
 }
 
 export function teardownWindowDrag(windowElement: HTMLElement): void {

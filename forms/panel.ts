@@ -17,6 +17,7 @@
  */
 
 import { getLogger, getLogSegment } from '../config';
+import { safeAreaInsets } from '../safe-area';
 import { applyRestingDotGeometry } from '../tray/proximity';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { wearIdentity, wearShadow } from '../paint';
@@ -59,6 +60,27 @@ function detectSlideDirection(): 'from-top' | 'from-bottom' {
     const viewportMid = window.innerHeight / 2;
     // If drawer center is below viewport midpoint, it's at the bottom -> slide from top
     return (rect.top + rect.height / 2) > viewportMid ? 'from-top' : 'from-bottom';
+}
+
+/**
+ * The panel's background fills the screen; what is in it stays inside the
+ * safe area (Apple Human Interface Guidelines, Layout: "place foreground
+ * elements like interactive controls within the safe area"). Its edge is
+ * pulled in with it, so the edge stays something a finger can take.
+ */
+function keepInsideSafeArea(panel: HTMLElement): void {
+    const insets = safeAreaInsets();
+    const at = panel.getBoundingClientRect();
+    const top = Math.max(0, insets.top - at.top);
+    const bottom = Math.max(0, at.bottom - (window.innerHeight - insets.bottom));
+    panel.style.boxSizing = 'border-box';
+    panel.style.paddingTop = `${top}px`;
+    panel.style.paddingBottom = `${bottom}px`;
+    panel.style.paddingLeft = `${insets.left}px`;
+    panel.style.paddingRight = `${insets.right}px`;
+    const handle = panel.querySelector<HTMLElement>(':scope > .panel-resize-handle');
+    if (handle?.classList.contains('panel-resize-handle--top')) handle.style.top = `${top}px`;
+    if (handle?.classList.contains('panel-resize-handle--bottom')) handle.style.bottom = `${bottom}px`;
 }
 
 /**
@@ -110,6 +132,7 @@ function attachResizeHandle(
         if (direction === 'from-bottom') {
             panelElement.style.top = `${vh - newHeight}px`;
         }
+        keepInsideSafeArea(panelElement);
     };
 
     const onMouseUp = () => {
@@ -235,6 +258,7 @@ export function morphDotToPanel(
         // Attach resize handle
         const cleanupFn = attachResizeHandle(element, direction);
         resizeCleanups.set(element, cleanupFn);
+        keepInsideSafeArea(element);
     }).catch(error => {
         log.warn(seg, `[Panel] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         const handler = escapeHandlers.get(element);
