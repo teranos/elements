@@ -242,6 +242,9 @@ export type { Box } from './window/reflow';
 // ElementUI DOM primitives — the pure half of the ElementUI factory
 export { createInput, createButton, createStatusLine } from './canvas/ui-primitives';
 
+// Sparkline — numbers to a line that answers pointing; what the numbers mean is the host's
+export { renderSparkline, wireLineTooltips, stepAt } from './sparkline';
+
 // ElementUI interface and related types
 export type {
     ElementUI,
