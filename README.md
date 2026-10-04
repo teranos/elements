@@ -62,6 +62,7 @@ Where this package ends and a host begins. The test that settles each line is in
 - **Canvas workspace orchestration is the host's.** Pan, zoom, selection, spawn, and thread state are the host's to wire to its own persistence and sync. The package owns the interaction layer the workspace consumes: drag, resize, meld, placement, z-order, touch browse.
 - **ElementUI's I/O is the host's.** `pluginFetch`, `pluginWebSocket`, `onMeld`, and config persistence belong to the host factory. The DOM building blocks (`createInput`, `createButton`, `createStatusLine`) are package-owned in `canvas/ui-primitives.ts`; the host factory delegates to them.
 - **Titles arrive plain.** Callers strip markup before passing items.
+- **A sparkline's drawing is the package's; what its numbers mean is the host's.** `renderSparkline` and `wireLineTooltips` draw and say a line, coloured by `--elements-sparkline-*`; buckets, units and labels come from the host.
 
 ## Morph classes
 
