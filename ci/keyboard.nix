@@ -8,6 +8,8 @@
 # No emulated browser raises a keyboard. A simulated iPhone and an Android
 # emulator do: each opens Selenium low on the screen, taps its field, types,
 # puts the keyboard away, and keeps a picture of every step (browser/keyboard/).
+# The finger is the device's own — idb on iOS, adb on Android — because a
+# WebDriver click never reaches the keyboard.
 let
   checkout.uses = "actions/checkout@v6";
   bun = {
@@ -50,9 +52,10 @@ in
       checkout
       bun
       install
-      serve
+      # idb's client predates the Pythons a runner has now.
+      { uses = "actions/setup-python@v5"; "with".python-version = "3.11"; }
       { name = "Tap the field, type, put the keyboard away"; run = "bash browser/keyboard/ios.sh"; }
-      { name = "safaridriver"; "if" = "always()"; run = "cat safaridriver.log || true"; }
+      { name = "The harness"; "if" = "always()"; run = "cat harness.log || true"; }
       (pictures "keyboard-ios")
     ];
   };

@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# Boot an iPhone in the Simulator with its software keyboard, let safaridriver
-# drive its Safari, and run browser/keyboard/ios.ts against the specimens page.
+# Boot an iPhone in the Simulator with its software keyboard, open Safari on the
+# keyboard harness, and let idb's finger run browser/keyboard/ios.ts.
 set -euo pipefail
+
+# idb: real taps and typing in the Simulator.
+brew tap facebook/fb > /dev/null
+brew install facebook/fb/idb-companion > /dev/null
+python -m pip install --quiet fb-idb
 
 # The Simulator's keyboard is the Mac's unless told otherwise; with a hardware
 # keyboard connected, iOS raises no software keyboard at all.
@@ -15,11 +20,9 @@ echo "Simulator: $NAME ($RUNTIME, $UDID)"
 xcrun simctl boot "$UDID"
 xcrun simctl bootstatus "$UDID" -b
 
-# WebDriver needs Remote Automation on in Safari's settings.
-xcrun simctl spawn "$UDID" defaults write com.apple.mobilesafari RemoteAutomationEnabled -bool YES || true
+bun browser/keyboard/harness.ts > harness.log 2>&1 &
+for i in $(seq 1 30); do curl -sf http://localhost:5181/ > /dev/null && break; sleep 1; done
 
-sudo safaridriver --enable
-safaridriver -p 4444 > safaridriver.log 2>&1 &
-sleep 2
+xcrun simctl openurl "$UDID" http://localhost:5181/
 
 UDID="$UDID" bun browser/keyboard/ios.ts

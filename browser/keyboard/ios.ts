@@ -1,99 +1,115 @@
 /**
  * Mobile Safari in the iOS Simulator, with its own keyboard.
  *
- * No emulated browser raises a keyboard; a simulated iPhone does. Safari is
- * driven through safaridriver (W3C WebDriver), and the screen — keyboard and
- * all — is taken by simctl, since a page's own screenshot ends where the page does.
+ * The finger is idb's: real taps and real typing through UIKit, which is the
+ * only way the keyboard comes. The page is the harness's (harness.ts), which
+ * reports what it sees. The screen — keyboard and all — is taken by simctl.
  *
- *   UDID=<booted simulator> bun browser/keyboard/ios.ts
+ *   UDID=<booted simulator> bun browser/keyboard/ios.ts   (with harness.ts running and Safari open on it)
  */
 
 import { mkdirSync, writeFileSync } from 'fs';
-import { openSelenium, placeLow, state, judge, type PageState } from './scene';
+import { judge, type PageState } from './scene';
 
 const UDID = process.env.UDID!;
 const OUT = process.env.OUT ?? 'keyboard-shots';
-const WD = 'http://localhost:4444';
-const PAGE = 'http://localhost:5180/';
-const ELEMENT = 'element-6066-11e4-a52e-4f735466cecf';
+const HARNESS = 'http://localhost:5181';
 
 mkdirSync(OUT, { recursive: true });
 
-async function wd(method: string, path: string, body?: unknown): Promise<any> {
-    const res = await fetch(WD + path, {
-        method,
-        headers: { 'content-type': 'application/json' },
-        body: body === undefined ? undefined : JSON.stringify(body),
-    });
-    const json = await res.json() as { value: any };
-    if (!res.ok) throw new Error(`${method} ${path}: ${JSON.stringify(json)}`);
-    return json.value;
+interface Report {
+    event: string;
+    at: number;
+    screen: { width: number; height: number };
+    state: PageState;
+    touch?: { x: number; y: number };
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function reports(): Promise<Report[]> {
+    return (await fetch(`${HARNESS}/reports`)).json() as Promise<Report[]>;
+}
+
+async function latest(): Promise<Report> {
+    const all = await reports();
+    return all[all.length - 1]!;
+}
 
 function shot(name: string): void {
     const r = Bun.spawnSync(['xcrun', 'simctl', 'io', UDID, 'screenshot', `${OUT}/ios-${name}.png`]);
     if (r.exitCode !== 0) console.log(`screenshot ${name} failed: ${r.stderr.toString()}`);
 }
 
-const session = await wd('POST', '/session', {
-    capabilities: {
-        alwaysMatch: {
-            browserName: 'safari',
-            platformName: 'iOS',
-            'safari:useSimulator': true,
-            'safari:deviceUDID': UDID,
-        },
-    },
-});
-const sid: string = session.sessionId;
-console.log('session', JSON.stringify(session.capabilities));
+function idb(...args: string[]): void {
+    const r = Bun.spawnSync(['idb', ...args, '--udid', UDID]);
+    if (r.exitCode !== 0) throw new Error(`idb ${args.join(' ')}: ${r.stderr.toString()}`);
+}
 
-const run = (fn: () => unknown): Promise<any> =>
-    wd('POST', `/session/${sid}/execute/sync`, { script: `return (${fn.toString()})()`, args: [] });
+const tap = (x: number, y: number) => idb('ui', 'tap', String(Math.round(x)), String(Math.round(y)));
 
 const report: Record<string, unknown> = {};
+let failed: string[] = [];
 try {
-    await wd('POST', `/session/${sid}/url`, { url: PAGE });
+    // The page opens Selenium low on the screen, and says so.
+    let ready: Report | undefined;
+    for (let i = 0; i < 90 && !ready; i++) {
+        ready = (await reports()).find((r) => r.event === 'ready');
+        if (!ready) await sleep(1000);
+    }
+    if (!ready) throw new Error('the page never said it was ready');
+    report.ready = ready;
     await sleep(1000);
-    report.opened = await run(openSelenium);
-    report.placedAt = await run(placeLow);
-    await sleep(500);
-    const before = await run(state) as PageState;
+    shot('0-start');
+
+    // Where the page sits on the screen: tap bare page, and ask where it landed.
+    // A tap Safari takes for itself (a tip over the page) is answered by tapping again.
+    const spot = { x: 6, y: Math.round(ready.screen.height * 0.35) };
+    let offset: { x: number; y: number } | undefined;
+    for (let i = 0; i < 4 && !offset; i++) {
+        const seen = (await reports()).length;
+        tap(spot.x, spot.y);
+        await sleep(1200);
+        const touch = (await reports()).slice(seen).find((r) => r.event === 'touch');
+        if (touch?.touch) offset = { x: spot.x - touch.touch.x, y: spot.y - touch.touch.y };
+        else shot(`0-tap-${i + 1}-not-seen`);
+    }
+    if (!offset) throw new Error('the page saw none of four taps: cannot tell where it sits on the screen');
+    report.pageOffset = offset;
+
+    const before = (await latest()).state;
     report.before = before;
     shot('1-before');
 
-    const found = await wd('POST', `/session/${sid}/element`, {
-        using: 'css selector',
-        value: '[data-element-id="field-specimen"] input',
-    });
-    const field = found[ELEMENT];
-    await wd('POST', `/session/${sid}/element/${field}/click`, {});
-    await sleep(2000);
-    const up = await run(state) as PageState;
+    // The finger on the field.
+    const at = { x: offset.x + before.field.centerX, y: offset.y + before.field.centerY };
+    report.tappedAt = at;
+    tap(at.x, at.y);
+    await sleep(3000);
+    const up = (await latest()).state;
     report.up = up;
     shot('2-keyboard-up');
 
-    await wd('POST', `/session/${sid}/element/${field}/value`, { text: 'se@example.com' });
-    await sleep(800);
-    report.typed = await run(state);
+    idb('ui', 'text', 'se@example.com');
+    await sleep(1500);
+    report.typed = (await latest()).state;
     shot('3-typed');
 
-    await run(() => (document.activeElement as HTMLElement | null)?.blur());
-    await sleep(2000);
-    const gone = await run(state) as PageState;
+    // A tap on bare page takes focus away, and the keyboard with it.
+    tap(spot.x, spot.y);
+    await sleep(3000);
+    const gone = (await latest()).state;
     report.gone = gone;
     shot('4-keyboard-gone');
 
-    report.failed = judge(before, up, gone);
+    failed = judge(before, up, gone);
+    report.failed = failed;
 } finally {
+    report.events = (await reports().catch(() => [])).map((r) => `${r.at} ${r.event} vv=${Math.round(r.state.visualViewport.height)} top=${Math.round(r.state.window.top)}`);
     writeFileSync(`${OUT}/ios-report.json`, JSON.stringify(report, null, 2));
     console.log(JSON.stringify(report, null, 2));
-    await wd('DELETE', `/session/${sid}`).catch(() => {});
 }
 
-const failed = report.failed as string[];
 if (failed.length) {
     console.log(`\nFAILED on iOS:\n- ${failed.join('\n- ')}`);
     process.exit(1);

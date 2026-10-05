@@ -66,8 +66,10 @@
           "run": "bun install --frozen-lockfile"
         },
         {
-          "name": "The specimens page",
-          "run": "bun examples/serve.ts > serve.log 2>&1 &\nfor i in $(seq 1 30); do curl -sf http://localhost:5180/ > /dev/null && exit 0; sleep 1; done\ncat serve.log; exit 1\n"
+          "uses": "actions/setup-python@v5",
+          "with": {
+            "python-version": "3.11"
+          }
         },
         {
           "name": "Tap the field, type, put the keyboard away",
@@ -75,8 +77,8 @@
         },
         {
           "if": "always()",
-          "name": "safaridriver",
-          "run": "cat safaridriver.log || true"
+          "name": "The harness",
+          "run": "cat harness.log || true"
         },
         {
           "if": "always()",
