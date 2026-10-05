@@ -28,11 +28,12 @@ mkdir -p keyboard-shots
 sleep 5
 adb exec-out screencap -p > keyboard-shots/android-0-start.png
 
-# Whatever Chrome still puts between itself and the page, decline it.
+# Whatever Chrome still puts between itself and the page, decline it. A busy
+# emulator sometimes cannot dump its screen; that is no reason to stop.
 decline() {
   adb shell uiautomator dump /sdcard/ui.xml > /dev/null 2>&1 || return 0
-  adb shell cat /sdcard/ui.xml > ui.xml
-  python3 - <<'PY'
+  adb shell cat /sdcard/ui.xml > ui.xml 2> /dev/null || return 0
+  python3 - <<'PY' || true
 import subprocess, xml.etree.ElementTree as ET
 for node in ET.parse('ui.xml').iter('node'):
     if node.get('text') in ('No thanks', 'No, thanks', 'Not now', 'Skip'):
