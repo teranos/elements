@@ -1,7 +1,7 @@
 /**
  * Mobile Safari in the iOS Simulator, with its own keyboard.
  *
- * The finger is idb's: real taps and real typing through UIKit, which is the
+ * The finger is idb's: real taps through UIKit, which is the
  * only way the keyboard comes. The page is the harness's (harness.ts), which
  * reports what it sees. The screen — keyboard and all — is taken by simctl.
  *
@@ -101,15 +101,14 @@ try {
     report.up = up;
     shot('2-keyboard-up');
 
-    idb('ui', 'text', 'se@example.com');
-    report.typed = await until((s) => s.value === 'se@example.com');
-    shot('3-typed');
+    // No typing here: idb's keys arrive as a hardware keyboard, and iOS puts the
+    // software keyboard away for one — the keyboard under test.
 
     // A tap on bare page takes focus away, and the keyboard with it.
     tap(spot.x, spot.y);
     const gone = await until((s) => s.visualViewport.height >= before.visualViewport.height - 1);
     report.gone = gone;
-    shot('4-keyboard-gone');
+    shot('3-keyboard-gone');
 
     failed = judge(before, up, gone);
     report.failed = failed;

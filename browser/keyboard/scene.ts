@@ -33,11 +33,19 @@ export function state(): Record<string, unknown> {
     const vv = window.visualViewport!;
     const w = el.getBoundingClientRect();
     const f = field.getBoundingClientRect();
+    // Rects in the coordinates a fixed element is placed in. WebKit measures from
+    // the visual viewport, Chrome from the layout one: a fixed probe at top 0 says
+    // which. Where to tap stays as measured, since touches are measured alike.
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position: fixed; top: 0; left: 0; width: 1px; height: 1px; visibility: hidden';
+    document.body.appendChild(probe);
+    const shift = probe.getBoundingClientRect().top;
+    probe.remove();
     return {
         innerHeight: window.innerHeight,
         visualViewport: { height: vv.height, offsetTop: vv.offsetTop, scale: vv.scale },
-        window: { top: w.top, bottom: w.bottom },
-        field: { top: f.top, bottom: f.bottom, centerX: (f.left + f.right) / 2, centerY: (f.top + f.bottom) / 2 },
+        window: { top: w.top - shift, bottom: w.bottom - shift },
+        field: { top: f.top - shift, bottom: f.bottom - shift, centerX: (f.left + f.right) / 2, centerY: (f.top + f.bottom) / 2 },
         focused: document.activeElement === field,
         value: field.value,
         devicePixelRatio: window.devicePixelRatio,
