@@ -26,6 +26,15 @@ xcrun simctl bootstatus "$UDID" -b
 bun browser/keyboard/harness.ts > harness.log 2>&1 &
 for i in $(seq 1 30); do curl -sf http://localhost:5181/ > /dev/null && break; sleep 1; done
 
-xcrun simctl openurl "$UDID" http://localhost:5181/
+# A device just booted, with no Simulator app showing it, is slow to take a URL.
+open -a Simulator --args -CurrentDeviceUDID "$UDID"
+sleep 10
+xcrun simctl launch "$UDID" com.apple.mobilesafari || true
+sleep 5
+for i in 1 2 3 4 5; do
+  xcrun simctl openurl "$UDID" http://localhost:5181/ && break
+  echo "openurl failed ($i), trying again"
+  sleep 10
+done
 
 UDID="$UDID" bun browser/keyboard/ios.ts
