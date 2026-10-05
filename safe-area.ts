@@ -51,16 +51,22 @@ export function safeAreaInsets(): Insets {
  * iOS Safari and Chrome on Android leave a fixed element where it is and let the
  * keyboard cover it; what shrinks is the visual viewport. A browser without one
  * says nothing about a keyboard, and the visible area is the safe area.
+ *
+ * The visual viewport is the measure, in the coordinates a fixed element is placed
+ * in, with the device's edges kept off it. Not intersected with the window: on an
+ * iPhone (iOS 26, measured) window.innerHeight shrinks with the keyboard while
+ * Safari pans the visual viewport down the page, and the two overlap in a sliver.
  */
 export function visibleArea(): Rect {
-    const area = safeArea();
     const vv = (window as { visualViewport?: VisualViewport | null }).visualViewport;
-    if (!vv) return area;
-    const left = Math.max(area.x, vv.offsetLeft);
-    const top = Math.max(area.y, vv.offsetTop);
-    const right = Math.min(area.x + area.width, vv.offsetLeft + vv.width);
-    const bottom = Math.min(area.y + area.height, vv.offsetTop + vv.height);
-    return { x: left, y: top, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
+    if (!vv) return safeArea();
+    const i = safeAreaInsets();
+    return {
+        x: vv.offsetLeft + i.left,
+        y: vv.offsetTop + i.top,
+        width: Math.max(0, vv.width - i.left - i.right),
+        height: Math.max(0, vv.height - i.top - i.bottom),
+    };
 }
 
 /** The safe area itself, in the coordinates a fixed element is placed in. */

@@ -75,11 +75,15 @@ function answer(element: HTMLElement): void {
         before = undefined;
     }
 
+    // Where a window stands is its own top, in the coordinates it is placed in.
+    // Its rect is not: WebKit measures from the visual viewport, which Safari
+    // pans down the page when the keyboard comes. Its height is the same either way.
     const rect = element.getBoundingClientRect();
+    const placed = parseFloat(element.style.top);
     const from = before ?? {
         top: element.style.top,
         maxHeight: element.style.maxHeight,
-        y: rect.top,
+        y: Number.isFinite(placed) ? placed : rect.top,
         height: rect.height,
     };
 

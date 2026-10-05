@@ -207,6 +207,58 @@ describe('Spike: when nothing should move', () => {
     });
 });
 
+describe('Spike: what Safari on an iPhone says, measured on one', () => {
+    // iOS 26, keyboard up over a window low on the screen: Safari pans the page
+    // so the field is seen (offsetTop 310), and window.innerHeight shrinks to
+    // the visual viewport's height (714 → 404).
+    const PANNED = { offsetTop: 310, height: 404 };
+
+    function safariKeyboardUp(vv: FakeViewport): void {
+        Object.defineProperty(window, 'innerHeight', { configurable: true, value: PANNED.height });
+        vv.offsetTop = PANNED.offsetTop;
+        vv.height = PANNED.height;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+    }
+
+    afterEach(() => {
+        Object.defineProperty(window, 'innerHeight', { configurable: true, value: SCREEN.height });
+    });
+
+    test('the visible area is the visual viewport\'s, even when innerHeight shrinks with it', () => {
+        const vv = giveVisualViewport();
+        safariKeyboardUp(vv);
+        expect(visibleArea()).toEqual({ x: 0, y: PANNED.offsetTop, width: SCREEN.width, height: PANNED.height });
+    });
+
+    test('a window Safari already panned into view is left where it is, whole', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(500, 117);
+        const cap = el.style.maxHeight;
+
+        field.focus();
+        safariKeyboardUp(vv);
+
+        expect(top(el)).toBe(500);
+        expect(el.style.maxHeight).toBe(cap);
+    });
+
+    test('WebKit measures a fixed window from the visual viewport; where it stands is its own', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(500, 117);
+        // WebKit: a rect is relative to the visual viewport, not the layout one.
+        const layout = el.getBoundingClientRect;
+        el.getBoundingClientRect = () => {
+            const r = layout();
+            return { ...r, y: r.y - vv.offsetTop, top: r.top - vv.offsetTop, bottom: r.bottom - vv.offsetTop } as DOMRect;
+        };
+
+        safariKeyboardUp(vv);
+        field.focus();
+
+        expect(top(el)).toBe(500);
+    });
+});
+
 describe('Jenny: what else happens while the keyboard is up', () => {
     test('dragged while the keyboard is up, it stays where it was dragged', () => {
         const vv = giveVisualViewport();
