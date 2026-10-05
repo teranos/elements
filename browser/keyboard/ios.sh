@@ -4,8 +4,11 @@
 set -euo pipefail
 
 # idb: real taps and typing in the Simulator.
-brew tap facebook/fb > /dev/null
-brew install facebook/fb/idb-companion > /dev/null
+# The companion is a prebuilt release: Homebrew's formula compiles it, against an Xcode it insists on.
+curl -sSL https://github.com/facebook/idb/releases/download/v1.1.8/idb-companion.universal.tar.gz | tar -xz
+COMPANION=$(dirname "$(find "$PWD" -name idb_companion -type f -perm -u+x | head -1)")
+export PATH="$COMPANION:$PATH"
+idb_companion --version || true
 python -m pip install --quiet fb-idb
 
 # The Simulator's keyboard is the Mac's unless told otherwise; with a hardware
