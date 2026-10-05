@@ -19,6 +19,18 @@ mkdirSync(OUT, { recursive: true });
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** The page's state once `done` says so, or after `ms` whatever it is — then a frame's grace, since the emulator paints late. */
+async function until(done: (s: PageState) => boolean, ms = 20000): Promise<PageState> {
+    const end = Date.now() + ms;
+    let s = await run(state) as PageState;
+    while (!done(s) && Date.now() < end) {
+        await sleep(500);
+        s = await run(state) as PageState;
+    }
+    await sleep(1500);
+    return await run(state) as PageState;
+}
+
 function adb(...args: string[]): Buffer {
     const r = Bun.spawnSync(['adb', ...args]);
     if (r.exitCode !== 0) throw new Error(`adb ${args.join(' ')}: ${r.stderr.toString()}`);
@@ -67,8 +79,7 @@ try {
     report.screen = adb('shell', 'wm', 'size').toString().trim();
     report.opened = await run(openSelenium);
     report.placedAt = await run(placeLow);
-    await sleep(500);
-    const before = await run(state) as PageState;
+    const before = await until(() => false, 2000);
     report.before = before;
     shot('1-before');
 
@@ -90,20 +101,17 @@ try {
     };
     report.tappedAt = at;
     adb('shell', 'input', 'tap', String(at.x), String(at.y));
-    await sleep(2500);
-    const up = await run(state) as PageState;
+    const up = await until((s) => s.visualViewport.height < before.visualViewport.height - 100);
     report.up = up;
     shot('2-keyboard-up');
 
     adb('shell', 'input', 'text', 'se@example.com');
-    await sleep(1000);
-    report.typed = await run(state);
+    report.typed = await until((s) => s.value === 'se@example.com');
     shot('3-typed');
 
     // Back puts the keyboard away.
     adb('shell', 'input', 'keyevent', '4');
-    await sleep(2500);
-    const gone = await run(state) as PageState;
+    const gone = await until((s) => s.visualViewport.height >= before.visualViewport.height - 1);
     report.gone = gone;
     shot('4-keyboard-gone');
 

@@ -46,6 +46,18 @@ function idb(...args: string[]): void {
     if (r.exitCode !== 0) throw new Error(`idb ${args.join(' ')}: ${r.stderr.toString()}`);
 }
 
+/** The page's latest state once `done` says so, or after `ms` whatever it is — then a frame's grace. */
+async function until(done: (s: PageState) => boolean, ms = 20000): Promise<PageState> {
+    const end = Date.now() + ms;
+    let s = (await latest()).state;
+    while (!done(s) && Date.now() < end) {
+        await sleep(500);
+        s = (await latest()).state;
+    }
+    await sleep(1500);
+    return (await latest()).state;
+}
+
 const tap = (x: number, y: number) => idb('ui', 'tap', String(Math.round(x)), String(Math.round(y)));
 
 const report: Record<string, unknown> = {};
@@ -85,20 +97,17 @@ try {
     const at = { x: offset.x + before.field.centerX, y: offset.y + before.field.centerY };
     report.tappedAt = at;
     tap(at.x, at.y);
-    await sleep(3000);
-    const up = (await latest()).state;
+    const up = await until((s) => s.visualViewport.height < before.visualViewport.height - 100);
     report.up = up;
     shot('2-keyboard-up');
 
     idb('ui', 'text', 'se@example.com');
-    await sleep(1500);
-    report.typed = (await latest()).state;
+    report.typed = await until((s) => s.value === 'se@example.com');
     shot('3-typed');
 
     // A tap on bare page takes focus away, and the keyboard with it.
     tap(spot.x, spot.y);
-    await sleep(3000);
-    const gone = (await latest()).state;
+    const gone = await until((s) => s.visualViewport.height >= before.visualViewport.height - 1);
     report.gone = gone;
     shot('4-keyboard-gone');
 
