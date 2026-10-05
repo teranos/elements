@@ -77,7 +77,7 @@ try {
     await run(listenForTouch);
     const probe = { x: Math.round(6 * dpr), y: Math.round(before.innerHeight * dpr * 0.5) };
     adb('shell', 'input', 'tap', String(probe.x), String(probe.y));
-    await sleep(500);
+    await sleep(1500);
     const seen = await run(seenTouch) as { x: number; y: number } | null;
     if (!seen) throw new Error('the page saw no touch: cannot tell where it sits on the screen');
     const offset = { x: probe.x - seen.x * dpr, y: probe.y - seen.y * dpr };
