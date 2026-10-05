@@ -21,12 +21,8 @@ adb shell pm grant com.android.chrome android.permission.POST_NOTIFICATIONS || t
 # The page on the host, as the phone's own localhost.
 adb reverse tcp:5180 tcp:5180
 
-adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d http://localhost:5180/
-
-# What the screen shows before anything is asked of it.
 mkdir -p keyboard-shots
-sleep 5
-adb exec-out screencap -p > keyboard-shots/android-0-start.png
+adb forward tcp:9222 localabstract:chrome_devtools_remote
 
 # Whatever Chrome still puts between itself and the page, decline it. A busy
 # emulator sometimes cannot dump its screen; that is no reason to stop.
@@ -42,13 +38,20 @@ for node in ET.parse('ui.xml').iter('node'):
         subprocess.run(['adb', 'shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2)])
 PY
 }
-decline; sleep 2; decline
 
-# Chrome opens its DevTools socket when it is ready; a slow emulator takes a while.
-adb forward tcp:9222 localabstract:chrome_devtools_remote
-for i in $(seq 1 45); do
-  if curl -s http://localhost:9222/json | grep -q 'localhost:5180'; then break; fi
-  sleep 2
+# Chrome on a software-rendered emulator sometimes hangs on a blank page and
+# is closed. Open it until the page answers on its DevTools socket.
+for attempt in 1 2 3; do
+  adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d http://localhost:5180/
+  sleep 5
+  adb exec-out screencap -p > "keyboard-shots/android-0-start-$attempt.png"
+  decline; sleep 2; decline
+  for i in $(seq 1 30); do
+    if curl -s http://localhost:9222/json | grep -q 'localhost:5180'; then break 2; fi
+    sleep 2
+  done
+  echo "Chrome did not show the page (attempt $attempt); starting it again"
+  adb shell am force-stop com.android.chrome
 done
 echo "DevTools sockets on the device:"
 adb shell cat /proc/net/unix | grep -i devtools || echo "  none"
