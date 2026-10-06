@@ -107,6 +107,29 @@
 
     .specimen-button:hover { background: #fff; color: #000; }
 
+    /* A field is the page's to dress. Its text is 16px because iOS Safari zooms
+       the page on focus for anything smaller, and a zoomed page moves every
+       window out from under the finger. */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field .label {
+      font-size: var(--font-size-sm);
+    }
+
+    .field .input {
+      font: 16px/1.4 var(--font-mono);
+      padding: 8px;
+      min-height: 44px;
+      background: #000;
+      color: #fff;
+      border: 1px solid #fff;
+      border-radius: var(--border-radius);
+    }
+
     /* A panel's edge, as QNTX dresses it (css/element/states/panel.css). Which
        edge, and how far in from the device's own, is the package's. */
     .panel-resize-handle {

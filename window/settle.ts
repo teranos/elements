@@ -32,6 +32,7 @@ import {
 import { setNaturalWidth } from './drag';
 import { wearShadow } from '../paint';
 import { raise, raiseOnInteract } from './z-order';
+import { keepClearOfKeyboard } from './keyboard';
 
 /**
  * The box a morph animated to.
@@ -87,4 +88,7 @@ export function settleWindow(element: HTMLElement, box: WindowBox): void {
     // In front on arrival, and in front again whenever it is touched.
     raise(element);
     raiseOnInteract(element);
+
+    // Seen whole while a field in it has the keyboard up.
+    keepClearOfKeyboard(element);
 }

@@ -79,13 +79,14 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         const touch = e.touches[0];
         if (!touch) return;
 
-        // A touch on a button or an open element is not a browse, however
-        // close to the tray it lands — its own interaction wins. Only dots,
-        // the tray, and bare page near the tray start a browse.
-        // (e.target can be the document itself, which has no closest().)
+        // A touch on a button, a field or an open element is not a browse,
+        // however close to the tray it lands — its own interaction wins. A
+        // field whose touch is prevented never takes focus, and its keyboard
+        // never comes. Only dots, the tray, and bare page near the tray start
+        // a browse. (e.target can be the document itself, which has no closest().)
         const target = e.target as HTMLElement | null;
         if (target && typeof target.closest === 'function') {
-            if (target.closest('button')) return;
+            if (target.closest('button, input, textarea, select, [contenteditable]')) return;
             const owner = target.closest('[data-element-id]') as HTMLElement | null;
             if (owner && !owner.classList.contains('dot')) return;
         }

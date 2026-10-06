@@ -29,6 +29,7 @@ import {
 } from '../dataset';
 import { prepareMorphTo, calculateTrayTarget, resetElement } from '../forms/morphology';
 import { settleWindow } from './settle';
+import { backFromKeyboard } from './keyboard';
 import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import {
     getOpenDuration,
@@ -214,6 +215,9 @@ export function morphDotToWindow(
  * it was, for the road out.
  */
 export function leaveWindow(windowElement: HTMLElement): DOMRect {
+    // Where it stood, not where the keyboard pushed it (window/keyboard.ts).
+    backFromKeyboard(windowElement);
+
     // Get current window state before clearing anything
     const currentRect = windowElement.getBoundingClientRect();
 
