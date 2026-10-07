@@ -304,6 +304,11 @@ export function morphDotToPanel(
         element.style.width = `${panelWidth}px`;
         element.style.height = `${panelHeight}px`;
         element.style.zIndex = PANEL_Z_INDEX;
+        // A title bar over a body, in a box that clips, as a window is (window/settle.ts):
+        // the body has the height left under the title bar and scrolls in it.
+        element.style.display = 'flex';
+        element.style.flexDirection = 'column';
+        element.style.overflow = 'hidden';
         element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
         element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
         wearIdentity(element, item);
