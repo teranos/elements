@@ -56,10 +56,42 @@ const MIN_PANEL_HEIGHT_FRACTION = 0.3;
 // is far enough the HIG does not say; these are the package's.
 /** Fraction of the screen's height that, dragged past, sends a panel to the tray */
 const SWIPE_DISMISS_FRACTION = 0.25;
+/** px: the grabber's size, and how far below the panel's top edge it sits */
+const GRABBER_WIDTH = 36;
+const GRABBER_HEIGHT = 5;
+const GRABBER_INSET = 5;
 /** px/ms: a release this fast is a flick, and sends it to the tray from shorter */
 const SWIPE_FLICK_SPEED = 0.5;
 /** px: a flick shorter than this is a finger settling, not a flick */
 const SWIPE_FLICK_MIN = 24;
+
+/**
+ * A grabber at the top of a panel on a touch screen (Apple Human Interface
+ * Guidelines, Sheets: a grabber shows a sheet can be swiped). It is the bar's
+ * sign, not a target of its own: touches pass through it to the title bar, and
+ * the minimize button is what a screen reader is given. How it looks beyond its
+ * place and size is the page's: `.panel-grabber`.
+ */
+function showGrabber(panel: HTMLElement): void {
+    if (typeof window.matchMedia !== 'function' || !window.matchMedia('(pointer: coarse)').matches) return;
+    if (panel.querySelector(':scope > .panel-grabber')) return;
+    const grabber = document.createElement('div');
+    grabber.className = 'panel-grabber';
+    grabber.setAttribute('aria-hidden', 'true');
+    grabber.style.position = 'absolute';
+    grabber.style.left = '50%';
+    grabber.style.transform = 'translateX(-50%)';
+    // Below the device's own edge, which the panel's top padding keeps clear (keepInsideSafeArea).
+    grabber.style.top = `${(parseFloat(panel.style.paddingTop) || 0) + GRABBER_INSET}px`;
+    grabber.style.width = `${GRABBER_WIDTH}px`;
+    grabber.style.height = `${GRABBER_HEIGHT}px`;
+    grabber.style.borderRadius = `${GRABBER_HEIGHT / 2}px`;
+    grabber.style.background = 'currentColor';
+    grabber.style.opacity = '0.4';
+    grabber.style.pointerEvents = 'none';
+    grabber.style.zIndex = '1';
+    panel.appendChild(grabber);
+}
 
 /**
  * A finger on the title bar drags the panel down after it. Let go far enough,
@@ -347,6 +379,9 @@ export function morphDotToPanel(
         resizeCleanups.set(element, cleanupFn);
         keepInsideSafeArea(element);
 
+        // On a touch screen, a grabber shows the title bar can be swiped down to the tray.
+        showGrabber(element);
+
         // Seen whole, title bar first, while a field in it has the keyboard up (window/keyboard.ts).
         keepClearOfKeyboard(element);
     }).catch(error => {
@@ -383,6 +418,8 @@ function cleanupResize(element: HTMLElement): void {
 export function leavePanel(panelElement: HTMLElement): DOMRect {
     // It leaves from where it stood before a keyboard came.
     backFromKeyboard(panelElement);
+    // The grabber is the panel's, not what it holds: it does not go to the stash.
+    panelElement.querySelector(':scope > .panel-grabber')?.remove();
     const currentRect = panelElement.getBoundingClientRect();
 
     // Clean up escape handler
