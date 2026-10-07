@@ -1,10 +1,11 @@
 /**
- * In the page, under the harness: open Selenium low on the screen, then say
+ * In the page, under the harness: open the subject (Selenium low on the screen,
+ * or Polonium full screen with ?subject=agent), then say
  * what happens — every touch, focus coming and going, the visual viewport
  * resizing, typing — to /report.
  */
 
-import { openSelenium, placeLow, state } from './scene';
+import { openSubject, placeLow, state } from './scene';
 
 function post(event: string, extra: Record<string, unknown> = {}): void {
     void fetch('/report', {
@@ -38,7 +39,7 @@ window.visualViewport?.addEventListener('scroll', settle);
 
 void (async () => {
     await new Promise((r) => setTimeout(r, 500));
-    const opened = await openSelenium();
+    const opened = await openSubject();
     placeLow();
     setTimeout(() => post('ready', { opened }), 300);
 })();

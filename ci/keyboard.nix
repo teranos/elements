@@ -6,7 +6,8 @@
 # JSON is YAML, so GitHub reads the emitted file as it is.
 #
 # No emulated browser raises a keyboard. A simulated iPhone and an Android
-# emulator do: each opens Selenium low on the screen, taps its field, types,
+# emulator do: each opens Selenium low on the screen, then Polonium — QNTX's Pi
+# element as a phone shows it, a full-screen panel — taps the field, types,
 # puts the keyboard away, and keeps a picture of every step (browser/keyboard/).
 # The finger is the device's own — idb on iOS, adb on Android — because a
 # WebDriver click never reaches the keyboard.

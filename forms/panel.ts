@@ -26,6 +26,7 @@ import { homeOf } from './home';
 import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
 import { renderContent } from '../content/render';
+import { keepClearOfKeyboard, backFromKeyboard } from '../window/keyboard';
 import {
     setForm,
     setElementId
@@ -68,6 +69,23 @@ function detectSlideDirection(): 'from-top' | 'from-bottom' {
  * elements like interactive controls within the safe area"). Its edge is
  * pulled in with it, so the edge stays something a finger can take.
  */
+/**
+ * How far in from each side of the panel the tray reaches. The tray is the
+ * package's own (tray/tray.ts); where it sits is the host's stylesheet's, so it
+ * is measured, not assumed. An empty tray shows nothing and takes nothing.
+ */
+function trayEdges(at: DOMRect): { left: number; right: number } {
+    // Asked of the page: tray.ts opens panels, so this file cannot import it.
+    const tray = document.querySelector<HTMLElement>('body > .tray');
+    if (!tray || tray.getAttribute('data-empty') === 'true') return { left: 0, right: 0 };
+    const seen = tray.getBoundingClientRect();
+    if (seen.width === 0) return { left: 0, right: 0 };
+    const middle = at.left + at.width / 2;
+    return seen.left >= middle
+        ? { left: 0, right: Math.max(0, at.right - seen.left) }
+        : { left: Math.max(0, seen.right - at.left), right: 0 };
+}
+
 function keepInsideSafeArea(panel: HTMLElement): void {
     const insets = safeAreaInsets();
     const at = panel.getBoundingClientRect();
@@ -76,8 +94,11 @@ function keepInsideSafeArea(panel: HTMLElement): void {
     panel.style.boxSizing = 'border-box';
     panel.style.paddingTop = `${top}px`;
     panel.style.paddingBottom = `${bottom}px`;
-    panel.style.paddingLeft = `${insets.left}px`;
-    panel.style.paddingRight = `${insets.right}px`;
+    // The tray's dots stay above every panel (tray/tray.ts); what the panel holds
+    // stays clear of them as it does of the device's edges, so neither covers the other.
+    const tray = trayEdges(at);
+    panel.style.paddingLeft = `${Math.max(insets.left, tray.left)}px`;
+    panel.style.paddingRight = `${Math.max(insets.right, tray.right)}px`;
     const handle = panel.querySelector<HTMLElement>(':scope > .panel-resize-handle');
     if (handle?.classList.contains('panel-resize-handle--top')) handle.style.top = `${top}px`;
     if (handle?.classList.contains('panel-resize-handle--bottom')) handle.style.bottom = `${bottom}px`;
@@ -226,6 +247,11 @@ export function morphDotToPanel(
         element.style.width = `${panelWidth}px`;
         element.style.height = `${panelHeight}px`;
         element.style.zIndex = PANEL_Z_INDEX;
+        // A column that clips, as a window is (window/settle.ts): the body has the
+        // height left under the title bar and scrolls inside it, never past the screen.
+        element.style.display = 'flex';
+        element.style.flexDirection = 'column';
+        element.style.overflow = 'hidden';
         element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
         element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;
         wearIdentity(element, item);
@@ -259,6 +285,9 @@ export function morphDotToPanel(
         const cleanupFn = attachResizeHandle(element, direction);
         resizeCleanups.set(element, cleanupFn);
         keepInsideSafeArea(element);
+
+        // Seen whole while a field in it has the keyboard up (window/keyboard.ts).
+        keepClearOfKeyboard(element);
     }).catch(error => {
         log.warn(seg, `[Panel] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         const handler = escapeHandlers.get(element);
@@ -291,6 +320,8 @@ function cleanupResize(element: HTMLElement): void {
  * edge, and its content into the stash. Returns where it was, for the road out.
  */
 export function leavePanel(panelElement: HTMLElement): DOMRect {
+    // Where it stood before a keyboard came is where it leaves from.
+    backFromKeyboard(panelElement);
     const currentRect = panelElement.getBoundingClientRect();
 
     // Clean up escape handler

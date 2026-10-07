@@ -12,7 +12,7 @@
  */
 
 import { mkdirSync, writeFileSync } from 'fs';
-import { openSelenium, placeLow, state, listenForTouch, seenTouch, judge, type PageState } from './scene';
+import { openSubject, placeLow, state, listenForTouch, seenTouch, judge, type PageState } from './scene';
 
 const OUT = process.env.OUT ?? 'keyboard-shots';
 mkdirSync(OUT, { recursive: true });
@@ -71,19 +71,17 @@ async function run(fn: () => unknown): Promise<any> {
     return reply.result.result.value;
 }
 
-// ── The scene ───────────────────────────────────────────────────────────
+// ── The scene, once for each subject ────────────────────────────────────
 
-const report: Record<string, unknown> = {};
-let failed: string[] = [];
-try {
-    report.screen = adb('shell', 'wm', 'size').toString().trim();
-    report.opened = await run(openSelenium);
+/** Selenium, a window low on the screen; then Polonium, QNTX's Pi element full screen. */
+async function pass(name: string, report: Record<string, unknown>): Promise<string[]> {
+    report.opened = await run(openSubject);
     report.placedAt = await run(placeLow);
     const before = await until(() => false, 2000);
     report.before = before;
-    shot('1-before');
+    shot(`${name}-1-before`);
 
-    // Where the page sits on the screen: tap bare page, and ask where it landed.
+    // Where the page sits on the screen: tap the page's left edge, and ask where it landed.
     const dpr = before.devicePixelRatio;
     await run(listenForTouch);
     const probe = { x: Math.round(6 * dpr), y: Math.round(before.innerHeight * dpr * 0.5) };
@@ -103,21 +101,36 @@ try {
     adb('shell', 'input', 'tap', String(at.x), String(at.y));
     const up = await until((s) => s.visualViewport.height < before.visualViewport.height - 100);
     report.up = up;
-    shot('2-keyboard-up');
+    shot(`${name}-2-keyboard-up`);
 
     adb('shell', 'input', 'text', 'se@example.com');
     report.typed = await until((s) => s.value === 'se@example.com');
-    shot('3-typed');
+    shot(`${name}-3-typed`);
 
     // Back puts the keyboard away.
     adb('shell', 'input', 'keyevent', '4');
     const gone = await until((s) => s.visualViewport.height >= before.visualViewport.height - 1);
     report.gone = gone;
-    shot('4-keyboard-gone');
+    shot(`${name}-4-keyboard-gone`);
 
-    failed = judge(before, up, gone);
-    report.failed = failed;
+    return judge(before, up, gone);
+}
+
+const report: Record<string, Record<string, unknown>> = { field: {}, agent: {} };
+let failed: string[] = [];
+try {
+    report.field!.screen = adb('shell', 'wm', 'size').toString().trim();
+    failed.push(...await pass('field', report.field!));
+
+    // The same tab, on Polonium: the page loads again under the same DevTools target.
+    // The page goes away under the call that sends it there: no answer comes back.
+    await run(() => { location.search = '?subject=agent'; }).catch(() => {});
+    await sleep(5000);
+    for (let i = 0; i < 30 && !(await run(() => document.readyState === 'complete' && !!document.querySelector('[data-element-id="agent-specimen"]')).catch(() => false)); i++) await sleep(1000);
+    await sleep(1000);
+    failed.push(...await pass('agent', report.agent!));
 } finally {
+    report.failed = { list: failed };
     writeFileSync(`${OUT}/android-report.json`, JSON.stringify(report, null, 2));
     console.log(JSON.stringify(report, null, 2));
     ws.close();
@@ -127,4 +140,4 @@ if (failed.length) {
     console.log(`\nFAILED on Android:\n- ${failed.join('\n- ')}`);
     process.exit(1);
 }
-console.log('\nAndroid: the keyboard came, the field was seen, and the window went back.');
+console.log('\nAndroid: for a window and a full-screen panel, the keyboard came, the field was seen, and each went back.');
