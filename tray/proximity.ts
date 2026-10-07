@@ -206,10 +206,6 @@ export class Proximity {
             // Calculate baseline boost when any element is nearly fully expanded
             const baselineBoost = maxProximityRaw > this.BASELINE_BOOST_TRIGGER ? this.BASELINE_BOOST_AMOUNT : 0;
 
-            // A thumb sees which dot it will open before it lets go. A mouse
-            // clicks what is under it, so it is not marked.
-            const aimed = this.isTouchBrowsing ? this.aimedDot(indicatorContainer) : null;
-
             dots.forEach((dot) => {
                 const elementId = dot.dataset.elementId ?? '';
                 const item = items.get(elementId);
@@ -269,17 +265,8 @@ export class Proximity {
                 // Visual identity, like color — the dot wears the element's border
                 if (item) wearIdentity(dot, item);
                 dot.style.backdropFilter = 'blur(2px)';
-                if (dot === aimed) {
-                    // Drawn a tenth bigger, not laid out bigger: no dot moves for it.
-                    // It grows from the tray's edge, so it stays on the screen.
-                    dot.dataset.aimed = '';
-                    dot.style.transformOrigin = 'right center';
-                    dot.style.transform = 'scale(1.1)';
-                    dot.style.filter = 'brightness(1.2)';
-                } else {
-                    unmarkAim(dot);
-                    dot.style.filter = dot.matches(':hover') ? 'brightness(1.2)' : '';
-                }
+                unmarkAim(dot);
+                dot.style.filter = dot.matches(':hover') ? 'brightness(1.2)' : '';
 
                 // Show title text when proximity exceeds threshold
                 if (proximity > this.TEXT_FADE_THRESHOLD && item) {
@@ -315,6 +302,19 @@ export class Proximity {
                     dot.style.opacity = '1';
                 }
             });
+
+            // A thumb sees which dot it will open before it lets go: chosen from
+            // the dots as this frame sized them, as a release would choose. A
+            // mouse clicks what is under it, so it is not marked.
+            const aimed = this.isTouchBrowsing ? this.aimedDot(indicatorContainer) : null;
+            if (aimed) {
+                // Drawn a tenth bigger, not laid out bigger: no dot moves for it.
+                // It grows from the tray's edge, so it stays on the screen.
+                aimed.dataset.aimed = '';
+                aimed.style.transformOrigin = 'right center';
+                aimed.style.transform = 'scale(1.1)';
+                aimed.style.filter = 'brightness(1.2)';
+            }
 
             this.proximityRAF = null;
         });
