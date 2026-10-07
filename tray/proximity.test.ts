@@ -21,8 +21,9 @@ import type { Element } from '../element';
 
 /**
  * The default geometry. Changing it changes the tray of every host that keeps
- * the defaults: a breaking change. 20×20 at rest since 2.0.0 (10×10 before), so
- * that a title fits the row a dot keeps when it grows.
+ * the defaults; the version that carries such a change is the owner's call.
+ * 20×20 at rest since 1.11.0 (10×10 before), so that a title fits the row a
+ * dot keeps when it grows.
  */
 const DEFAULTS = {
     minWidth: 20,

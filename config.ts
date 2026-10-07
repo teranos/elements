@@ -74,7 +74,7 @@ export interface DotGeometry {
     /** Width when fully expanded. Default 220. */
     maxWidth?: number;
     /**
-     * @deprecated Ignored since 2.0.0. A dot grows sideways only, so that a dot
+     * @deprecated Ignored since 1.11.0. A dot grows sideways only, so that a dot
      * growing under the pointer does not push the others out from under it.
      */
     maxHeight?: number;
