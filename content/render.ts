@@ -13,6 +13,7 @@ import { restoreContent } from './stash';
 import { setContentState } from '../dataset';
 import { watchContent } from './watch';
 import { holdBody } from './body';
+import { watchScroll } from './scroll';
 
 export interface RenderContentResult {
     titleBar: HTMLElement;
@@ -96,6 +97,7 @@ export function renderContent(
             log.error(seg, `[${logLabel} ${item.id}] Error rendering content: ${error instanceof Error ? error.message : String(error)}`);
             const errorContent = document.createElement('div');
             errorContent.className = 'content-area';
+            holdBody(errorContent);
             errorContent.style.color = 'var(--color-error)';
             errorContent.style.fontFamily = 'var(--font-mono)';
 
@@ -117,6 +119,9 @@ export function renderContent(
             setContentState(element, 'refused');
         }
     }
+
+    // Where it scrolls is the package's to say (content/scroll.ts).
+    watchScroll(element, item.title);
 
     return { titleBar, contentElement };
 }

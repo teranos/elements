@@ -22,6 +22,7 @@ import { getRestDuration, MIN_WINDOW_WIDTH, CANVAS_ELEMENT_CONTENT_PADDING } fro
 import { setForm, getForm, setElementId, getElementId, getLastSize, setLastSize } from '../dataset';
 import { stashContent, restoreContent, hasStash } from '../content/stash';
 import { holdBody } from '../content/body';
+import { watchScroll } from '../content/scroll';
 import { createSymbolSpan } from '../symbol-span';
 import { removeRestSymbol } from '../tray/rest-symbol';
 import { beginMorphToButton, cancelMorph, type TooltipBox } from '../morph-transaction';
@@ -185,6 +186,7 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
             area.appendChild(item.renderContent());
             element.appendChild(area);
         }
+        watchScroll(element, item.title);
         // Laid out as a window is while it travels: a column that clips.
         element.style.display = 'flex';
         element.style.flexDirection = 'column';

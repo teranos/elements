@@ -37,6 +37,7 @@ import { calculateTrayTarget } from '../forms/morphology';
 import { readPaint, wearPaint, wearShadow } from '../paint';
 import { stashContent } from '../content/stash';
 import { holdBody } from '../content/body';
+import { watchScroll } from '../content/scroll';
 
 /**
  * The size a lifted element had on the canvas, which is the size its window keeps (Element Axioma).
@@ -180,6 +181,7 @@ export function morphCanvasPlacedToWindow(
     // 7. Assemble: title bar + content
     element.appendChild(titleBar);
     element.appendChild(contentDiv);
+    watchScroll(element, title);
 
     // 8. Save original parent, detach from canvas, reparent to body as fixed
     (element as any)[CANVAS_PARENT_KEY] = originalParent;

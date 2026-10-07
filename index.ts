@@ -111,6 +111,9 @@ export type { WindowControlsConfig } from './forms/title-bar-controls';
 
 export { stashContent, restoreContent, hasStash } from './content/stash';
 
+// Where an element scrolls: the package's body, or the scroller a host declares
+export { declareScroller, watchScroll, expectScroll } from './content/scroll';
+
 export { renderContent } from './content/render';
 export type { RenderContentResult } from './content/render';
 

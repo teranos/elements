@@ -8,6 +8,7 @@
  */
 
 import { canvasPlaced } from '../canvas/placed';
+import { declareScroller } from '../content/scroll';
 import { morphCanvasPlacedToWindow } from '../canvas/window';
 import { getForm } from '../dataset';
 import type { Element } from '../element';
@@ -52,6 +53,8 @@ export function renderBorderSpecimen(): void {
 
     const body = document.createElement('div');
     body.className = 'content-area';
+    // A canvas-placed element has no body of the package's: this one is its scroller, said so.
+    declareScroller(body);
     body.textContent = `inline border: ${OWNED_BORDER}`;
     element.appendChild(body);
 
