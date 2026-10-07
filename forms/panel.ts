@@ -42,11 +42,88 @@ import {
 const escapeHandlers = new WeakMap<HTMLElement, (e: KeyboardEvent) => void>();
 const minimizing = new WeakSet<HTMLElement>();
 const resizeCleanups = new WeakMap<HTMLElement, () => void>();
+const swipeCleanups = new WeakMap<HTMLElement, () => void>();
 
 /** Fraction of viewport height at which panel snaps to fullscreen */
 const FULLSCREEN_SNAP_THRESHOLD = 0.9;
 /** Minimum panel height as fraction of viewport */
 const MIN_PANEL_HEIGHT_FRACTION = 0.3;
+
+// Swiped down by its title bar, a panel goes back to the tray (Apple Human
+// Interface Guidelines, Sheets: "Support swiping to dismiss a sheet"). How far
+// is far enough the HIG does not say; these are the package's.
+/** Fraction of the screen's height that, dragged past, sends a panel to the tray */
+const SWIPE_DISMISS_FRACTION = 0.25;
+/** px/ms: a release this fast is a flick, and sends it to the tray from shorter */
+const SWIPE_FLICK_SPEED = 0.5;
+/** px: a flick shorter than this is a finger settling, not a flick */
+const SWIPE_FLICK_MIN = 24;
+/** ms: how long a panel let go short takes to come back */
+const SWIPE_RETURN_MS = 200;
+
+/**
+ * A finger on the title bar drags the panel down after it. Let go far enough,
+ * or with a flick, and it goes to the tray as its minimize button sends it;
+ * short of that, it comes back. A press on a button in the bar is the button's.
+ * The mouse is left to the bar as it was. Returns the listeners' removal.
+ */
+function attachSwipeToTray(panel: HTMLElement, titleBar: HTMLElement, toTray: () => void): () => void {
+    const controller = new AbortController();
+    const { signal } = controller;
+    let startY = 0;
+    let startAt = 0;
+    let dy = 0;
+    let swiping = false;
+
+    const back = () => {
+        const from = dy;
+        swiping = false;
+        dy = 0;
+        panel.style.transform = '';
+        if (from > 0 && typeof panel.animate === 'function') {
+            panel.animate([{ transform: `translateY(${from}px)` }, { transform: 'none' }], { duration: SWIPE_RETURN_MS, easing: 'ease-out' });
+        }
+    };
+
+    titleBar.addEventListener('touchstart', (e: TouchEvent) => {
+        if (e.touches.length !== 1) return;
+        if ((e.target as HTMLElement | null)?.closest?.('button')) return;
+        swiping = true;
+        startY = e.touches[0]!.clientY;
+        startAt = performance.now();
+        dy = 0;
+    }, { signal, passive: true });
+
+    titleBar.addEventListener('touchmove', (e: TouchEvent) => {
+        if (!swiping) return;
+        if (e.touches.length !== 1) { back(); return; }
+        // The finger is moving the panel, not the page behind it.
+        e.preventDefault();
+        dy = Math.max(0, e.touches[0]!.clientY - startY);
+        panel.style.transform = `translateY(${dy}px)`;
+    }, { signal, passive: false });
+
+    titleBar.addEventListener('touchend', () => {
+        if (!swiping) return;
+        const elapsed = Math.max(1, performance.now() - startAt);
+        const far = dy >= window.innerHeight * SWIPE_DISMISS_FRACTION;
+        const flick = dy >= SWIPE_FLICK_MIN && dy / elapsed >= SWIPE_FLICK_SPEED;
+        if (!far && !flick) { back(); return; }
+        // Where the finger left it is where it leaves from.
+        swiping = false;
+        panel.style.transform = '';
+        panel.style.top = `${(parseFloat(panel.style.top) || 0) + dy}px`;
+        dy = 0;
+        toTray();
+    }, { signal });
+
+    titleBar.addEventListener('touchcancel', () => { if (swiping) back(); }, { signal });
+
+    return () => {
+        controller.abort();
+        panel.style.transform = '';
+    };
+}
 
 /**
  * Determine panel anchor edge — opposite of system drawer position.
@@ -255,6 +332,9 @@ export function morphDotToPanel(
             } : undefined,
         });
 
+        // Swiped down by its title bar, it goes where the minimize button sends it.
+        swipeCleanups.set(element, attachSwipeToTray(element, titleBar, () => morphPanelToDot(element, item, verifyElement, onMinimize)));
+
         // Attach resize handle
         const cleanupFn = attachResizeHandle(element, direction);
         resizeCleanups.set(element, cleanupFn);
@@ -302,6 +382,10 @@ export function leavePanel(panelElement: HTMLElement): DOMRect {
 
     // Clean up resize handle
     cleanupResize(panelElement);
+
+    // And the swipe on its title bar: the bar goes to the stash, and comes back to a new panel.
+    swipeCleanups.get(panelElement)?.();
+    swipeCleanups.delete(panelElement);
 
     // Stash content (strips window controls, preserves element identity off-DOM)
     stashContent(panelElement);
