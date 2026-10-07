@@ -224,6 +224,14 @@ export class Proximity {
                 // Apply morphing styles
                 dot.style.width = `${width}px`;
                 dot.style.height = `${height}px`;
+                // It grows over its neighbours, not into them: its slot in the column
+                // stays the resting height, so no dot moves out from under the pointer
+                // that aimed at it. The nearer the pointer, the more of it is drawn on top.
+                const over = (height - geometry.minHeight) / 2;
+                dot.style.marginTop = `${-over}px`;
+                dot.style.marginBottom = `${-over}px`;
+                dot.style.position = 'relative';
+                dot.style.zIndex = String(1 + Math.round(proximity * 100));
                 dot.style.borderRadius = `${borderRadius}px`;
                 dot.style.backgroundColor = color;
                 // Visual identity, like color — the dot wears the element's border

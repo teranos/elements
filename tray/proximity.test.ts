@@ -254,3 +254,49 @@ describe('Jenny: the expanded dot shows the symbol', () => {
         expect(dot.textContent).toBe('Handlers');
     });
 });
+
+// ── A dot growing under the pointer stays under it ─────────────────
+//
+// Measured on the specimens page: Lithium's dot grew from 20×20 to 220×32 as the
+// pointer reached it, and moved up 52px, because every dot in the column grew
+// and pushed the others. The point aimed at was Beryllium's by then, and a
+// click there opened Beryllium, or nothing.
+
+describe('Spike: a growing dot keeps its place', () => {
+    test('fully grown, it takes no more room in the column than at rest', () => {
+        const proximity = new Proximity();
+        const { container, dot } = makeTray();
+
+        proximity.setPointerPosition(0, 0);
+        proximity.updateProximity(container, NO_ITEMS, false);
+
+        // 32px tall in a 10px slot: 11px over each edge, so the column does not move.
+        expect(dot.style.height).toBe('32px');
+        expect(dot.style.marginTop).toBe('-11px');
+        expect(dot.style.marginBottom).toBe('-11px');
+    });
+
+    test('at rest it has no margins of its own', () => {
+        const proximity = new Proximity();
+        const { container, dot } = makeTray();
+
+        proximity.setPointerPosition(0, 0);
+        proximity.updateProximity(container, NO_ITEMS, false);
+        proximity.setPointerPosition(10000, 10000);
+        proximity.updateProximity(container, NO_ITEMS, false);
+
+        expect(dot.style.marginTop).toBe('0px');
+        expect(dot.style.marginBottom).toBe('0px');
+    });
+
+    test('the nearer dot is drawn over the ones it overlaps', () => {
+        const proximity = new Proximity();
+        const { container, dot } = makeTray();
+
+        proximity.setPointerPosition(0, 0);
+        proximity.updateProximity(container, NO_ITEMS, false);
+
+        expect(dot.style.position).toBe('relative');
+        expect(Number(dot.style.zIndex)).toBeGreaterThan(0);
+    });
+});
