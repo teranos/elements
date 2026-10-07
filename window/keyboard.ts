@@ -1,5 +1,5 @@
 /**
- * A window and the on-screen keyboard.
+ * A window or a panel, and the on-screen keyboard.
  *
  * Apple Human Interface Guidelines, Virtual keyboards: the layout guide "helps
  * you keep important parts of your interface visible while the virtual
@@ -7,8 +7,8 @@
  * on Android leave a fixed window where it is and let the keyboard cover it;
  * what shrinks is the visual viewport (safe-area.ts, visibleArea).
  *
- * So while a field in a window has focus, the window answers the visual
- * viewport: it rises only as far as it must to be seen whole, title bar first
+ * So while a field in a window or panel has focus, it answers the visual
+ * viewport — a panel on a phone being the whole screen: it rises only as far as it must to be seen whole, title bar first
  * when it cannot be, and goes back to where it stood when the keyboard goes.
  * Where a window stands is a person's to say: one dragged while the keyboard
  * is up stays where it was dragged.
@@ -65,8 +65,9 @@ function onViewport(): void {
 
 /** Keep a window whose field has focus where the keyboard leaves it seen. */
 function answer(element: HTMLElement): void {
-    // A window mid-morph is its morph's to place (Morph Axioma).
-    if (!element.isConnected || getForm(element) !== 'window' || element.classList.contains('morphing')) return;
+    // A window or panel mid-morph is its morph's to place (Morph Axioma).
+    const form = getForm(element);
+    if (!element.isConnected || (form !== 'window' && form !== 'panel') || element.classList.contains('morphing')) return;
 
     let before = stood.get(element);
     if (before && element.style.top !== before.wrote) {

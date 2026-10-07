@@ -26,6 +26,7 @@ import { homeOf } from './home';
 import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
 import { renderContent } from '../content/render';
+import { keepClearOfKeyboard, backFromKeyboard } from '../window/keyboard';
 import {
     setForm,
     setElementId
@@ -339,6 +340,9 @@ export function morphDotToPanel(
         const cleanupFn = attachResizeHandle(element, direction);
         resizeCleanups.set(element, cleanupFn);
         keepInsideSafeArea(element);
+
+        // Seen whole, title bar first, while a field in it has the keyboard up (window/keyboard.ts).
+        keepClearOfKeyboard(element);
     }).catch(error => {
         log.warn(seg, `[Panel] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         const handler = escapeHandlers.get(element);
@@ -371,6 +375,8 @@ function cleanupResize(element: HTMLElement): void {
  * edge, and its content into the stash. Returns where it was, for the road out.
  */
 export function leavePanel(panelElement: HTMLElement): DOMRect {
+    // It leaves from where it stood before a keyboard came.
+    backFromKeyboard(panelElement);
     const currentRect = panelElement.getBoundingClientRect();
 
     // Clean up escape handler
