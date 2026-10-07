@@ -36,6 +36,21 @@ export function applyRestingDotGeometry(element: HTMLElement): void {
     element.style.borderRadius = `${dot.borderRadiusMax}px`;
 }
 
+/** How near a thumb must be to a dot for a release to open it (0–1 proximity). */
+export const AIM_THRESHOLD = 0.3;
+
+/**
+ * Take the aim mark off a dot: what makes it brighter and bigger. Only a dot
+ * that has the mark is touched, so a transform a morph wrote is left alone.
+ */
+export function unmarkAim(dot: HTMLElement): void {
+    if (!('aimed' in dot.dataset)) return;
+    delete dot.dataset.aimed;
+    dot.style.transform = '';
+    dot.style.transformOrigin = '';
+    dot.style.filter = '';
+}
+
 export class Proximity {
     // Proximity morphing configuration
     private readonly PROXIMITY_THRESHOLD_HORIZONTAL = 30; // Max distance for horizontal approach (px)
@@ -143,6 +158,24 @@ export class Proximity {
     }
 
     /**
+     * The dot a release opens: the one nearest the pointer, if any is near
+     * enough. What a touch browse opens and what it marks are both this.
+     */
+    public aimedDot(indicatorContainer: HTMLElement | null): HTMLElement | null {
+        if (!indicatorContainer) return null;
+        let best: HTMLElement | null = null;
+        let bestProximity = 0;
+        indicatorContainer.querySelectorAll<HTMLElement>('.dot').forEach((dot) => {
+            const { proximityRaw } = this.calculateProximity(dot);
+            if (proximityRaw > bestProximity) {
+                bestProximity = proximityRaw;
+                best = dot;
+            }
+        });
+        return bestProximity >= AIM_THRESHOLD ? best : null;
+    }
+
+    /**
      * Update proximity-based morphing for elements in the indicator container
      * Uses requestAnimationFrame for smooth 60fps updates
      */
@@ -172,6 +205,10 @@ export class Proximity {
 
             // Calculate baseline boost when any element is nearly fully expanded
             const baselineBoost = maxProximityRaw > this.BASELINE_BOOST_TRIGGER ? this.BASELINE_BOOST_AMOUNT : 0;
+
+            // A thumb sees which dot it will open before it lets go. A mouse
+            // clicks what is under it, so it is not marked.
+            const aimed = this.isTouchBrowsing ? this.aimedDot(indicatorContainer) : null;
 
             dots.forEach((dot) => {
                 const elementId = dot.dataset.elementId ?? '';
@@ -232,7 +269,17 @@ export class Proximity {
                 // Visual identity, like color — the dot wears the element's border
                 if (item) wearIdentity(dot, item);
                 dot.style.backdropFilter = 'blur(2px)';
-                dot.style.filter = dot.matches(':hover') ? 'brightness(1.2)' : '';
+                if (dot === aimed) {
+                    // Drawn a tenth bigger, not laid out bigger: no dot moves for it.
+                    // It grows from the tray's edge, so it stays on the screen.
+                    dot.dataset.aimed = '';
+                    dot.style.transformOrigin = 'right center';
+                    dot.style.transform = 'scale(1.1)';
+                    dot.style.filter = 'brightness(1.2)';
+                } else {
+                    unmarkAim(dot);
+                    dot.style.filter = dot.matches(':hover') ? 'brightness(1.2)' : '';
+                }
 
                 // Show title text when proximity exceeds threshold
                 if (proximity > this.TEXT_FADE_THRESHOLD && item) {

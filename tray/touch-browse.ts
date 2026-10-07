@@ -6,14 +6,12 @@
  */
 
 import { getLogger, getLogSegment } from '../config';
-import type { Proximity } from './proximity';
+import { unmarkAim, type Proximity } from './proximity';
 import type { Element } from '../element';
 
 // How close to the tray's edge the touch must land (px)
 const TOUCH_ACTIVATION_MARGIN = 44;
 
-// Minimum proximity factor to count as "thumb was on this element"
-const MIN_PROXIMITY_THRESHOLD = 0.3;
 
 export interface TouchBrowseHost {
     readonly element: HTMLElement | null;
@@ -29,26 +27,9 @@ export interface TouchBrowseHost {
  * Returns the element and its Element data, or null if nothing is close enough.
  */
 export function findPeakedElement(host: TouchBrowseHost): { element: HTMLElement; item: Element } | null {
-    if (!host.indicatorContainer) return null;
-
-    const dots = Array.from(
-        host.indicatorContainer.querySelectorAll('.dot')
-    ) as HTMLElement[];
-
-    let bestProximity = 0;
-    let bestElement: HTMLElement | null = null;
-
-    dots.forEach((dot) => {
-        const { proximityRaw } = host.proximity.calculateProximity(dot);
-        if (proximityRaw > bestProximity) {
-            bestProximity = proximityRaw;
-            bestElement = dot;
-        }
-    });
-
-    if (!bestElement || bestProximity < MIN_PROXIMITY_THRESHOLD) {
-        return null;
-    }
+    // The same decision that marks the dot while the thumb moves (proximity.ts).
+    const bestElement = host.proximity.aimedDot(host.indicatorContainer);
+    if (!bestElement) return null;
 
     const elementId = (bestElement as HTMLElement).dataset.elementId ?? '';
     const item = host.items.get(elementId);
@@ -124,6 +105,8 @@ export function setupTouchBrowse(host: TouchBrowseHost): void {
         host.proximity.isTouchBrowsing = false;
 
         const peaked = findPeakedElement(host);
+        // The mark goes before the dot opens, so the morph starts from the dot as it rests.
+        if (peaked) unmarkAim(peaked.element);
 
         host.proximity.setPointerPosition(-9999, -9999);
         host.updateProximity();
