@@ -36,6 +36,7 @@ import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import {
     getOpenDuration,
     getRestDuration,
+    getSwipeReturnDuration,
     PANEL_Z_INDEX
 } from '../element';
 
@@ -59,8 +60,6 @@ const SWIPE_DISMISS_FRACTION = 0.25;
 const SWIPE_FLICK_SPEED = 0.5;
 /** px: a flick shorter than this is a finger settling, not a flick */
 const SWIPE_FLICK_MIN = 24;
-/** ms: how long a panel let go short takes to come back */
-const SWIPE_RETURN_MS = 200;
 
 /**
  * A finger on the title bar drags the panel down after it. Let go far enough,
@@ -81,8 +80,10 @@ function attachSwipeToTray(panel: HTMLElement, titleBar: HTMLElement, toTray: ()
         swiping = false;
         dy = 0;
         panel.style.transform = '';
-        if (from > 0 && typeof panel.animate === 'function') {
-            panel.animate([{ transform: `translateY(${from}px)` }, { transform: 'none' }], { duration: SWIPE_RETURN_MS, easing: 'ease-out' });
+        // With Reduce Motion on, it is simply back (getSwipeReturnDuration).
+        const duration = getSwipeReturnDuration();
+        if (from > 0 && duration > 0 && typeof panel.animate === 'function') {
+            panel.animate([{ transform: `translateY(${from}px)` }, { transform: 'none' }], { duration, easing: 'ease-out' });
         }
     };
 

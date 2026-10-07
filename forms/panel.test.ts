@@ -11,7 +11,7 @@
  *
  * Personas:
  * - Tim: Happy path — the panel follows the finger; far enough goes to the tray, short of it comes back
- * - Spike: Edge cases — a button, an upward drag, a jitter, two fingers
+ * - Spike: Edge cases — a button, an upward drag, a jitter, two fingers; Reduce Motion
  * - Jenny: Complex scenarios — a flick; opened again from the tray, one swipe is one dismissal
  */
 
@@ -159,6 +159,46 @@ describe('Spike: what is not a swipe', () => {
         finger(bar, 'touchmove', [20 + FAR, 60 + FAR]);
 
         expect(element.style.transform).toBe('');
+    });
+});
+
+/** The person's setting for motion, as the page reads it. */
+function reduceMotion(reduce: boolean): () => void {
+    const had = window.matchMedia;
+    (window as any).matchMedia = (query: string) => ({ matches: reduce && query.includes('prefers-reduced-motion: reduce'), media: query });
+    return () => { (window as any).matchMedia = had; };
+}
+
+/** The roads the panel took that slid it back up from where the finger left it. */
+const slidBack = (el: HTMLElement) => animations.of(el).filter((frames) => String(frames[0]?.transform ?? '').startsWith('translateY('));
+
+describe('Spike: let go short, with Reduce Motion on', () => {
+    test('it slides back when motion is welcome', async () => {
+        const restore = reduceMotion(false);
+        const bar = await open(element);
+
+        down(bar, 20);
+        move(bar, 80);
+        await wait(200);
+        up(bar, 80);
+        restore();
+
+        expect(slidBack(element)).toHaveLength(1);
+    });
+
+    test('it is simply back, with no slide, when Reduce Motion is on', async () => {
+        const restore = reduceMotion(true);
+        const bar = await open(element);
+
+        down(bar, 20);
+        move(bar, 80);
+        await wait(200);
+        up(bar, 80);
+        restore();
+
+        expect(slidBack(element)).toHaveLength(0);
+        expect(element.style.transform).toBe('');
+        expect(getForm(element)).toBe('panel');
     });
 });
 
