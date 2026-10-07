@@ -100,6 +100,24 @@ function answer(element: HTMLElement): void {
     element.style.top = `${y}px`;
     element.style.maxHeight = height < from.height ? `${height}px` : from.maxHeight;
     stood.set(element, { ...from, wrote: element.style.top });
+    keepFieldSeen(element);
+}
+
+/**
+ * A body made shorter for the keyboard can leave its focused field below what
+ * it shows. Its scroller brings the field back into view, only as far as it
+ * must (Apple Human Interface Guidelines, Scroll views: "only as much as
+ * necessary to help people retain context").
+ */
+function keepFieldSeen(element: HTMLElement): void {
+    const field = document.activeElement as HTMLElement | null;
+    if (!field || field === element || !element.contains(field)) return;
+    const scroller = field.closest<HTMLElement>('[data-scroller="body"], [data-scroller="declared"]');
+    if (!scroller || !element.contains(scroller)) return;
+    const seen = scroller.getBoundingClientRect();
+    const at = field.getBoundingClientRect();
+    if (at.bottom > seen.bottom) scroller.scrollTop += at.bottom - seen.bottom;
+    else if (at.top < seen.top) scroller.scrollTop -= seen.top - at.top;
 }
 
 /**

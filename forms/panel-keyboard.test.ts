@@ -140,6 +140,30 @@ describe('Tim: the keyboard comes for a field in a panel, and goes', () => {
     });
 });
 
+describe('Tim: the field itself is seen', () => {
+    test('a field below what the shrunk panel shows is scrolled up into it, no further', async () => {
+        const vv = giveVisualViewport();
+        const panel = await open();
+        const body = panel.querySelector<HTMLElement>(':scope > [data-scroller="body"]')!;
+        const field = panel.querySelector('input')!;
+        // Laid out as a phone lays them: the body under a 32px title bar to the
+        // panel's bottom, the field 40px tall at 600px into what the body holds.
+        body.getBoundingClientRect = () => {
+            const p = panel.getBoundingClientRect();
+            return { ...p, y: p.top + 32, top: p.top + 32, height: p.height - 32, toJSON() {} } as DOMRect;
+        };
+        field.getBoundingClientRect = () => {
+            const t = body.getBoundingClientRect().top + 600 - body.scrollTop;
+            return { x: 0, y: t, left: 0, top: t, width: 200, height: 40, right: 200, bottom: t + 40, toJSON() {} } as DOMRect;
+        };
+
+        field.focus();
+        keyboardUp(vv);
+
+        expect(field.getBoundingClientRect().bottom).toBe(SCREEN.height - KEYBOARD);
+    });
+});
+
 describe('Spike: Safari, and what is not a field', () => {
     test('Safari panning the page: the panel is what is seen, title bar at the top of it', async () => {
         const vv = giveVisualViewport();
