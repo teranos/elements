@@ -90,6 +90,13 @@ export function getRestDuration(): number {
     return getPrefersReducedMotion() ? 0 : REST_DURATION_MS;
 }
 
+// A panel swiped down and let go short slides back up to where it stood.
+export const SWIPE_RETURN_MS = 200;
+
+export function getSwipeReturnDuration(): number {
+    return getPrefersReducedMotion() ? 0 : SWIPE_RETURN_MS;
+}
+
 // A tooltip grows out of the text it is said from, and back into it.
 export const TOOLTIP_DURATION_MS = 180;
 
