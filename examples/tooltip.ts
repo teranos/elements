@@ -8,6 +8,7 @@
  */
 
 import { canvasPlaced } from '../canvas/placed';
+import { declareScroller } from '../content/scroll';
 import { tooltipFrom } from '../forms/tooltip';
 import type { Element } from '../element';
 
@@ -56,6 +57,8 @@ export function renderTooltipSpecimen(): void {
 
     const body = document.createElement('div');
     body.className = 'content-area';
+    // A canvas-placed element has no body of the package's: this one is its scroller, said so.
+    declareScroller(body);
     const text = document.createElement('span');
     text.className = 'hover-please';
     text.textContent = 'Hover Please';

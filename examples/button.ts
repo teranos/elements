@@ -7,6 +7,7 @@
  */
 
 import { canvasPlaced } from '../canvas/placed';
+import { declareScroller } from '../content/scroll';
 import { buttonFrom } from '../forms/button';
 import type { Element } from '../element';
 
@@ -48,6 +49,8 @@ export function renderButtonSpecimen(): void {
 
     const body = document.createElement('div');
     body.className = 'content-area';
+    // A canvas-placed element has no body of the package's: this one is its scroller, said so.
+    declareScroller(body);
     body.appendChild(buttonFrom(pressed, { className: 'specimen-button' }));
     element.appendChild(body);
     area.appendChild(element);

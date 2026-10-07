@@ -21,6 +21,7 @@ import { applyCanvasElementLayout, makeDraggable, preventDrag } from './drag';
 import { makeResizable } from './resize';
 import { storeCleanup } from './cleanup';
 import { createCorner } from '../corner';
+import { watchScroll } from '../content/scroll';
 import type { MakeDraggableOptions } from './element-ui';
 
 // ── Config ──────────────────────────────────────────────────────────
@@ -133,6 +134,9 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
         });
         storeCleanup(element, cleanupResize);
     }
+
+    // What the factory adds after this scrolls where it declares (content/scroll.ts).
+    watchScroll(element, item.title);
 
     return { element, titleBar };
 }

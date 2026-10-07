@@ -3,6 +3,7 @@
 // The last row sets the package's custom properties, the way a host on another background does.
 
 import { canvasPlaced } from '../canvas/placed';
+import { declareScroller } from '../content/scroll';
 import { renderSparkline, wireLineTooltips } from '../sparkline';
 import type { Element } from '../element';
 
@@ -42,6 +43,8 @@ export function renderSparklineSpecimen(): void {
 
     const body = document.createElement('div');
     body.className = 'content-area';
+    // A canvas-placed element has no body of the package's: this one is its scroller, said so.
+    declareScroller(body);
     for (const [name, data, style] of ROWS) {
         const row = document.createElement('div');
         row.style.cssText = `display: flex; justify-content: space-between; align-items: center; gap: 10px; ${style}`;
