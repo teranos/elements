@@ -8,6 +8,7 @@
 
 import { tray } from '../tray/tray';
 import type { Element } from '../element';
+import { createInput } from '../canvas/ui-primitives';
 
 export function renderPanelSpecimen(): void {
     const item: Element = {
@@ -24,6 +25,9 @@ export function renderPanelSpecimen(): void {
                 row.textContent = `schedule ${i} · ACTIVE · every ${i}m`;
                 body.appendChild(row);
             }
+            // A field at the end of the list: on a phone the keyboard comes up over
+            // the bottom of the screen, which is where this panel's last field is.
+            body.appendChild(createInput({ label: 'New schedule', placeholder: 'every 5m', type: 'text' }));
             return body;
         },
     };
