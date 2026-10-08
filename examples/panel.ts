@@ -20,6 +20,11 @@ export function renderPanelSpecimen(): void {
         renderContent: () => {
             const body = document.createElement('div');
             body.className = 'content';
+            // A row wider than a phone's screen: the panel does not let it be panned to.
+            const wide = document.createElement('div');
+            wide.style.whiteSpace = 'nowrap';
+            wide.textContent = 'schedule 0 · ACTIVE · every 1m · next 11:18 · last 11:17 · ok · runs 1204 · owner root · wider than a phone';
+            body.appendChild(wide);
             for (let i = 1; i <= 40; i++) {
                 const row = document.createElement('div');
                 row.textContent = `schedule ${i} · ACTIVE · every ${i}m`;
