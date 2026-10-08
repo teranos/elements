@@ -17,6 +17,7 @@
 import { type Element, DEFAULT_COLOR } from '../element';
 import { hasProximityText, setProximityText } from '../dataset';
 import { getDotGeometry } from '../config';
+import { wearDotLook } from './look';
 import { wearRestSymbol } from './rest-symbol';
 import { wearIdentity } from '../paint';
 
@@ -30,6 +31,7 @@ import { wearIdentity } from '../paint';
  * at one size until the pointer first moves and another size afterwards.
  */
 export function applyRestingDotGeometry(element: HTMLElement): void {
+    wearDotLook(element);
     const dot = getDotGeometry();
     element.style.width = `${dot.minWidth}px`;
     element.style.height = `${dot.minHeight}px`;
