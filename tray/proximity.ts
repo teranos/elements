@@ -213,10 +213,7 @@ export class Proximity {
 
                 // Interpolate dimensions to match actual tray item size
                 const width = geometry.minWidth + (geometry.maxWidth - geometry.minWidth) * proximity;
-                // It grows sideways only. Its row in the column is as tall grown as at
-                // rest, so no dot moves out from under the pointer that aimed at it,
-                // and the gap between rows stays.
-                const height = geometry.minHeight;
+                const height = geometry.minHeight + (geometry.maxHeight - geometry.minHeight) * proximity;
 
                 // Interpolate border radius (starts at max, goes to 0 for full item)
                 const borderRadius = geometry.borderRadiusMax * (1 - proximity);
@@ -244,7 +241,7 @@ export class Proximity {
                         dot.style.display = 'flex';
                         dot.style.alignItems = 'center';
                         dot.style.justifyContent = 'flex-start'; // Left-align text (normal)
-                        dot.style.padding = '0 10px'; // The title fits the resting row
+                        dot.style.padding = '6px 10px';
                         dot.style.whiteSpace = 'nowrap';
                         dot.textContent = title;
                         setProximityText(dot, true);
