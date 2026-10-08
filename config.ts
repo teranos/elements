@@ -67,16 +67,13 @@ export interface CanvasCoordinateBridge {
  * default. All values are px.
  */
 export interface DotGeometry {
-    /** Dot width at rest. Default 20. */
+    /** Dot width at rest. Default 10. */
     minWidth?: number;
-    /** Dot height at rest, and when expanded: a dot grows sideways only. Default 20. */
+    /** Dot height at rest. Default 10. */
     minHeight?: number;
     /** Width when fully expanded. Default 220. */
     maxWidth?: number;
-    /**
-     * @deprecated Ignored since 1.11.0. A dot grows sideways only, so that a dot
-     * growing under the pointer does not push the others out from under it.
-     */
+    /** Height when fully expanded. Default 32. */
     maxHeight?: number;
     /** Border radius at rest; interpolates to 0 when fully expanded. Default 2. */
     borderRadiusMax?: number;
@@ -130,10 +127,10 @@ const noopCanvasHost: CanvasHost = {
     flushSync() {},
 };
 
-// Default dot geometry. 20 tall, so a title fits the row a dot keeps when it grows.
+// Default dot geometry — the numbers the proximity engine used to hardcode
 const defaultDotGeometry: Required<DotGeometry> = {
-    minWidth: 20,
-    minHeight: 20,
+    minWidth: 10,
+    minHeight: 10,
     maxWidth: 220,
     maxHeight: 32,
     borderRadiusMax: 2,

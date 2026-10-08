@@ -30,11 +30,11 @@ Browser-only. Assumes `document`, `DOMParser`, Web Animations API, and `ResizeOb
 
 Host apps call `configureElements()` at startup to inject logger, persistence, canvas coordinate bridge, `CanvasHost`, and cleanup callbacks. `CanvasHost` bridges canvas interaction (drag, resize, meld) to host-specific state — persistence, selection, composition CRUD, and sync. Without configuration, safe defaults apply: no-op logger, no-op persistence, no-op canvas host, identity coordinate transforms.
 
-`dotGeometry` is the exception to "host-specific concerns": it is geometry, not a dependency. The proximity engine writes the dot's width, height and border-radius inline on every frame, so no stylesheet can reach it — a host that wants a bigger or smaller dot sets it here. A dot grows sideways only: its row is as tall expanded as at rest, so a dot growing under the pointer moves nothing, and `maxHeight` is ignored.
+`dotGeometry` is the exception to "host-specific concerns": it is geometry, not a dependency. The proximity engine writes the dot's width, height and border-radius inline on every frame, so no stylesheet can reach it — a host that wants a bigger or smaller dot sets it here.
 
 ```typescript
 configureElements({
-    dotGeometry: { minWidth: 15, minHeight: 15 },  // resting dot; omitted fields keep 20/20/220/2
+    dotGeometry: { minWidth: 15, minHeight: 15 },  // resting dot; omitted fields keep 10/10/220/32/2
 });
 ```
 

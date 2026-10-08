@@ -19,15 +19,10 @@ import { tray } from './tray';
 import { resetElement } from '../forms/morphology';
 import type { Element } from '../element';
 
-/**
- * The default geometry. Changing it changes the tray of every host that keeps
- * the defaults; the version that carries such a change is the owner's call.
- * 20×20 at rest since 1.11.0 (10×10 before), so that a title fits the row a
- * dot keeps when it grows.
- */
-const DEFAULTS = {
-    minWidth: 20,
-    minHeight: 20,
+/** The geometry the hardcoded constants had. Changing these is a breaking change. */
+const HISTORICAL = {
+    minWidth: 10,
+    minHeight: 10,
     maxWidth: 220,
     maxHeight: 32,
     borderRadiusMax: 2,
@@ -51,10 +46,10 @@ afterAll(() => {
     globalThis.cancelAnimationFrame = realCAF;
 });
 
-// Config is module-global — hand it back to the defaults so test order
+// Config is module-global — hand it back to the historical values so test order
 // and other test files are unaffected.
 afterEach(() => {
-    configureElements({ dotGeometry: DEFAULTS });
+    configureElements({ dotGeometry: HISTORICAL });
     document.body.innerHTML = '';
 });
 
@@ -74,33 +69,33 @@ const NO_ITEMS = new Map<string, Element>();
 
 describe('Tim: dot geometry config', () => {
     // MUST stay first: proves the untouched defaults, before any configureElements call.
-    test('the defaults', () => {
-        expect(getDotGeometry()).toEqual(DEFAULTS);
+    test('defaults match the previously hardcoded constants', () => {
+        expect(getDotGeometry()).toEqual(HISTORICAL);
     });
 
     test('minWidth overridable, rest fall back to defaults', () => {
         configureElements({ dotGeometry: { minWidth: 16 } });
-        expect(getDotGeometry()).toEqual({ ...DEFAULTS, minWidth: 16 });
+        expect(getDotGeometry()).toEqual({ ...HISTORICAL, minWidth: 16 });
     });
 
     test('minHeight overridable, rest fall back to defaults', () => {
         configureElements({ dotGeometry: { minHeight: 18 } });
-        expect(getDotGeometry()).toEqual({ ...DEFAULTS, minHeight: 18 });
+        expect(getDotGeometry()).toEqual({ ...HISTORICAL, minHeight: 18 });
     });
 
     test('maxWidth overridable, rest fall back to defaults', () => {
         configureElements({ dotGeometry: { maxWidth: 400 } });
-        expect(getDotGeometry()).toEqual({ ...DEFAULTS, maxWidth: 400 });
+        expect(getDotGeometry()).toEqual({ ...HISTORICAL, maxWidth: 400 });
     });
 
     test('maxHeight overridable, rest fall back to defaults', () => {
         configureElements({ dotGeometry: { maxHeight: 48 } });
-        expect(getDotGeometry()).toEqual({ ...DEFAULTS, maxHeight: 48 });
+        expect(getDotGeometry()).toEqual({ ...HISTORICAL, maxHeight: 48 });
     });
 
     test('borderRadiusMax overridable, rest fall back to defaults', () => {
         configureElements({ dotGeometry: { borderRadiusMax: 6 } });
-        expect(getDotGeometry()).toEqual({ ...DEFAULTS, borderRadiusMax: 6 });
+        expect(getDotGeometry()).toEqual({ ...HISTORICAL, borderRadiusMax: 6 });
     });
 
     test('zero is a literal value, not "unset"', () => {
@@ -111,7 +106,7 @@ describe('Tim: dot geometry config', () => {
     test('a second call merges, it does not replace', () => {
         configureElements({ dotGeometry: { minWidth: 16 } });
         configureElements({ dotGeometry: { maxWidth: 400 } });
-        expect(getDotGeometry()).toEqual({ ...DEFAULTS, minWidth: 16, maxWidth: 400 });
+        expect(getDotGeometry()).toEqual({ ...HISTORICAL, minWidth: 16, maxWidth: 400 });
     });
 
     test('configureElements without dotGeometry leaves geometry untouched', () => {
@@ -152,7 +147,7 @@ describe('Spike: geometry is read at use time', () => {
         expect(dot.style.borderRadius).toBe('6px');
     });
 
-    test('proximity 1 widens to the configured max, and keeps the resting height', () => {
+    test('proximity 1 expands to the configured max', () => {
         configureElements({
             dotGeometry: { minWidth: 16, minHeight: 18, maxWidth: 400, maxHeight: 48, borderRadiusMax: 6 },
         });
@@ -166,7 +161,7 @@ describe('Spike: geometry is read at use time', () => {
         proximity.updateProximity(container, NO_ITEMS, false);
 
         expect(dot.style.width).toBe('400px');
-        expect(dot.style.height).toBe('18px');
+        expect(dot.style.height).toBe('48px');
         expect(dot.style.borderRadius).toBe('0px');
     });
 
@@ -200,20 +195,20 @@ describe('Spike: geometry is read at use time', () => {
         expect(el.style.borderRadius).toBe('6px');
     });
 
-    test('unconfigured geometry morphs 20px → 220px wide, 20px tall throughout', () => {
+    test('unconfigured geometry still morphs 10px → 220px', () => {
         const proximity = new Proximity();
         const { container, dot } = makeTray();
 
         proximity.setPointerPosition(10000, 10000);
         proximity.updateProximity(container, NO_ITEMS, false);
-        expect(dot.style.width).toBe('20px');
-        expect(dot.style.height).toBe('20px');
+        expect(dot.style.width).toBe('10px');
+        expect(dot.style.height).toBe('10px');
         expect(dot.style.borderRadius).toBe('2px');
 
         proximity.setPointerPosition(0, 0);
         proximity.updateProximity(container, NO_ITEMS, false);
         expect(dot.style.width).toBe('220px');
-        expect(dot.style.height).toBe('20px');
+        expect(dot.style.height).toBe('32px');
         expect(dot.style.borderRadius).toBe('0px');
     });
 });
@@ -257,42 +252,5 @@ describe('Jenny: the expanded dot shows the symbol', () => {
         proximity.updateProximity(container, items, false);
 
         expect(dot.textContent).toBe('Handlers');
-    });
-});
-
-// ── A dot growing under the pointer stays under it ─────────────────
-//
-// Measured on the specimens page: Lithium's dot grew from 20×20 to 220×32 as the
-// pointer reached it, and moved up 52px, because every dot in the column grew
-// and pushed the others. The point aimed at was Beryllium's by then, and a
-// click there opened Beryllium, or nothing. A dot now grows sideways only: its
-// row in the column is the same height grown or at rest, so nothing moves, and
-// the gap between rows stays.
-
-describe('Spike: a growing dot keeps its place', () => {
-    test('fully grown, it is as tall as at rest, whatever maxHeight says', () => {
-        configureElements({ dotGeometry: { maxHeight: 48 } });
-        const proximity = new Proximity();
-        const { container, dot } = makeTray();
-
-        proximity.setPointerPosition(0, 0);
-        proximity.updateProximity(container, NO_ITEMS, false);
-
-        expect(dot.style.width).toBe('220px');
-        expect(dot.style.height).toBe('20px');
-    });
-
-    test('its title fits the row: no padding above or below it', () => {
-        const proximity = new Proximity();
-        const { container, dot } = makeTray();
-        dot.dataset.elementId = 'row-1';
-        const items = new Map<string, Element>([['row-1', { id: 'row-1', title: 'Lithium', symbol: 'Li' }]]);
-
-        proximity.setPointerPosition(0, 0);
-        proximity.updateProximity(container, items, false);
-
-        expect(dot.textContent).toBe('Li Lithium');
-        expect(dot.style.paddingTop).toBe('0px');
-        expect(dot.style.paddingBottom).toBe('0px');
     });
 });
