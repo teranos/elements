@@ -349,7 +349,6 @@ export function morphDotToPanel(
 
         // Restore stashed content or render fresh (shared with window.ts)
         const { titleBar } = renderContent(element, item, 'Panel', preRenderedContent);
-        holdAtScreenWidth(element);
 
         // Add window controls (minimize/close) to the title bar
         addWindowControls(titleBar, {
@@ -403,28 +402,6 @@ export function morphDotToPanel(
     });
 }
 
-/** What a panel's body had sideways before the panel held it, given back when it goes. */
-const sidewaysBefore = new WeakMap<HTMLElement, string>();
-
-/**
- * A panel is the screen's width, and its body does not scroll sideways: content
- * wider than the screen is not panned to. Every body scrolls both ways
- * (content/body.ts); a window's still does.
- */
-function holdAtScreenWidth(panel: HTMLElement): void {
-    const body = panel.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
-    if (!body) return;
-    sidewaysBefore.set(panel, body.style.overflowX);
-    body.style.overflowX = 'hidden';
-}
-
-function releaseScreenWidth(panel: HTMLElement): void {
-    const body = panel.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
-    if (!body || !sidewaysBefore.has(panel)) return;
-    body.style.overflowX = sidewaysBefore.get(panel)!;
-    sidewaysBefore.delete(panel);
-}
-
 /** Clean up resize handler for a panel element */
 function cleanupResize(element: HTMLElement): void {
     const cleanup = resizeCleanups.get(element);
@@ -458,9 +435,6 @@ export function leavePanel(panelElement: HTMLElement): DOMRect {
     // And the swipe on its title bar: the bar goes to the stash, and comes back to a new panel.
     swipeCleanups.get(panelElement)?.();
     swipeCleanups.delete(panelElement);
-
-    // The body scrolls both ways again, as every body does (content/body.ts).
-    releaseScreenWidth(panelElement);
 
     // Stash content (strips window controls, preserves element identity off-DOM)
     stashContent(panelElement);

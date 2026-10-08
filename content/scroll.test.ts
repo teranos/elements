@@ -361,3 +361,72 @@ describe('Jenny: content that arrives later, changes its mind, or comes from the
         expect(() => expectScroll(element)).not.toThrow();
     });
 });
+
+// ── Sideways ────────────────────────────────────────────────────────
+//
+// Seen on a phone: content wider than its element could be panned left and
+// right. An element's scroller scrolls down, never sideways, in every form;
+// content wider than it is cut off, and the host is told once.
+
+/** Lay the scroller out as a browser would: this wide, holding content that wide. */
+function measured(scroller: HTMLElement, width: number, contentWidth: number): void {
+    Object.defineProperty(scroller, 'clientWidth', { configurable: true, get: () => width });
+    Object.defineProperty(scroller, 'scrollWidth', { configurable: true, get: () => contentWidth });
+}
+
+const wideWarnings = () => warnings.filter((w) => w.message.includes('wide'));
+
+describe('Tim: an element does not scroll sideways', () => {
+    test('a scroller the host declares does not scroll sideways either', () => {
+        const table = div('table');
+        declareScroller(table);
+
+        expect(table.style.overflowX).toBe('hidden');
+    });
+
+    test('content wider than its element: the host is told how wide, and what to do', async () => {
+        const { element, body } = opened(div('', 'two columns'), 'parity', 'Parity');
+        measured(body, 390, 760);
+
+        body.firstElementChild!.appendChild(div('', 'a row'));
+        await settled();
+
+        expect(wideWarnings()).toHaveLength(1);
+        expect(wideWarnings()[0]!.message).toContain('parity');
+        expect(wideWarnings()[0]!.message).toContain('760px');
+        expect(wideWarnings()[0]!.message).toContain('390px');
+        expect(element.isConnected).toBe(true);
+    });
+});
+
+describe('Spike: what is not too wide', () => {
+    test('content that fits says nothing', async () => {
+        const { body } = opened(div('', 'one column'));
+        measured(body, 390, 390);
+
+        body.firstElementChild!.appendChild(div('', 'a row'));
+        await settled();
+
+        expect(wideWarnings()).toHaveLength(0);
+    });
+});
+
+describe('Jenny: told once, and again only after it fit', () => {
+    test('still too wide when looked at again: told once; fits, then too wide again: told again', () => {
+        const { element, body } = opened(div('', 'two columns'), 'parity', 'Parity');
+        // Watching again looks again (watchScroll): each look as content changing would bring one.
+        const look = () => watchScroll(element, 'Parity');
+
+        measured(body, 390, 760);
+        look();
+        look();
+        expect(wideWarnings()).toHaveLength(1);
+
+        measured(body, 390, 380);
+        look();
+        measured(body, 390, 900);
+        look();
+
+        expect(wideWarnings()).toHaveLength(2);
+    });
+});

@@ -3,13 +3,12 @@
  *
  * Seen on a phone: content wider than the screen opened as a panel
  * (window/fits.ts), the panel the screen's width, and its body scrolled
- * sideways: every body scrolls both ways (content/body.ts), so a thumb panned
- * the content left and right. The panel holds its content at the screen's width;
- * a window's body still scrolls both ways.
+ * sideways: every body scrolled both ways (content/body.ts), so a thumb panned
+ * the content left and right. No body scrolls sideways now, in any form.
  *
  * Personas:
  * - Tim: Happy path — an open panel's body does not scroll sideways
- * - Spike: Edge cases — gone from the panel, the body scrolls both ways again
+ * - Spike: Edge cases — gone from the panel, the body still does not
  * - Jenny: Complex scenarios — to the tray and back, it still does not
  */
 
@@ -76,13 +75,13 @@ describe('Tim: an open panel', () => {
 });
 
 describe('Spike: when the panel goes', () => {
-    test('the body scrolls both ways again, as every body does', async () => {
+    test('the body still does not scroll sideways', async () => {
         const body = await open();
 
         await toTheTray();
 
         expect(getForm(element)).toBe('dot');
-        expect(body.style.overflowX).toBe('auto');
+        expect(body.style.overflowX).toBe('hidden');
     });
 });
 

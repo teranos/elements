@@ -20,7 +20,8 @@ function scrolls(body: HTMLElement): void {
     expect(body.style.flex).toBe('1 1 auto');
     // A flex item does not shrink below its content without this.
     expect(body.style.minHeight).toBe('0px');
-    expect(body.style.overflowX).toBe('auto');
+    // Down, not sideways: content wider than the element is cut off, never panned to.
+    expect(body.style.overflowX).toBe('hidden');
     expect(body.style.overflowY).toBe('auto');
 }
 
