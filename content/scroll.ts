@@ -17,6 +17,9 @@
  *
  * Only declared overflow is read, never measured overflow: the same verdict in a
  * test DOM, where every box measures zero, as on a phone.
+ *
+ * The element's scroller scrolls down, never sideways: content wider than the
+ * element is cut off, and the host is told so (measured, so only on a page).
  */
 
 import { getLogger, getLogSegment } from '../config';
@@ -38,6 +41,8 @@ interface Watch {
     waiting: boolean;
     /** The body last seen holding the element's content. */
     body: HTMLElement | null;
+    /** The host was told its content is wider than the element, and it has not fit since. */
+    toldWide: boolean;
 }
 
 const watches = new WeakMap<HTMLElement, Watch>();
@@ -62,6 +67,8 @@ const madeReachable = new WeakMap<HTMLElement, string[]>();
 export function declareScroller(node: HTMLElement): void {
     node.dataset.scroller = 'declared';
     node.style.overscrollBehavior = 'contain';
+    // Down, not sideways, as the body the package gives (content/body.ts).
+    node.style.overflowX = 'hidden';
 }
 
 /**
@@ -72,7 +79,7 @@ export function declareScroller(node: HTMLElement): void {
 export function watchScroll(element: HTMLElement, title: string): void {
     let watch = watches.get(element);
     if (!watch) {
-        const fresh: Watch = { title, observer: null, told: new WeakSet(), waiting: false, body: null };
+        const fresh: Watch = { title, observer: null, told: new WeakSet(), waiting: false, body: null, toldWide: false };
         if (typeof MutationObserver === 'function') {
             fresh.observer = new MutationObserver((records) => {
                 // A drag or a morph writing the element's own style every frame changes nothing inside it.
@@ -133,6 +140,11 @@ function review(element: HTMLElement, watch: Watch, candidates: HTMLElement[]): 
         giveWay(body, declared ? childHolding(body, declared) : null);
         reach(body, watch.title);
     }
+
+    const scroller = body?.querySelector<HTMLElement>('[data-scroller="declared"]')
+        ?? element.querySelector<HTMLElement>('[data-scroller="declared"]')
+        ?? body;
+    if (scroller) sayIfTooWide(element, scroller, watch);
     for (const declared of Array.from(element.querySelectorAll<HTMLElement>('[data-scroller="declared"]'))) {
         reach(declared, watch.title);
     }
@@ -206,6 +218,28 @@ function reach(scroller: HTMLElement, title: string): void {
         for (const name of given) scroller.removeAttribute(name);
         madeReachable.delete(scroller);
     }
+}
+
+/**
+ * An element's scroller does not scroll sideways: content wider than it is cut
+ * off. The host is told once, and again only after it has fit since. Measured,
+ * not declared: a test DOM, where every box measures zero, says nothing.
+ */
+function sayIfTooWide(element: HTMLElement, scroller: HTMLElement, watch: Watch): void {
+    const wide = scroller.scrollWidth;
+    const room = scroller.clientWidth;
+    if (wide <= room + 1) {
+        watch.toldWide = false;
+        return;
+    }
+    if (watch.toldWide) return;
+    watch.toldWide = true;
+    getLogger().warn(
+        getLogSegment(),
+        `[Scroll] ${idOf(element)}: its content is ${wide}px wide in ${room}px, and an element does not scroll sideways, ` +
+        `so what is past its right edge is cut off. Let the content wrap, or fit it to the element's width.`,
+        { element: idOf(element), contentWidth: wide, width: room },
+    );
 }
 
 function tell(element: HTMLElement, node: HTMLElement): void {
