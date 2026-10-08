@@ -30,6 +30,7 @@
 
 import { getLogger, getLogSegment, getPersistence, getTrayZIndex } from '../config';
 import { Proximity, applyRestingDotGeometry } from './proximity';
+import { wearTrayLook } from './look';
 import { type Element, getOpenDuration, DEFAULT_COLOR } from '../element';
 import { readPaint, wearPaint, wearIdentity, wearShadow } from '../paint';
 import { holdable } from '../hold';
@@ -149,6 +150,8 @@ class Tray {
         this.indicatorContainer = document.createElement('div');
         this.indicatorContainer.className = 'tray-dots';
         this.element.appendChild(this.indicatorContainer);
+        // Its place, layout and motion are the package's (tray/look.ts).
+        wearTrayLook(this.element, this.indicatorContainer);
 
         // The press is what starts a selection; click already fires on mouseup,
         // by which time the range exists. Heard on the tray and not on the

@@ -67,9 +67,9 @@ export interface CanvasCoordinateBridge {
  * default. All values are px.
  */
 export interface DotGeometry {
-    /** Dot width at rest. Default 10. */
+    /** Dot width at rest. Default by screen: 13 up to 768px wide, 15 up to 900px, 10 above. */
     minWidth?: number;
-    /** Dot height at rest. Default 10. */
+    /** Dot height at rest. Default by screen: 13 up to 768px wide, 15 up to 900px, 10 above. */
     minHeight?: number;
     /** Width when fully expanded. Default 220. */
     maxWidth?: number;
@@ -180,8 +180,8 @@ export function configureElements(opts: ElementConfig): void {
         // so 0 means 0 (a truthiness check would silently drop a zero radius).
         const g = opts.dotGeometry;
         const merged = { ...config.dotGeometry };
-        if (typeof g.minWidth === 'number') merged.minWidth = g.minWidth;
-        if (typeof g.minHeight === 'number') merged.minHeight = g.minHeight;
+        if (typeof g.minWidth === 'number') { merged.minWidth = g.minWidth; restingSet.width = true; }
+        if (typeof g.minHeight === 'number') { merged.minHeight = g.minHeight; restingSet.height = true; }
         if (typeof g.maxWidth === 'number') merged.maxWidth = g.maxWidth;
         if (typeof g.maxHeight === 'number') merged.maxHeight = g.maxHeight;
         if (typeof g.borderRadiusMax === 'number') merged.borderRadiusMax = g.borderRadiusMax;
@@ -221,7 +221,30 @@ export function getCanvasHost(): CanvasHost {
 
 /** Get the dot geometry, every field resolved to a number */
 export function getDotGeometry(): Required<DotGeometry> {
-    return config.dotGeometry;
+    const resting = restingDotSize();
+    return {
+        ...config.dotGeometry,
+        minWidth: restingSet.width ? config.dotGeometry.minWidth : resting,
+        minHeight: restingSet.height ? config.dotGeometry.minHeight : resting,
+    };
+}
+
+/** Which resting sizes a host set; the rest follow the screen. */
+const restingSet = { width: false, height: false };
+
+/** A dot at rest is bigger where a finger aims at it: 13px on a phone, 15px up to 900px, 10px above. */
+function restingDotSize(): number {
+    if (typeof window.matchMedia !== 'function') return 10;
+    if (window.matchMedia('(max-width: 768px)').matches) return 13;
+    if (window.matchMedia('(max-width: 900px)').matches) return 15;
+    return 10;
+}
+
+/** Back to the package's own dot geometry, as if no host had set any. */
+export function resetDotGeometry(): void {
+    config.dotGeometry = { ...defaultDotGeometry };
+    restingSet.width = false;
+    restingSet.height = false;
 }
 
 /** Corner radius an opened window commits to. */

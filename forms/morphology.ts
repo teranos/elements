@@ -11,6 +11,7 @@ import type { Form } from '../form';
 import { setForm, setProximityText, hasProximityText } from '../dataset';
 import { getLogger, getLogSegment } from '../config';
 import { applyRestingDotGeometry } from '../tray/proximity';
+import { wearDotLook, takeOffDotLook } from '../tray/look';
 import { removeRestSymbol } from '../tray/rest-symbol';
 
 /**
@@ -96,6 +97,7 @@ export function prepareMorphTo(
 
     const previousClassName = element.className;
     element.classList.remove('dot');
+    takeOffDotLook(element);
     element.classList.add(MORPHING_CLASS);
     element.style.position = 'fixed';
     element.style.zIndex = zIndex;
@@ -112,6 +114,7 @@ export function prepareMorphTo(
         },
         rollbackClass(): void {
             element.className = previousClassName;
+            if (element.classList.contains('dot')) wearDotLook(element);
         },
     };
 }
