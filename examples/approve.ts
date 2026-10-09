@@ -603,9 +603,10 @@ function addCheckStyle(): void {
     style.textContent = `
         .check-running {
             background-color: #000;
-            background-image: linear-gradient(-45deg, #888 25%, transparent 25%, transparent 50%, #888 50%, #888 75%, transparent 75%);
+            /* Dark grey, so the label inverted over it is light grey and still reads. */
+            background-image: linear-gradient(-45deg, #3a3a3a 25%, transparent 25%, transparent 50%, #3a3a3a 50%, #3a3a3a 75%, transparent 75%);
             background-size: 8px 8px;
-            animation: check-running 0.5s linear infinite;
+            animation: check-running 1.6s linear infinite;
         }
         @keyframes check-running { to { background-position: -8px 0; } }
         @media (prefers-reduced-motion: reduce) { .check-running { animation: none; } }
