@@ -424,7 +424,7 @@ function sortApprovals(body: HTMLElement, rendered: Rendered[]): void {
     for (const r of order) body.appendChild(r.card);
     for (const r of order) {
         const dy = before.get(r.card)! - r.card.getBoundingClientRect().top;
-        if (dy) r.card.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 300, easing: 'ease-out' });
+        if (dy) r.card.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 180, easing: 'ease-out' });
     }
 }
 
@@ -441,7 +441,7 @@ export function renderApproveSpecimen(): void {
             let pending: ReturnType<typeof setTimeout> | undefined;
             const changed = () => {
                 clearTimeout(pending);
-                pending = setTimeout(() => sortApprovals(body, rendered), 600);
+                pending = setTimeout(() => sortApprovals(body, rendered), 150);
             };
             const rendered = APPROVALS.map((approval) => renderApproval(approval, changed));
             for (const r of rendered) body.appendChild(r.card);
