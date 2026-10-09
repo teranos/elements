@@ -380,9 +380,13 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
             btn.style.opacity = locked && !on ? '0.4' : '1';
             const next = on ? steps[current!.step + 1] : steps[0];
             const said = on ? steps[current!.step]!.says : null;
+            // "The countdown, why not IN THE button." In the one that stands, how long
+            // it still can change; before anything is sent, in each, how long to choose.
+            const counts = !locked && !ready && (on || current === null);
             const lines = [
                 said && said !== option.label ? said : null,
                 !locked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
+                counts ? `${approval.waitsOn ? `${approval.waitsOn.label} ` : ''}${remaining}s` : null,
             ].filter(Boolean);
             note.textContent = lines.join('\n');
             note.style.whiteSpace = 'pre-line';
@@ -407,8 +411,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     }, 1000);
 
     // What an approval opens is about what it shows, so it sits with it, above
-    // the choice. "Why have it at all": the buttons say what stands, and the
-    // time left is not drawn; when it ends the buttons stop taking presses.
+    // the choice. No bar for the time left: it is counted in the buttons.
     card.append(title, approval.context());
     for (const aside of approval.asides ?? []) card.appendChild(asideElement(aside));
     card.appendChild(row);
