@@ -47,6 +47,7 @@ interface Aside {
 
 /** One of the checks a wait is made of, simulated: when it starts and how long it takes, in seconds. */
 interface Check {
+    name: string;
     starts: number;
     takes: number;
     /** Ends failed rather than done. */
@@ -121,12 +122,12 @@ const APPROVALS: Approval[] = [
         ],
         merges: { label: 'main CI', seconds: 20 },
         checks: [
-            { starts: 0, takes: 6 },
-            { starts: 0, takes: 9 },
-            { starts: 1, takes: 12 },
-            { starts: 2, takes: 14 },
-            { starts: 4, takes: 13 },
-            { starts: 6, takes: 12 },
+            { name: 'TypeScript', starts: 0, takes: 6 },
+            { name: 'Unit · happy-dom', starts: 0, takes: 9 },
+            { name: 'Unit · JSDOM', starts: 1, takes: 12 },
+            { name: 'Browser', starts: 2, takes: 14 },
+            { name: 'Android Emulator, Chrome', starts: 4, takes: 13 },
+            { name: 'iPhone Simulator, Safari', starts: 6, takes: 12 },
         ],
     },
     {
@@ -150,10 +151,10 @@ const APPROVALS: Approval[] = [
         ],
         merges: { label: 'main CI', seconds: 20 },
         checks: [
-            { starts: 0, takes: 6 },
-            { starts: 0, takes: 9, fails: true },
-            { starts: 1, takes: 20 },
-            { starts: 3, takes: 25 },
+            { name: 'TypeScript', starts: 0, takes: 6 },
+            { name: 'Browser', starts: 0, takes: 9, fails: true },
+            { name: 'Android Emulator, Chrome', starts: 1, takes: 20 },
+            { name: 'iPhone Simulator, Safari', starts: 3, takes: 25 },
         ],
     },
     {
@@ -393,29 +394,44 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     end.style.gap = '8px';
     end.appendChild(ago);
     if (approval.link) {
+        const link = approval.link;
         // "Half of halfsize": half as wide as the half-size button. Half as tall
         // would be 16px, too small for a thumb, so it is 24.
-        const a = document.createElement('a');
-        a.href = approval.link.href;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        a.style.position = 'relative';
-        a.style.overflow = 'hidden';
-        a.style.boxSizing = 'border-box';
-        a.style.width = 'calc((100vw - 32px - 8px) / 4)';
-        a.style.minHeight = '24px';
-        a.style.display = 'flex';
-        a.style.alignItems = 'center';
-        a.style.justifyContent = 'center';
-        a.style.border = '1px solid #fff';
-        a.style.color = '#fff';
-        a.style.textDecoration = 'none';
-        a.style.fontFamily = 'var(--font-mono)';
-        a.style.fontSize = '12px';
-        a.style.fontWeight = 'normal';
+        //
+        // "Pressing GitHub should just display its checks initially and pressing
+        // again does deeplink, so it's button in button." One node: pressed, it
+        // leaves the title row for its own row under the title, grown to the card's
+        // width, and lists the checks; inside it a square button opens the PR.
+        const gh = document.createElement('div');
+        gh.setAttribute('role', 'button');
+        gh.tabIndex = 0;
+        gh.setAttribute('aria-expanded', 'false');
+        gh.style.boxSizing = 'border-box';
+        gh.style.border = '1px solid #fff';
+        gh.style.background = '#000';
+        gh.style.overflow = 'hidden';
+        gh.style.cursor = 'pointer';
+        gh.style.touchAction = 'manipulation';
+        gh.style.fontFamily = 'var(--font-mono)';
+        gh.style.fontSize = '12px';
+        gh.style.fontWeight = 'normal';
+        gh.style.flexShrink = '0';
+
+        const head = document.createElement('div');
+        head.style.display = 'flex';
+        head.style.alignItems = 'stretch';
+
         // "If there's 6 checks, the GitHub button is 6 segments, becoming fuller as
         // more checks are completed." Not started black, running grey lines moving
         // left, done white, "failed is RED". The label is the inverse of whatever is behind it.
+        const strip = document.createElement('div');
+        strip.style.position = 'relative';
+        strip.style.flex = '1';
+        strip.style.minHeight = '22px';
+        strip.style.display = 'flex';
+        strip.style.alignItems = 'center';
+        strip.style.justifyContent = 'center';
+        strip.style.isolation = 'isolate';
         const checks = approval.checks ?? [];
         const bar = document.createElement('span');
         bar.style.position = 'absolute';
@@ -429,24 +445,122 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
             return seg;
         });
         const label = document.createElement('span');
-        label.textContent = approval.link.label;
+        label.textContent = link.label;
         label.style.position = 'relative';
         // Each letter is the exact inverse of what is behind it, segment by segment:
-        // white over black is black over white. Blended against the button alone.
+        // white over black is black over white. Blended against the strip alone.
         label.style.color = '#fff';
         label.style.mixBlendMode = 'difference';
-        a.style.isolation = 'isolate';
-        a.append(bar, label);
+        strip.append(bar, label);
+
+        // The button in the button: perfectly square, the white GitHub mark.
+        const open = document.createElement('a');
+        open.href = link.href;
+        open.target = '_blank';
+        open.rel = 'noopener';
+        open.setAttribute('aria-label', `Open in ${link.label}`);
+        open.style.width = '44px';
+        open.style.height = '44px';
+        open.style.flexShrink = '0';
+        open.style.boxSizing = 'border-box';
+        open.style.borderLeft = '1px solid #fff';
+        open.style.display = 'flex';
+        open.style.alignItems = 'center';
+        open.style.justifyContent = 'center';
+        open.style.background = '#000';
+        open.innerHTML = '<svg viewBox="0 0 16 16" width="24" height="24" aria-hidden="true"><path fill="#fff" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>';
+        head.append(strip, open);
+
+        // What each check is doing, one row each, its mark drawn as its segment is.
+        const list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        list.style.gap = '6px';
+        list.style.padding = '10px 8px';
+        list.style.borderTop = '1px solid #fff';
+        list.style.color = '#fff';
+        const rows = checks.map((check) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.gap = '8px';
+            const mark = document.createElement('span');
+            mark.style.width = '12px';
+            mark.style.height = '12px';
+            mark.style.flexShrink = '0';
+            mark.style.border = '1px solid #fff';
+            mark.style.boxSizing = 'border-box';
+            const what = document.createElement('span');
+            what.textContent = check.name;
+            what.style.flex = '1';
+            what.style.minWidth = '0';
+            what.style.overflowWrap = 'anywhere';
+            const state = document.createElement('span');
+            row.append(mark, what, state);
+            list.appendChild(row);
+            return { mark, state };
+        });
+
+        gh.appendChild(head);
+
+        let grown = false;
+        const rest = () => {
+            gh.style.width = 'calc((100vw - 32px - 8px) / 4)';
+            open.style.display = 'none';
+            list.remove();
+            end.appendChild(gh);
+        };
+        const grow = () => {
+            gh.style.width = '100%';
+            open.style.display = 'flex';
+            gh.appendChild(list);
+            title.after(gh);
+        };
+        rest();
+
+        let motion: Animation | null = null;
+        const toggle = () => {
+            const from = gh.getBoundingClientRect();
+            motion?.cancel();
+            grown = !grown;
+            gh.setAttribute('aria-expanded', String(grown));
+            if (grown) grow(); else rest();
+            const to = gh.getBoundingClientRect();
+            motion = gh.animate(
+                [
+                    { transform: `translate(${from.left - to.left}px, ${from.top - to.top}px)`, width: `${from.width}px`, height: `${from.height}px` },
+                    { transform: 'none', width: `${to.width}px`, height: `${to.height}px` },
+                ],
+                { duration: 200, easing: 'ease-out' },
+            );
+        };
+        gh.addEventListener('click', (e) => {
+            if (open.contains(e.target as Node)) return;
+            if (grown && list.contains(e.target as Node)) return;
+            toggle();
+        });
+        gh.addEventListener('keydown', (e) => {
+            if (e.target !== gh) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggle();
+            }
+        });
+
         paintChecks = (elapsed: number) => checks.forEach((check, i) => {
             const seg = segments[i]!;
             const state = elapsed >= check.starts + check.takes ? (check.fails ? 'failed' : 'done')
                 : elapsed >= check.starts ? 'running' : 'waiting';
             if (seg.dataset.state === state) return;
             seg.dataset.state = state;
-            seg.className = state === 'running' ? 'check-running' : '';
-            seg.style.background = { done: '#fff', failed: COLOR.no, waiting: '#000', running: '' }[state];
+            const { mark, state: said } = rows[i]!;
+            for (const el of [seg, mark]) {
+                el.className = state === 'running' ? 'check-running' : '';
+                el.style.background = { done: '#fff', failed: COLOR.no, waiting: '#000', running: '' }[state];
+            }
+            said.textContent = { done: 'passed', failed: 'failed', waiting: 'queued', running: 'running' }[state];
+            said.style.color = state === 'failed' ? COLOR.no : '#fff';
         });
-        end.appendChild(a);
     }
     title.append(name, end);
     title.style.alignItems = 'flex-start';
