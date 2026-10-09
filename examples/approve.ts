@@ -25,11 +25,18 @@ interface Option {
     label: string;
     /** Left out, a press says the label and pressing it again says nothing more. */
     steps?: Step[];
-    /** 0–100. Left out where a percentage makes no sense, as on a merge. */
+    /**
+     * 0–100, from Jev, the fast classifier. It answers a moment after the card
+     * comes in, so the card is there first and the numbers arrive. Left out where
+     * a percentage makes no sense, as on a merge.
+     */
     confidence?: number;
     /** Red is no and green is yes; an option that is neither stays white. */
     means?: 'yes' | 'no';
 }
+
+// How long Jev takes to classify, in this example.
+const JEV_ANSWERS_MS = 400;
 
 const COLOR = { yes: '#16a34a', no: '#dc2626', neither: '#fff' };
 
@@ -161,7 +168,14 @@ function optionButton(option: Option): { btn: HTMLButtonElement; note: HTMLEleme
 
     if (option.confidence !== undefined) {
         const pct = document.createElement('span');
-        pct.textContent = `${option.confidence}%`;
+        // Jev has not answered yet: the place is kept, so nothing moves when it does.
+        pct.textContent = '··%';
+        pct.style.opacity = '0.4';
+        pct.title = 'Jev';
+        setTimeout(() => {
+            pct.textContent = `${option.confidence}%`;
+            pct.style.opacity = '1';
+        }, JEV_ANSWERS_MS);
         pct.style.fontFamily = 'var(--font-mono)';
         pct.style.fontSize = '22px';
         pct.style.fontVariantNumeric = 'tabular-nums';
