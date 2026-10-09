@@ -292,9 +292,12 @@ function renderApproval(approval: Approval): HTMLElement {
     title.style.fontSize = '16px';
     title.style.fontWeight = 'bold';
 
-    const clock = document.createElement('div');
-    clock.style.fontFamily = 'var(--font-mono)';
-    clock.style.fontSize = '12px';
+    // "No need for your statusline." The buttons say what stands; what is left of
+    // the time, or of the wait, drains away under them, and is gone when it ends.
+    const left = document.createElement('div');
+    left.style.height = '3px';
+    left.style.background = '#fff';
+    left.style.transition = 'width 1s linear';
 
     const row = document.createElement('div');
     row.style.display = 'flex';
@@ -303,17 +306,17 @@ function renderApproval(approval: Approval): HTMLElement {
     // Every press sends. The other option sends again; the same one says its
     // next step. What was sent last stands until it takes effect or the time
     // runs out, and then nothing more can be sent.
-    const sent: string[] = [];
     let current: { option: number; step: number } | null = null;
     let locked: string | null = null;
     let ready = false;
-    let left = approval.waitsOn?.seconds ?? approval.openForSeconds ?? 0;
+    const total = approval.waitsOn?.seconds ?? approval.openForSeconds ?? 0;
+    let remaining = total;
 
     const stepNow = (): Step | null => current && stepsOf(approval.options[current.option]!)[current.step]!;
 
     const settle = () => {
         const step = stepNow();
-        if (step?.settles === 'now' || (step?.settles === 'when-ready' && ready)) locked = `done: ${step.says}`;
+        if (step?.settles === 'now' || (step?.settles === 'when-ready' && ready)) locked = step.says;
     };
 
     const buttons = approval.options.map((option, i) => {
@@ -326,7 +329,6 @@ function renderApproval(approval: Approval): HTMLElement {
             } else {
                 current = { option: i, step: 0 };
             }
-            sent.push(stepNow()!.says);
             settle();
             show();
         });
@@ -355,17 +357,14 @@ function renderApproval(approval: Approval): HTMLElement {
             note.style.whiteSpace = 'pre-line';
             note.hidden = lines.length === 0;
         });
-        const history = sent.join(' → ') || 'nothing sent';
-        const waiting = approval.waitsOn
-            ? (ready ? `${approval.waitsOn.label} passed` : `${approval.waitsOn.label} running · ${left}s`)
-            : `locks in ${left}s`;
-        clock.textContent = locked ? `${locked} · ${history}` : `${history} · ${waiting}`;
+        left.style.width = `${(remaining / total) * 100}%`;
+        left.hidden = !!locked || ready;
     };
 
     const timer = setInterval(() => {
         if (locked) return clearInterval(timer);
-        left -= 1;
-        if (left <= 0) {
+        remaining -= 1;
+        if (remaining <= 0) {
             clearInterval(timer);
             if (approval.waitsOn) {
                 ready = true;
@@ -381,7 +380,7 @@ function renderApproval(approval: Approval): HTMLElement {
 
     for (const aside of approval.asides ?? []) card.appendChild(asideElement(aside));
 
-    card.appendChild(clock);
+    card.insertBefore(left, row.nextSibling);
     show();
     return card;
 }
