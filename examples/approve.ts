@@ -724,7 +724,7 @@ function sortApprovals(body: HTMLElement, rendered: Rendered[], end: HTMLElement
     body.appendChild(end);
     for (const r of order) {
         const dy = before.get(r.card)! - r.card.getBoundingClientRect().top;
-        if (dy) r.card.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 180, easing: 'ease-out' });
+        if (dy) r.card.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 140, easing: 'ease-out' });
     }
 }
 
@@ -744,7 +744,19 @@ function advance(body: HTMLElement, rendered: Rendered[], end: HTMLElement, smoo
     const next = [...body.children].find((c) => rendered.some((r) => r.card === c && r.undecided())) as HTMLElement | undefined;
     const target = next ?? end;
     const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-    scroller.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
+    if (!smooth) {
+        scroller.scrollTop = top;
+        return;
+    }
+    // "Everything needs to feel faster": its own quick glide, not the browser's slow smooth scroll.
+    const from = scroller.scrollTop;
+    const start = performance.now();
+    const glide = (now: number) => {
+        const t = Math.min(1, (now - start) / 220);
+        scroller.scrollTop = from + (top - from) * (1 - Math.pow(1 - t, 3));
+        if (t < 1) requestAnimationFrame(glide);
+    };
+    requestAnimationFrame(glide);
 }
 
 // Grey diagonal lines moving left: a check that is running.
@@ -794,7 +806,7 @@ export function renderApproveSpecimen(): void {
                     sortApprovals(body, rendered, end);
                     if (advancing) advance(body, rendered, end, true);
                     advancing = false;
-                }, 250);
+                }, 90);
             };
             const rendered = APPROVALS.map((approval) => renderApproval(approval, changed));
             for (const r of rendered) body.appendChild(r.card);

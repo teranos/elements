@@ -4,11 +4,15 @@
  *
  * A press breaks a crystal fragment off the button where the thumb landed: a
  * real piece of its face — its colour, its letters — cut along fracture lines
- * from the point of impact. Light runs over the cut where it struck. The
- * fragment jumps, then falls the way a leaf does: it tumbles in depth with
- * perspective, its glassy edge catching a glint as it turns, while air holds
- * it up and swings it side to side until it drifts out of sight. A few chips
- * scatter faster.
+ * from the point of impact. Light runs over the cut where it struck.
+ *
+ * "Spin, pan opposite from gyro, move closer to screen with ease in and out
+ * keyed to one slow rotational turn, after which it pans out fast and
+ * rotates." The fragment comes toward the viewer, growing with perspective,
+ * through exactly one turn, easing in and out of it; as the phone tilts it
+ * moves the other way, as something nearer than the screen does. With the
+ * turn done it leaves fast, spinning, for the nearest edge. Its glassy edge
+ * catches a glint as it turns. A few chips scatter faster.
  *
  * "Why can I keep pressing the button but nothing is actually taken out of
  * it?" What breaks off is gone from the button: each press leaves a hole the
@@ -33,6 +37,14 @@ interface Fragment {
     spin: Vec3;
     turn: Vec3;
     phase: number;
+    /** Where it broke off, on the screen. */
+    x0: number;
+    y0: number;
+    /** Toward the viewer is negative. */
+    z: number;
+    /** Which way it turns, and the way it leaves. */
+    sign: number;
+    exit: [number, number];
     age: number;
     tint: string;
     chip: boolean;
@@ -46,6 +58,39 @@ interface Crack {
 }
 
 const GRAVITY = 1150;
+/** The slow turn toward the viewer, then the fast way out, in seconds. */
+const APPROACH = 0.7;
+const LEAVE = 0.28;
+/** How near it comes: at this depth it is drawn twice its size. */
+const NEAR = 260;
+
+// The phone's tilt, where the page may read it, measured from how it was held at the tap.
+const tilt = { beta: 0, gamma: 0, beta0: 0, gamma0: 0, seen: false, asked: false };
+function listenTilt(): void {
+    if (tilt.asked) return;
+    tilt.asked = true;
+    const start = () => addEventListener('deviceorientation', (e) => {
+        if (e.beta === null || e.gamma === null) return;
+        if (!tilt.seen) {
+            tilt.beta0 = e.beta;
+            tilt.gamma0 = e.gamma;
+            tilt.seen = true;
+        }
+        tilt.beta = e.beta;
+        tilt.gamma = e.gamma;
+    });
+    // iOS asks once, and only from a tap: this is called from one.
+    const ask = (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission;
+    if (ask) ask().then((answer) => answer === 'granted' && start()).catch(() => {});
+    else start();
+}
+/** Opposite to the tilt since the tap: nearer things move against the screen. */
+function parallax(): [number, number] {
+    if (!tilt.seen) return [0, 0];
+    const clamp = (v: number) => Math.max(-30, Math.min(30, v));
+    return [-clamp(tilt.gamma - tilt.gamma0) * 2.2, -clamp(tilt.beta - tilt.beta0) * 2.2];
+}
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const FOCAL = 520;
 const THICKNESS = 3;
 
@@ -218,6 +263,10 @@ export function shatter(btn: HTMLElement, e: MouseEvent, color: string): void {
     const px = (e.clientX || e.clientY ? e.clientX : r.left + r.width / 2) - r.left;
     const py = (e.clientX || e.clientY ? e.clientY : r.top + r.height / 2) - r.top;
     try { navigator.vibrate?.(8); } catch { /* not every phone lets a page */ }
+    listenTilt();
+    // The tilt counts from how the phone is held now.
+    tilt.beta0 = tilt.beta;
+    tilt.gamma0 = tilt.gamma;
 
     layer();
     const dpr = fit();
@@ -235,18 +284,27 @@ export function shatter(btn: HTMLElement, e: MouseEvent, color: string): void {
         // The piece leaves its shape behind as a hole.
         holes.set(btn, [...(holes.get(btn) ?? []), outline.map(([x, y]) => [x + ox, y + oy] as [number, number])]);
         cutHoles(btn);
+        const x0 = r.left + ox;
+        const y0 = r.top + oy;
+        // It leaves for the nearer side, a little upward.
+        const out = x0 < innerWidth / 2 ? -1 : 1;
         fragments.push({
             texture,
             outline,
             origin: [ox, oy],
             radius: size,
-            x: r.left + ox,
-            y: r.top + oy,
-            vx: side * (45 + Math.random() * 55),
-            vy: -(330 + Math.random() * 70),
-            spin: [(Math.random() - 0.5) * 16, (Math.random() - 0.5) * 16, side * (2 + Math.random() * 3)],
+            x: x0,
+            y: y0,
+            vx: 0,
+            vy: 0,
+            spin: [0, 0, 0],
             turn: [0, 0, 0],
             phase: Math.random() * Math.PI * 2,
+            x0,
+            y0,
+            z: 0,
+            sign: side,
+            exit: [out * 0.92, -0.38],
             age: 0,
             tint: tintOf(color),
             chip: false,
@@ -267,6 +325,11 @@ export function shatter(btn: HTMLElement, e: MouseEvent, color: string): void {
                 spin: [(Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 20],
                 turn: [0, 0, 0],
                 phase: 0,
+                x0: r.left + ox,
+                y0: r.top + oy,
+                z: 0,
+                sign: 1,
+                exit: [0, 0],
                 age: 0,
                 tint: tintOf(color),
                 chip: true,
@@ -286,50 +349,59 @@ function step(f: Fragment, dt: number): void {
         // Chips are small and dense: they fall fast and leave.
         f.vy += GRAVITY * dt;
         f.vx *= Math.exp(-1.2 * dt);
-    } else {
-        // Up: gravity and a little air. Down: air holds it up the way it holds a
-        // leaf, more when it lies flat, less when it turns edge-on, and pushes
-        // it side to side as it rocks.
-        const facing = Math.abs(rotate([0, 0, 1], f.turn)[2]);
-        if (f.vy < 0) {
-            f.vy += (GRAVITY + 0.0009 * f.vy * f.vy) * dt;
-        } else {
-            const terminal = 55 + (1 - facing) * 90;
-            f.vy += (GRAVITY - (GRAVITY / (terminal * terminal)) * f.vy * f.vy) * dt;
-        }
-        const falling = Math.min(1, Math.max(0, f.age - 0.3) / 0.6);
-        f.vx += (Math.sin(f.age * 3.4 + f.phase) * 420 * falling - f.vx * 2.4 * falling) * dt;
-        // The first tumble dies down into a slow rocking.
-        const damp = Math.exp(-2.4 * dt);
-        f.spin = [f.spin[0] * damp, f.spin[1] * damp, f.spin[2] * damp];
+        f.x += f.vx * dt;
+        f.y += f.vy * dt;
+        f.turn = [f.turn[0] + f.spin[0] * dt, f.turn[1] + f.spin[1] * dt, f.turn[2] + f.spin[2] * dt];
+        return;
     }
-    f.x += f.vx * dt;
-    f.y += f.vy * dt;
-    f.turn = [f.turn[0] + f.spin[0] * dt, f.turn[1] + f.spin[1] * dt, f.turn[2] + f.spin[2] * dt];
+    // Toward the viewer through one slow turn, eased in and out of it, drifting
+    // a little toward the middle and up.
+    const p = Math.min(1, f.age / APPROACH);
+    const e = easeInOut(p);
+    const [tx, ty] = parallax();
+    const near = 1 + e;
+    let x = f.x0 + (innerWidth / 2 - f.x0) * 0.25 * e + tx * e * near;
+    let y = f.y0 - 70 * e + ty * e * near;
+    let z = -NEAR * e;
+    let turn: Vec3 = [Math.sin(Math.PI * e) * 0.35, f.sign * Math.PI * 2 * e, Math.sin(Math.PI * e) * 0.2 * f.sign];
+    // Then out, fast, spinning.
+    if (f.age > APPROACH) {
+        const q = Math.min(1, (f.age - APPROACH) / LEAVE);
+        const run = q * q * 900;
+        x += f.exit[0] * run;
+        y += f.exit[1] * run;
+        z -= 60 * q;
+        turn = [turn[0] + q * q * Math.PI * 2, turn[1] + f.sign * q * q * Math.PI * 5, turn[2] + f.sign * q * q * Math.PI * 1.5];
+    }
+    f.x = x;
+    f.y = y;
+    f.z = z;
+    f.turn = turn;
 }
 
-/** The fragment's orientation now: its tumble plus, once falling, a leaf's rocking. */
+/** The fragment's orientation now. */
 function pose(f: Fragment): Vec3 {
-    if (f.chip) return f.turn;
-    const rock = Math.min(1, Math.max(0, f.age - 0.3) / 0.6);
-    const t = f.age * 3.4 + f.phase;
-    return [
-        f.turn[0] + Math.cos(t) * 0.85 * rock,
-        f.turn[1] + Math.sin(t * 0.5) * 0.35 * rock,
-        f.turn[2] + Math.sin(t) * 0.55 * rock,
-    ];
+    return f.turn;
 }
+
+/** A point of the fragment in its own plane, turned and placed at its depth. */
+function placed(f: Fragment, rot: Vec3, p: Vec3): Vec3 {
+    const [x, y, z] = rotate(p, rot);
+    return [x, y, z + f.z];
+}
+
+const lifeOf = (f: Fragment) => (f.chip ? 0.75 : APPROACH + LEAVE);
 
 function drawFragment(c: CanvasRenderingContext2D, f: Fragment, dpr: number): void {
-    const life = f.chip ? 1.1 : 4.2;
-    const alpha = Math.max(0, Math.min(1, (life - f.age) / 0.7));
+    const life = lifeOf(f);
+    const alpha = Math.max(0, Math.min(1, (life - f.age) / (f.chip ? 0.35 : 0.12)));
     if (alpha <= 0) return;
     const rot = pose(f);
     const unit = 10;
-    const o = project(f.x, f.y, rotate([0, 0, 0], rot));
-    const u = project(f.x, f.y, rotate([unit, 0, 0], rot));
-    const v = project(f.x, f.y, rotate([0, unit, 0], rot));
-    const back = project(f.x, f.y, rotate([0, 0, THICKNESS], rot));
+    const o = project(f.x, f.y, placed(f, rot, [0, 0, 0]));
+    const u = project(f.x, f.y, placed(f, rot, [unit, 0, 0]));
+    const v = project(f.x, f.y, placed(f, rot, [0, unit, 0]));
+    const back = project(f.x, f.y, placed(f, rot, [0, 0, THICKNESS]));
     const a = [(u[0] - o[0]) / unit, (u[1] - o[1]) / unit];
     const b = [(v[0] - o[0]) / unit, (v[1] - o[1]) / unit];
     const det = a[0] * b[1] - a[1] * b[0];
@@ -392,7 +464,7 @@ function drawFragment(c: CanvasRenderingContext2D, f: Fragment, dpr: number): vo
 }
 
 function drawCrack(c: CanvasRenderingContext2D, k: Crack, dpr: number): void {
-    const life = 0.45;
+    const life = 0.3;
     const t = k.age / life;
     if (t >= 1) return;
     c.save();
@@ -429,10 +501,10 @@ function frame(now: number): void {
 
     for (const k of cracks) k.age += dt;
     for (const f of fragments) step(f, dt);
-    for (let i = cracks.length - 1; i >= 0; i--) if (cracks[i]!.age > 0.45) cracks.splice(i, 1);
+    for (let i = cracks.length - 1; i >= 0; i--) if (cracks[i]!.age > 0.3) cracks.splice(i, 1);
     for (let i = fragments.length - 1; i >= 0; i--) {
         const f = fragments[i]!;
-        if (f.age > (f.chip ? 1.1 : 4.2) || f.y > innerHeight + 80) fragments.splice(i, 1);
+        if (f.age > lifeOf(f)) fragments.splice(i, 1);
     }
 
     for (const k of cracks) drawCrack(c, k, dpr);
