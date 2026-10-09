@@ -45,6 +45,12 @@ interface Aside {
     open: () => HTMLElement;
 }
 
+/** One of the checks a wait is made of, simulated: when it starts and how long it takes, in seconds. */
+interface Check {
+    starts: number;
+    takes: number;
+}
+
 interface Approval {
     title: string;
     /**
@@ -60,7 +66,7 @@ interface Approval {
     /** Time running out locks it, where nothing else does. */
     openForSeconds?: number;
     /** Something to wait on, as a merge waits on CI, simulated here by a countdown. */
-    waitsOn?: { label: string; seconds: number };
+    waitsOn?: { label: string; checks: Check[] };
 }
 
 function text(lines: string[], mono = false): HTMLElement {
@@ -103,7 +109,17 @@ const APPROVALS: Approval[] = [
                 ],
             },
         ],
-        waitsOn: { label: 'CI', seconds: 45 },
+        waitsOn: {
+            label: 'CI',
+            checks: [
+                { starts: 0, takes: 12 },
+                { starts: 0, takes: 20 },
+                { starts: 2, takes: 28 },
+                { starts: 6, takes: 32 },
+                { starts: 10, takes: 35 },
+                { starts: 18, takes: 27 },
+            ],
+        },
     },
     {
         title: 'Agent is stuck: how to proceed?',
@@ -310,6 +326,8 @@ interface Rendered {
     approval: Approval;
     /** Nothing sent yet, and still open. */
     undecided: () => boolean;
+    /** Still waiting on checks: other approvals take precedence. */
+    waiting: () => boolean;
 }
 
 function renderApproval(approval: Approval, changed: () => void): Rendered {
@@ -333,6 +351,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     ago.style.fontFamily = 'var(--font-mono)';
     ago.style.fontSize = '12px';
     ago.style.whiteSpace = 'nowrap';
+    let paintChecks = (_elapsed: number) => {};
     const end = document.createElement('span');
     end.style.display = 'flex';
     end.style.alignItems = 'center';
@@ -345,7 +364,8 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         a.href = approval.link.href;
         a.target = '_blank';
         a.rel = 'noopener';
-        a.textContent = approval.link.label;
+        a.style.position = 'relative';
+        a.style.overflow = 'hidden';
         a.style.boxSizing = 'border-box';
         a.style.width = 'calc((100vw - 32px - 8px) / 4)';
         a.style.minHeight = '24px';
@@ -358,6 +378,35 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         a.style.fontFamily = 'var(--font-mono)';
         a.style.fontSize = '12px';
         a.style.fontWeight = 'normal';
+        // "If there's 6 checks, the GitHub button is 6 segments, becoming fuller as
+        // more checks are completed." Not started black, running grey lines moving
+        // left, done white. The label is outlined, to be read over any of them.
+        const checks = approval.waitsOn?.checks ?? [];
+        const bar = document.createElement('span');
+        bar.style.position = 'absolute';
+        bar.style.inset = '0';
+        bar.style.display = 'flex';
+        bar.style.gap = '1px';
+        const segments = checks.map(() => {
+            const seg = document.createElement('span');
+            seg.style.flex = '1';
+            bar.appendChild(seg);
+            return seg;
+        });
+        const label = document.createElement('span');
+        label.textContent = approval.link.label;
+        label.style.position = 'relative';
+        label.style.color = '#fff';
+        label.style.textShadow = '0 0 2px #000, 0 0 2px #000, 0 0 3px #000';
+        a.append(bar, label);
+        paintChecks = (elapsed: number) => checks.forEach((check, i) => {
+            const seg = segments[i]!;
+            const state = elapsed >= check.starts + check.takes ? 'done' : elapsed >= check.starts ? 'running' : 'waiting';
+            if (seg.dataset.state === state) return;
+            seg.dataset.state = state;
+            seg.className = state === 'running' ? 'check-running' : '';
+            seg.style.background = state === 'done' ? '#fff' : state === 'waiting' ? '#000' : '';
+        });
         end.appendChild(a);
     }
     title.append(name, end);
@@ -374,7 +423,10 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     let current: { option: number; step: number } | null = null;
     let locked: string | null = null;
     let ready = false;
-    let remaining = approval.waitsOn?.seconds ?? approval.openForSeconds ?? 0;
+    const checks = approval.waitsOn?.checks ?? [];
+    const allDone = Math.max(0, ...checks.map((c) => c.starts + c.takes));
+    let elapsed = 0;
+    let remaining = approval.waitsOn ? allDone : approval.openForSeconds ?? 0;
 
     const stepNow = (): Step | null => current && stepsOf(approval.options[current.option]!)[current.step]!;
 
@@ -428,6 +480,19 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         });
     };
 
+    // The checks run on whatever is sent, until all of them are done.
+    if (approval.waitsOn) {
+        paintChecks(0);
+        const run = setInterval(() => {
+            elapsed += 1;
+            paintChecks(elapsed);
+            if (elapsed >= allDone) {
+                clearInterval(run);
+                changed();
+            }
+        }, 1000);
+    }
+
     const timer = setInterval(() => {
         if (locked) return clearInterval(timer);
         remaining -= 1;
@@ -450,7 +515,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     for (const aside of approval.asides ?? []) card.appendChild(asideElement(aside));
     card.appendChild(row);
     show();
-    return { card, approval, undecided: () => current === null && !locked };
+    return { card, approval, undecided: () => current === null && !locked, waiting: () => !!approval.waitsOn && elapsed < allDone };
 }
 
 /**
@@ -461,6 +526,8 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
 function sortApprovals(body: HTMLElement, rendered: Rendered[]): void {
     const order = [...rendered].sort((a, b) =>
         Number(b.undecided()) - Number(a.undecided())
+        // "If an approval still has outstanding checks, other approvals take precedence."
+        || Number(a.waiting()) - Number(b.waiting())
         || a.approval.arrivedMinutesAgo - b.approval.arrivedMinutesAgo);
     if (order.every((r, i) => body.children[i] === r.card)) return;
     const before = new Map(rendered.map((r) => [r.card, r.card.getBoundingClientRect().top]));
@@ -471,7 +538,26 @@ function sortApprovals(body: HTMLElement, rendered: Rendered[]): void {
     }
 }
 
+// Grey diagonal lines moving left: a check that is running.
+function addCheckStyle(): void {
+    if (document.getElementById('check-running-style')) return;
+    const style = document.createElement('style');
+    style.id = 'check-running-style';
+    style.textContent = `
+        .check-running {
+            background-color: #000;
+            background-image: linear-gradient(-45deg, #888 25%, transparent 25%, transparent 50%, #888 50%, #888 75%, transparent 75%);
+            background-size: 8px 8px;
+            animation: check-running 0.5s linear infinite;
+        }
+        @keyframes check-running { to { background-position: -8px 0; } }
+        @media (prefers-reduced-motion: reduce) { .check-running { animation: none; } }
+    `;
+    document.head.appendChild(style);
+}
+
 export function renderApproveSpecimen(): void {
+    addCheckStyle();
     const item: Element = {
         id: 'approve-specimen',
         title: 'Rubidium',
