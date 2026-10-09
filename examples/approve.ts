@@ -14,6 +14,8 @@
 import { tray } from '../tray/tray';
 import type { Element } from '../element';
 import { shatter } from './shatter';
+import { growInPlace, table } from './grow';
+import { paintSegment, segmentStrip } from './segments';
 
 /** What one press says. The same option pressed again says its next step. */
 interface Step {
@@ -251,114 +253,6 @@ function optionButton(option: Option): { btn: HTMLButtonElement; note: HTMLEleme
     return { btn, note };
 }
 
-/**
- * "A halfsize button, when clicked, becomes larger like elements do, and shows
- * more information. It stays an element in an element."
- *
- * One node all along: half a yes or no button at rest, and the same node grown
- * to the card's width holding what it opened. Its label stays; pressed there
- * it goes back.
- */
-function asideElement(aside: Aside): HTMLElement {
-    const el = document.createElement('div');
-    el.setAttribute('role', 'button');
-    el.tabIndex = 0;
-    el.setAttribute('aria-expanded', 'false');
-    el.style.alignSelf = 'flex-start';
-    el.style.boxSizing = 'border-box';
-    el.style.border = '1px solid #fff';
-    el.style.background = '#000';
-    el.style.color = '#fff';
-    el.style.overflow = 'hidden';
-    el.style.touchAction = 'manipulation';
-    el.style.cursor = 'pointer';
-
-    const label = document.createElement('div');
-    label.textContent = aside.label;
-    label.style.minHeight = '30px';
-    label.style.padding = '4px 8px';
-    label.style.display = 'flex';
-    label.style.alignItems = 'center';
-    el.appendChild(label);
-
-    const held = document.createElement('div');
-    held.style.padding = '4px 8px 12px';
-    held.style.cursor = 'auto';
-    held.appendChild(aside.open());
-
-    let open = false;
-    const rest = () => {
-        el.style.width = 'calc((100% - 8px) / 2)';
-        held.remove();
-        label.style.borderBottom = 'none';
-    };
-    const grown = () => {
-        el.style.width = '100%';
-        el.appendChild(held);
-        label.style.borderBottom = '1px solid #fff';
-    };
-    rest();
-
-    let motion: Animation | null = null;
-    const toggle = () => {
-        const from = el.getBoundingClientRect();
-        motion?.cancel();
-        open = !open;
-        el.setAttribute('aria-expanded', String(open));
-        if (open) grown(); else rest();
-        const to = el.getBoundingClientRect();
-        motion = el.animate(
-            [
-                { width: `${from.width}px`, height: `${from.height}px` },
-                { width: `${to.width}px`, height: `${to.height}px` },
-            ],
-            { duration: 220, easing: 'ease-out' },
-        );
-    };
-
-    // At rest the whole of it opens; grown, its label closes it and what it holds stays to be read.
-    el.addEventListener('click', (e) => {
-        if (open && !label.contains(e.target as Node)) return;
-        toggle();
-    });
-    el.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            toggle();
-        }
-    });
-    return el;
-}
-
-function table(head: string[], rows: string[][]): HTMLElement {
-    const wrap = document.createElement('div');
-    wrap.style.overflowX = 'auto';
-    const t = document.createElement('table');
-    t.style.borderCollapse = 'collapse';
-    t.style.fontFamily = 'var(--font-mono)';
-    t.style.fontSize = '12px';
-    t.style.width = '100%';
-    const cell = (tag: 'th' | 'td', value: string) => {
-        const c = document.createElement(tag);
-        c.textContent = value;
-        c.style.textAlign = 'left';
-        c.style.padding = '4px 8px 4px 0';
-        c.style.borderBottom = '1px solid #444';
-        c.style.whiteSpace = 'nowrap';
-        return c;
-    };
-    const hr = document.createElement('tr');
-    head.forEach((h) => hr.appendChild(cell('th', h)));
-    t.appendChild(hr);
-    for (const row of rows) {
-        const tr = document.createElement('tr');
-        row.forEach((v) => tr.appendChild(cell('td', v)));
-        t.appendChild(tr);
-    }
-    wrap.appendChild(t);
-    return wrap;
-}
-
 interface Rendered {
     card: HTMLElement;
     approval: Approval;
@@ -428,34 +322,8 @@ function renderApproval(approval: Approval, changed: (pressed?: boolean) => void
         // "If there's 6 checks, the GitHub button is 6 segments, becoming fuller as
         // more checks are completed." Not started black, running grey lines moving
         // left, done white, "failed is RED". The label is the inverse of whatever is behind it.
-        const strip = document.createElement('div');
-        strip.style.position = 'relative';
-        strip.style.flex = '1';
-        strip.style.minHeight = '22px';
-        strip.style.display = 'flex';
-        strip.style.alignItems = 'center';
-        strip.style.justifyContent = 'center';
-        strip.style.isolation = 'isolate';
         const checks = approval.checks ?? [];
-        const bar = document.createElement('span');
-        bar.style.position = 'absolute';
-        bar.style.inset = '0';
-        bar.style.display = 'flex';
-        bar.style.gap = '1px';
-        const segments = checks.map(() => {
-            const seg = document.createElement('span');
-            seg.style.flex = '1';
-            bar.appendChild(seg);
-            return seg;
-        });
-        const label = document.createElement('span');
-        label.textContent = link.label;
-        label.style.position = 'relative';
-        // Each letter is the exact inverse of what is behind it, segment by segment:
-        // white over black is black over white. Blended against the strip alone.
-        label.style.color = '#fff';
-        label.style.mixBlendMode = 'difference';
-        strip.append(bar, label);
+        const { strip, segments } = segmentStrip(link.label, checks.length);
 
         // The button in the button: perfectly square, the white GitHub mark.
         const open = document.createElement('a');
@@ -556,12 +424,9 @@ function renderApproval(approval: Approval, changed: (pressed?: boolean) => void
             const state = elapsed >= check.starts + check.takes ? (check.fails ? 'failed' : 'done')
                 : elapsed >= check.starts ? 'running' : 'waiting';
             if (seg.dataset.state === state) return;
-            seg.dataset.state = state;
             const { mark, state: said } = rows[i]!;
-            for (const el of [seg, mark]) {
-                el.className = state === 'running' ? 'check-running' : '';
-                el.style.background = { done: '#fff', failed: COLOR.no, waiting: '#000', running: '' }[state];
-            }
+            paintSegment(seg, state);
+            paintSegment(mark, state);
             said.textContent = { done: 'passed', failed: 'failed', waiting: 'queued', running: 'running' }[state];
             said.style.color = state === 'failed' ? COLOR.no : '#fff';
         });
@@ -688,7 +553,7 @@ function renderApproval(approval: Approval, changed: (pressed?: boolean) => void
     // What an approval opens is about what it shows, so it sits with it, above
     // the choice. No bar for the time left: it is counted in the buttons.
     card.append(title, approval.context());
-    for (const aside of approval.asides ?? []) card.appendChild(asideElement(aside));
+    for (const aside of approval.asides ?? []) card.appendChild(growInPlace(aside.label, aside.open));
     card.appendChild(row);
     show();
     const undecided = () => current === null && !locked;
@@ -759,27 +624,7 @@ function advance(body: HTMLElement, rendered: Rendered[], end: HTMLElement, smoo
     requestAnimationFrame(glide);
 }
 
-// Grey diagonal lines moving left: a check that is running.
-function addCheckStyle(): void {
-    if (document.getElementById('check-running-style')) return;
-    const style = document.createElement('style');
-    style.id = 'check-running-style';
-    style.textContent = `
-        .check-running {
-            background-color: #000;
-            /* Dark grey, so the label inverted over it is light grey and still reads. */
-            background-image: linear-gradient(-45deg, #3a3a3a 25%, transparent 25%, transparent 50%, #3a3a3a 50%, #3a3a3a 75%, transparent 75%);
-            background-size: 8px 8px;
-            animation: check-running 1.6s linear infinite;
-        }
-        @keyframes check-running { to { background-position: -8px 0; } }
-        @media (prefers-reduced-motion: reduce) { .check-running { animation: none; } }
-    `;
-    document.head.appendChild(style);
-}
-
 export function renderApproveSpecimen(): void {
-    addCheckStyle();
     const item: Element = {
         id: 'approve-specimen',
         title: 'Rubidium',
