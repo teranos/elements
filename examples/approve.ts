@@ -16,7 +16,11 @@ interface Option {
     label: string;
     /** 0–100. Left out where a percentage makes no sense, as on a merge. */
     confidence?: number;
+    /** Red is no and green is yes; an option that is neither stays white. */
+    means?: 'yes' | 'no';
 }
+
+const COLOR = { yes: '#16a34a', no: '#dc2626', neither: '#fff' };
 
 interface Aside {
     label: string;
@@ -46,13 +50,13 @@ const APPROVALS: Approval[] = [
     {
         title: 'Raise the schedule interval',
         context: () => text(['every 1m → every 5m on schedule 12', 'cuts runs from 1440 to 288 a day']),
-        options: [{ label: 'Yes', confidence: 82 }, { label: 'No', confidence: 18 }],
+        options: [{ label: 'Yes', confidence: 82, means: 'yes' }, { label: 'No', confidence: 18, means: 'no' }],
         openForSeconds: 60,
     },
     {
         title: 'Merge PR #27',
         context: () => text(['Rubidium: an approval you can change your mind on', '2 files · +71 −0 · checks green'], true),
-        options: [{ label: 'Merge' }, { label: 'Don’t merge' }],
+        options: [{ label: 'Merge', means: 'yes' }, { label: 'Don’t merge', means: 'no' }],
         openForSeconds: 90,
     },
     {
@@ -71,7 +75,7 @@ const APPROVALS: Approval[] = [
     {
         title: 'Create an account for a cleaner',
         context: () => text(['Applicant · example', 'applied 9 Oct · 3 years experience · Utrecht']),
-        options: [{ label: 'Yes' }, { label: 'No' }],
+        options: [{ label: 'Yes', means: 'yes' }, { label: 'No', means: 'no' }],
         asides: [{
             label: 'Open mail & CV',
             open: () => text([
@@ -92,7 +96,7 @@ function optionButton(option: Option): HTMLButtonElement {
     btn.style.minWidth = '0';
     btn.style.minHeight = '64px';
     btn.style.padding = '8px';
-    btn.style.border = '1px solid #fff';
+    btn.style.border = `2px solid ${COLOR[option.means ?? 'neither']}`;
     btn.style.borderRadius = '0';
     btn.style.font = 'inherit';
     btn.style.touchAction = 'manipulation';
@@ -156,8 +160,11 @@ function renderApproval(approval: Approval): HTMLElement {
     const show = () => {
         buttons.forEach((btn, i) => {
             const on = chosen === i;
-            btn.style.background = on ? '#fff' : '#000';
-            btn.style.color = on ? '#000' : '#fff';
+            const means = approval.options[i]!.means;
+            const color = COLOR[means ?? 'neither'];
+            // Chosen fills with its colour; the others wear it as an outline.
+            btn.style.background = on ? color : '#000';
+            btn.style.color = on ? (means ? '#fff' : '#000') : color;
             btn.disabled = final;
             btn.style.opacity = final && !on ? '0.4' : '1';
         });
@@ -178,16 +185,20 @@ function renderApproval(approval: Approval): HTMLElement {
     card.append(title, approval.context(), row);
 
     for (const aside of approval.asides ?? []) {
+        // Half a yes or no button: as wide as one, half as tall. It opens, it chooses nothing.
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.textContent = aside.label;
         btn.style.alignSelf = 'flex-start';
-        btn.style.background = 'none';
+        btn.style.width = 'calc((100% - 8px) / 2)';
+        btn.style.minHeight = '32px';
+        btn.style.padding = '4px 8px';
+        btn.style.background = '#000';
         btn.style.color = '#fff';
-        btn.style.border = 'none';
-        btn.style.padding = '8px 0';
+        btn.style.border = '1px solid #fff';
+        btn.style.borderRadius = '0';
         btn.style.font = 'inherit';
-        btn.style.textDecoration = 'underline';
+        btn.style.touchAction = 'manipulation';
         let opened: HTMLElement | null = null;
         btn.addEventListener('click', () => {
             if (opened) {
