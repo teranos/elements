@@ -99,6 +99,18 @@ const APPROVALS: Approval[] = [
             { label: 'Backfill', confidence: 38 },
             { label: 'Stop', confidence: 8 },
         ],
+        // "I know agents sometimes like to put a table in their response."
+        asides: [{
+            label: 'The 3 rows',
+            open: () => table(
+                ['id', 'email', 'signed up', 'in signup table'],
+                [
+                    ['4812', 'null', '2025-03-02', 'yes'],
+                    ['5090', 'null', '2025-06-17', 'yes'],
+                    ['7731', 'null', '2026-01-09', 'no'],
+                ],
+            ),
+        }],
         openForSeconds: 120,
     },
     {
@@ -157,6 +169,114 @@ function optionButton(option: Option): { btn: HTMLButtonElement; note: HTMLEleme
     note.style.lineHeight = '1.3';
     btn.appendChild(note);
     return { btn, note };
+}
+
+/**
+ * "A halfsize button, when clicked, becomes larger like elements do, and shows
+ * more information. It stays an element in an element."
+ *
+ * One node all along: half a yes or no button at rest, and the same node grown
+ * to the card's width holding what it opened. Its label stays; pressed there
+ * it goes back.
+ */
+function asideElement(aside: Aside): HTMLElement {
+    const el = document.createElement('div');
+    el.setAttribute('role', 'button');
+    el.tabIndex = 0;
+    el.setAttribute('aria-expanded', 'false');
+    el.style.alignSelf = 'flex-start';
+    el.style.boxSizing = 'border-box';
+    el.style.border = '1px solid #fff';
+    el.style.background = '#000';
+    el.style.color = '#fff';
+    el.style.overflow = 'hidden';
+    el.style.touchAction = 'manipulation';
+    el.style.cursor = 'pointer';
+
+    const label = document.createElement('div');
+    label.textContent = aside.label;
+    label.style.minHeight = '30px';
+    label.style.padding = '4px 8px';
+    label.style.display = 'flex';
+    label.style.alignItems = 'center';
+    el.appendChild(label);
+
+    const held = document.createElement('div');
+    held.style.padding = '4px 8px 12px';
+    held.style.cursor = 'auto';
+    held.appendChild(aside.open());
+
+    let open = false;
+    const rest = () => {
+        el.style.width = 'calc((100% - 8px) / 2)';
+        held.remove();
+        label.style.borderBottom = 'none';
+    };
+    const grown = () => {
+        el.style.width = '100%';
+        el.appendChild(held);
+        label.style.borderBottom = '1px solid #fff';
+    };
+    rest();
+
+    let motion: Animation | null = null;
+    const toggle = () => {
+        const from = el.getBoundingClientRect();
+        motion?.cancel();
+        open = !open;
+        el.setAttribute('aria-expanded', String(open));
+        if (open) grown(); else rest();
+        const to = el.getBoundingClientRect();
+        motion = el.animate(
+            [
+                { width: `${from.width}px`, height: `${from.height}px` },
+                { width: `${to.width}px`, height: `${to.height}px` },
+            ],
+            { duration: 220, easing: 'ease-out' },
+        );
+    };
+
+    // At rest the whole of it opens; grown, its label closes it and what it holds stays to be read.
+    el.addEventListener('click', (e) => {
+        if (open && !label.contains(e.target as Node)) return;
+        toggle();
+    });
+    el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle();
+        }
+    });
+    return el;
+}
+
+function table(head: string[], rows: string[][]): HTMLElement {
+    const wrap = document.createElement('div');
+    wrap.style.overflowX = 'auto';
+    const t = document.createElement('table');
+    t.style.borderCollapse = 'collapse';
+    t.style.fontFamily = 'var(--font-mono)';
+    t.style.fontSize = '12px';
+    t.style.width = '100%';
+    const cell = (tag: 'th' | 'td', value: string) => {
+        const c = document.createElement(tag);
+        c.textContent = value;
+        c.style.textAlign = 'left';
+        c.style.padding = '4px 8px 4px 0';
+        c.style.borderBottom = '1px solid #444';
+        c.style.whiteSpace = 'nowrap';
+        return c;
+    };
+    const hr = document.createElement('tr');
+    head.forEach((h) => hr.appendChild(cell('th', h)));
+    t.appendChild(hr);
+    for (const row of rows) {
+        const tr = document.createElement('tr');
+        row.forEach((v) => tr.appendChild(cell('td', v)));
+        t.appendChild(tr);
+    }
+    wrap.appendChild(t);
+    return wrap;
 }
 
 function renderApproval(approval: Approval): HTMLElement {
@@ -259,35 +379,7 @@ function renderApproval(approval: Approval): HTMLElement {
 
     card.append(title, approval.context(), row);
 
-    for (const aside of approval.asides ?? []) {
-        // Half a yes or no button: as wide as one, half as tall. It opens, it chooses nothing.
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = aside.label;
-        btn.style.alignSelf = 'flex-start';
-        btn.style.width = 'calc((100% - 8px) / 2)';
-        btn.style.minHeight = '32px';
-        btn.style.padding = '4px 8px';
-        btn.style.background = '#000';
-        btn.style.color = '#fff';
-        btn.style.border = '1px solid #fff';
-        btn.style.borderRadius = '0';
-        btn.style.font = 'inherit';
-        btn.style.touchAction = 'manipulation';
-        let opened: HTMLElement | null = null;
-        btn.addEventListener('click', () => {
-            if (opened) {
-                opened.remove();
-                opened = null;
-                return;
-            }
-            opened = aside.open();
-            opened.style.borderLeft = '1px solid #fff';
-            opened.style.paddingLeft = '12px';
-            btn.after(opened);
-        });
-        card.appendChild(btn);
-    }
+    for (const aside of approval.asides ?? []) card.appendChild(asideElement(aside));
 
     card.appendChild(clock);
     show();
