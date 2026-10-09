@@ -31,6 +31,8 @@ interface Option {
      * a percentage makes no sense, as on a merge.
      */
     confidence?: number;
+    /** Cannot be sent while a check has failed: "FAILED isn't ready for approvals." */
+    needsChecks?: boolean;
     /** Red is no and green is yes; an option that is neither stays white. */
     means?: 'yes' | 'no';
 }
@@ -49,6 +51,8 @@ interface Aside {
 interface Check {
     starts: number;
     takes: number;
+    /** Ends failed rather than done. */
+    fails?: boolean;
 }
 
 interface Approval {
@@ -97,7 +101,7 @@ const APPROVALS: Approval[] = [
         // wait for CI, the NO will cancel the yes. Press NO again and it's definitely NO."
         options: [
             {
-                label: 'Merge', means: 'yes', steps: [
+                label: 'Merge', means: 'yes', needsChecks: true, steps: [
                     { says: 'merge when CI passes', settles: 'when-ready' },
                     { says: 'force merge', settles: 'now' },
                 ],
@@ -118,6 +122,35 @@ const APPROVALS: Approval[] = [
                 { starts: 6, takes: 32 },
                 { starts: 10, takes: 35 },
                 { starts: 18, takes: 27 },
+            ],
+        },
+    },
+    {
+        title: 'Merge PR #31',
+        link: { label: 'GitHub', href: 'https://github.com/teranos/elements/pulls' },
+        arrivedMinutesAgo: 2,
+        context: () => text(['Example: a PR whose CI fails', '4 files · +120 −36'], true),
+        options: [
+            {
+                label: 'Merge', means: 'yes', needsChecks: true, steps: [
+                    { says: 'merge when CI passes', settles: 'when-ready' },
+                    { says: 'force merge', settles: 'now' },
+                ],
+            },
+            {
+                label: 'Don’t merge', means: 'no', steps: [
+                    { says: 'cancel the merge' },
+                    { says: 'definitely no' },
+                ],
+            },
+        ],
+        waitsOn: {
+            label: 'CI',
+            checks: [
+                { starts: 0, takes: 6 },
+                { starts: 0, takes: 9, fails: true },
+                { starts: 1, takes: 20 },
+                { starts: 3, takes: 25 },
             ],
         },
     },
@@ -326,8 +359,8 @@ interface Rendered {
     approval: Approval;
     /** Nothing sent yet, and still open. */
     undecided: () => boolean;
-    /** Still waiting on checks: other approvals take precedence. */
-    waiting: () => boolean;
+    /** 0 ready, 1 still waiting on checks, 2 a check failed: the others take precedence. */
+    readiness: () => number;
 }
 
 function renderApproval(approval: Approval, changed: () => void): Rendered {
@@ -380,7 +413,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         a.style.fontWeight = 'normal';
         // "If there's 6 checks, the GitHub button is 6 segments, becoming fuller as
         // more checks are completed." Not started black, running grey lines moving
-        // left, done white. The label is outlined, to be read over any of them.
+        // left, done white, "failed is RED". The label is outlined, to be read over any of them.
         const checks = approval.waitsOn?.checks ?? [];
         const bar = document.createElement('span');
         bar.style.position = 'absolute';
@@ -401,11 +434,12 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         a.append(bar, label);
         paintChecks = (elapsed: number) => checks.forEach((check, i) => {
             const seg = segments[i]!;
-            const state = elapsed >= check.starts + check.takes ? 'done' : elapsed >= check.starts ? 'running' : 'waiting';
+            const state = elapsed >= check.starts + check.takes ? (check.fails ? 'failed' : 'done')
+                : elapsed >= check.starts ? 'running' : 'waiting';
             if (seg.dataset.state === state) return;
             seg.dataset.state = state;
             seg.className = state === 'running' ? 'check-running' : '';
-            seg.style.background = state === 'done' ? '#fff' : state === 'waiting' ? '#000' : '';
+            seg.style.background = { done: '#fff', failed: COLOR.no, waiting: '#000', running: '' }[state];
         });
         end.appendChild(a);
     }
@@ -426,6 +460,8 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     const checks = approval.waitsOn?.checks ?? [];
     const allDone = Math.max(0, ...checks.map((c) => c.starts + c.takes));
     let elapsed = 0;
+    let wasFailed = false;
+    const failed = () => checks.some((c) => c.fails && elapsed >= c.starts + c.takes);
     let remaining = approval.waitsOn ? allDone : approval.openForSeconds ?? 0;
 
     const stepNow = (): Step | null => current && stepsOf(approval.options[current.option]!)[current.step]!;
@@ -462,17 +498,19 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
             // What was sent last fills with its colour; the others wear it as an outline.
             btn.style.background = on ? color : '#000';
             btn.style.color = on ? (option.means ? '#fff' : '#000') : color;
-            btn.disabled = !!locked;
-            btn.style.opacity = locked && !on ? '0.4' : '1';
+            const blocked = !!option.needsChecks && failed();
+            btn.disabled = !!locked || blocked;
+            btn.style.opacity = (locked && !on) || blocked ? '0.4' : '1';
             const next = on ? steps[current!.step + 1] : steps[0];
             const said = on ? steps[current!.step]!.says : null;
             // "The countdown, why not IN THE button." In the one that stands, how long
             // it still can change; before anything is sent, in each, how long to choose.
-            const counts = !locked && !ready && (on || current === null);
+            const counts = !locked && !ready && !failed() && (on || current === null);
             const lines = [
                 said && said !== option.label ? said : null,
-                !locked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
+                !locked && !blocked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
                 counts ? `${approval.waitsOn ? `${approval.waitsOn.label} ` : ''}${remaining}s` : null,
+                blocked && !locked ? `${approval.waitsOn!.label} failed` : null,
             ].filter(Boolean);
             note.textContent = lines.join('\n');
             note.style.whiteSpace = 'pre-line';
@@ -486,6 +524,13 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         const run = setInterval(() => {
             elapsed += 1;
             paintChecks(elapsed);
+            if (failed() && !wasFailed) {
+                wasFailed = true;
+                // A merge waiting on checks that failed will not happen: it stands no more.
+                if (current && approval.options[current.option]!.needsChecks && !locked) current = null;
+                show();
+                changed();
+            }
             if (elapsed >= allDone) {
                 clearInterval(run);
                 changed();
@@ -499,7 +544,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         if (remaining <= 0) {
             clearInterval(timer);
             if (approval.waitsOn) {
-                ready = true;
+                ready = !failed();
                 settle();
             } else {
                 locked = 'locked';
@@ -515,7 +560,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     for (const aside of approval.asides ?? []) card.appendChild(asideElement(aside));
     card.appendChild(row);
     show();
-    return { card, approval, undecided: () => current === null && !locked, waiting: () => !!approval.waitsOn && elapsed < allDone };
+    return { card, approval, undecided: () => current === null && !locked, readiness: () => (failed() ? 2 : approval.waitsOn && elapsed < allDone ? 1 : 0) };
 }
 
 /**
@@ -527,7 +572,8 @@ function sortApprovals(body: HTMLElement, rendered: Rendered[]): void {
     const order = [...rendered].sort((a, b) =>
         Number(b.undecided()) - Number(a.undecided())
         // "If an approval still has outstanding checks, other approvals take precedence."
-        || Number(a.waiting()) - Number(b.waiting())
+        // A failed one is not ready for approvals at all, and goes after those still waiting.
+        || a.readiness() - b.readiness()
         || a.approval.arrivedMinutesAgo - b.approval.arrivedMinutesAgo);
     if (order.every((r, i) => body.children[i] === r.card)) return;
     const before = new Map(rendered.map((r) => [r.card, r.card.getBoundingClientRect().top]));
