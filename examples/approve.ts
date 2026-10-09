@@ -40,6 +40,8 @@ interface Aside {
 
 interface Approval {
     title: string;
+    /** Minutes since it came in: the most recent undecided one goes first. */
+    arrivedMinutesAgo: number;
     context: () => HTMLElement;
     options: Option[];
     asides?: Aside[];
@@ -63,12 +65,14 @@ function text(lines: string[], mono = false): HTMLElement {
 const APPROVALS: Approval[] = [
     {
         title: 'Raise the schedule interval',
+        arrivedMinutesAgo: 12,
         context: () => text(['every 1m → every 5m on schedule 12', 'cuts runs from 1440 to 288 a day']),
         options: [{ label: 'Yes', confidence: 82, means: 'yes' }, { label: 'No', confidence: 18, means: 'no' }],
         openForSeconds: 60,
     },
     {
         title: 'Merge PR #27',
+        arrivedMinutesAgo: 3,
         context: () => text(['Rubidium: an approval you can change your mind on', '2 files · +71 −0'], true),
         // "Click 1 means merge after CI passes, press again to force merge. If we still
         // wait for CI, the NO will cancel the yes. Press NO again and it's definitely NO."
@@ -90,6 +94,7 @@ const APPROVALS: Approval[] = [
     },
     {
         title: 'Agent is stuck: how to proceed?',
+        arrivedMinutesAgo: 1,
         context: () => text([
             '“The migration fails on 3 rows whose email is null. I can skip them and log their ids, '
             + 'backfill them from the signup table, or stop and leave the table as it is.”',
@@ -115,6 +120,7 @@ const APPROVALS: Approval[] = [
     },
     {
         title: 'Create an account for a cleaner',
+        arrivedMinutesAgo: 40,
         context: () => text(['Applicant · example', 'applied 9 Oct · 3 years experience · Utrecht']),
         options: [{ label: 'Yes', means: 'yes' }, { label: 'No', means: 'no' }],
         asides: [{
@@ -279,7 +285,14 @@ function table(head: string[], rows: string[][]): HTMLElement {
     return wrap;
 }
 
-function renderApproval(approval: Approval): HTMLElement {
+interface Rendered {
+    card: HTMLElement;
+    approval: Approval;
+    /** Nothing sent yet, and still open. */
+    undecided: () => boolean;
+}
+
+function renderApproval(approval: Approval, changed: () => void): Rendered {
     const card = document.createElement('section');
     card.style.borderTop = '1px solid #fff';
     card.style.padding = '16px 0';
@@ -288,9 +301,19 @@ function renderApproval(approval: Approval): HTMLElement {
     card.style.gap = '12px';
 
     const title = document.createElement('div');
-    title.textContent = approval.title;
-    title.style.fontSize = '16px';
-    title.style.fontWeight = 'bold';
+    title.style.display = 'flex';
+    title.style.justifyContent = 'space-between';
+    title.style.gap = '8px';
+    const name = document.createElement('span');
+    name.textContent = approval.title;
+    name.style.fontSize = '16px';
+    name.style.fontWeight = 'bold';
+    const ago = document.createElement('span');
+    ago.textContent = `${approval.arrivedMinutesAgo}m ago`;
+    ago.style.fontFamily = 'var(--font-mono)';
+    ago.style.fontSize = '12px';
+    ago.style.whiteSpace = 'nowrap';
+    title.append(name, ago);
 
     // "No need for your statusline." The buttons say what stands; what is left of
     // the time, or of the wait, drains away under them, and is gone when it ends.
@@ -331,6 +354,7 @@ function renderApproval(approval: Approval): HTMLElement {
             }
             settle();
             show();
+            changed();
         });
         row.appendChild(btn);
         return { btn, note };
@@ -372,6 +396,7 @@ function renderApproval(approval: Approval): HTMLElement {
             } else {
                 locked = 'locked';
             }
+            changed();
         }
         show();
     }, 1000);
@@ -382,7 +407,25 @@ function renderApproval(approval: Approval): HTMLElement {
 
     card.insertBefore(left, row.nextSibling);
     show();
-    return card;
+    return { card, approval, undecided: () => current === null && !locked };
+}
+
+/**
+ * "Most recent undecided sorted first." The cards are moved, never rebuilt, and
+ * glide from where they stood to where they go. A press is left to land before
+ * its card moves away from under the thumb.
+ */
+function sortApprovals(body: HTMLElement, rendered: Rendered[]): void {
+    const order = [...rendered].sort((a, b) =>
+        Number(b.undecided()) - Number(a.undecided())
+        || a.approval.arrivedMinutesAgo - b.approval.arrivedMinutesAgo);
+    if (order.every((r, i) => body.children[i] === r.card)) return;
+    const before = new Map(rendered.map((r) => [r.card, r.card.getBoundingClientRect().top]));
+    for (const r of order) body.appendChild(r.card);
+    for (const r of order) {
+        const dy = before.get(r.card)! - r.card.getBoundingClientRect().top;
+        if (dy) r.card.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 300, easing: 'ease-out' });
+    }
 }
 
 export function renderApproveSpecimen(): void {
@@ -395,7 +438,14 @@ export function renderApproveSpecimen(): void {
         renderContent: () => {
             const body = document.createElement('div');
             body.className = 'content';
-            for (const approval of APPROVALS) body.appendChild(renderApproval(approval));
+            let pending: ReturnType<typeof setTimeout> | undefined;
+            const changed = () => {
+                clearTimeout(pending);
+                pending = setTimeout(() => sortApprovals(body, rendered), 600);
+            };
+            const rendered = APPROVALS.map((approval) => renderApproval(approval, changed));
+            for (const r of rendered) body.appendChild(r.card);
+            sortApprovals(body, rendered);
             return body;
         },
     };
