@@ -413,7 +413,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         a.style.fontWeight = 'normal';
         // "If there's 6 checks, the GitHub button is 6 segments, becoming fuller as
         // more checks are completed." Not started black, running grey lines moving
-        // left, done white, "failed is RED". The label is outlined, to be read over any of them.
+        // left, done white, "failed is RED". The label is the inverse of whatever is behind it.
         const checks = approval.waitsOn?.checks ?? [];
         const bar = document.createElement('span');
         bar.style.position = 'absolute';
@@ -429,8 +429,11 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         const label = document.createElement('span');
         label.textContent = approval.link.label;
         label.style.position = 'relative';
+        // Each letter is the exact inverse of what is behind it, segment by segment:
+        // white over black is black over white. Blended against the button alone.
         label.style.color = '#fff';
-        label.style.textShadow = '0 0 2px #000, 0 0 2px #000, 0 0 3px #000';
+        label.style.mixBlendMode = 'difference';
+        a.style.isolation = 'isolate';
         a.append(bar, label);
         paintChecks = (elapsed: number) => checks.forEach((check, i) => {
             const seg = segments[i]!;
