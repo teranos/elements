@@ -47,6 +47,11 @@ interface Aside {
 
 interface Approval {
     title: string;
+    /**
+     * Where the thing itself lives, opened from the title row. A github.com link
+     * opens in the GitHub app where it is installed.
+     */
+    link?: { label: string; href: string };
     /** Minutes since it came in: the most recent undecided one goes first. */
     arrivedMinutesAgo: number;
     context: () => HTMLElement;
@@ -79,6 +84,7 @@ const APPROVALS: Approval[] = [
     },
     {
         title: 'Merge PR #27',
+        link: { label: 'GitHub', href: 'https://github.com/teranos/elements/pull/27' },
         arrivedMinutesAgo: 3,
         context: () => text(['Rubidium: an approval you can change your mind on', '2 files · +71 −0'], true),
         // "Click 1 means merge after CI passes, press again to force merge. If we still
@@ -327,7 +333,35 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     ago.style.fontFamily = 'var(--font-mono)';
     ago.style.fontSize = '12px';
     ago.style.whiteSpace = 'nowrap';
-    title.append(name, ago);
+    const end = document.createElement('span');
+    end.style.display = 'flex';
+    end.style.alignItems = 'center';
+    end.style.gap = '8px';
+    end.appendChild(ago);
+    if (approval.link) {
+        // "Half of halfsize": half as wide as the half-size button. Half as tall
+        // would be 16px, too small for a thumb, so it is 24.
+        const a = document.createElement('a');
+        a.href = approval.link.href;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = approval.link.label;
+        a.style.boxSizing = 'border-box';
+        a.style.width = 'calc((100vw - 32px - 8px) / 4)';
+        a.style.minHeight = '24px';
+        a.style.display = 'flex';
+        a.style.alignItems = 'center';
+        a.style.justifyContent = 'center';
+        a.style.border = '1px solid #fff';
+        a.style.color = '#fff';
+        a.style.textDecoration = 'none';
+        a.style.fontFamily = 'var(--font-mono)';
+        a.style.fontSize = '12px';
+        a.style.fontWeight = 'normal';
+        end.appendChild(a);
+    }
+    title.append(name, end);
+    title.style.alignItems = 'flex-start';
 
 
     const row = document.createElement('div');
