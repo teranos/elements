@@ -8,7 +8,11 @@
  * fragment jumps, then falls the way a leaf does: it tumbles in depth with
  * perspective, its glassy edge catching a glint as it turns, while air holds
  * it up and swings it side to side until it drifts out of sight. A few chips
- * scatter faster. The button itself is left whole.
+ * scatter faster.
+ *
+ * "Why can I keep pressing the button but nothing is actually taken out of
+ * it?" What breaks off is gone from the button: each press leaves a hole the
+ * shape of its fragment, and the next fragment breaks from what is left.
  *
  * One canvas over everything, drawn only while something is in the air.
  */
@@ -50,6 +54,36 @@ let ctx: CanvasRenderingContext2D | null = null;
 const fragments: Fragment[] = [];
 const cracks: Crack[] = [];
 let running = false;
+/** The holes each button has had broken out of it, in its own coordinates. */
+const holes = new WeakMap<HTMLElement, [number, number][][]>();
+
+/** The button shows only what is left of it: its holes are cut out of it. */
+function cutHoles(btn: HTMLElement): void {
+    const list = holes.get(btn) ?? [];
+    const r = btn.getBoundingClientRect();
+    const scale = 2;
+    const mask = document.createElement('canvas');
+    mask.width = Math.ceil(r.width * scale);
+    mask.height = Math.ceil(r.height * scale);
+    const m = mask.getContext('2d')!;
+    m.scale(scale, scale);
+    m.fillStyle = '#000';
+    m.fillRect(0, 0, r.width, r.height);
+    m.globalCompositeOperation = 'destination-out';
+    for (const hole of list) {
+        m.beginPath();
+        hole.forEach(([x, y], i) => (i ? m.lineTo(x, y) : m.moveTo(x, y)));
+        m.closePath();
+        m.fill();
+    }
+    const url = `url(${mask.toDataURL()})`;
+    btn.style.webkitMaskImage = url;
+    btn.style.maskImage = url;
+    btn.style.webkitMaskSize = '100% 100%';
+    btn.style.maskSize = '100% 100%';
+    btn.style.webkitMaskRepeat = 'no-repeat';
+    btn.style.maskRepeat = 'no-repeat';
+}
 let last = 0;
 
 function layer(): CanvasRenderingContext2D {
@@ -105,6 +139,14 @@ function paintButton(btn: HTMLElement, dpr: number): HTMLCanvasElement {
         const box = span.getBoundingClientRect();
         const lh = box.height / lines.length;
         lines.forEach((line, i) => t.fillText(line, box.left - r.left + box.width / 2, box.top - r.top + lh * (i + 0.5)));
+    }
+    // What was broken out before is not there to break again.
+    t.globalCompositeOperation = 'destination-out';
+    for (const hole of holes.get(btn) ?? []) {
+        t.beginPath();
+        hole.forEach(([x, y], i) => (i ? t.lineTo(x, y) : t.moveTo(x, y)));
+        t.closePath();
+        t.fill();
     }
     return tex;
 }
@@ -189,9 +231,13 @@ export function shatter(btn: HTMLElement, e: MouseEvent, color: string): void {
         const ox = Math.min(Math.max(px, size * 1.6), r.width - size * 1.6);
         const oy = Math.min(Math.max(py, size * 1.1), r.height - size * 1.1);
         const side = Math.random() < 0.5 ? -1 : 1;
+        const outline = shardOutline(size);
+        // The piece leaves its shape behind as a hole.
+        holes.set(btn, [...(holes.get(btn) ?? []), outline.map(([x, y]) => [x + ox, y + oy] as [number, number])]);
+        cutHoles(btn);
         fragments.push({
             texture,
-            outline: shardOutline(size),
+            outline,
             origin: [ox, oy],
             radius: size,
             x: r.left + ox,
