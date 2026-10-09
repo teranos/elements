@@ -3,10 +3,12 @@
  *
  * "Do you hear how little it matters what the 'thing' is to approve?"
  * An approval is something to look at, options to choose between, maybe a
- * confidence on each, maybe something to open that chooses nothing. One is
- * chosen at a time and the choice can change, as often as the thumb likes,
- * until it becomes final. Here time running out makes it final; in a host it
- * could be something else. Approvals is a panel, a list to go through.
+ * confidence on each, maybe something to open that chooses nothing.
+ *
+ * "A YES or NO is a final choice. I already sent it. And i can send yes again,
+ * and no again." Every tap sends, and sending the other one sends again, until
+ * nothing more can be sent. Here time running out locks it; in a host it could
+ * be something else. Approvals is a panel, a list to go through.
  */
 
 import { tray } from '../tray/tray';
@@ -142,15 +144,18 @@ function renderApproval(approval: Approval): HTMLElement {
     row.style.display = 'flex';
     row.style.gap = '8px';
 
-    let chosen: number | null = null;
-    let final = false;
+    // Every tap sends. Sending the other one sends again; what was sent last
+    // stands, until the time runs out and nothing more can be sent.
+    const sent: number[] = [];
+    let locked = false;
     let left = approval.openForSeconds;
+    const last = () => sent[sent.length - 1] ?? null;
 
     const buttons = approval.options.map((option, i) => {
         const btn = optionButton(option);
         btn.addEventListener('click', () => {
-            if (final) return;
-            chosen = i;
+            if (locked || last() === i) return;
+            sent.push(i);
             show();
         });
         row.appendChild(btn);
@@ -158,25 +163,27 @@ function renderApproval(approval: Approval): HTMLElement {
     });
 
     const show = () => {
+        const current = last();
         buttons.forEach((btn, i) => {
-            const on = chosen === i;
+            const on = current === i;
             const means = approval.options[i]!.means;
             const color = COLOR[means ?? 'neither'];
-            // Chosen fills with its colour; the others wear it as an outline.
+            // What was sent last fills with its colour; the others wear it as an outline.
             btn.style.background = on ? color : '#000';
             btn.style.color = on ? (means ? '#fff' : '#000') : color;
-            btn.disabled = final;
-            btn.style.opacity = final && !on ? '0.4' : '1';
+            btn.disabled = locked;
+            btn.style.opacity = locked && !on ? '0.4' : '1';
         });
-        clock.textContent = final
-            ? `final · ${chosen === null ? 'nothing chosen' : approval.options[chosen]!.label}`
-            : `${chosen === null ? 'not chosen' : approval.options[chosen]!.label} · final in ${left}s`;
+        const history = sent.map((i) => approval.options[i]!.label).join(' → ');
+        clock.textContent = locked
+            ? (current === null ? 'locked · nothing was sent' : `locked · ${history}`)
+            : (current === null ? `nothing sent · locks in ${left}s` : `sent ${history} · locks in ${left}s`);
     };
 
     const timer = setInterval(() => {
         left -= 1;
         if (left <= 0) {
-            final = true;
+            locked = true;
             clearInterval(timer);
         }
         show();
