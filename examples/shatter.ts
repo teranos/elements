@@ -6,13 +6,11 @@
  * real piece of its face — its colour, its letters — cut along fracture lines
  * from the point of impact. Light runs over the cut where it struck.
  *
- * "Spin, pan opposite from gyro, move closer to screen with ease in and out
- * keyed to one slow rotational turn, after which it pans out fast and
- * rotates." The fragment comes toward the viewer, growing with perspective,
- * through exactly one turn, easing in and out of it; as the phone tilts it
- * moves the other way, as something nearer than the screen does. With the
- * turn done it leaves fast, spinning, for the nearest edge. Its glassy edge
- * catches a glint as it turns. A few chips scatter faster.
+ * "Because of the fast upward movement and the finger touch combined it would
+ * look like being shattered out of it and fly away fast." Not something to
+ * keep: knocked out. The fragment leaves at speed, up and away from where
+ * the finger struck, spinning, and is off the screen in a moment. Its glassy
+ * edge catches a glint as it turns. A few chips scatter with it.
  *
  * "Why can I keep pressing the button but nothing is actually taken out of
  * it?" What breaks off is gone from the button: each press leaves a hole the
@@ -58,42 +56,8 @@ interface Crack {
 }
 
 const GRAVITY = 1150;
-/** The slow turn toward the viewer, then the fast way out, in seconds. */
-const APPROACH = 0.7;
-const LEAVE = 0.28;
-/** How near it comes: at this depth it is drawn twice its size. */
-const NEAR = 260;
-
-// The phone's tilt, where the page may read it, measured from how it was held at the tap.
-const tilt = { beta: 0, gamma: 0, beta0: 0, gamma0: 0, seen: false, asked: false };
-function listenTilt(): void {
-    if (tilt.asked) return;
-    tilt.asked = true;
-    const start = () => addEventListener('deviceorientation', (e) => {
-        if (e.beta === null || e.gamma === null) return;
-        if (!tilt.seen) {
-            tilt.beta0 = e.beta;
-            tilt.gamma0 = e.gamma;
-            tilt.seen = true;
-        }
-        tilt.beta = e.beta;
-        tilt.gamma = e.gamma;
-    });
-    // iOS asks once, and only from a tap: this is called from one.
-    const ask = (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission;
-    if (ask) ask().then((answer) => answer === 'granted' && start()).catch(() => {});
-    else start();
-}
-/** Opposite to the tilt since the tap: nearer things move against the screen. */
-function parallax(): [number, number] {
-    if (!tilt.seen) return [0, 0];
-    const clamp = (v: number) => Math.max(-30, Math.min(30, v));
-    return [-clamp(tilt.gamma - tilt.gamma0) * 2.2, -clamp(tilt.beta - tilt.beta0) * 2.2];
-}
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const FOCAL = 520;
 const THICKNESS = 3;
-
 let canvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
 const fragments: Fragment[] = [];
@@ -263,10 +227,6 @@ export function shatter(btn: HTMLElement, e: MouseEvent, color: string): void {
     const px = (e.clientX || e.clientY ? e.clientX : r.left + r.width / 2) - r.left;
     const py = (e.clientX || e.clientY ? e.clientY : r.top + r.height / 2) - r.top;
     try { navigator.vibrate?.(8); } catch { /* not every phone lets a page */ }
-    listenTilt();
-    // The tilt counts from how the phone is held now.
-    tilt.beta0 = tilt.beta;
-    tilt.gamma0 = tilt.gamma;
 
     layer();
     const dpr = fit();
@@ -286,8 +246,8 @@ export function shatter(btn: HTMLElement, e: MouseEvent, color: string): void {
         cutHoles(btn);
         const x0 = r.left + ox;
         const y0 = r.top + oy;
-        // It leaves for the nearer side, a little upward.
-        const out = x0 < innerWidth / 2 ? -1 : 1;
+        // Knocked away from where the finger struck: off-centre taps send it sideways too.
+        const off = (px - r.width / 2) / (r.width / 2);
         fragments.push({
             texture,
             outline,
@@ -295,16 +255,16 @@ export function shatter(btn: HTMLElement, e: MouseEvent, color: string): void {
             radius: size,
             x: x0,
             y: y0,
-            vx: 0,
-            vy: 0,
-            spin: [0, 0, 0],
+            vx: off * 260 + side * (40 + Math.random() * 60),
+            vy: -(1350 + Math.random() * 300),
+            spin: [(10 + Math.random() * 10) * side, (8 + Math.random() * 10) * -side, (4 + Math.random() * 6) * side],
             turn: [0, 0, 0],
-            phase: Math.random() * Math.PI * 2,
+            phase: 0,
             x0,
             y0,
             z: 0,
             sign: side,
-            exit: [out * 0.92, -0.38],
+            exit: [0, 0],
             age: 0,
             tint: tintOf(color),
             chip: false,
@@ -312,7 +272,7 @@ export function shatter(btn: HTMLElement, e: MouseEvent, color: string): void {
         const chips = 4 + Math.floor(Math.random() * 3);
         for (let i = 0; i < chips; i++) {
             const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6;
-            const speed = 170 + Math.random() * 160;
+            const speed = 380 + Math.random() * 320;
             fragments.push({
                 texture,
                 outline: shardOutline(3 + Math.random() * 3),
@@ -345,38 +305,12 @@ export function shatter(btn: HTMLElement, e: MouseEvent, color: string): void {
 
 function step(f: Fragment, dt: number): void {
     f.age += dt;
-    if (f.chip) {
-        // Chips are small and dense: they fall fast and leave.
-        f.vy += GRAVITY * dt;
-        f.vx *= Math.exp(-1.2 * dt);
-        f.x += f.vx * dt;
-        f.y += f.vy * dt;
-        f.turn = [f.turn[0] + f.spin[0] * dt, f.turn[1] + f.spin[1] * dt, f.turn[2] + f.spin[2] * dt];
-        return;
-    }
-    // Toward the viewer through one slow turn, eased in and out of it, drifting
-    // a little toward the middle and up.
-    const p = Math.min(1, f.age / APPROACH);
-    const e = easeInOut(p);
-    const [tx, ty] = parallax();
-    const near = 1 + e;
-    let x = f.x0 + (innerWidth / 2 - f.x0) * 0.25 * e + tx * e * near;
-    let y = f.y0 - 70 * e + ty * e * near;
-    let z = -NEAR * e;
-    let turn: Vec3 = [Math.sin(Math.PI * e) * 0.35, f.sign * Math.PI * 2 * e, Math.sin(Math.PI * e) * 0.2 * f.sign];
-    // Then out, fast, spinning.
-    if (f.age > APPROACH) {
-        const q = Math.min(1, (f.age - APPROACH) / LEAVE);
-        const run = q * q * 900;
-        x += f.exit[0] * run;
-        y += f.exit[1] * run;
-        z -= 60 * q;
-        turn = [turn[0] + q * q * Math.PI * 2, turn[1] + f.sign * q * q * Math.PI * 5, turn[2] + f.sign * q * q * Math.PI * 1.5];
-    }
-    f.x = x;
-    f.y = y;
-    f.z = z;
-    f.turn = turn;
+    // Thrown, then gravity: the fragment so hard it is gone before it can fall back.
+    f.vy += (f.chip ? GRAVITY : GRAVITY * 1.6) * dt;
+    f.vx *= Math.exp(-(f.chip ? 1.2 : 0.4) * dt);
+    f.x += f.vx * dt;
+    f.y += f.vy * dt;
+    f.turn = [f.turn[0] + f.spin[0] * dt, f.turn[1] + f.spin[1] * dt, f.turn[2] + f.spin[2] * dt];
 }
 
 /** The fragment's orientation now. */
@@ -390,7 +324,7 @@ function placed(f: Fragment, rot: Vec3, p: Vec3): Vec3 {
     return [x, y, z + f.z];
 }
 
-const lifeOf = (f: Fragment) => (f.chip ? 0.75 : APPROACH + LEAVE);
+const lifeOf = (f: Fragment) => (f.chip ? 0.55 : 0.6);
 
 function drawFragment(c: CanvasRenderingContext2D, f: Fragment, dpr: number): void {
     const life = lifeOf(f);
@@ -504,7 +438,7 @@ function frame(now: number): void {
     for (let i = cracks.length - 1; i >= 0; i--) if (cracks[i]!.age > 0.3) cracks.splice(i, 1);
     for (let i = fragments.length - 1; i >= 0; i--) {
         const f = fragments[i]!;
-        if (f.age > lifeOf(f)) fragments.splice(i, 1);
+        if (f.age > lifeOf(f) || f.y < -120 || f.y > innerHeight + 120) fragments.splice(i, 1);
     }
 
     for (const k of cracks) drawCrack(c, k, dpr);
