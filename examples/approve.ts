@@ -202,35 +202,52 @@ const APPROVALS: Approval[] = [
 ];
 
 /**
- * "Pressing either decision actually burns that area slightly, to the point
- * that you can see through it." Where the thumb landed the button is burnt
- * through, a scorched ring around a hole; each press leaves its own.
+ * "Make a crystalline fraction shatter out on each tap." Pale shards tinted
+ * with the button's colour break away from where the thumb landed and fly out,
+ * turning as they go, and are gone; the button itself is left whole.
  */
-function burn(btn: HTMLButtonElement, e: MouseEvent): void {
+function shatter(btn: HTMLButtonElement, e: MouseEvent, color: string): void {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const r = btn.getBoundingClientRect();
-    // A press from the keyboard has no point: it burns the middle.
-    const x = e.clientX || e.clientY ? e.clientX - r.left : r.width / 2;
-    const y = e.clientX || e.clientY ? e.clientY - r.top : r.height / 2;
-    const burns: [number, number][] = JSON.parse(btn.dataset.burns ?? '[]');
-    burns.push([Math.round(x), Math.round(y)]);
-    btn.dataset.burns = JSON.stringify(burns);
-    const holes = burns.map(([bx, by]) => `radial-gradient(circle at ${bx}px ${by}px, transparent 0 5px, rgba(0,0,0,0.35) 8px, #000 12px)`);
-    btn.style.webkitMaskImage = holes.join(', ');
-    btn.style.maskImage = holes.join(', ');
-    btn.style.webkitMaskComposite = burns.map(() => 'source-in').join(', ');
-    btn.style.maskComposite = 'intersect';
-    let scorch = btn.querySelector<HTMLElement>('.scorch');
-    if (!scorch) {
-        scorch = document.createElement('span');
-        scorch.className = 'scorch';
-        scorch.style.position = 'absolute';
-        scorch.style.inset = '0';
-        scorch.style.pointerEvents = 'none';
-        btn.appendChild(scorch);
+    // A press from the keyboard has no point: it breaks from the middle.
+    const x = e.clientX || e.clientY ? e.clientX : r.left + r.width / 2;
+    const y = e.clientX || e.clientY ? e.clientY : r.top + r.height / 2;
+    const count = 18;
+    for (let i = 0; i < count; i++) {
+        const shard = document.createElement('span');
+        const size = 8 + Math.random() * 12;
+        // A crystal fragment: three or four points on a jagged outline.
+        const corners = Math.random() < 0.5 ? 3 : 4;
+        const points = Array.from({ length: corners }, (_, k) => {
+            const angle = (k / corners) * Math.PI * 2 + Math.random() * 0.9;
+            const reach = 35 + Math.random() * 15;
+            return `${50 + Math.cos(angle) * reach}% ${50 + Math.sin(angle) * reach}%`;
+        });
+        shard.style.position = 'fixed';
+        shard.style.left = `${x - size / 2}px`;
+        shard.style.top = `${y - size / 2}px`;
+        shard.style.width = `${size}px`;
+        shard.style.height = `${size}px`;
+        // Pale and clear like ice, tinted with the button's colour, so it is seen
+        // over the colour it broke from as well as over the black around it.
+        shard.style.background = `linear-gradient(${Math.round(Math.random() * 360)}deg, #fff 35%, ${color === '#fff' ? '#9aa4b2' : color})`;
+        shard.style.filter = 'drop-shadow(0 0 1px #000)';
+        shard.style.clipPath = `polygon(${points.join(', ')})`;
+        shard.style.pointerEvents = 'none';
+        shard.style.zIndex = '2147483647';
+        document.body.appendChild(shard);
+        const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
+        const distance = 40 + Math.random() * 70;
+        const spin = (Math.random() - 0.5) * 540;
+        shard.animate(
+            [
+                { transform: 'translate(0, 0) rotate(0deg) scale(1)', opacity: 1 },
+                { opacity: 1, offset: 0.65 },
+                { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) rotate(${spin}deg) scale(0.6)`, opacity: 0 },
+            ],
+            { duration: 420 + Math.random() * 260, easing: 'cubic-bezier(0.15, 0.7, 0.3, 1)' },
+        ).onfinish = () => shard.remove();
     }
-    scorch.style.background = burns
-        .map(([bx, by]) => `radial-gradient(circle at ${bx}px ${by}px, transparent 0 6px, rgba(60,25,5,0.95) 8px, rgba(120,53,15,0.55) 11px, transparent 16px)`)
-        .join(', ');
 }
 
 const stepsOf = (option: Option): Step[] => option.steps ?? [{ says: option.label }];
@@ -631,7 +648,7 @@ function renderApproval(approval: Approval, changed: (pressed?: boolean) => void
         const { btn, note } = optionButton(option);
         btn.addEventListener('click', (e) => {
             if (locked || !presented()) return;
-            burn(btn, e);
+            shatter(btn, e, COLOR[option.means ?? 'neither']);
             if (current?.option === i) {
                 if (current.step + 1 >= stepsOf(option).length) return;
                 current = { option: i, step: current.step + 1 };
