@@ -14,8 +14,17 @@
 import { tray } from '../tray/tray';
 import type { Element } from '../element';
 
+/** What one press says. The same option pressed again says its next step. */
+interface Step {
+    says: string;
+    /** 'now' takes effect at once; 'when-ready' waits on what the approval waits on. */
+    settles?: 'now' | 'when-ready';
+}
+
 interface Option {
     label: string;
+    /** Left out, a press says the label and pressing it again says nothing more. */
+    steps?: Step[];
     /** 0–100. Left out where a percentage makes no sense, as on a merge. */
     confidence?: number;
     /** Red is no and green is yes; an option that is neither stays white. */
@@ -34,7 +43,10 @@ interface Approval {
     context: () => HTMLElement;
     options: Option[];
     asides?: Aside[];
-    openForSeconds: number;
+    /** Time running out locks it, where nothing else does. */
+    openForSeconds?: number;
+    /** Something to wait on, as a merge waits on CI, simulated here by a countdown. */
+    waitsOn?: { label: string; seconds: number };
 }
 
 function text(lines: string[], mono = false): HTMLElement {
@@ -57,9 +69,24 @@ const APPROVALS: Approval[] = [
     },
     {
         title: 'Merge PR #27',
-        context: () => text(['Rubidium: an approval you can change your mind on', '2 files · +71 −0 · checks green'], true),
-        options: [{ label: 'Merge', means: 'yes' }, { label: 'Don’t merge', means: 'no' }],
-        openForSeconds: 90,
+        context: () => text(['Rubidium: an approval you can change your mind on', '2 files · +71 −0'], true),
+        // "Click 1 means merge after CI passes, press again to force merge. If we still
+        // wait for CI, the NO will cancel the yes. Press NO again and it's definitely NO."
+        options: [
+            {
+                label: 'Merge', means: 'yes', steps: [
+                    { says: 'merge when CI passes', settles: 'when-ready' },
+                    { says: 'force merge', settles: 'now' },
+                ],
+            },
+            {
+                label: 'Don’t merge', means: 'no', steps: [
+                    { says: 'cancel the merge' },
+                    { says: 'definitely no' },
+                ],
+            },
+        ],
+        waitsOn: { label: 'CI', seconds: 45 },
     },
     {
         title: 'Agent is stuck: how to proceed?',
@@ -91,7 +118,9 @@ const APPROVALS: Approval[] = [
     },
 ];
 
-function optionButton(option: Option): HTMLButtonElement {
+const stepsOf = (option: Option): Step[] => option.steps ?? [{ says: option.label }];
+
+function optionButton(option: Option): { btn: HTMLButtonElement; note: HTMLElement } {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.style.flex = '1 1 0';
@@ -120,7 +149,14 @@ function optionButton(option: Option): HTMLButtonElement {
         pct.style.fontVariantNumeric = 'tabular-nums';
         btn.appendChild(pct);
     }
-    return btn;
+
+    // What this button has said, and what pressing it again would say.
+    const note = document.createElement('span');
+    note.style.fontFamily = 'var(--font-mono)';
+    note.style.fontSize = '11px';
+    note.style.lineHeight = '1.3';
+    btn.appendChild(note);
+    return { btn, note };
 }
 
 function renderApproval(approval: Approval): HTMLElement {
@@ -144,47 +180,79 @@ function renderApproval(approval: Approval): HTMLElement {
     row.style.display = 'flex';
     row.style.gap = '8px';
 
-    // Every tap sends. Sending the other one sends again; what was sent last
-    // stands, until the time runs out and nothing more can be sent.
-    const sent: number[] = [];
-    let locked = false;
-    let left = approval.openForSeconds;
-    const last = () => sent[sent.length - 1] ?? null;
+    // Every press sends. The other option sends again; the same one says its
+    // next step. What was sent last stands until it takes effect or the time
+    // runs out, and then nothing more can be sent.
+    const sent: string[] = [];
+    let current: { option: number; step: number } | null = null;
+    let locked: string | null = null;
+    let ready = false;
+    let left = approval.waitsOn?.seconds ?? approval.openForSeconds ?? 0;
+
+    const stepNow = (): Step | null => current && stepsOf(approval.options[current.option]!)[current.step]!;
+
+    const settle = () => {
+        const step = stepNow();
+        if (step?.settles === 'now' || (step?.settles === 'when-ready' && ready)) locked = `done: ${step.says}`;
+    };
 
     const buttons = approval.options.map((option, i) => {
-        const btn = optionButton(option);
+        const { btn, note } = optionButton(option);
         btn.addEventListener('click', () => {
-            if (locked || last() === i) return;
-            sent.push(i);
+            if (locked) return;
+            if (current?.option === i) {
+                if (current.step + 1 >= stepsOf(option).length) return;
+                current = { option: i, step: current.step + 1 };
+            } else {
+                current = { option: i, step: 0 };
+            }
+            sent.push(stepNow()!.says);
+            settle();
             show();
         });
         row.appendChild(btn);
-        return btn;
+        return { btn, note };
     });
 
     const show = () => {
-        const current = last();
-        buttons.forEach((btn, i) => {
-            const on = current === i;
-            const means = approval.options[i]!.means;
-            const color = COLOR[means ?? 'neither'];
+        buttons.forEach(({ btn, note }, i) => {
+            const option = approval.options[i]!;
+            const steps = stepsOf(option);
+            const on = current?.option === i;
+            const color = COLOR[option.means ?? 'neither'];
             // What was sent last fills with its colour; the others wear it as an outline.
             btn.style.background = on ? color : '#000';
-            btn.style.color = on ? (means ? '#fff' : '#000') : color;
-            btn.disabled = locked;
+            btn.style.color = on ? (option.means ? '#fff' : '#000') : color;
+            btn.disabled = !!locked;
             btn.style.opacity = locked && !on ? '0.4' : '1';
+            const next = on ? steps[current!.step + 1] : steps[0];
+            const said = on ? steps[current!.step]!.says : null;
+            const lines = [
+                said && said !== option.label ? said : null,
+                !locked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
+            ].filter(Boolean);
+            note.textContent = lines.join('\n');
+            note.style.whiteSpace = 'pre-line';
+            note.hidden = lines.length === 0;
         });
-        const history = sent.map((i) => approval.options[i]!.label).join(' → ');
-        clock.textContent = locked
-            ? (current === null ? 'locked · nothing was sent' : `locked · ${history}`)
-            : (current === null ? `nothing sent · locks in ${left}s` : `sent ${history} · locks in ${left}s`);
+        const history = sent.join(' → ') || 'nothing sent';
+        const waiting = approval.waitsOn
+            ? (ready ? `${approval.waitsOn.label} passed` : `${approval.waitsOn.label} running · ${left}s`)
+            : `locks in ${left}s`;
+        clock.textContent = locked ? `${locked} · ${history}` : `${history} · ${waiting}`;
     };
 
     const timer = setInterval(() => {
+        if (locked) return clearInterval(timer);
         left -= 1;
         if (left <= 0) {
-            locked = true;
             clearInterval(timer);
+            if (approval.waitsOn) {
+                ready = true;
+                settle();
+            } else {
+                locked = 'locked';
+            }
         }
         show();
     }, 1000);
