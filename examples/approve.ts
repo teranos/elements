@@ -201,6 +201,38 @@ const APPROVALS: Approval[] = [
     },
 ];
 
+/**
+ * "Pressing either decision actually burns that area slightly, to the point
+ * that you can see through it." Where the thumb landed the button is burnt
+ * through, a scorched ring around a hole; each press leaves its own.
+ */
+function burn(btn: HTMLButtonElement, e: MouseEvent): void {
+    const r = btn.getBoundingClientRect();
+    // A press from the keyboard has no point: it burns the middle.
+    const x = e.clientX || e.clientY ? e.clientX - r.left : r.width / 2;
+    const y = e.clientX || e.clientY ? e.clientY - r.top : r.height / 2;
+    const burns: [number, number][] = JSON.parse(btn.dataset.burns ?? '[]');
+    burns.push([Math.round(x), Math.round(y)]);
+    btn.dataset.burns = JSON.stringify(burns);
+    const holes = burns.map(([bx, by]) => `radial-gradient(circle at ${bx}px ${by}px, transparent 0 5px, rgba(0,0,0,0.35) 8px, #000 12px)`);
+    btn.style.webkitMaskImage = holes.join(', ');
+    btn.style.maskImage = holes.join(', ');
+    btn.style.webkitMaskComposite = burns.map(() => 'source-in').join(', ');
+    btn.style.maskComposite = 'intersect';
+    let scorch = btn.querySelector<HTMLElement>('.scorch');
+    if (!scorch) {
+        scorch = document.createElement('span');
+        scorch.className = 'scorch';
+        scorch.style.position = 'absolute';
+        scorch.style.inset = '0';
+        scorch.style.pointerEvents = 'none';
+        btn.appendChild(scorch);
+    }
+    scorch.style.background = burns
+        .map(([bx, by]) => `radial-gradient(circle at ${bx}px ${by}px, transparent 0 6px, rgba(60,25,5,0.95) 8px, rgba(120,53,15,0.55) 11px, transparent 16px)`)
+        .join(', ');
+}
+
 const stepsOf = (option: Option): Step[] => option.steps ?? [{ says: option.label }];
 
 function optionButton(option: Option): { btn: HTMLButtonElement; note: HTMLElement } {
@@ -218,6 +250,7 @@ function optionButton(option: Option): { btn: HTMLButtonElement; note: HTMLEleme
     btn.style.flexDirection = 'column';
     btn.style.justifyContent = 'center';
     btn.style.gap = '4px';
+    btn.style.position = 'relative';
 
     const label = document.createElement('span');
     label.textContent = option.label;
@@ -362,11 +395,13 @@ interface Rendered {
     approval: Approval;
     /** Nothing sent yet, and still open. */
     undecided: () => boolean;
+    /** When it stopped being undecided, to keep decided ones in the order they were decided. */
+    decidedAt: () => number;
     /** 0 ready, 1 still waiting on checks, 2 a check failed: the others take precedence. */
     readiness: () => number;
 }
 
-function renderApproval(approval: Approval, changed: () => void): Rendered {
+function renderApproval(approval: Approval, changed: (pressed?: boolean) => void): Rendered {
     const card = document.createElement('section');
     card.style.borderTop = '1px solid #fff';
     card.style.padding = '16px 0';
@@ -594,8 +629,9 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
 
     const buttons = approval.options.map((option, i) => {
         const { btn, note } = optionButton(option);
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
             if (locked || !presented()) return;
+            burn(btn, e);
             if (current?.option === i) {
                 if (current.step + 1 >= stepsOf(option).length) return;
                 current = { option: i, step: current.step + 1 };
@@ -604,7 +640,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
             }
             settle();
             show();
-            changed();
+            changed(true);
         });
         row.appendChild(btn);
         return { btn, note };
@@ -685,28 +721,60 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     for (const aside of approval.asides ?? []) card.appendChild(asideElement(aside));
     card.appendChild(row);
     show();
-    return { card, approval, undecided: () => current === null && !locked, readiness: () => (failed() ? 2 : presented() ? 0 : 1) };
+    const undecided = () => current === null && !locked;
+    let decidedAt = Infinity;
+    const stamp = () => {
+        if (undecided()) decidedAt = Infinity;
+        else if (decidedAt === Infinity) decidedAt = performance.now();
+        return decidedAt;
+    };
+    return { card, approval, undecided, decidedAt: stamp, readiness: () => (failed() ? 2 : presented() ? 0 : 1) };
 }
 
 /**
- * "Most recent undecided sorted first." The cards are moved, never rebuilt, and
- * glide from where they stood to where they go. A press is left to land before
- * its card moves away from under the thumb.
+ * "Most recent undecided sorted first." "After I press, the approval doesn't
+ * shift down; everything moves up, like a filmroll." Decided ones stay where
+ * they were, above, in the order they were decided; swiping down brings them
+ * back. Undecided ones follow, the most recent first. The cards are moved,
+ * never rebuilt, and glide from where they stood to where they go.
  */
-function sortApprovals(body: HTMLElement, rendered: Rendered[]): void {
-    const order = [...rendered].sort((a, b) =>
-        Number(b.undecided()) - Number(a.undecided())
+function sortApprovals(body: HTMLElement, rendered: Rendered[], end: HTMLElement): void {
+    // Every one says when it was decided now, not only those a sort happens to compare.
+    const when = new Map(rendered.map((r) => [r, r.decidedAt()]));
+    const decided = rendered.filter((r) => !r.undecided()).sort((a, b) => when.get(a)! - when.get(b)!);
+    const open = rendered.filter((r) => r.undecided()).sort((a, b) =>
         // "If an approval still has outstanding checks, other approvals take precedence."
         // A failed one is not ready for approvals at all, and goes after those still waiting.
-        || a.readiness() - b.readiness()
+        a.readiness() - b.readiness()
         || a.approval.arrivedMinutesAgo - b.approval.arrivedMinutesAgo);
+    const order = [...decided, ...open];
     if (order.every((r, i) => body.children[i] === r.card)) return;
     const before = new Map(rendered.map((r) => [r.card, r.card.getBoundingClientRect().top]));
     for (const r of order) body.appendChild(r.card);
+    body.appendChild(end);
     for (const r of order) {
         const dy = before.get(r.card)! - r.card.getBoundingClientRect().top;
         if (dy) r.card.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 180, easing: 'ease-out' });
     }
+}
+
+/** The element's scroller: the nearest one up from the list that scrolls. */
+function scrollerOf(el: HTMLElement): HTMLElement | null {
+    for (let n = el.parentElement; n; n = n.parentElement) {
+        const y = getComputedStyle(n).overflowY;
+        if ((y === 'auto' || y === 'scroll') && n.scrollHeight > n.clientHeight) return n;
+    }
+    return null;
+}
+
+/** The roll moves up until the first undecided one, or the end of the roll, is at the top. */
+function advance(body: HTMLElement, rendered: Rendered[], end: HTMLElement, smooth: boolean): void {
+    const scroller = scrollerOf(body);
+    if (!scroller) return;
+    const next = [...body.children].find((c) => rendered.some((r) => r.card === c && r.undecided())) as HTMLElement | undefined;
+    const target = next ?? end;
+    const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    scroller.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
 }
 
 // Grey diagonal lines moving left: a check that is running.
@@ -739,14 +807,28 @@ export function renderApproveSpecimen(): void {
         renderContent: () => {
             const body = document.createElement('div');
             body.className = 'content';
+            // The end of the roll, a screen tall, so the last one can come to the top.
+            const end = document.createElement('div');
+            end.textContent = 'Nothing left to decide.';
+            end.style.minHeight = '100vh';
+            end.style.borderTop = '1px solid #fff';
+            end.style.padding = '16px 0';
+            end.style.fontFamily = 'var(--font-mono)';
+            end.style.fontSize = '12px';
             let pending: ReturnType<typeof setTimeout> | undefined;
-            const changed = () => {
+            let advancing = false;
+            const changed = (pressed = false) => {
+                advancing ||= pressed;
                 clearTimeout(pending);
-                pending = setTimeout(() => sortApprovals(body, rendered), 150);
+                pending = setTimeout(() => {
+                    sortApprovals(body, rendered, end);
+                    if (advancing) advance(body, rendered, end, true);
+                    advancing = false;
+                }, 250);
             };
             const rendered = APPROVALS.map((approval) => renderApproval(approval, changed));
             for (const r of rendered) body.appendChild(r.card);
-            sortApprovals(body, rendered);
+            sortApprovals(body, rendered, end);
             return body;
         },
     };
