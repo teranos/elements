@@ -7,6 +7,7 @@ import { renderButtonSpecimen } from './button';
 import { renderPanelSpecimen } from './panel';
 import { renderSparklineSpecimen } from './sparkline';
 import { renderFieldSpecimen } from './field';
+import { renderApproveSpecimen } from './approve';
 
 configureElements({
     windowBorderRadius: '0',
@@ -21,4 +22,5 @@ renderButtonSpecimen();
 // Selenium rests between the tray's Zinc and Krypton, as it does in the table.
 renderFieldSpecimen();
 renderPanelSpecimen();
+renderApproveSpecimen();
 renderSparklineSpecimen();
