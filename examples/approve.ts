@@ -17,7 +17,7 @@ import type { Element } from '../element';
 /** What one press says. The same option pressed again says its next step. */
 interface Step {
     says: string;
-    /** 'now' takes effect at once; 'when-ready' waits on what the approval waits on. */
+    /** 'now' takes effect at once; 'when-ready' waits on what the approval's merge waits on. */
     settles?: 'now' | 'when-ready';
 }
 
@@ -31,8 +31,6 @@ interface Option {
      * a percentage makes no sense, as on a merge.
      */
     confidence?: number;
-    /** Cannot be sent while a check has failed: "FAILED isn't ready for approvals." */
-    needsChecks?: boolean;
     /** Red is no and green is yes; an option that is neither stays white. */
     means?: 'yes' | 'no';
 }
@@ -70,7 +68,15 @@ interface Approval {
     /** Time running out locks it, where nothing else does. */
     openForSeconds?: number;
     /** Something to wait on, as a merge waits on CI, simulated here by a countdown. */
-    waitsOn?: { label: string; checks: Check[] };
+    /**
+     * "These are always targeting main, and the checks are what occur on the PR
+     * itself, before we even want to present it as something to approve or not."
+     * Until they are all done it cannot be decided; one failed, it is not ready
+     * for approval at all.
+     */
+    checks?: Check[];
+    /** What a merge into main waits on once it is sent, simulated by a countdown. */
+    merges?: { label: string; seconds: number };
 }
 
 function text(lines: string[], mono = false): HTMLElement {
@@ -101,8 +107,8 @@ const APPROVALS: Approval[] = [
         // wait for CI, the NO will cancel the yes. Press NO again and it's definitely NO."
         options: [
             {
-                label: 'Merge', means: 'yes', needsChecks: true, steps: [
-                    { says: 'merge when CI passes', settles: 'when-ready' },
+                label: 'Merge', means: 'yes', steps: [
+                    { says: 'merge when main CI passes', settles: 'when-ready' },
                     { says: 'force merge', settles: 'now' },
                 ],
             },
@@ -113,27 +119,25 @@ const APPROVALS: Approval[] = [
                 ],
             },
         ],
-        waitsOn: {
-            label: 'CI',
-            checks: [
-                { starts: 0, takes: 12 },
-                { starts: 0, takes: 20 },
-                { starts: 2, takes: 28 },
-                { starts: 6, takes: 32 },
-                { starts: 10, takes: 35 },
-                { starts: 18, takes: 27 },
-            ],
-        },
+        merges: { label: 'main CI', seconds: 20 },
+        checks: [
+            { starts: 0, takes: 6 },
+            { starts: 0, takes: 9 },
+            { starts: 1, takes: 12 },
+            { starts: 2, takes: 14 },
+            { starts: 4, takes: 13 },
+            { starts: 6, takes: 12 },
+        ],
     },
     {
         title: 'Merge PR #31',
         link: { label: 'GitHub', href: 'https://github.com/teranos/elements/pulls' },
         arrivedMinutesAgo: 2,
-        context: () => text(['Example: a PR whose CI fails', '4 files · +120 −36'], true),
+        context: () => text(['Example: a PR whose checks fail', '4 files · +120 −36'], true),
         options: [
             {
-                label: 'Merge', means: 'yes', needsChecks: true, steps: [
-                    { says: 'merge when CI passes', settles: 'when-ready' },
+                label: 'Merge', means: 'yes', steps: [
+                    { says: 'merge when main CI passes', settles: 'when-ready' },
                     { says: 'force merge', settles: 'now' },
                 ],
             },
@@ -144,15 +148,13 @@ const APPROVALS: Approval[] = [
                 ],
             },
         ],
-        waitsOn: {
-            label: 'CI',
-            checks: [
-                { starts: 0, takes: 6 },
-                { starts: 0, takes: 9, fails: true },
-                { starts: 1, takes: 20 },
-                { starts: 3, takes: 25 },
-            ],
-        },
+        merges: { label: 'main CI', seconds: 20 },
+        checks: [
+            { starts: 0, takes: 6 },
+            { starts: 0, takes: 9, fails: true },
+            { starts: 1, takes: 20 },
+            { starts: 3, takes: 25 },
+        ],
     },
     {
         title: 'Agent is stuck: how to proceed?',
@@ -414,7 +416,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         // "If there's 6 checks, the GitHub button is 6 segments, becoming fuller as
         // more checks are completed." Not started black, running grey lines moving
         // left, done white, "failed is RED". The label is the inverse of whatever is behind it.
-        const checks = approval.waitsOn?.checks ?? [];
+        const checks = approval.checks ?? [];
         const bar = document.createElement('span');
         bar.style.position = 'absolute';
         bar.style.inset = '0';
@@ -459,25 +461,27 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     // runs out, and then nothing more can be sent.
     let current: { option: number; step: number } | null = null;
     let locked: string | null = null;
-    let ready = false;
-    const checks = approval.waitsOn?.checks ?? [];
+    const checks = approval.checks ?? [];
     const allDone = Math.max(0, ...checks.map((c) => c.starts + c.takes));
     let elapsed = 0;
-    let wasFailed = false;
     const failed = () => checks.some((c) => c.fails && elapsed >= c.starts + c.takes);
-    let remaining = approval.waitsOn ? allDone : approval.openForSeconds ?? 0;
+    const presented = () => elapsed >= allDone && !failed();
+    let remaining = approval.openForSeconds ?? 0;
+    let merging: number | null = null;
 
     const stepNow = (): Step | null => current && stepsOf(approval.options[current.option]!)[current.step]!;
 
     const settle = () => {
         const step = stepNow();
-        if (step?.settles === 'now' || (step?.settles === 'when-ready' && ready)) locked = step.says;
+        merging = null;
+        if (step?.settles === 'now') locked = step.says;
+        else if (step?.settles === 'when-ready') merging = approval.merges?.seconds ?? 0;
     };
 
     const buttons = approval.options.map((option, i) => {
         const { btn, note } = optionButton(option);
         btn.addEventListener('click', () => {
-            if (locked) return;
+            if (locked || !presented()) return;
             if (current?.option === i) {
                 if (current.step + 1 >= stepsOf(option).length) return;
                 current = { option: i, step: current.step + 1 };
@@ -493,6 +497,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     });
 
     const show = () => {
+        const notYet = !presented();
         buttons.forEach(({ btn, note }, i) => {
             const option = approval.options[i]!;
             const steps = stepsOf(option);
@@ -501,41 +506,40 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
             // What was sent last fills with its colour; the others wear it as an outline.
             btn.style.background = on ? color : '#000';
             btn.style.color = on ? (option.means ? '#fff' : '#000') : color;
-            const blocked = !!option.needsChecks && failed();
-            btn.disabled = !!locked || blocked;
-            btn.style.opacity = (locked && !on) || blocked ? '0.4' : '1';
+            btn.disabled = !!locked || notYet;
+            btn.style.opacity = (locked && !on) || notYet ? '0.4' : '1';
             const next = on ? steps[current!.step + 1] : steps[0];
             const said = on ? steps[current!.step]!.says : null;
             // "The countdown, why not IN THE button." In the one that stands, how long
-            // it still can change; before anything is sent, in each, how long to choose.
-            const counts = !locked && !ready && !failed() && (on || current === null);
-            const lines = [
-                said && said !== option.label ? said : null,
-                !locked && !blocked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
-                counts ? `${approval.waitsOn ? `${approval.waitsOn.label} ` : ''}${remaining}s` : null,
-                blocked && !locked ? `${approval.waitsOn!.label} failed` : null,
-            ].filter(Boolean);
+            // until it takes effect or can no longer change; before anything is sent,
+            // in each, how long to choose.
+            const count = locked || notYet ? null
+                : on && merging !== null ? `${approval.merges!.label} ${merging}s`
+                : approval.openForSeconds && (on || current === null) ? `${remaining}s` : null;
+            const lines = notYet
+                ? [failed() ? 'checks failed' : 'checks running']
+                : [
+                    said && said !== option.label ? said : null,
+                    !locked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
+                    count,
+                ].filter(Boolean);
             note.textContent = lines.join('\n');
             note.style.whiteSpace = 'pre-line';
             note.hidden = lines.length === 0;
         });
     };
 
-    // The checks run on whatever is sent, until all of them are done.
-    if (approval.waitsOn) {
+    // The PR's own checks run before it is put up to be decided.
+    if (checks.length) {
         paintChecks(0);
+        let wasFailed = false;
         const run = setInterval(() => {
             elapsed += 1;
             paintChecks(elapsed);
-            if (failed() && !wasFailed) {
-                wasFailed = true;
-                // A merge waiting on checks that failed will not happen: it stands no more.
-                if (current && approval.options[current.option]!.needsChecks && !locked) current = null;
+            if (failed() && !wasFailed) wasFailed = true;
+            if (elapsed >= allDone || wasFailed) {
+                if (elapsed >= allDone) clearInterval(run);
                 show();
-                changed();
-            }
-            if (elapsed >= allDone) {
-                clearInterval(run);
                 changed();
             }
         }, 1000);
@@ -543,16 +547,20 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
 
     const timer = setInterval(() => {
         if (locked) return clearInterval(timer);
-        remaining -= 1;
-        if (remaining <= 0) {
-            clearInterval(timer);
-            if (approval.waitsOn) {
-                ready = !failed();
-                settle();
-            } else {
-                locked = 'locked';
+        if (merging !== null) {
+            merging -= 1;
+            if (merging <= 0) {
+                locked = stepNow()!.says;
+                merging = null;
+                changed();
             }
-            changed();
+        }
+        if (approval.openForSeconds && presented()) {
+            remaining -= 1;
+            if (remaining <= 0) {
+                locked = 'locked';
+                changed();
+            }
         }
         show();
     }, 1000);
@@ -563,7 +571,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     for (const aside of approval.asides ?? []) card.appendChild(asideElement(aside));
     card.appendChild(row);
     show();
-    return { card, approval, undecided: () => current === null && !locked, readiness: () => (failed() ? 2 : approval.waitsOn && elapsed < allDone ? 1 : 0) };
+    return { card, approval, undecided: () => current === null && !locked, readiness: () => (failed() ? 2 : presented() ? 0 : 1) };
 }
 
 /**
