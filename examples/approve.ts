@@ -329,12 +329,6 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     ago.style.whiteSpace = 'nowrap';
     title.append(name, ago);
 
-    // "No need for your statusline." The buttons say what stands; what is left of
-    // the time, or of the wait, drains away under them, and is gone when it ends.
-    const left = document.createElement('div');
-    left.style.height = '3px';
-    left.style.background = '#fff';
-    left.style.transition = 'width 1s linear';
 
     const row = document.createElement('div');
     row.style.display = 'flex';
@@ -346,8 +340,7 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     let current: { option: number; step: number } | null = null;
     let locked: string | null = null;
     let ready = false;
-    const total = approval.waitsOn?.seconds ?? approval.openForSeconds ?? 0;
-    let remaining = total;
+    let remaining = approval.waitsOn?.seconds ?? approval.openForSeconds ?? 0;
 
     const stepNow = (): Step | null => current && stepsOf(approval.options[current.option]!)[current.step]!;
 
@@ -395,8 +388,6 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
             note.style.whiteSpace = 'pre-line';
             note.hidden = lines.length === 0;
         });
-        left.style.width = `${(remaining / total) * 100}%`;
-        left.hidden = !!locked || ready;
     };
 
     const timer = setInterval(() => {
@@ -416,13 +407,11 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
     }, 1000);
 
     // What an approval opens is about what it shows, so it sits with it, above
-    // the choice. The time left is the buttons' own edge, not a line of its own,
-    // which would read as the line between one approval and the next.
-    const choice = document.createElement('div');
-    choice.append(row, left);
+    // the choice. "Why have it at all": the buttons say what stands, and the
+    // time left is not drawn; when it ends the buttons stop taking presses.
     card.append(title, approval.context());
     for (const aside of approval.asides ?? []) card.appendChild(asideElement(aside));
-    card.appendChild(choice);
+    card.appendChild(row);
     show();
     return { card, approval, undecided: () => current === null && !locked };
 }
