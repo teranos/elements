@@ -415,11 +415,14 @@ function renderApproval(approval: Approval, changed: () => void): Rendered {
         show();
     }, 1000);
 
-    card.append(title, approval.context(), row);
-
+    // What an approval opens is about what it shows, so it sits with it, above
+    // the choice. The time left is the buttons' own edge, not a line of its own,
+    // which would read as the line between one approval and the next.
+    const choice = document.createElement('div');
+    choice.append(row, left);
+    card.append(title, approval.context());
     for (const aside of approval.asides ?? []) card.appendChild(asideElement(aside));
-
-    card.insertBefore(left, row.nextSibling);
+    card.appendChild(choice);
     show();
     return { card, approval, undecided: () => current === null && !locked };
 }
