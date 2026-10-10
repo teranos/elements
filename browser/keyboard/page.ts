@@ -6,6 +6,12 @@
 
 import { openSelenium, placeLow, state } from './scene';
 
+// A host that dresses its field small, under the 16px iOS Safari zooms the page
+// for. Whatever the host does, a tap brings the keyboard and nothing else.
+const small = document.createElement('style');
+small.textContent = '.field .input { font-size: 12px; }';
+document.head.appendChild(small);
+
 function post(event: string, extra: Record<string, unknown> = {}): void {
     void fetch('/report', {
         method: 'POST',
