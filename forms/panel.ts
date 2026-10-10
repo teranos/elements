@@ -93,6 +93,28 @@ function showGrabber(panel: HTMLElement): void {
     panel.appendChild(grabber);
 }
 
+/** px: body text at the default size (Apple Human Interface Guidelines, Typography) */
+const READING_SIZE = 17;
+
+/**
+ * "QNTX's text and message box sized like Claude's on the phone, owned by
+ * Elements so no host has to remember it."
+ *
+ * On a touch screen a panel shows what it holds scaled until the host's text
+ * reads at 17, and every field in it scales with it. The host draws at whatever
+ * size it draws; it has no say in the size it is read at. Text already at 17 or
+ * more is not made smaller.
+ */
+function readAtPhoneSize(panel: HTMLElement): void {
+    const body = panel.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
+    if (!body) return;
+    body.style.zoom = '';
+    if (typeof window.matchMedia !== 'function' || !window.matchMedia('(pointer: coarse)').matches) return;
+    const drawnAt = parseFloat(getComputedStyle(body).fontSize);
+    if (!(drawnAt < READING_SIZE)) return;
+    body.style.zoom = String(READING_SIZE / drawnAt);
+}
+
 /**
  * A finger on the title bar drags the panel down after it. Let go far enough,
  * or with a flick, and it goes to the tray as its minimize button sends it;
@@ -381,6 +403,9 @@ export function morphDotToPanel(
 
         // On a touch screen, a grabber shows the title bar can be swiped down to the tray.
         showGrabber(element);
+
+        // On a touch screen, what it holds is read at a phone's size.
+        readAtPhoneSize(element);
 
         // Seen whole, title bar first, while a field in it has the keyboard up (window/keyboard.ts).
         keepClearOfKeyboard(element);
