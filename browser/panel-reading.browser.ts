@@ -7,7 +7,7 @@
  * Krypton opens as a panel. On a touch screen the page's text in it is seen at
  * 17 (Apple Human Interface Guidelines, Typography: body text at the default
  * size), whatever size the page draws it at; with a mouse it is seen at the
- * page's own size. What is measured is a block one em tall, counted in the
+ * page's own size. What is measured is a block ten ems tall, counted in the
  * pixels of a screenshot, so it is what a person sees and not what a stylesheet
  * or an engine's boxes say.
  *
@@ -31,7 +31,7 @@ test('a panel\'s text is seen at 17 on a touch screen, and at the page\'s size w
     await expect(krypton).toHaveAttribute('data-form', 'panel');
     await expect.poll(() => krypton.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
 
-    // A block one em of the page's text tall, in a colour nothing else wears,
+    // A block ten ems of the page's text tall, in a colour nothing else wears,
     // measured off a screenshot: what is drawn, whatever an engine says of its
     // boxes to a script.
     const drawnAt = await krypton.evaluate((el) => {
@@ -39,12 +39,15 @@ test('a panel\'s text is seen at 17 on a touch screen, and at the page\'s size w
         const em = document.createElement('div');
         em.id = 'one-em';
         em.style.width = '1em';
-        em.style.height = '1em';
+        // Ten, so an edge row a screenshot blends is a tenth of a pixel, not one.
+        em.style.height = '10em';
         em.style.background = 'rgb(255, 0, 255)';
         body.prepend(em);
         return parseFloat(getComputedStyle(body).fontSize);
     });
-    const shot = (await page.screenshot({ scale: 'css' })).toString('base64');
+    // At the device's own pixels, so an edge is not blended away, then back to CSS pixels.
+    const shot = (await page.screenshot({ scale: 'device' })).toString('base64');
+    const ratio = await page.evaluate(() => window.devicePixelRatio);
     const height = await page.evaluate(async (png) => {
         const img = new Image();
         img.src = `data:image/png;base64,${png}`;
@@ -64,7 +67,7 @@ test('a panel\'s text is seen at 17 on a touch screen, and at the page\'s size w
         }
         return rows;
     }, shot);
-    const seen = { height, drawnAt };
+    const seen = { height: height / ratio / 10, drawnAt };
 
     if (isMobile) {
         expect(seen.height).toBeCloseTo(17, 0);
