@@ -17,9 +17,12 @@
 import { visibleArea } from '../safe-area';
 import { getForm } from '../dataset';
 import { holdScale } from '../scale';
+import { holdPosition } from '../position';
 
 // A field taking the keyboard zooms nothing, in any host that has the package (scale.ts).
 holdScale();
+// Nor does it move the page under it (position.ts).
+holdPosition();
 
 /** Where a window stood before the keyboard came, and what was written over it. */
 interface Stood {
