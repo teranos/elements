@@ -248,6 +248,16 @@ export { createInput, createButton, createStatusLine } from './canvas/ui-primiti
 // Sparkline — numbers to a line that answers pointing; what the numbers mean is the host's
 export { renderSparkline, wireLineTooltips, stepAt } from './sparkline';
 
+// Approvals — a list of what waits on a human; every press is handed to the host
+export { renderApprovals } from './approvals/approvals';
+export type { Approval, ApprovalOption, ApprovalStep, ApprovalAside, ApprovalCheck, ApprovalHost, ApprovalHandle, ApprovalRoll } from './approvals/approvals';
+// What approvals are made of, for any element that has more to show than it wants on screen,
+// or something that runs in parts
+export { growInPlace, table } from './approvals/grow';
+export { segmentStrip, paintSegment } from './approvals/segments';
+export type { SegmentState } from './approvals/segments';
+export { shatter } from './approvals/shatter';
+
 // ElementUI interface and related types
 export type {
     ElementUI,

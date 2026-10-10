@@ -95,9 +95,13 @@ function cutHoles(btn: HTMLElement): void {
 }
 let last = 0;
 
-function layer(): CanvasRenderingContext2D {
+/** The one canvas over everything, or null where nothing can be drawn. */
+function layer(): CanvasRenderingContext2D | null {
     if (ctx && canvas?.isConnected) return ctx;
-    canvas = document.createElement('canvas');
+    const made = document.createElement('canvas');
+    ctx = made.getContext('2d');
+    if (!ctx) return null;
+    canvas = made;
     canvas.style.position = 'fixed';
     canvas.style.inset = '0';
     canvas.style.width = '100vw';
@@ -105,7 +109,6 @@ function layer(): CanvasRenderingContext2D {
     canvas.style.pointerEvents = 'none';
     canvas.style.zIndex = '2147483647';
     document.body.appendChild(canvas);
-    ctx = canvas.getContext('2d')!;
     return ctx;
 }
 
@@ -228,9 +231,10 @@ export function shatter(btn: HTMLElement, e: MouseEvent, color: string): void {
     const py = (e.clientX || e.clientY ? e.clientY : r.top + r.height / 2) - r.top;
     try { navigator.vibrate?.(8); } catch { /* not every phone lets a page */ }
 
-    layer();
+    // Where nothing can be drawn, nothing breaks off.
+    if (!layer()) return;
     const dpr = fit();
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     cracks.push({ x: r.left + px, y: r.top + py, lines: crackLines(), age: 0 });
 
     if (!reduced) {
