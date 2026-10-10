@@ -85,6 +85,10 @@ export function judge(before: PageState, up: PageState, gone: PageState): string
     if (!(up.visualViewport.height < before.visualViewport.height - 100)) {
         failed.push(`no keyboard came: the visual viewport stayed ${up.visualViewport.height} tall (was ${before.visualViewport.height})`);
     }
+    // "You tap a box to type, and the only thing that should happen is the keyboard coming up."
+    if (up.visualViewport.scale !== before.visualViewport.scale) {
+        failed.push(`the page zoomed: scale ${before.visualViewport.scale} before the tap, ${up.visualViewport.scale} with the keyboard up`);
+    }
     if (!up.focused) failed.push('the field did not keep focus');
     if (!(up.field.bottom <= seenBottom + 1)) {
         failed.push(`the field ends at ${up.field.bottom}, under the keyboard, which begins at ${seenBottom}`);
