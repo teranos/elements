@@ -6,12 +6,12 @@
  *
  * The package holds it, and the host has no say: whatever the page's viewport
  * line says, it says maximum-scale=1 as well. The real keyboard run
- * (browser/keyboard) is what shows Safari not zooming; these show the line.
+ * (browser/keyboard) is what shows Safari not zooming; these show the line. A
+ * host changing its line after is a browser's to show (browser/scale.browser.ts).
  *
  * Personas:
  * - Tim: Happy path — the host's viewport line, held
  * - Spike: Edge cases — no viewport line, a host's own maximum-scale, a line with no content
- * - Jenny: Complex scenarios — a host rewriting or replacing its line after the package holds it
  */
 
 import { describe, test, expect } from 'bun:test';
@@ -39,9 +39,6 @@ function hostSays(content: string): HTMLMetaElement {
 function noLine(): void {
     for (const meta of document.querySelectorAll('meta[name="viewport"]')) meta.remove();
 }
-
-// The observer answers after the change, as a microtask.
-const settled = () => new Promise((r) => setTimeout(r, 50));
 
 describe('Tim: the host\'s viewport line, held', () => {
     test('the package holds it without the host calling anything', () => {
@@ -82,24 +79,5 @@ describe('Spike: a page that says little, or the wrong thing', () => {
         document.head.appendChild(meta);
         holdScale();
         expect(lines()).toEqual(['maximum-scale=1']);
-    });
-});
-
-describe('Jenny: a host that changes its line after the package held it', () => {
-    test('a rewritten line is held again', async () => {
-        const meta = hostSays('width=device-width');
-        holdScale();
-        meta.content = 'width=device-width, maximum-scale=3';
-        await settled();
-        expect(lines()).toEqual(['width=device-width, maximum-scale=1']);
-    });
-
-    test('a line put in place of the old one is held too', async () => {
-        hostSays('width=device-width');
-        holdScale();
-        noLine();
-        hostSays('width=device-width, initial-scale=1');
-        await settled();
-        expect(lines()).toEqual(['width=device-width, initial-scale=1, maximum-scale=1']);
     });
 });
