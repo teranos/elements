@@ -59,6 +59,7 @@ export function growInPlace(text: string, open: () => HTMLElement): HTMLElement 
         el.setAttribute('aria-expanded', String(grown));
         if (grown) grow(); else rest();
         const to = el.getBoundingClientRect();
+        if (typeof el.animate !== 'function') return;
         motion = el.animate(
             [
                 { width: `${from.width}px`, height: `${from.height}px` },

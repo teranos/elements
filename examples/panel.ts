@@ -9,8 +9,8 @@
 import { tray } from '../tray/tray';
 import type { Element } from '../element';
 import { createInput } from '../canvas/ui-primitives';
-import { paintSegment, segmentStrip, type SegmentState } from './segments';
-import { growInPlace } from './grow';
+import { paintSegment, segmentStrip, type SegmentState } from '../approvals/segments';
+import { growInPlace } from '../approvals/grow';
 
 /** What each colour of a run means, each drawn the way a segment is. */
 function runsKey(): HTMLElement {
