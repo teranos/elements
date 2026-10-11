@@ -28,6 +28,7 @@ holdPosition();
 interface Stood {
     top: string;
     maxHeight: string;
+    paddingBottom: string;
     y: number;
     height: number;
     wrote: string;
@@ -91,11 +92,15 @@ function answer(element: HTMLElement): void {
     const from = before ?? {
         top: element.style.top,
         maxHeight: element.style.maxHeight,
+        paddingBottom: element.style.paddingBottom,
         y: Number.isFinite(placed) ? placed : rect.top,
         height: rect.height,
     };
 
-    const area = visibleArea();
+    // A panel's background reaches the screen's edges and keeps what is in it off
+    // them itself (forms/panel.ts): it answers the keyboard, not the safe area,
+    // or the status bar and the home indicator are each kept off it twice.
+    const area = form === 'panel' ? keyboardLeaves() : visibleArea();
     const height = Math.min(from.height, area.height);
     const y = Math.min(Math.max(from.y, area.y), area.y + area.height - height);
 
@@ -106,8 +111,17 @@ function answer(element: HTMLElement): void {
 
     element.style.top = `${y}px`;
     element.style.maxHeight = height < from.height ? `${height}px` : from.maxHeight;
+    // The keyboard covers the home indicator: nothing is held back for it.
+    if (form === 'panel') element.style.paddingBottom = '0px';
     stood.set(element, { ...from, wrote: element.style.top });
     keepFieldSeen(element);
+}
+
+/** What the keyboard leaves of the screen: the visual viewport, edges and all. */
+function keyboardLeaves(): { y: number; height: number } {
+    const vv = (window as { visualViewport?: VisualViewport | null }).visualViewport;
+    if (!vv) return visibleArea();
+    return { y: vv.offsetTop, height: vv.height };
 }
 
 /**
@@ -139,6 +153,7 @@ export function backFromKeyboard(element: HTMLElement): void {
     if (element.style.top !== s.wrote) return;
     element.style.top = s.top;
     element.style.maxHeight = s.maxHeight;
+    element.style.paddingBottom = s.paddingBottom;
 }
 
 /** A field pressed in this window brings the keyboard; wired once per element (Element Axioma). */

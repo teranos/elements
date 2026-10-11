@@ -11,7 +11,7 @@
  * an iPhone 15's keyboard takes, held upright.
  *
  * Personas:
- * - Tim: Happy path — the field and the title bar are both seen above the keyboard
+ * - Tim: Happy path — the field and the title bar are both seen above the keyboard; on an iPhone, no inset is taken twice
  * - Jenny: Complex scenarios — the keyboard goes, and the panel is the whole screen again
  */
 
@@ -77,6 +77,30 @@ test.describe('Tim: the keyboard comes for the field at the end of a panel', () 
 
         await expect.poll(async () => (await placed(page, `${KRYPTON} input`)).bottom).toBeLessThanOrEqual(area.bottom);
         expect((await placed(page, `${KRYPTON} > .title-bar`)).top).toBeGreaterThanOrEqual(area.top);
+    });
+});
+
+test.describe('Tim: on an iPhone, with its status bar and home indicator', () => {
+    // An iPhone 15's, held upright (safe-area-finger.browser.ts).
+    const TOP = 59;
+    const BOTTOM = 34;
+
+    test('nothing is taken twice: the title bar under the status bar, the panel down to the keyboard', async ({ page }) => {
+        await page.addStyleTag({
+            content: `:root { --elements-safe-area-top: ${TOP}px; --elements-safe-area-bottom: ${BOTTOM}px; }`,
+        });
+        const { field } = await open(page);
+        await field.tap();
+        await keyboardUp(page);
+        const area = await seen(page);
+
+        // The keyboard covers the home indicator: the panel ends where the keyboard begins.
+        await expect.poll(async () => (await placed(page, KRYPTON)).bottom).toBeCloseTo(area.bottom, 0);
+        // The status bar is kept off the title bar once, not twice.
+        expect((await placed(page, `${KRYPTON} > .title-bar`)).top).toBeCloseTo(area.top + TOP, 0);
+        // Nothing is held back for a home indicator the keyboard covers.
+        const padding = await page.locator(KRYPTON).evaluate((el) => parseFloat(getComputedStyle(el).paddingBottom));
+        expect(padding).toBe(0);
     });
 });
 
