@@ -11,7 +11,7 @@
  * now, the host saying what stood took effect, or the time running out.
  *
  * The package shows and sends; what a press does is the host's. Where there is
- * a Jev it answers the confidence, where there are checks the host says their
+ * a fast classifier it answers the confidence, where there are checks the host says their
  * state, and where a merge waits on main's CI the host says when it passed.
  */
 
@@ -31,7 +31,7 @@ export interface ApprovalOption {
     /** Left out, a press says the label and pressing it again says nothing more. */
     steps?: ApprovalStep[];
     /**
-     * 0–100, from Jev, the fast classifier. A promise is Jev still answering:
+     * 0–100, from the fast classifier. A promise is the fast classifier still answering:
      * the card is there first and the number arrives. Left out where a
      * percentage makes no sense, as on a merge.
      */
@@ -130,7 +130,7 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
 
     if (option.confidence !== undefined) {
         const pct = document.createElement('span');
-        pct.title = 'Jev';
+        pct.title = 'fast classifier';
         pct.style.fontFamily = 'var(--font-mono)';
         pct.style.fontSize = '22px';
         pct.style.fontVariantNumeric = 'tabular-nums';
@@ -141,7 +141,7 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
         if (typeof option.confidence === 'number') {
             answered(option.confidence);
         } else {
-            // Jev has not answered yet: the place is kept, so nothing moves when it does.
+            // The fast classifier has not answered yet: the place is kept, so nothing moves when it does.
             pct.textContent = '··%';
             pct.style.opacity = '0.4';
             option.confidence.then(answered, () => { pct.textContent = ''; });

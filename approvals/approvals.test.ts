@@ -1,7 +1,7 @@
 // Approvals: what waits on a human, shown as a list to go through. Every press
 // sends, and the other option sends again. What the host decides with them is
 // the host's.
-// Personas: Tim (options shown, a press sends, Jev arrives, the roll's order),
+// Personas: Tim (options shown, a press sends, the fast classifier arrives, the roll's order),
 // Spike (checks running or failed, a step that settles now, a press that sends
 // nothing), Jenny (the PR story: merge, force, cancel, main's CI done).
 
@@ -101,7 +101,7 @@ describe('Tim: every option visible, a press sends, the roll in order', () => {
         ]);
     });
 
-    test('Jev answers after the card is there: the place is kept, then the number arrives', async () => {
+    test('the fast classifier answers after the card is there: the place is kept, then the number arrives', async () => {
         let answer!: (n: number) => void;
         const { card } = roll.add(yesNo('Raise the interval', 1, {
             options: [{ label: 'Yes', means: 'yes', confidence: new Promise<number>((r) => { answer = r; }) }, { label: 'No', means: 'no', confidence: 18 }],

@@ -2,8 +2,9 @@
  * Approve specimen — Rubidium, the next element after the panel's Krypton.
  *
  * The element is the package's (approvals/approvals.ts); this is a host
- * playing it: five made-up approvals, checks that run on a clock, a Jev that
- * answers after a moment, and a main CI that passes after twenty seconds.
+ * playing it: five made-up approvals, checks that run on a clock, a fast
+ * classifier that answers after a moment, and a main CI that passes after
+ * twenty seconds.
  */
 
 import { tray } from '../tray/tray';
@@ -12,11 +13,11 @@ import { renderApprovals, type Approval, type ApprovalHandle } from '../approval
 import { table } from '../approvals/grow';
 import type { SegmentState } from '../approvals/segments';
 
-// How long Jev takes to classify, in this example.
-const JEV_ANSWERS_MS = 400;
+// How long the fast classifier takes to classify, in this example.
+const CLASSIFIER_ANSWERS_MS = 400;
 
-/** Jev, answering after a moment: the card is there first and the number arrives. */
-const jev = (n: number): Promise<number> => new Promise((answer) => setTimeout(() => answer(n), JEV_ANSWERS_MS));
+/** The fast classifier, answering after a moment: the card is there first and the number arrives. */
+const classified = (n: number): Promise<number> => new Promise((answer) => setTimeout(() => answer(n), CLASSIFIER_ANSWERS_MS));
 
 /** One of the checks a wait is made of, simulated: when it starts and how long it takes, in seconds. */
 interface Run {
@@ -61,7 +62,7 @@ const APPROVALS: { approval: Approval; runs?: Run[] }[] = [
             title: 'Raise the schedule interval',
             arrivedMinutesAgo: 12,
             context: () => text(['every 1m → every 5m on schedule 12', 'cuts runs from 1440 to 288 a day']),
-            options: [{ label: 'Yes', confidence: jev(82), means: 'yes' }, { label: 'No', confidence: jev(18), means: 'no' }],
+            options: [{ label: 'Yes', confidence: classified(82), means: 'yes' }, { label: 'No', confidence: classified(18), means: 'no' }],
             openForSeconds: 60,
         },
     },
@@ -110,9 +111,9 @@ const APPROVALS: { approval: Approval; runs?: Run[] }[] = [
                 + 'backfill them from the signup table, or stop and leave the table as it is.”',
             ]),
             options: [
-                { label: 'Skip and log', confidence: jev(54) },
-                { label: 'Backfill', confidence: jev(38) },
-                { label: 'Stop', confidence: jev(8) },
+                { label: 'Skip and log', confidence: classified(54) },
+                { label: 'Backfill', confidence: classified(38) },
+                { label: 'Stop', confidence: classified(8) },
             ],
             // "I know agents sometimes like to put a table in their response."
             asides: [{
