@@ -21,6 +21,7 @@ import { getForm } from '../dataset';
 import type { Element } from '../element';
 import { playAnimations, type Played } from '../test-animations';
 import { expectAxiom } from '../test-axiom';
+import { raise, raiseOnInteract } from '../window/z-order';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // A morph finishes on the next turn (test-animations.ts); this is well past it.
@@ -231,5 +232,27 @@ describe('Jenny: a flick, and out of the tray again', () => {
 
         expect(rested).toBe(2);
         expect(getForm(element)).toBe('dot');
+    });
+});
+
+// "Opening another element from the tray isnt making its z be higher than an
+// element already opened before"
+describe('Jenny: opened after a window, in front of it', () => {
+    test('a panel opened after a window sits above it; a press brings either forward', async () => {
+        const Ev = (window as unknown as { Event: typeof Event }).Event;
+        const before = document.createElement('div');
+        document.body.appendChild(before);
+        raise(before);
+        raise(before);
+        raiseOnInteract(before);
+
+        await open(element);
+        expect(Number(element.style.zIndex)).toBeGreaterThan(Number(before.style.zIndex));
+
+        before.dispatchEvent(new Ev('mousedown', { bubbles: true }));
+        expect(Number(before.style.zIndex)).toBeGreaterThan(Number(element.style.zIndex));
+
+        element.dispatchEvent(new Ev('mousedown', { bubbles: true }));
+        expect(Number(element.style.zIndex)).toBeGreaterThan(Number(before.style.zIndex));
     });
 });

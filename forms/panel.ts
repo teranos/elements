@@ -27,6 +27,7 @@ import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
 import { renderContent } from '../content/render';
 import { keepClearOfKeyboard, backFromKeyboard } from '../window/keyboard';
+import { raise, raiseOnInteract } from '../window/z-order';
 import {
     setForm,
     setElementId
@@ -358,7 +359,9 @@ export function morphDotToPanel(
         element.style.top = `${targetY}px`;
         element.style.width = `${panelWidth}px`;
         element.style.height = `${panelHeight}px`;
-        element.style.zIndex = PANEL_Z_INDEX;
+        // In front on arrival, and in front again whenever it is touched, as a window is.
+        raise(element);
+        raiseOnInteract(element);
         // A title bar over a body, in a box that clips, as a window is (window/settle.ts):
         // the body has the height left under the title bar and scrolls in it.
         element.style.display = 'flex';
