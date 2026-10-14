@@ -8,6 +8,7 @@ import { renderPanelSpecimen } from './panel';
 import { renderSparklineSpecimen } from './sparkline';
 import { renderFieldSpecimen } from './field';
 import { renderApproveSpecimen } from './approve';
+import { renderTableSpecimen } from './table';
 
 configureElements({
     windowBorderRadius: '0',
@@ -24,3 +25,4 @@ renderFieldSpecimen();
 renderPanelSpecimen();
 renderApproveSpecimen();
 renderSparklineSpecimen();
+renderTableSpecimen();

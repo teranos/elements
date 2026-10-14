@@ -248,6 +248,10 @@ export { createInput, createButton, createStatusLine } from './canvas/ui-primiti
 // Sparkline — numbers to a line that answers pointing; what the numbers mean is the host's
 export { renderSparkline, wireLineTooltips, stepAt } from './sparkline';
 
+// Table — heads and rows in the package's shape and look; what a cell says and a press opens is the host's
+export { createTable, tableCell } from './table';
+export type { TableCell, TableRow } from './table';
+
 // Approvals — a list of what waits on a human; every press is handed to the host
 export { renderApprovals } from './approvals/approvals';
 export type { Approval, ApprovalOption, ApprovalStep, ApprovalAside, ApprovalCheck, ApprovalHost, ApprovalHandle, ApprovalRoll } from './approvals/approvals';
