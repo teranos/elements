@@ -205,7 +205,6 @@ export {
     detachElement,
 } from './canvas/meld/composition';
 export {
-    MELDABILITY,
     getInitiatorClasses,
     getTargetClasses,
     getCompatibleTargets,
@@ -216,7 +215,7 @@ export {
     getMeldOptions,
     selectPreferredMeldOption,
 } from './canvas/meld/meldability';
-export type { PortRule, MeldOption } from './canvas/meld/meldability';
+export type { PortRule, Meldability, MeldOption } from './canvas/meld/meldability';
 
 // Canvas drag interaction (DRAGR)
 export {

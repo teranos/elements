@@ -7,8 +7,23 @@
  * receive another right-incoming edge. Same for bottom/top.
  */
 
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect, beforeEach } from 'bun:test';
+import { configureElements } from '../../config';
 import { getMeldOptions, isPortFree } from './meldability';
+
+beforeEach(() => {
+    configureElements({
+        meldability: {
+            source: [{ direction: 'right', targets: ['step', 'sink'] }],
+            step: [
+                { direction: 'right', targets: ['step', 'sink'] },
+                { direction: 'bottom', targets: ['output'] },
+            ],
+            sink: [{ direction: 'bottom', targets: ['output'] }],
+            output: [{ direction: 'bottom', targets: ['output'] }],
+        },
+    });
+});
 
 /** Helper: build a composition DOM with children matching the edge IDs */
 function compWith(...specs: Array<{ id: string; cls: string }>): HTMLElement {
@@ -25,91 +40,91 @@ function compWith(...specs: Array<{ id: string; cls: string }>): HTMLElement {
 
 describe('Spike: one element per side axiom', () => {
 
-    test('py with right-outgoing occupied (py→prompt) cannot accept another right-append', () => {
+    test('step with right-outgoing occupied (step→sink) cannot accept another right-append', () => {
         const comp = compWith(
-            { id: 'py1', cls: 'canvas-py-element' },
-            { id: 'prompt1', cls: 'canvas-prompt-element' },
+            { id: 'step1', cls: 'step' },
+            { id: 'sink1', cls: 'sink' },
         );
-        const edges = [{ from: 'py1', to: 'prompt1', direction: 'right' }];
+        const edges = [{ from: 'step1', to: 'sink1', direction: 'right' }];
 
-        const options = getMeldOptions('canvas-prompt-element', comp, edges);
+        const options = getMeldOptions('sink', comp, edges);
 
-        const pyAppend = options.find(o => o.elementId === 'py1' && o.direction === 'right');
-        expect(pyAppend).toBeUndefined();
+        const stepAppend = options.find(o => o.elementId === 'step1' && o.direction === 'right');
+        expect(stepAppend).toBeUndefined();
     });
 
-    test('prompt with left side occupied (py→prompt) cannot receive second left meld', () => {
+    test('sink with left side occupied (step→sink) cannot receive second left meld', () => {
         const comp = compWith(
-            { id: 'py1', cls: 'canvas-py-element' },
-            { id: 'prompt1', cls: 'canvas-prompt-element' },
+            { id: 'step1', cls: 'step' },
+            { id: 'sink1', cls: 'sink' },
         );
-        const edges = [{ from: 'py1', to: 'prompt1', direction: 'right' }];
+        const edges = [{ from: 'step1', to: 'sink1', direction: 'right' }];
 
-        const options = getMeldOptions('canvas-ax-element', comp, edges);
+        const options = getMeldOptions('source', comp, edges);
 
-        const promptPrepend = options.find(o => o.elementId === 'prompt1');
-        expect(promptPrepend).toBeUndefined();
+        const sinkPrepend = options.find(o => o.elementId === 'sink1');
+        expect(sinkPrepend).toBeUndefined();
 
-        const pyPrepend = options.find(o => o.elementId === 'py1' && o.incomingRole === 'from');
-        expect(pyPrepend).toBeDefined();
-        expect(pyPrepend!.direction).toBe('right');
+        const stepPrepend = options.find(o => o.elementId === 'step1' && o.incomingRole === 'from');
+        expect(stepPrepend).toBeDefined();
+        expect(stepPrepend!.direction).toBe('right');
     });
 
-    test('py with bottom occupied (py→result) rejects second bottom attachment', () => {
+    test('step with bottom occupied (step→output) rejects second bottom attachment', () => {
         const comp = compWith(
-            { id: 'py1', cls: 'canvas-py-element' },
-            { id: 'result1', cls: 'canvas-result-element' },
+            { id: 'step1', cls: 'step' },
+            { id: 'output1', cls: 'output' },
         );
-        const edges = [{ from: 'py1', to: 'result1', direction: 'bottom' }];
+        const edges = [{ from: 'step1', to: 'output1', direction: 'bottom' }];
 
-        const options = getMeldOptions('canvas-result-element', comp, edges);
+        const options = getMeldOptions('output', comp, edges);
 
-        const pyBottom = options.find(o => o.elementId === 'py1' && o.direction === 'bottom');
-        expect(pyBottom).toBeUndefined();
+        const stepBottom = options.find(o => o.elementId === 'step1' && o.direction === 'bottom');
+        expect(stepBottom).toBeUndefined();
     });
 
-    test('py with right occupied still allows bottom meld (different side)', () => {
+    test('step with right occupied still allows bottom meld (different side)', () => {
         const comp = compWith(
-            { id: 'py1', cls: 'canvas-py-element' },
-            { id: 'prompt1', cls: 'canvas-prompt-element' },
+            { id: 'step1', cls: 'step' },
+            { id: 'sink1', cls: 'sink' },
         );
-        const edges = [{ from: 'py1', to: 'prompt1', direction: 'right' }];
+        const edges = [{ from: 'step1', to: 'sink1', direction: 'right' }];
 
-        const options = getMeldOptions('canvas-result-element', comp, edges);
+        const options = getMeldOptions('output', comp, edges);
 
-        const pyBottom = options.find(o => o.elementId === 'py1' && o.direction === 'bottom');
-        expect(pyBottom).toBeDefined();
-        expect(pyBottom!.incomingRole).toBe('to');
+        const stepBottom = options.find(o => o.elementId === 'step1' && o.direction === 'bottom');
+        expect(stepBottom).toBeDefined();
+        expect(stepBottom!.incomingRole).toBe('to');
     });
 });
 
 describe('Jenny: saturated chain', () => {
 
-    test('[ax → py → prompt] — right axis fully saturated, bottom axis open', () => {
+    test('[source → step → sink] — right axis fully saturated, bottom axis open', () => {
         const comp = compWith(
-            { id: 'ax1', cls: 'canvas-ax-element' },
-            { id: 'py1', cls: 'canvas-py-element' },
-            { id: 'prompt1', cls: 'canvas-prompt-element' },
+            { id: 'source1', cls: 'source' },
+            { id: 'step1', cls: 'step' },
+            { id: 'sink1', cls: 'sink' },
         );
         const edges = [
-            { from: 'ax1', to: 'py1', direction: 'right' },
-            { from: 'py1', to: 'prompt1', direction: 'right' },
+            { from: 'source1', to: 'step1', direction: 'right' },
+            { from: 'step1', to: 'sink1', direction: 'right' },
         ];
 
-        expect(isPortFree('ax1', 'right', 'outgoing', edges)).toBe(false);
-        expect(isPortFree('py1', 'right', 'incoming', edges)).toBe(false);
-        expect(isPortFree('py1', 'right', 'outgoing', edges)).toBe(false);
-        expect(isPortFree('prompt1', 'right', 'incoming', edges)).toBe(false);
+        expect(isPortFree('source1', 'right', 'outgoing', edges)).toBe(false);
+        expect(isPortFree('step1', 'right', 'incoming', edges)).toBe(false);
+        expect(isPortFree('step1', 'right', 'outgoing', edges)).toBe(false);
+        expect(isPortFree('sink1', 'right', 'incoming', edges)).toBe(false);
 
-        expect(isPortFree('py1', 'bottom', 'outgoing', edges)).toBe(true);
-        expect(isPortFree('prompt1', 'bottom', 'outgoing', edges)).toBe(true);
+        expect(isPortFree('step1', 'bottom', 'outgoing', edges)).toBe(true);
+        expect(isPortFree('sink1', 'bottom', 'outgoing', edges)).toBe(true);
 
-        expect(getMeldOptions('canvas-py-element', comp, edges)).toEqual([]);
-        expect(getMeldOptions('canvas-ax-element', comp, edges)).toEqual([]);
+        expect(getMeldOptions('step', comp, edges)).toEqual([]);
+        expect(getMeldOptions('source', comp, edges)).toEqual([]);
 
-        const resultOptions = getMeldOptions('canvas-result-element', comp, edges);
-        expect(resultOptions.length).toBe(2);
-        expect(resultOptions.find(o => o.elementId === 'py1' && o.direction === 'bottom')).toBeDefined();
-        expect(resultOptions.find(o => o.elementId === 'prompt1' && o.direction === 'bottom')).toBeDefined();
+        const outputOptions = getMeldOptions('output', comp, edges);
+        expect(outputOptions.length).toBe(2);
+        expect(outputOptions.find(o => o.elementId === 'step1' && o.direction === 'bottom')).toBeDefined();
+        expect(outputOptions.find(o => o.elementId === 'sink1' && o.direction === 'bottom')).toBeDefined();
     });
 });

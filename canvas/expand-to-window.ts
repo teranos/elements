@@ -7,7 +7,7 @@
  */
 
 import { getLogger, getLogSegment, removeCanvasElement } from '../config';
-import { getForm } from '../dataset';
+import { getForm, getCanvas } from '../dataset';
 import { getTray } from '../tray/tray';
 import type { Element } from '../element';
 import {
@@ -91,12 +91,15 @@ export function wireExpandToWindow(config: ExpandToWindowConfig): void {
         }
 
         // On canvas → morph to window
-        const canvas = element.closest('.canvas-workspace') as HTMLElement | null;
-        const canvasId = (canvas?.closest('[data-canvas-id]') as HTMLElement | null)?.dataset?.canvasId ?? 'canvas-workspace';
+        const canvas = getCanvas(element);
+        if (!canvas) {
+            log.warn(seg, `[${label}] Not lifted to a window: ${elementId} stands on no [data-canvas-id] canvas`);
+            return;
+        }
 
         morphCanvasPlacedToWindow(element, {
             title,
-            canvasId,
+            canvasId: canvas.id,
             onClose: () => {
                 element.remove();
                 removeCanvasElement(elementId);

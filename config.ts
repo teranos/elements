@@ -9,6 +9,7 @@
  */
 
 import type { CompositionState } from './canvas/composition';
+import type { Meldability } from './canvas/meld/meldability';
 
 export interface Logger {
     debug(segment: string, message: string, metadata?: Record<string, unknown>): void;
@@ -97,6 +98,8 @@ export interface ElementConfig {
     dotSymbol?: boolean;
     /** The tray's layer. Every window stays below it; a host may keep its own layers above it. */
     trayZIndex?: number;
+    /** Which element classes meld with which, and on which side. Unset, nothing melds. */
+    meldability?: Meldability;
 }
 
 // Default no-op logger
@@ -148,6 +151,7 @@ let config: {
     windowBorderRadius: string;
     dotSymbol: boolean;
     trayZIndex: number;
+    meldability: Meldability;
 } = {
     logger: noopLogger,
     logSegment: 'ELEMENT',
@@ -159,6 +163,7 @@ let config: {
     windowBorderRadius: '8px',
     dotSymbol: false,
     trayZIndex: 100002,
+    meldability: {},
 };
 
 /**
@@ -175,6 +180,7 @@ export function configureElements(opts: ElementConfig): void {
     if (opts.windowBorderRadius !== undefined) config.windowBorderRadius = opts.windowBorderRadius;
     if (opts.dotSymbol !== undefined) config.dotSymbol = opts.dotSymbol;
     if (typeof opts.trayZIndex === 'number') config.trayZIndex = opts.trayZIndex;
+    if (opts.meldability !== undefined) config.meldability = opts.meldability;
     if (opts.dotGeometry) {
         // Field by field, so a partial geometry merges instead of replacing, and
         // so 0 means 0 (a truthiness check would silently drop a zero radius).
@@ -212,6 +218,11 @@ export function getLogSegment(): string {
 /** Get the active persistence layer */
 export function getPersistence(): Persistence {
     return config.persistence;
+}
+
+/** The host's meld table; empty until a host gives one. */
+export function getMeldability(): Meldability {
+    return config.meldability;
 }
 
 /** Get the active canvas host */

@@ -28,7 +28,7 @@ Browser-only. Assumes `document`, `DOMParser`, Web Animations API, and `ResizeOb
 
 ## Configuration
 
-Host apps call `configureElements()` at startup to inject logger, persistence, canvas coordinate bridge, `CanvasHost`, and cleanup callbacks. `CanvasHost` bridges canvas interaction (drag, resize, meld) to host-specific state — persistence, selection, composition CRUD, and sync. Without configuration, safe defaults apply: no-op logger, no-op persistence, no-op canvas host, identity coordinate transforms.
+Host apps call `configureElements()` at startup to inject logger, persistence, canvas coordinate bridge, `CanvasHost`, and cleanup callbacks. `CanvasHost` bridges canvas interaction (drag, resize, meld) to host-specific state — persistence, selection, composition CRUD, and sync. Without configuration, safe defaults apply: no-op logger, no-op persistence, no-op canvas host, identity coordinate transforms, and no meld table, so nothing melds.
 
 `dotGeometry` is the exception to "host-specific concerns": it is geometry, not a dependency. The proximity engine writes the dot's width, height and border-radius inline on every frame, so no stylesheet can reach it — a host that wants a bigger or smaller dot sets it here. Left unset, a dot rests at 13px on a phone (up to 768px wide), 15px up to 900px, 10px above. The tray's place at the right edge, its column, the gap between dots (2px, 6px on a phone) and a dot's glide between sizes are the package's too, written inline; a host's stylesheet gives only the dot's font, text colour and border colour.
 
@@ -60,6 +60,8 @@ Tests live with the package source and pin the package. Host behavior (persisten
 Where this package ends and a host begins. The test that settles each line is in [CLAUDE.md](CLAUDE.md).
 
 - **Canvas workspace orchestration is the host's.** Pan, zoom, selection, spawn, and thread state are the host's to wire to its own persistence and sync. The package owns the interaction layer the workspace consumes: drag, resize, meld, placement, z-order, touch browse.
+- **How elements meld is the package's; which kinds meld, and on which side, is the host's.** Ports, one connection per side, meld options and composition layout are the package's (`canvas/meld/`). The table of element classes and their ports comes from `configureElements({ meldability })`; without one, nothing melds.
+- **A canvas is the element carrying `data-canvas-id`.** Drag, meld, and the window ↔ canvas morphs find the canvas an element stands on by that attribute, and its value is the id the host is asked about. The package knows no host class name for it.
 - **ElementUI's I/O is the host's.** `pluginFetch`, `pluginWebSocket`, `onMeld`, and config persistence belong to the host factory. The DOM building blocks (`createInput`, `createButton`, `createStatusLine`) are package-owned in `canvas/ui-primitives.ts`; the host factory delegates to them.
 - **Titles arrive plain.** Callers strip markup before passing items.
 - **Where a window stands while the keyboard is up is the package's; how its fields look is the host's.** A window with a focused field rises clear of the on-screen keyboard and goes back after (`window/keyboard.ts`), because placement is the package's.

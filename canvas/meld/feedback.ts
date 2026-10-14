@@ -10,6 +10,7 @@
  */
 
 import type { EdgeDirection } from './meldability';
+import { getCanvas } from '../../dataset';
 import { PROXIMITY_THRESHOLD, MELD_THRESHOLD } from './detect';
 
 // The saved pre-feedback shadow lives on the element while the glow does.
@@ -87,7 +88,7 @@ export function clearMeldFeedback(element: HTMLElement): void {
     clearFeedbackShadow(element);
 
     // Walk up to canvas and clear ALL elements with meld feedback
-    const canvas = element.closest('.canvas-workspace') ?? element.parentElement;
+    const canvas = getCanvas(element)?.element ?? element.parentElement;
     if (canvas) {
         canvas.querySelectorAll(`.meld-target, .meld-ready, [${PRIOR_SHADOW_ATTR}]`).forEach(el => {
             clearFeedbackShadow(el as HTMLElement);

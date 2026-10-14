@@ -8,7 +8,7 @@
 
 import type { Element } from '../element';
 import type { MakeDraggableOptions } from './element-ui';
-import { getForm } from '../dataset';
+import { getForm, getCanvas } from '../dataset';
 import { getLogger, getLogSegment, getCanvasHost } from '../config';
 import {
     canInitiateMeld,
@@ -194,7 +194,7 @@ export function makeDraggable(
     let dragController: AbortController | null = null;
     let currentMeldTarget: HTMLElement | null = null;
     let rafId: number | null = null;
-    let dragCanvasId = '';
+    let dragCanvasId: string | null = null;
 
     // Multi-selection drag support
     let isMultiDrag = false;
@@ -203,7 +203,8 @@ export function makeDraggable(
     const handleMouseMove = (e: MouseEvent) => {
         if (!isDragging) return;
 
-        const scale = canvasHost.getTransform(dragCanvasId).scale || 1;
+        // Off any canvas there is no canvas transform to divide by.
+        const scale = dragCanvasId === null ? 1 : canvasHost.getTransform(dragCanvasId).scale || 1;
         const deltaX = (e.clientX - dragStartX) / scale;
         const deltaY = (e.clientY - dragStartY) / scale;
 
@@ -299,7 +300,7 @@ export function makeDraggable(
                     const existingComp = canvasHost.findCompositionByElement(fallbackAnchorId);
 
                     if (existingComp && standaloneClass) {
-                        const selectedIds = canvasHost.getSelectedElementIds(dragCanvasId);
+                        const selectedIds = dragCanvasId === null ? [] : canvasHost.getSelectedElementIds(dragCanvasId);
                         const selectedAnchor = selectedIds.find(id =>
                             compositionElement.querySelector(`[data-element-id="${id}"]`) !== null
                         );
@@ -450,10 +451,10 @@ export function makeDraggable(
         element.classList.add('is-dragging');
         element.style.zIndex = String(++topZIndex);
 
-        const canvasId = (element.closest('[data-canvas-id]') as HTMLElement | null)?.dataset?.canvasId ?? 'canvas-workspace';
+        const canvasId = getCanvas(element)?.id ?? null;
         dragCanvasId = canvasId;
-        const selectedIds = canvasHost.getSelectedElementIds(canvasId);
-        if (selectedIds.length > 1 && canvasHost.isElementSelected(canvasId, item.id)) {
+        const selectedIds = canvasId === null ? [] : canvasHost.getSelectedElementIds(canvasId);
+        if (canvasId !== null && selectedIds.length > 1 && canvasHost.isElementSelected(canvasId, item.id)) {
             isMultiDrag = true;
             const canvas = element.parentElement;
             if (canvas) {

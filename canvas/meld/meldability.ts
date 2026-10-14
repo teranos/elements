@@ -4,14 +4,14 @@
  * Melding is the spatial composition model where elements physically fuse
  * through proximity rather than connecting via wires.
  *
- * Each element has directional ports that define valid connections:
- * - right: horizontal data flow (ax → py → prompt, py → py)
- * - bottom: result/output attachment (py ↓ result, prompt ↓ result)
- * - top: (reserved for future upward connections)
+ * Each element class has directional ports (right, bottom, top) naming the
+ * classes that may connect there. Which classes, and which ports, is the
+ * host's to say: configureElements({ meldability }).
  */
 
 import type { EdgeDirection } from '../composition';
 import { isPortFree } from '../edge-graph';
+import { getMeldability } from '../../config';
 
 // Re-export for consumers within the package
 export { isPortFree };
@@ -22,85 +22,51 @@ export interface PortRule {
     targets: readonly string[];
 }
 
-/** All element classes that participate in melding */
-const ALL_ELEMENT_CLASSES = [
-    'canvas-ax-element', 'canvas-se-element', 'canvas-py-element',
-    'canvas-prompt-element', 'canvas-doc-element', 'canvas-note-element',
-    'canvas-result-element', 'canvas-subcanvas-element',
-    'canvas-plugin-element',
-] as const;
+/** Element class → its output ports. Supplied by the host; the package has none of its own. */
+export type Meldability = Readonly<Record<string, readonly PortRule[]>>;
 
-/**
- * Port-aware meldability rules: maps element classes to their output ports
- * Each port specifies a direction and which target classes can connect there
- */
-export const MELDABILITY: Record<string, readonly PortRule[]> = {
-    'canvas-ax-element': [
-        { direction: 'right', targets: ['canvas-prompt-element', 'canvas-py-element', 'canvas-subcanvas-element'] }
-    ],
-    'canvas-se-element': [
-        { direction: 'right', targets: ['canvas-prompt-element', 'canvas-py-element', 'canvas-se-element', 'canvas-subcanvas-element'] }
-    ],
-    'canvas-py-element': [
-        { direction: 'right', targets: ['canvas-prompt-element', 'canvas-py-element', 'canvas-subcanvas-element'] },
-        { direction: 'bottom', targets: ['canvas-result-element', 'canvas-subcanvas-element'] }
-    ],
-    'canvas-prompt-element': [
-        { direction: 'bottom', targets: ['canvas-result-element', 'canvas-subcanvas-element'] }
-    ],
-    'canvas-doc-element': [
-        { direction: 'right', targets: ['canvas-result-element', 'canvas-prompt-element', 'canvas-doc-element', 'canvas-subcanvas-element'] },
-        { direction: 'bottom', targets: ['canvas-prompt-element', 'canvas-doc-element', 'canvas-subcanvas-element'] }
-    ],
-    'canvas-note-element': [
-        { direction: 'bottom', targets: ['canvas-prompt-element', 'canvas-plugin-element', 'canvas-subcanvas-element'] }
-    ],
-    'canvas-result-element': [
-        { direction: 'bottom', targets: ['canvas-result-element'] }
-    ],
-    'canvas-plugin-element': [
-        { direction: 'bottom', targets: ['canvas-result-element', 'canvas-subcanvas-element'] }
-    ],
-    'canvas-subcanvas-element': [
-        { direction: 'right', targets: ALL_ELEMENT_CLASSES },
-        { direction: 'bottom', targets: ALL_ELEMENT_CLASSES },
-        { direction: 'top', targets: ALL_ELEMENT_CLASSES },
-    ],
-} as const;
+// Class lists derived from the table they were read off; rebuilt when the host gives another.
+let derivedFrom: Meldability | null = null;
+let initiatorClasses: string[] = [];
+let targetClasses: string[] = [];
 
-// Cached class lists — derived from static MELDABILITY registry
-const _initiatorClasses: string[] = Object.keys(MELDABILITY);
-const _targetClasses: string[] = (() => {
+function derive(): void {
+    const table = getMeldability();
+    if (table === derivedFrom) return;
     const targets = new Set<string>();
-    for (const ports of Object.values(MELDABILITY)) {
+    for (const ports of Object.values(table)) {
         for (const port of ports) {
             for (const target of port.targets) {
                 targets.add(target);
             }
         }
     }
-    return [...targets];
-})();
+    initiatorClasses = Object.keys(table);
+    targetClasses = [...targets];
+    derivedFrom = table;
+}
 
 /**
  * Get all classes that can initiate melding
  */
 export function getInitiatorClasses(): readonly string[] {
-    return _initiatorClasses;
+    derive();
+    return initiatorClasses;
 }
 
 /**
  * Get all classes that can receive meld (across all directions)
  */
 export function getTargetClasses(): readonly string[] {
-    return _targetClasses;
+    derive();
+    return targetClasses;
 }
 
 /**
  * Get compatible target classes for a given initiator (across all directions)
  */
 export function getCompatibleTargets(initiatorClass: string): string[] {
-    const ports = MELDABILITY[initiatorClass];
+    const ports = getMeldability()[initiatorClass];
     if (!ports) return [];
     const targets = new Set<string>();
     for (const port of ports) {
@@ -116,7 +82,7 @@ export function getCompatibleTargets(initiatorClass: string): string[] {
  * Returns all compatible edge directions (empty array if incompatible)
  */
 export function getCompatibleDirections(initiatorClass: string, targetClass: string): EdgeDirection[] {
-    const ports = MELDABILITY[initiatorClass];
+    const ports = getMeldability()[initiatorClass];
     if (!ports) return [];
     const directions: EdgeDirection[] = [];
     for (const port of ports) {
@@ -152,11 +118,12 @@ export function getCompositionElementIds(composition: HTMLElement): string[] {
 }
 
 /**
- * Extract the canonical element class (e.g. 'canvas-py-element') from an element's classList
+ * The element's meld class: the first class in its classList that the host's table names
  */
 export function getElementClass(element: HTMLElement): string | null {
+    derive();
     for (const cls of element.classList) {
-        if (cls.startsWith('canvas-') && cls.endsWith('-element')) return cls;
+        if (initiatorClasses.includes(cls) || targetClasses.includes(cls)) return cls;
     }
     return null;
 }

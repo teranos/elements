@@ -432,12 +432,12 @@ export function placeWindowOnCanvas(
     const { onRestoreComplete } = config;
 
     // 1. Find the visible canvas
-    const canvasEl = document.querySelector('.canvas-workspace') as HTMLElement | null;
-    if (!canvasEl) {
-        log.warn(seg, `[CanvasWindow] No canvas workspace found, aborting place`);
+    const canvasEl = document.querySelector<HTMLElement>('[data-canvas-id]');
+    const canvasId = canvasEl?.dataset.canvasId;
+    if (!canvasEl || canvasId === undefined) {
+        log.warn(seg, `[CanvasWindow] No [data-canvas-id] canvas in the document, aborting place`);
         return;
     }
-    const canvasId = canvasEl.dataset.canvasId ?? 'canvas-workspace';
     const canvasRect = canvasEl.getBoundingClientRect();
     const contentLayer = canvasEl.querySelector('.canvas-content-layer') as HTMLElement | null;
     if (!contentLayer) {
