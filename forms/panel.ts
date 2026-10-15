@@ -94,6 +94,43 @@ function showGrabber(panel: HTMLElement): void {
     panel.appendChild(grabber);
 }
 
+/** px: a panel's title bar on a touch screen: the grabber's strip, the grabber centred in it */
+const STRIP_HEIGHT = GRABBER_INSET * 2 + GRABBER_HEIGHT + 1;
+
+// Hidden from sight and kept for a screen reader: the minimize button is still what one is given.
+const UNSEEN: Record<string, string> = {
+    position: 'absolute', width: '1px', height: '1px', margin: '-1px', padding: '0',
+    border: '0', overflow: 'hidden', clip: 'rect(0 0 0 0)', 'white-space': 'nowrap',
+};
+
+/**
+ * "Inefficient use of space." On a touch screen a panel has no title bar row:
+ * its title and minimize button said nothing the grabber and the swipe do not.
+ * The bar is the grabber's strip, and the swipe is still taken there. Written
+ * important, so no page makes it a row again.
+ */
+function foldToStrip(titleBar: HTMLElement): void {
+    if (typeof window.matchMedia !== 'function' || !window.matchMedia('(pointer: coarse)').matches) return;
+    for (const name of ['height', 'min-height', 'max-height']) titleBar.style.setProperty(name, `${STRIP_HEIGHT}px`, 'important');
+    titleBar.style.setProperty('padding', '0', 'important');
+    titleBar.style.setProperty('overflow', 'hidden', 'important');
+    titleBar.dataset.strip = '';
+    for (const child of Array.from(titleBar.children) as HTMLElement[]) {
+        for (const [name, value] of Object.entries(UNSEEN)) child.style.setProperty(name, value, 'important');
+    }
+}
+
+/** Out of a panel, the bar is a row again: what the strip wrote comes off. */
+function unfoldStrip(panel: HTMLElement): void {
+    const titleBar = panel.querySelector<HTMLElement>(':scope > .title-bar[data-strip]');
+    if (!titleBar) return;
+    for (const name of ['height', 'min-height', 'max-height', 'padding', 'overflow']) titleBar.style.removeProperty(name);
+    delete titleBar.dataset.strip;
+    for (const child of Array.from(titleBar.children) as HTMLElement[]) {
+        for (const name of Object.keys(UNSEEN)) child.style.removeProperty(name);
+    }
+}
+
 /**
  * A finger on the title bar drags the panel down after it. Let go far enough,
  * or with a flick, and it goes to the tray as its minimize button sends it;
@@ -382,7 +419,9 @@ export function morphDotToPanel(
         resizeCleanups.set(element, cleanupFn);
         keepInsideSafeArea(element);
 
-        // On a touch screen, a grabber shows the title bar can be swiped down to the tray.
+        // On a touch screen, the title bar is the grabber's strip, and the grabber shows it can be
+        // swiped down to the tray.
+        foldToStrip(titleBar);
         showGrabber(element);
 
         // Seen whole, title bar first, while a field in it has the keyboard up (window/keyboard.ts).
@@ -423,6 +462,8 @@ export function leavePanel(panelElement: HTMLElement): DOMRect {
     backFromKeyboard(panelElement);
     // The grabber is the panel's, not what it holds: it does not go to the stash.
     panelElement.querySelector(':scope > .panel-grabber')?.remove();
+    // And so is the strip: the bar goes to the stash a row.
+    unfoldStrip(panelElement);
     const currentRect = panelElement.getBoundingClientRect();
 
     // Clean up escape handler
