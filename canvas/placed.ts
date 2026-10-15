@@ -22,7 +22,7 @@ import { makeResizable } from './resize';
 import { storeCleanup } from './cleanup';
 import { createCorner } from '../corner';
 import { watchScroll } from '../content/scroll';
-import { holdTextSize } from '../text';
+import { holdElementText } from '../text';
 import type { MakeDraggableOptions } from './element-ui';
 
 // ── Config ──────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
     element.className = `${className} canvas-element`;
     element.dataset.elementId = item.id;
     // Its text is at the package's sizes, as in every other form (text.ts).
-    holdTextSize();
+    holdElementText(element);
     setSymbol(element, item.symbol);
     element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
     element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;

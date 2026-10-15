@@ -114,6 +114,16 @@ describe('Jenny: an element taking a form, or placed', () => {
         expect(rule()).not.toBeNull();
     });
 
+    test('a size written on what it holds is taken off when it takes a form', () => {
+        const element = document.createElement('div');
+        element.innerHTML = '<p style="font-size: 30px !important; color: red">loud</p>';
+        setForm(element, 'window');
+        const p = element.querySelector('p')!;
+
+        expect(p.style.fontSize).toBe('');
+        expect(p.style.color).toBe('red');
+    });
+
     test('an element placed on a canvas brings the rule', () => {
         canvasPlaced({
             item: { id: 'strontium', title: 'Strontium', renderContent: () => document.createElement('div') },
@@ -126,7 +136,7 @@ describe('Jenny: an element taking a form, or placed', () => {
     });
 
     test('the rule leaves a dot\'s symbol to the tray', () => {
-        setForm(document.createElement('div'), 'dot');
+        setForm(document.createElement('div'), 'window');
         const css = rule()!.textContent!;
 
         expect(css).toContain('[data-element-id]:not(.dot)');

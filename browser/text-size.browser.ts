@@ -8,7 +8,7 @@
  *
  * Personas:
  * - Tim: Happy path — a panel's text is at the package's 11, whatever the page's own rules say
- * - Spike: Edge cases — a host's important rule and a style attribute change nothing
+ * - Spike: Edge cases — a host's important rule and a style attribute, even important, change nothing
  * - Jenny: Complex scenarios — a node sized lg is at 14, and a dot's symbol is not the rule's
  */
 
@@ -47,6 +47,24 @@ test.describe('Spike: a host that sizes text anyway', () => {
         await openKrypton(page);
 
         expect(await sizeOf(page, `${KRYPTON} [data-scroller="body"] div`)).toBe('11px');
+    });
+
+    test('a style attribute set important changes nothing, and is taken off', async ({ page }) => {
+        await openKrypton(page);
+        const row = page.locator(`${KRYPTON} [data-scroller="body"] div`).first();
+        await row.evaluate((el) => { (el as HTMLElement).style.setProperty('font-size', '30px', 'important'); });
+
+        await expect.poll(() => row.evaluate((el) => getComputedStyle(el).fontSize)).toBe('11px');
+        expect(await row.evaluate((el) => (el as HTMLElement).style.fontSize)).toBe('');
+    });
+
+    test('a node added with its own important size is taken off too', async ({ page }) => {
+        await openKrypton(page);
+        await page.locator(`${KRYPTON} [data-scroller="body"]`).evaluate((body) => {
+            body.insertAdjacentHTML('beforeend', '<p id="loud" style="font-size: 30px !important">loud</p>');
+        });
+
+        await expect.poll(() => page.locator('#loud').evaluate((el) => getComputedStyle(el).fontSize)).toBe('11px');
     });
 
     test('a style attribute changes nothing', async ({ page }) => {

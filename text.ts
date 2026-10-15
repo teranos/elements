@@ -43,3 +43,37 @@ export function sizeText(node: HTMLElement, size: TextSize): void {
     holdTextSize();
     node.dataset.textSize = size;
 }
+
+// A style attribute set important is the one thing a layered important rule does not outrank:
+// inside an element it is taken off as it is written, and off whatever is added with one.
+const watching = new WeakMap<HTMLElement, MutationObserver>();
+
+function takeOffSize(node: Element): void {
+    if (node instanceof HTMLElement && node.style.fontSize) node.style.removeProperty('font-size');
+}
+
+function takeOffSizes(root: Element): void {
+    takeOffSize(root);
+    root.querySelectorAll('[style]').forEach(takeOffSize);
+}
+
+/** This element's text is at the package's sizes, whatever is written on it or in it. */
+export function holdElementText(element: HTMLElement): void {
+    holdTextSize();
+    if (watching.has(element) || typeof MutationObserver === 'undefined') return;
+    takeOffSizes(element);
+    const observer = new MutationObserver((records) => {
+        records.forEach((record) => {
+            if (record.type === 'attributes') takeOffSize(record.target as Element);
+            else record.addedNodes.forEach((added) => { if (added instanceof Element) takeOffSizes(added); });
+        });
+    });
+    observer.observe(element, { attributes: true, attributeFilter: ['style'], childList: true, subtree: true });
+    watching.set(element, observer);
+}
+
+/** A dot: its symbol is the tray's, and what is written on it every frame is not watched. */
+export function releaseElementText(element: HTMLElement): void {
+    watching.get(element)?.disconnect();
+    watching.delete(element);
+}
