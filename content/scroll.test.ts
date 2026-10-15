@@ -39,8 +39,15 @@ beforeEach(() => {
     warnings = [];
 });
 
-/** Let the watch see what changed since. */
-const settled = () => new Promise((resolve) => setTimeout(resolve, 0));
+/**
+ * Let the watch see what changed since. happy-dom hands a MutationObserver its records on a timer of
+ * its own, put off again by every mutation after; one turn of the clock can come before it. JSDOM
+ * hands them over before the next turn.
+ */
+const settled = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await (window as unknown as { happyDOM?: { waitUntilComplete(): Promise<void> } }).happyDOM?.waitUntilComplete();
+};
 
 function stylesheet(css: string): void {
     const style = document.createElement('style');

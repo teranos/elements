@@ -79,7 +79,10 @@ test.describe('Jenny: to the tray and back', () => {
         const selenium = await open(page);
         await dragCorner(page, 200, 150);
         const dragged = (await selenium.boundingBox())!;
-        await selenium.locator('[aria-label="Minimize"]').click();
+        // Pressed from the keyboard: dragged right, the window's minimize button is beside the tray,
+        // whose dots take a pointer that comes near them.
+        await selenium.locator('[aria-label="Minimize"]').focus();
+        await page.keyboard.press('Enter');
         await expect(selenium).toHaveAttribute('data-form', 'dot');
         await open(page);
 
