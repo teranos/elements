@@ -22,6 +22,9 @@ export interface Element {
 
     // Form configuration
     opensAs?: TrayDestination;  // What this opens as from the tray. Default: 'window'
+    // "should not start at top when opening requiring user to scroll down every single time":
+    // 'end' opens scrolled to what was said last, and follows what is said after, unless scrolled up.
+    opensAt?: 'end';
     // TODO: Add 'programmature' form type for full code editor that can minimize to tray
     // No size: an element never declares how big it is. A window measures its content.
     defaultX?: number;                   // Default position
