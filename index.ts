@@ -247,6 +247,10 @@ export { createInput, createButton, createStatusLine } from './canvas/ui-primiti
 // Sparkline — numbers to a line that answers pointing; what the numbers mean is the host's
 export { renderSparkline, wireLineTooltips, stepAt } from './sparkline';
 
+// Text size — the package's, entirely: a size from the set, or it does not compile
+export { TEXT_SIZES, sizeText } from './text';
+export type { TextSize } from './text';
+
 // Table — heads and rows in the package's shape and look; what a cell says and a press opens is the host's
 export { createTable, tableCell } from './table';
 export type { TableCell, TableRow } from './table';

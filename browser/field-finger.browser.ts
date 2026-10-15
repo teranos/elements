@@ -12,7 +12,7 @@
  * an iPhone 15's keyboard takes, held upright.
  *
  * Personas:
- * - Tim: Happy path — the field takes a tap, at a size iOS does not zoom for
+ * - Tim: Happy path — the field takes a tap, at the package's size
  * - Spike: Edge cases — a field by the tray takes a tap, not a browse
  * - Jenny: Complex scenarios — a window low on the screen when the keyboard comes, and goes
  */
@@ -64,10 +64,12 @@ test.describe('Tim: a field takes a tap', () => {
         await expect(field).toBeFocused();
     });
 
-    test('at a size iOS Safari does not zoom the page for', async ({ page }) => {
+    // Its size is the package's (text.ts); that a tap on it zooms nothing is the
+    // package's too, at any size (scale.ts), shown by the real keyboard run.
+    test('at the package\'s size', async ({ page }) => {
         const { field } = await openSelenium(page);
-        const size = await field.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
-        expect(size).toBeGreaterThanOrEqual(16);
+        const size = await field.evaluate((el) => getComputedStyle(el).fontSize);
+        expect(size).toBe('11px');
     });
 });
 

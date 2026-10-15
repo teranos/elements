@@ -8,6 +8,7 @@
  */
 
 import { preventDrag } from './drag';
+import { sizeText } from '../text';
 
 /** Create a text input with drag protection already applied. */
 export function createInput(opts?: { label?: string; placeholder?: string; value?: string; type?: string }): HTMLElement {
@@ -51,7 +52,7 @@ export function createStatusLine(): { element: HTMLElement; show(msg: string, is
     const el = document.createElement('div');
     el.className = 'status';
     el.style.fontFamily = 'monospace';
-    el.style.fontSize = 'var(--font-size-xs, 10px)';
+    sizeText(el, 'xs');
     el.style.minHeight = '16px';
     el.style.lineHeight = '16px';
     let timer: ReturnType<typeof setTimeout> | null = null;

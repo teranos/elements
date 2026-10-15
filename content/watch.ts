@@ -27,6 +27,7 @@ import { getLogger, getLogSegment } from '../config';
 import { CONTENT_DEADLINE_MS } from '../element';
 import { setContentState, getContentState } from '../dataset';
 import { isSettled, type ContentState } from './state';
+import { sizeText } from '../text';
 
 /**
  * Who the body belongs to. A `Element` satisfies it, and so does a path that has
@@ -211,7 +212,7 @@ function refuse(contentArea: HTMLElement, item: ContentSubject, logLabel: string
 
     const which = document.createElement('div');
     which.style.opacity = '0.8';
-    which.style.fontSize = '12px';
+    sizeText(which, 'sm');
     which.textContent = `${item.id} · ${logLabel} · still empty after ${waitedMs}ms`;
     box.appendChild(which);
 

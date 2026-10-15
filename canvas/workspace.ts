@@ -16,6 +16,7 @@ import { wearIdentity, wearShadow } from '../paint';
 import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import { getOpenDuration, getRestDuration } from '../element';
 import { prepareMorphTo, calculateTrayTarget, resetElement } from '../forms/morphology';
+import { sizeText } from '../text';
 
 /**
  * Morph an element to fullscreen canvas (no chrome)
@@ -100,7 +101,7 @@ export function morphDotToWorkspace(
 
             const errorMsg = document.createElement('div');
             errorMsg.style.opacity = '0.8';
-            errorMsg.style.fontSize = '12px';
+            sizeText(errorMsg, 'sm');
             errorMsg.textContent = error instanceof Error ? error.message : String(error);
             errorContent.appendChild(errorMsg);
 

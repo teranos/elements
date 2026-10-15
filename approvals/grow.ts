@@ -11,6 +11,8 @@
  * grown to the row's full width holding what it opened. Its label stays;
  * pressed there it goes back.
  */
+
+import { sizeText } from '../text';
 export function growInPlace(text: string, open: () => HTMLElement): HTMLElement {
     const el = document.createElement('div');
     el.setAttribute('role', 'button');
@@ -90,7 +92,7 @@ export function table(head: string[], rows: string[][]): HTMLElement {
     const t = document.createElement('table');
     t.style.borderCollapse = 'collapse';
     t.style.fontFamily = 'var(--font-mono)';
-    t.style.fontSize = '12px';
+    sizeText(t, 'sm');
     t.style.width = '100%';
     const cell = (tag: 'th' | 'td', value: string) => {
         const c = document.createElement(tag);

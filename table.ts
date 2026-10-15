@@ -19,7 +19,6 @@ const STYLE = `
     width: 100%;
     border-collapse: collapse;
     font-family: var(--font-mono);
-    font-size: var(--font-size-sm);
     color: var(--text-on-dark);
 }
 

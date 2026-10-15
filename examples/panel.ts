@@ -11,6 +11,7 @@ import type { Element } from '../element';
 import { createInput } from '../canvas/ui-primitives';
 import { paintSegment, segmentStrip, type SegmentState } from '../approvals/segments';
 import { growInPlace } from '../approvals/grow';
+import { sizeText } from '../text';
 
 /** What each colour of a run means, each drawn the way a segment is. */
 function runsKey(): HTMLElement {
@@ -80,7 +81,7 @@ export function renderPanelSpecimen(): void {
                 const { strip, segments } = segmentStrip('runs', 6);
                 strip.style.flex = '0 0 72px';
                 strip.style.minHeight = '16px';
-                strip.style.fontSize = '10px';
+                sizeText(strip, 'xs');
                 lastRuns(i).forEach((state, j) => paintSegment(segments[j]!, state));
                 row.append(text, strip);
                 body.appendChild(row);
