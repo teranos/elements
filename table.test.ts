@@ -1,8 +1,13 @@
 // "The elements package should own Tables"
 // The table's shape and look are the package's; what each cell says and what a press opens are the host's.
-// Personas: Tim (heads, rows, cells, a press), Spike (no press, no id, no rows, one stylesheet), Jenny (a host's tables).
+// "TABLES BEING MAX 4 col": a fifth column, or a row of another width, does not compile.
+// Personas: Tim (heads, rows, cells, a press), Spike (no press, no id, no rows, one stylesheet; a fifth column,
+// a row of another width), Jenny (a host's tables).
 
 import { describe, test, expect, beforeEach } from 'bun:test';
+import { mkdtempSync, writeFileSync, rmSync } from 'fs';
+import { tmpdir } from 'os';
+import { join, resolve } from 'path';
 import { createTable, tableCell } from './table';
 
 const STYLE_ID = 'elements-table-style';
@@ -124,14 +129,14 @@ describe('Jenny: the tables a host draws', () => {
         const render = () => {
             container.innerHTML = '';
             const shown = tokens.filter(t => !liveOnly || !t.ended);
-            container.appendChild(createTable('tokens', ['Label', 'Kind', 'Owner', 'DID', 'Namespace', 'Created', statusHead(liveOnly, () => { liveOnly = !liveOnly; render(); })],
-                shown.map(t => ({ cells: [t.label, 'ATTESTOR', 'root', 'zPond', 'clean', '2026-09-14', 'active'] }))));
+            container.appendChild(createTable('tokens', ['Label', 'Kind', 'Created', statusHead(liveOnly, () => { liveOnly = !liveOnly; render(); })],
+                shown.map(t => ({ cells: [t.label, 'ATTESTOR', '2026-09-14', 'active'] }))));
         };
         render();
 
         // Last used is no longer a column of its own.
         const headers = [...container.querySelectorAll('th')].map(th => th.firstChild?.textContent?.trim());
-        expect(headers).toEqual(['Label', 'Kind', 'Owner', 'DID', 'Namespace', 'Created', 'Status']);
+        expect(headers).toEqual(['Label', 'Kind', 'Created', 'Status']);
 
         const labels = () => [...container.querySelectorAll('tbody tr td:first-child')].map(td => td.textContent);
         expect(labels()).toEqual(['live', 'revoked', 'expired']);
@@ -169,9 +174,9 @@ describe('Jenny: the tables a host draws', () => {
             return td;
         };
         const container = document.createElement('div');
-        container.appendChild(createTable('mail-sent', ['When', 'User', 'To', 'Plugin', 'Template', 'Subject', 'Outcome'], [
-            { cells: [tableCell('2026-09-24 14:03:11', 'element-time', 'AS-1'), 'UStim', 'tim@defacile.nl', 'garden', 'neutral', 'Welkom', outcome(false, 'MessageRejected: Email address is not verified')], onPress: () => {} },
-            { cells: [tableCell('2026-09-24 14:03:11', 'element-time', 'AS-2'), 'UStim', 'tim@defacile.nl', 'garden', 'neutral', 'Welkom', outcome(true, '0100019a-ses')], onPress: () => {} },
+        container.appendChild(createTable('mail-sent', ['When', 'To', 'Subject', 'Outcome'], [
+            { cells: [tableCell('2026-09-24 14:03:11', 'element-time', 'AS-1'), 'tim@defacile.nl', 'Welkom', outcome(false, 'MessageRejected: Email address is not verified')], onPress: () => {} },
+            { cells: [tableCell('2026-09-24 14:03:11', 'element-time', 'AS-2'), 'tim@defacile.nl', 'Welkom', outcome(true, '0100019a-ses')], onPress: () => {} },
         ]));
         const rows = container.querySelectorAll('tbody tr');
         expect(rows.length).toBe(2);
@@ -195,24 +200,77 @@ describe('Jenny: the tables a host draws', () => {
 
     test('two tables in one element are found by their names', () => {
         const container = document.createElement('div');
-        container.appendChild(createTable('github-namespaces', ['Namespace', 'Source', 'Login', 'Minted by', 'Auth', 'Rate'], [
-            { cells: ['clean', 'a personal access token', 'tim', 'root', 'ok', '4999 / 5000'] },
+        container.appendChild(createTable('github-namespaces', ['Namespace', 'Login', 'Auth', 'Rate'], [
+            { cells: ['clean', 'tim', 'ok', '4999 / 5000'] },
         ]));
-        container.appendChild(createTable('github-taken', ['When', 'Plugin', 'Archive', 'Digest', 'Changed'], [
-            { cells: ['2026-09-24 14:03:11', 'garden', 'garden.tar.gz', 'sha256:ab', 'yes'] },
-            { cells: ['2026-09-24 13:03:11', 'garden', 'garden.tar.gz', 'sha256:aa', 'no, older than installed'] },
+        container.appendChild(createTable('github-taken', ['When', 'Plugin', 'Digest', 'Changed'], [
+            { cells: ['2026-09-24 14:03:11', 'garden', 'sha256:ab', 'yes'] },
+            { cells: ['2026-09-24 13:03:11', 'garden', 'sha256:aa', 'no, older than installed'] },
         ]));
         expect(container.querySelectorAll('.github-taken-table tbody tr')).toHaveLength(2);
         expect(container.querySelectorAll('.github-namespaces-table tbody tr')).toHaveLength(1);
     });
 
-    // The Users list switches nobody: the switch is in the User.
-    test('eight heads, no button', () => {
-        const container = document.createElement('div');
-        container.appendChild(createTable('users', ['Name', 'Level', 'Door', 'Reached by', 'Email', 'Phone', 'Created', 'Status'], [
-            { cells: ['root', 'ROOT', '—', '1 key', '—', '—', '2026-09-13 23:39:16', 'on'] },
-        ]));
-        expect(container.querySelector('button')).toBeNull();
-        expect(container.querySelectorAll('th').length).toBe(8);
+    // "TABLES BEING MAX 4 col." A host's Users list of eight heads is not drawn.
+    test('eight heads are refused', () => {
+        const eight = ['Name', 'Level', 'Door', 'Reached by', 'Email', 'Phone', 'Created', 'Status'];
+        expect(() => createTable('users', eight as never, [])).toThrow(TypeError);
+    });
+});
+
+/** What tsc says of a host's file that draws a table with these lines. */
+function compile(lines: string): string {
+    const dir = mkdtempSync(join(tmpdir(), 'elements-table-'));
+    try {
+        writeFileSync(join(dir, 'host.ts'), [
+            `import { createTable, tableCell } from '${resolve(import.meta.dir, 'table')}';`,
+            `void tableCell;`,
+            lines,
+        ].join('\n'));
+        writeFileSync(join(dir, 'tsconfig.json'), JSON.stringify({
+            compilerOptions: {
+                noEmit: true, strict: true, target: 'ES2020', module: 'ESNext',
+                moduleResolution: 'bundler', lib: ['ES2020', 'DOM'], types: [],
+            },
+            files: ['host.ts'],
+        }));
+        const tsc = Bun.spawnSync([resolve(import.meta.dir, 'node_modules/.bin/tsc'), '-p', dir]);
+        return tsc.stdout.toString() + tsc.stderr.toString();
+    } finally {
+        rmSync(dir, { recursive: true, force: true });
+    }
+}
+
+describe('Spike: four columns at most, every row as wide as the heads', () => {
+    test('four heads and rows of four compile', () => {
+        expect(compile(`createTable('mail', ['When', 'To', 'Subject', 'Outcome'], [{ cells: ['a', 'b', 'c', 'd'] }]);`)).toBe('');
+    }, 30000);
+
+    test('rows built from a list compile, as a host builds them', () => {
+        expect(compile([
+            `const mails: [string, string][] = [['2026-09-24', 'Welkom']];`,
+            `createTable('mail', ['When', 'Subject'], mails.map(([when, subject]) => ({ cells: [tableCell(when, 'element-time'), subject], onPress: () => {} })));`,
+        ].join('\n'))).toBe('');
+    }, 30000);
+
+    test('a fifth column does not compile', () => {
+        expect(compile(`createTable('mail', ['When', 'User', 'To', 'Subject', 'Outcome'], []);`)).toContain('error TS');
+    }, 30000);
+
+    test('a row narrower than the heads does not compile', () => {
+        expect(compile(`createTable('mail', ['When', 'To', 'Subject'], [{ cells: ['a', 'b'] }]);`)).toContain('error TS');
+    }, 30000);
+
+    test('a row wider than the heads does not compile', () => {
+        expect(compile(`createTable('mail', ['When', 'To'], [{ cells: ['a', 'b', 'c'] }]);`)).toContain('error TS');
+    }, 30000);
+
+    test('no heads does not compile', () => {
+        expect(compile(`createTable('mail', [], []);`)).toContain('error TS');
+    }, 30000);
+
+    test('a caller with no types is stopped too: a fifth column, and a row of another width', () => {
+        expect(() => createTable('mail', ['a', 'b', 'c', 'd', 'e'] as never, [])).toThrow(TypeError);
+        expect(() => createTable('mail', ['a', 'b'], [{ cells: ['a'] } as never])).toThrow(TypeError);
     });
 });

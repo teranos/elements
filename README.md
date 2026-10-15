@@ -72,6 +72,7 @@ Where this package ends and a host begins. The test that settles each line is in
 - **A table's shape and look are the package's; what each cell says and what a press on a row opens are the host's.**
   "The elements package should own Tables"
   `createTable` builds the heads and rows under one class, `element-table`, and puts its stylesheet in the page once; a cell is text, or a cell the host built whole (`tableCell`, or its own `td`).
+  "TABLES BEING MAX 4 col." A table has one to four columns (`MAX_TABLE_COLUMNS`), and every row is as wide as its heads: a fifth column, or a row of another width, does not compile (`TableHeads`, `TableCells`); a caller with no types gets a `TypeError`.
 - **An approval's choosing is the package's; what a press does is the host's.** "Do you hear how little it matters what the 'thing' is to approve?" `renderApprovals` shows the list, every option, the confidence the fast classifier answers, the checks and the time in the buttons, and the roll's order; every press is handed to the host (`pressed`), which says what the checks are doing (`checks`) and when what stood took effect (`settled`). An aside (`asides`) opens what the host hands it and chooses nothing. Merging, mailing, creating an account: the host's.
 
 ## Morph classes

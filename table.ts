@@ -4,9 +4,22 @@
 /** A cell: its text, or the cell the host built whole. */
 export type TableCell = string | HTMLTableCellElement;
 
+/** The most columns a table has. "TABLES BEING MAX 4 col." */
+export const MAX_TABLE_COLUMNS = 4;
+
+/** The heads: one to four. A fifth does not compile. */
+export type TableHeads =
+    | readonly [TableCell]
+    | readonly [TableCell, TableCell]
+    | readonly [TableCell, TableCell, TableCell]
+    | readonly [TableCell, TableCell, TableCell, TableCell];
+
+/** A row of cells as wide as the heads: one more or one fewer does not compile. */
+export type TableCells<H extends TableHeads = TableHeads> = { readonly [K in keyof H]: TableCell };
+
 /** A row: its cells, the id it carries, and what a press on it opens. */
-export interface TableRow {
-    cells: TableCell[];
+export interface TableRow<H extends TableHeads = TableHeads> {
+    cells: TableCells<H>;
     id?: string;
     onPress?: () => void;
 }
@@ -70,8 +83,17 @@ function headCell(head: TableCell): HTMLTableCellElement {
     return th;
 }
 
-/** One table, named: the heads in one row, a row each below. */
-export function createTable(name: string, heads: TableCell[], rows: TableRow[]): HTMLTableElement {
+/** One table, named: the heads in one row, a row each below, as wide as the heads. */
+export function createTable<const H extends TableHeads>(name: string, heads: H, rows: readonly TableRow<NoInfer<H>>[]): HTMLTableElement {
+    // A caller with no types reaches here with any width; it is stopped the same.
+    if (heads.length < 1 || heads.length > MAX_TABLE_COLUMNS) {
+        throw new TypeError(`table "${name}" has ${heads.length} columns; a table has 1 to ${MAX_TABLE_COLUMNS}`);
+    }
+    for (const row of rows) {
+        if (row.cells.length !== heads.length) {
+            throw new TypeError(`a row of table "${name}" has ${row.cells.length} cells; its heads are ${heads.length}`);
+        }
+    }
     ensureStyle();
     const table = document.createElement('table');
     table.className = `element-table ${name}-table`;
