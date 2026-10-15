@@ -38,29 +38,45 @@ test.beforeEach(async ({ page }) => {
     await asAnIPhone(page);
 });
 
-test('full screen, it fills the screen, and its controls are inside the safe area', async ({ page }) => {
+test('full screen, it fills the screen, and its controls are inside the safe area', async ({ page, browserName }) => {
     // Krypton opens as a panel: the whole screen.
     const krypton = page.locator('[data-element-id="panel-specimen"]');
     await krypton.tap();
     await expect(krypton).toHaveAttribute('data-form', 'panel');
-    await expect(krypton.locator('[aria-label="Minimize"]')).toBeVisible();
+    await expect.poll(() => krypton.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
 
     // The background goes under the device's edges.
     const box = await krypton.boundingBox();
     expect(box!.y).toBe(0);
     expect(box!.height).toBe(page.viewportSize()!.height);
 
-    // Every control is where a finger can reach it.
-    const minimize = await reachable(page, '[data-element-id="panel-specimen"] [aria-label="Minimize"]');
-    expect(minimize.top).toBeGreaterThanOrEqual(TOP);
-    expect(minimize.pressable).toBe(true);
+    // Every control is where a finger can reach it. On a phone the title bar is the
+    // grabber's strip (forms/panel.ts, foldToStrip), and the swipe is taken there.
+    const strip = await reachable(page, '[data-element-id="panel-specimen"] > .title-bar');
+    expect(strip.top).toBeGreaterThanOrEqual(TOP);
+    expect(strip.pressable).toBe(true);
 
     const edge = await reachable(page, '[data-element-id="panel-specimen"] .panel-resize-handle');
     expect(edge.top).toBeGreaterThanOrEqual(TOP);
     expect(edge.bottom).toBeLessThanOrEqual(page.viewportSize()!.height - BOTTOM);
 
-    // And the way out works.
-    await krypton.locator('[aria-label="Minimize"]').tap();
+    // And the way out works: swiped down by the strip, it goes to the tray. WebKit has no
+    // finger to drive; there the minimize button is pressed as a screen reader presses it.
+    if (browserName !== 'chromium') {
+        await krypton.locator('[aria-label="Minimize"]').evaluate((button) => (button as HTMLElement).click());
+        await expect(krypton).toHaveAttribute('data-form', 'dot');
+        return;
+    }
+    const grip = (await krypton.locator(':scope > .title-bar').boundingBox())!;
+    const x = grip.x + 40;
+    const y = grip.y + grip.height / 2;
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    for (let i = 1; i <= 12; i++) {
+        await page.waitForTimeout(30);
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y + (page.viewportSize()!.height * 0.4 * i) / 12 }] });
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await expect(krypton).toHaveAttribute('data-form', 'dot');
 });
 
