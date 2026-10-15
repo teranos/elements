@@ -17,6 +17,34 @@ interface ResizeState {
     sizing: AbortController | null;
 }
 
+// Once a person gives a window a size, what it holds fills it, whatever size its host drew it.
+// Written important: a host's fixed size does not leave it small inside a window dragged big.
+const FILLS: Record<string, string> = {
+    width: '100%', 'max-width': '100%', 'min-width': '0',
+    height: 'auto', 'max-height': 'none', 'min-height': '100%',
+    'box-sizing': 'border-box',
+};
+
+/**
+ * "want to be able to rezise it and have it actually respect my resize, horizontally
+ * and vertically" (#40). What the window holds fills the body, both ways, from now on.
+ */
+export function fillWithContent(windowElement: HTMLElement): void {
+    const body = windowElement.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
+    const content = body?.firstElementChild;
+    if (!(content instanceof HTMLElement)) return;
+    for (const [name, value] of Object.entries(FILLS)) content.style.setProperty(name, value, 'important');
+    content.dataset.fills = '';
+}
+
+/** Out of a window, what it held is the size its host draws it again. */
+export function stopFilling(windowElement: HTMLElement): void {
+    const content = windowElement.querySelector<HTMLElement>(':scope > [data-scroller="body"] > [data-fills]');
+    if (!content) return;
+    for (const name of Object.keys(FILLS)) content.style.removeProperty(name);
+    delete content.dataset.fills;
+}
+
 export function setupWindowResize(windowElement: HTMLElement): void {
     // A reopened window is one element (Element Axioma): one corner, not two.
     teardownWindowResize(windowElement);
@@ -48,6 +76,7 @@ export function setupWindowResize(windowElement: HTMLElement): void {
     };
 
     const start = (x: number, y: number) => {
+        fillWithContent(windowElement);
         const rect = windowElement.getBoundingClientRect();
         startX = x;
         startY = y;
