@@ -18,6 +18,7 @@
 import { shatter } from './shatter';
 import { growInPlace } from './grow';
 import { paintSegment, segmentStrip, type SegmentState } from './segments';
+import { sizeText } from '../text';
 
 /** What one press says. The same option pressed again says its next step. */
 export interface ApprovalStep {
@@ -125,14 +126,14 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
 
     const label = document.createElement('span');
     label.textContent = option.label;
-    label.style.fontSize = '16px';
+    sizeText(label, 'lg');
     btn.appendChild(label);
 
     if (option.confidence !== undefined) {
         const pct = document.createElement('span');
         pct.title = 'fast classifier';
         pct.style.fontFamily = 'var(--font-mono)';
-        pct.style.fontSize = '22px';
+        sizeText(pct, 'lg');
         pct.style.fontVariantNumeric = 'tabular-nums';
         const answered = (n: number) => {
             pct.textContent = `${n}%`;
@@ -153,7 +154,7 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     const note = document.createElement('span');
     note.dataset.note = '';
     note.style.fontFamily = 'var(--font-mono)';
-    note.style.fontSize = '11px';
+    sizeText(note, 'sm');
     note.style.lineHeight = '1.3';
     btn.appendChild(note);
     return { btn, note };
@@ -187,12 +188,12 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
     const name = document.createElement('span');
     name.dataset.title = '';
     name.textContent = approval.title;
-    name.style.fontSize = '16px';
+    sizeText(name, 'lg');
     name.style.fontWeight = 'bold';
     const ago = document.createElement('span');
     ago.textContent = `${approval.arrivedMinutesAgo}m ago`;
     ago.style.fontFamily = 'var(--font-mono)';
-    ago.style.fontSize = '12px';
+    sizeText(ago, 'sm');
     ago.style.whiteSpace = 'nowrap';
     const end = document.createElement('span');
     end.style.display = 'flex';
@@ -222,7 +223,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
         gh.style.cursor = 'pointer';
         gh.style.touchAction = 'manipulation';
         gh.style.fontFamily = 'var(--font-mono)';
-        gh.style.fontSize = '12px';
+        sizeText(gh, 'sm');
         gh.style.fontWeight = 'normal';
         gh.style.flexShrink = '0';
 
@@ -556,7 +557,7 @@ export function renderApprovals(host: ApprovalHost): ApprovalRoll {
     end.style.borderTop = '1px solid #fff';
     end.style.padding = '16px 0';
     end.style.fontFamily = 'var(--font-mono)';
-    end.style.fontSize = '12px';
+    sizeText(end, 'sm');
     body.appendChild(end);
     const rendered: Rendered[] = [];
     let pending: ReturnType<typeof setTimeout> | undefined;

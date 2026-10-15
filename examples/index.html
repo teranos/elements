@@ -59,7 +59,6 @@
     [data-form="tooltip"] {
       border: 1px solid #fff;
       padding: 4px 8px;
-      font-size: var(--font-size-sm);
       max-width: 320px;
     }
 
@@ -77,27 +76,23 @@
       border: 1px solid #fff;
       border-radius: var(--border-radius);
       font: inherit;
-      font-size: var(--font-size-sm);
       cursor: pointer;
       user-select: none;
     }
 
     .specimen-button:hover { background: #fff; color: #000; }
 
-    /* A field is the page's to dress. That a tap zooms nothing is the
-       package's, whatever size the page dresses it at (scale.ts). */
+    /* A field is the page's to dress, but for its text size: that is the
+       package's (text.ts). That a tap zooms nothing is the package's too (scale.ts). */
     .field {
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
 
-    .field .label {
-      font-size: var(--font-size-sm);
-    }
-
     .field .input {
-      font: 16px/1.4 var(--font-mono);
+      font-family: var(--font-mono);
+      line-height: 1.4;
       padding: 8px;
       min-height: 44px;
       background: #000;
@@ -137,7 +132,6 @@
       flex-shrink: 0;
       user-select: none;
       cursor: move;
-      font-size: var(--font-size-sm);
       color: #fff;
     }
 
@@ -167,7 +161,6 @@
 
     .content {
       font-family: var(--font-mono);
-      font-size: var(--font-size-sm);
       line-height: 1.6;
     }
   </style>

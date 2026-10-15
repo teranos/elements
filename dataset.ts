@@ -7,6 +7,7 @@
 
 import { isForm, type Form } from './form';
 import { isContentState, type ContentState } from './content/state';
+import { holdElementText, releaseElementText } from './text';
 
 /**
  * Record which form an element is in.
@@ -15,6 +16,9 @@ import { isContentState, type ContentState } from './content/state';
  * one at any time. This is where that is written down, so it can be read.
  */
 export function setForm(element: HTMLElement, form: Form): void {
+    // Whatever form it takes but a dot, its text is at the package's sizes (text.ts).
+    if (form === 'dot' || form === 'proximity') releaseElementText(element);
+    else holdElementText(element);
     element.dataset.form = form;
 }
 

@@ -14,6 +14,7 @@ import { setContentState } from '../dataset';
 import { watchContent } from './watch';
 import { holdBody } from './body';
 import { watchScroll } from './scroll';
+import { sizeText } from '../text';
 
 export interface RenderContentResult {
     titleBar: HTMLElement;
@@ -109,7 +110,7 @@ export function renderContent(
 
             const errorMsg = document.createElement('div');
             errorMsg.style.opacity = '0.8';
-            errorMsg.style.fontSize = '12px';
+            sizeText(errorMsg, 'sm');
             errorMsg.textContent = error instanceof Error ? error.message : String(error);
             errorContent.appendChild(errorMsg);
 
