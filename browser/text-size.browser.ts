@@ -86,6 +86,14 @@ test.describe('Jenny: sized from the set, and a dot', () => {
         expect(await row.evaluate((el) => getComputedStyle(el.firstElementChild ?? el).fontSize)).toBe('14px');
     });
 
+    test('a field is at 16, even in a node sized from the set', async ({ page }) => {
+        await openKrypton(page);
+        const body = page.locator(`${KRYPTON} [data-scroller="body"]`);
+        await body.evaluate((el) => { (el as HTMLElement).dataset.textSize = 'xs'; });
+
+        expect(await body.locator('input').first().evaluate((el) => getComputedStyle(el).fontSize)).toBe('16px');
+    });
+
     test('a dot in the tray is not sized by the rule: its symbol is the tray\'s', async ({ page }) => {
         // A size the rule never gives, so a dot it reached would show it.
         await page.addStyleTag({ content: '.dot .dot-symbol { font-size: 9px; }' });

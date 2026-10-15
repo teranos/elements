@@ -20,7 +20,7 @@ import { describe, test, expect, beforeEach } from 'bun:test';
 import { mkdtempSync, writeFileSync, rmSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, resolve } from 'path';
-import { TEXT_SIZES, sizeText } from './text';
+import { TEXT_SIZES, FIELD_TEXT_SIZE, sizeText } from './text';
 import { setForm } from './dataset';
 import { canvasPlaced } from './canvas/placed';
 
@@ -43,6 +43,15 @@ describe('Tim: the set, and a node sized from it', () => {
 
         expect(node.dataset.textSize).toBe('lg');
         expect(rule()).not.toBeNull();
+    });
+
+    test('a field is at 16, a size iOS does not zoom the page for', () => {
+        sizeText(document.createElement('span'), 'sm');
+        const css = rule()!.textContent!;
+
+        expect(FIELD_TEXT_SIZE).toBe(16);
+        expect(css).toContain(':is(input, textarea, select)');
+        expect(css).toContain(`font-size: ${FIELD_TEXT_SIZE}px !important`);
     });
 
     test('the rule is in the page once, however many nodes are sized', () => {

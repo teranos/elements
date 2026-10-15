@@ -248,7 +248,7 @@ export { createInput, createButton, createStatusLine } from './canvas/ui-primiti
 export { renderSparkline, wireLineTooltips, stepAt } from './sparkline';
 
 // Text size — the package's, entirely: a size from the set, or it does not compile
-export { TEXT_SIZES, sizeText } from './text';
+export { TEXT_SIZES, FIELD_TEXT_SIZE, sizeText } from './text';
 export type { TextSize } from './text';
 
 // Table — heads and rows in the package's shape and look; what a cell says and a press opens is the host's

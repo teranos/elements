@@ -8,6 +8,9 @@ export const TEXT_SIZES = Object.freeze({ xs: 10, sm: 11, md: 13, lg: 14 } as co
 /** A size from the set. Any other size does not compile. */
 export type TextSize = keyof typeof TEXT_SIZES;
 
+/** px: a field's text, not a size a host picks: under 16, iOS zooms the page when the field is tapped. */
+export const FIELD_TEXT_SIZE = 16;
+
 /** What text inside an element is at until sizeText() says otherwise. */
 const DEFAULT: TextSize = 'sm';
 
@@ -16,6 +19,7 @@ const RULE_ID = 'elements-text-size';
 // An element in any form but a dot: a dot's symbol is the tray's.
 const ELEMENT = '[data-element-id]:not(.dot)';
 
+// A field outranks a size from the set around it or on it: :is() counts its most specific name.
 // Layered and important: an important rule in a layer outranks every important rule outside
 // one, and every rule of any kind in a stylesheet or a style attribute that is not important.
 const RULE = `@layer elements {
@@ -23,6 +27,7 @@ ${ELEMENT} { font-size: ${TEXT_SIZES[DEFAULT]}px !important; }
 ${ELEMENT} * { font-size: inherit !important; }
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
     `${ELEMENT} [data-text-size="${name}"], ${ELEMENT}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
+${ELEMENT} :is(input, textarea, select):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
 }`;
 
 /** The package's rule, in the page once. */
