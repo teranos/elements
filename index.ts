@@ -113,6 +113,8 @@ export { stashContent, restoreContent, hasStash } from './content/stash';
 
 // Where an element scrolls: the package's body, or the scroller a host declares
 export { declareScroller, watchScroll, expectScroll } from './content/scroll';
+// A chat's field takes the bottom of its element, the whole width (content/say.ts)
+export { declareSay } from './content/say';
 
 export { renderContent } from './content/render';
 export type { RenderContentResult } from './content/render';
