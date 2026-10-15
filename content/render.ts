@@ -15,6 +15,7 @@ import { watchContent } from './watch';
 import { holdBody } from './body';
 import { watchScroll } from './scroll';
 import { sizeText } from '../text';
+import { openAtEnd, stopFollowing } from './end';
 
 export interface RenderContentResult {
     titleBar: HTMLElement;
@@ -123,6 +124,9 @@ export function renderContent(
 
     // Where it scrolls is the package's to say (content/scroll.ts).
     watchScroll(element, item.title);
+    // A chat opens at what was said last (content/end.ts).
+    if (item.opensAt === 'end') openAtEnd(element);
+    else stopFollowing(element);
 
     return { titleBar, contentElement };
 }
