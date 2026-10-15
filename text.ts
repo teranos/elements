@@ -3,7 +3,7 @@
 // set, and nothing else: a host's stylesheet, a style attribute or an em has no say there.
 
 /** px: the sizes text inside an element is read at, hand-tuned. */
-export const TEXT_SIZES = Object.freeze({ xs: 10, sm: 11, md: 13, lg: 14 } as const);
+export const TEXT_SIZES: Readonly<{ xs: 10; sm: 11; md: 13; lg: 14 }> = Object.freeze({ xs: 10, sm: 11, md: 13, lg: 14 } as const);
 
 /** A size from the set. Any other size does not compile. */
 export type TextSize = keyof typeof TEXT_SIZES;
