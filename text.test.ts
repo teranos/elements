@@ -54,6 +54,14 @@ describe('Tim: the set, and a node sized from it', () => {
         expect(css).toContain(`font-size: ${FIELD_TEXT_SIZE}px !important`);
     });
 
+    test('text breaks to the width it has, a word too long anywhere in it', () => {
+        sizeText(document.createElement('span'), 'sm');
+        const css = rule()!.textContent!;
+
+        expect(css).toContain('overflow-wrap: anywhere !important');
+        expect(css).toContain('word-break: normal !important');
+    });
+
     test('the rule is in the page once, however many nodes are sized', () => {
         sizeText(document.createElement('span'), 'xs');
         sizeText(document.createElement('span'), 'md');
