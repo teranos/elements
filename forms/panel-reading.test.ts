@@ -1,18 +1,14 @@
 /**
- * A panel on a phone reads at a phone's size.
+ * A panel on a phone shows the host's text at the host's size.
  *
- * "QNTX's text and message box sized like Claude's on the phone, owned by
- * Elements so no host has to remember it."
- *
- * Apple Human Interface Guidelines, Typography: body text is 17 points at the
- * default size. A host draws its content at whatever size it draws it; on a
- * touch screen the panel shows that content scaled until the host's text reads
- * at 17, and a field in it scales with it. The host has no say.
+ * "text too big on mobile, unusable" (#40). The panel scaled what it held until
+ * the host's text read at 17, layout and all; on a phone that made it unusable.
+ * Now the panel scales nothing: what the host draws is what is seen.
  *
  * Personas:
- * - Tim: Happy path — a panel on a touch screen holds the host's 11px text at 17
- * - Spike: Edge cases — with a mouse nothing is scaled; text already at 17 or more is not made smaller
- * - Jenny: Complex scenarios — to the tray and back, read at 17 again, not scaled twice
+ * - Tim: Happy path — a panel on a touch screen holds the host's 11px text at 11
+ * - Spike: Edge cases — with a mouse, the same
+ * - Jenny: Complex scenarios — to the tray and back, still at the host's size
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
@@ -24,14 +20,14 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // A morph finishes on the next turn (test-animations.ts); this is well past it.
 const SETTLED = 15;
 
-const claude = (): Element => ({
-    id: 'claude',
-    title: 'Claude',
-    symbol: '✻',
+const krypton = (): Element => ({
+    id: 'krypton',
+    title: 'Krypton',
+    symbol: 'Kr',
     opensAs: 'panel',
     renderContent: () => {
         const content = document.createElement('div');
-        content.textContent = 'Say something to the ROOT agent';
+        content.textContent = 'schedule 1 · ACTIVE · every 1m';
         return content;
     },
 });
@@ -49,7 +45,7 @@ let element: HTMLElement;
 let restorePointer: () => void = () => {};
 
 async function open(): Promise<void> {
-    morphDotToPanel(element, claude(), () => {}, () => {}, (el) => { tray.appendChild(el); });
+    morphDotToPanel(element, krypton(), () => {}, () => {}, (el) => { tray.appendChild(el); });
     await wait(SETTLED);
 }
 
@@ -63,7 +59,7 @@ function hostDrawsAt(size: string): void {
 
 const body = () => element.querySelector<HTMLElement>(':scope > [data-scroller="body"]')!;
 
-/** The size the host's text is seen at: its own size, times the panel's scale. */
+/** The size the host's text is seen at: its own size, times any scale on the body. */
 const seenAt = () => parseFloat(getComputedStyle(body()).fontSize) * (parseFloat(body().style.zoom) || 1);
 
 beforeEach(() => {
@@ -73,7 +69,7 @@ beforeEach(() => {
     tray.className = 'tray-dots';
     document.body.appendChild(tray);
     element = document.createElement('div');
-    element.dataset.elementId = 'claude';
+    element.dataset.elementId = 'krypton';
     tray.appendChild(element);
 });
 
@@ -85,44 +81,34 @@ afterEach(() => {
 });
 
 describe('Tim: a panel on a touch screen', () => {
-    test('the host\'s 11px text is seen at 17', async () => {
+    test('the host\'s 11px text is seen at 11', async () => {
         restorePointer = pointer('coarse');
         hostDrawsAt('11px');
         await open();
 
-        expect(seenAt()).toBeCloseTo(17, 5);
+        expect(seenAt()).toBe(11);
     });
 });
 
-describe('Spike: what is not scaled', () => {
-    test('with a mouse, the panel shows the host\'s text at the host\'s size', async () => {
+describe('Spike: with a mouse', () => {
+    test('the host\'s 11px text is seen at 11', async () => {
         restorePointer = pointer('fine');
         hostDrawsAt('11px');
         await open();
 
-        expect(body().style.zoom).toBe('');
         expect(seenAt()).toBe(11);
-    });
-
-    test('text already at 17 or more is not made smaller', async () => {
-        restorePointer = pointer('coarse');
-        hostDrawsAt('20px');
-        await open();
-
-        expect(body().style.zoom).toBe('');
-        expect(seenAt()).toBe(20);
     });
 });
 
 describe('Jenny: to the tray and back', () => {
-    test('the panel opened again reads at 17, not scaled twice', async () => {
+    test('opened again, the host\'s text is still at the host\'s size', async () => {
         restorePointer = pointer('coarse');
         hostDrawsAt('11px');
         await open();
-        morphPanelToDot(element, claude(), () => {}, (el) => { tray.appendChild(el); });
+        morphPanelToDot(element, krypton(), () => {}, (el) => { tray.appendChild(el); });
         await wait(SETTLED);
         await open();
 
-        expect(seenAt()).toBeCloseTo(17, 5);
+        expect(seenAt()).toBe(11);
     });
 });
