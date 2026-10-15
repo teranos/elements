@@ -7,7 +7,8 @@
 
 import { tray } from '../tray/tray';
 import type { Element } from '../element';
-import { createInput } from '../canvas/ui-primitives';
+import { createButton } from '../canvas/ui-primitives';
+import { declareSay } from '../content/say';
 
 export function renderChatSpecimen(): void {
     const item: Element = {
@@ -26,7 +27,20 @@ export function renderChatSpecimen(): void {
                 line.textContent = `line ${i} · ${i % 2 ? 'you' : 'xenon'} said something`;
                 log.appendChild(line);
             }
-            body.append(log, createInput({ label: 'Say', placeholder: 'say something', type: 'text' }));
+            // The row a chat says from: a choice beside the field and a button, as a host draws it.
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.gap = '4px';
+            const mode = document.createElement('select');
+            mode.appendChild(new Option('', ''));
+            const says = document.createElement('input');
+            says.className = 'input';
+            says.placeholder = 'say something';
+            const send = createButton({ label: 'Say', onClick: () => {} });
+            row.append(mode, says, send);
+            // "the inputfield take up the entire bottom of the screen for chat elements" (#40)
+            declareSay(says);
+            body.append(log, row);
             return body;
         },
     };
