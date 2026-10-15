@@ -158,6 +158,16 @@ export function getCanvasOrigin(
 }
 
 /**
+ * The canvas an element stands on: its nearest ancestor carrying data-canvas-id, or null
+ */
+export function getCanvas(element: HTMLElement): { element: HTMLElement; id: string } | null {
+    const canvas = element.closest<HTMLElement>('[data-canvas-id]');
+    const id = canvas?.dataset.canvasId;
+    if (!canvas || id === undefined) return null;
+    return { element: canvas, id };
+}
+
+/**
  * Clear canvas-placed origin coordinates
  */
 export function clearCanvasOrigin(element: HTMLElement): void {

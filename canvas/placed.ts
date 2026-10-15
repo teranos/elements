@@ -28,7 +28,7 @@ import type { MakeDraggableOptions } from './element-ui';
 
 export interface CanvasPlacedConfig {
     item: Element;
-    /** Type-specific CSS class (e.g. 'canvas-py-element'). Joined with 'canvas-element'. */
+    /** Type-specific CSS class, the one a host's meldability table names. Joined with 'canvas-element'. */
     className: string;
     /** Default position and size when element has no saved layout. */
     defaults: { x: number; y: number; width: number; height: number };

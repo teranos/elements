@@ -20,7 +20,7 @@ let target: HTMLElement;
 beforeEach(() => {
     document.body.innerHTML = '';
     canvas = document.createElement('div');
-    canvas.className = 'canvas-workspace';
+    canvas.dataset.canvasId = 'c1';
     initiator = document.createElement('div');
     target = document.createElement('div');
     canvas.appendChild(initiator);
@@ -90,6 +90,19 @@ describe('Spike: the approaching state has no class', () => {
         clearMeldFeedback(initiator);
 
         expect(target.style.boxShadow).toBe('1px 1px 2px black');
+    });
+
+    // The canvas is the element carrying data-canvas-id, not a host's class name.
+    test('a glow elsewhere on the canvas is cleared from inside a composition', () => {
+        const composition = document.createElement('div');
+        composition.appendChild(initiator);
+        canvas.appendChild(composition);
+
+        applyMeldFeedback(initiator, target, MELD_THRESHOLD - 1);
+        clearMeldFeedback(initiator);
+
+        expect(target.style.boxShadow).toBe('');
+        expect(target.classList.contains('meld-target')).toBe(false);
     });
 
     test('clearFeedbackShadow on an untouched element changes nothing', () => {

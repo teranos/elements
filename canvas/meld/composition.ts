@@ -13,6 +13,7 @@
  */
 
 import { getLogger, getLogSegment, getCanvasHost } from '../../config';
+import { getCanvas } from '../../dataset';
 import type { Element } from '../../element';
 import type { CompositionEdge, EdgeDirection } from '../composition';
 import { computeGridPositions, isConnectedGraph } from '../edge-graph';
@@ -119,9 +120,9 @@ function applyColumnLayout(
     // getBoundingClientRect returns screen pixels (scaled by CSS transform),
     // but element left/top are in the content layer's local coordinate space.
     // Divide by scale to get unscaled dimensions.
-    const canvasEl = composition.closest('.canvas-workspace');
-    const canvasId = canvasEl?.getAttribute('data-canvas-id') || 'canvas-workspace';
-    const { scale } = getCanvasHost().getTransform(canvasId);
+    // Off any canvas there is no canvas transform to divide by.
+    const canvas = getCanvas(composition);
+    const scale = canvas ? getCanvasHost().getTransform(canvas.id).scale : 1;
 
     const colWidths = new Map<number, number>();
     const rowHeights = new Map<number, number>();
