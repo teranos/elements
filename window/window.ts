@@ -17,7 +17,7 @@ import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
 import { renderContent } from '../content/render';
 import { setupWindowDrag, teardownWindowDrag } from './drag';
-import { setupWindowResize, teardownWindowResize } from './resize';
+import { setupWindowResize, teardownWindowResize, fillWithContent, stopFilling } from './resize';
 import { fitsAsWindow } from './fits';
 import { morphDotToPanel } from '../forms/panel';
 import { findPlacement, occupiedRects, clampToViewport } from './placement';
@@ -201,6 +201,8 @@ export function morphDotToWindow(
         setupWindowDrag(element, titleBar);
         // The corner is how a person gives it a size, and the body scrolls then.
         setupWindowResize(element);
+        // Given a size before, what it holds fills that size again.
+        if (given) fillWithContent(element);
     }).catch(error => {
         // ROLLBACK: Animation was cancelled or failed
         log.warn(seg, `[Window] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
@@ -228,6 +230,8 @@ export function leaveWindow(windowElement: HTMLElement): DOMRect {
     teardownWindowDrag(windowElement);
     // The corner is the window's, not the content's: it is not stashed.
     teardownWindowResize(windowElement);
+    // What it held goes to the stash the size its host draws it.
+    stopFilling(windowElement);
 
     // Stash content (strips window controls, preserves element identity off-DOM)
     stashContent(windowElement);

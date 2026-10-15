@@ -19,12 +19,15 @@ const RULE_ID = 'elements-text-size';
 // An element in any form but a dot: a dot's symbol is the tray's.
 const ELEMENT = '[data-element-id]:not(.dot)';
 
+// "This, I never want to have happen": text that ran off a panel's edge, cut off, unread. Inside an
+// element, text breaks to the width it has, a word too long for it anywhere in it.
 // A field outranks a size from the set around it or on it: :is() counts its most specific name.
 // Layered and important: an important rule in a layer outranks every important rule outside
 // one, and every rule of any kind in a stylesheet or a style attribute that is not important.
 const RULE = `@layer elements {
 ${ELEMENT} { font-size: ${TEXT_SIZES[DEFAULT]}px !important; }
 ${ELEMENT} * { font-size: inherit !important; }
+${ELEMENT}, ${ELEMENT} * { overflow-wrap: anywhere !important; word-break: normal !important; }
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
     `${ELEMENT} [data-text-size="${name}"], ${ELEMENT}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
 ${ELEMENT} :is(input, textarea, select):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
