@@ -137,8 +137,9 @@ function keepFieldSeen(element: HTMLElement): void {
     if (!scroller || !element.contains(scroller)) return;
     const seen = scroller.getBoundingClientRect();
     const at = field.getBoundingClientRect();
-    if (at.bottom > seen.bottom) scroller.scrollTop += at.bottom - seen.bottom;
-    else if (at.top < seen.top) scroller.scrollTop -= seen.top - at.top;
+    // Whole pixels, rounded up: a browser snaps scrollTop to device pixels, and a snap down left the field under the keyboard by 0.34px.
+    if (at.bottom > seen.bottom) scroller.scrollTop += Math.ceil(at.bottom - seen.bottom);
+    else if (at.top < seen.top) scroller.scrollTop -= Math.ceil(seen.top - at.top);
 }
 
 /**
