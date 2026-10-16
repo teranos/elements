@@ -302,7 +302,7 @@ function dropDeadIfTooWide(element: HTMLElement, scroller: HTMLElement, watch: W
     // Said once each time it dies, not again for every look while it stays dead.
     if (watch.dead === scroller) return;
     watch.dead = scroller;
-    getLogger().error(getLogSegment(), `[Scroll] ${said}`, {
+    getLogger().error(getLogSegment(), `[Width] ${said}`, {
         element: idOf(element), contentWidth: wide, width: room, past,
     });
 }
