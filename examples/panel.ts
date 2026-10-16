@@ -63,11 +63,6 @@ export function renderPanelSpecimen(): void {
             body.className = 'content';
             // The button that grows in place in Rubidium, holding here what a run's colour means.
             body.appendChild(growInPlace('What the runs mean', runsKey));
-            // A row wider than a phone's screen: the panel does not let it be panned to.
-            const wide = document.createElement('div');
-            wide.style.whiteSpace = 'nowrap';
-            wide.textContent = 'schedule 0 · ACTIVE · every 1m · next 11:18 · last 11:17 · ok · runs 1204 · owner root · wider than a phone';
-            body.appendChild(wide);
             for (let i = 1; i <= 40; i++) {
                 const row = document.createElement('div');
                 row.style.display = 'flex';

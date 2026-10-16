@@ -20,16 +20,17 @@ import { describe, test, expect, beforeEach } from 'bun:test';
 import { configureElements } from '../config';
 import { renderContent } from './render';
 import { holdBody } from './body';
-import { watchScroll, declareScroller, expectScroll } from './scroll';
+import { watchScroll, declareScroller, expectScroll, expectFits } from './scroll';
 
 let warnings: { message: string; metadata?: Record<string, unknown> }[] = [];
+let errors: { message: string; metadata?: Record<string, unknown> }[] = [];
 
 configureElements({
     logger: {
         debug() {},
         info() {},
         warn(_segment, message, metadata) { warnings.push({ message, metadata }); },
-        error() {},
+        error(_segment, message, metadata) { errors.push({ message, metadata }); },
     },
 });
 
@@ -37,6 +38,7 @@ beforeEach(() => {
     document.head.querySelectorAll('style').forEach((s) => s.remove());
     document.body.innerHTML = '';
     warnings = [];
+    errors = [];
 });
 
 /**
@@ -370,10 +372,8 @@ describe('Jenny: content that arrives later, changes its mind, or comes from the
 });
 
 // ── Sideways ────────────────────────────────────────────────────────
-//
-// Seen on a phone: content wider than its element could be panned left and
-// right. An element's scroller scrolls down, never sideways, in every form;
-// content wider than it is cut off, and the host is told once.
+// "what i wanted is for the thing to just drop dead when this happens"
+// Content wider than its element hides, says why, is an error, and fails expectFits().
 
 /** Lay the scroller out as a browser would: this wide, holding content that wide. */
 function measured(scroller: HTMLElement, width: number, contentWidth: number): void {
@@ -381,7 +381,8 @@ function measured(scroller: HTMLElement, width: number, contentWidth: number): v
     Object.defineProperty(scroller, 'scrollWidth', { configurable: true, get: () => contentWidth });
 }
 
-const wideWarnings = () => warnings.filter((w) => w.message.includes('wide'));
+const wideErrors = () => errors.filter((e) => e.message.includes('wide'));
+const notice = (scroller: HTMLElement) => scroller.querySelector<HTMLElement>(':scope > [data-too-wide-notice]');
 
 describe('Tim: an element does not scroll sideways', () => {
     test('a scroller the host declares does not scroll sideways either', () => {
@@ -391,35 +392,80 @@ describe('Tim: an element does not scroll sideways', () => {
         expect(table.style.overflowX).toBe('hidden');
     });
 
-    test('content wider than its element: the host is told how wide, and what to do', async () => {
+    test('content wider than its element drops dead: it says how wide, in how wide, and what to do', async () => {
         const { element, body } = opened(div('', 'two columns'), 'parity', 'Parity');
         measured(body, 390, 760);
 
         body.firstElementChild!.appendChild(div('', 'a row'));
         await settled();
 
-        expect(wideWarnings()).toHaveLength(1);
-        expect(wideWarnings()[0]!.message).toContain('parity');
-        expect(wideWarnings()[0]!.message).toContain('760px');
-        expect(wideWarnings()[0]!.message).toContain('390px');
-        expect(element.isConnected).toBe(true);
+        expect(body.dataset.tooWide).toBe('760px in 390px');
+        const said = notice(body);
+        expect(said?.getAttribute('role')).toBe('alert');
+        expect(said?.textContent).toContain('parity');
+        expect(said?.textContent).toContain('760px');
+        expect(said?.textContent).toContain('390px');
+        expect(wideErrors()).toHaveLength(1);
+        expect(wideErrors()[0]!.message).toContain('760px');
+        expect(() => expectFits(element)).toThrow('760px wide in 390px');
+    });
+
+    test('what it hides is the host\'s content, where the host put it: nothing moved, nothing copied', async () => {
+        const content = div('', 'two columns');
+        const { body } = opened(content, 'parity', 'Parity');
+        measured(body, 390, 760);
+
+        content.appendChild(div('', 'a row'));
+        await settled();
+
+        expect(content.parentElement).toBe(body);
+        const sheet = Array.from(document.head.querySelectorAll('style')).map((s) => s.textContent ?? '').join('\n');
+        expect(sheet).toContain('[data-too-wide] > :not([data-too-wide-notice])');
+        expect(sheet).toContain('visibility: hidden');
+    });
+
+    test('a declared scroller too wide for the element drops dead the same', async () => {
+        const turns = div('', 'turns');
+        declareScroller(turns);
+        const { element } = opened(turns, 'claude', 'Claude');
+        measured(turns, 390, 1200);
+
+        turns.appendChild(div('', 'a turn'));
+        await settled();
+
+        expect(turns.dataset.tooWide).toBe('1200px in 390px');
+        expect(notice(turns)).not.toBeNull();
+        expect(() => expectFits(element)).toThrow('1200px wide in 390px');
     });
 });
 
 describe('Spike: what is not too wide', () => {
-    test('content that fits says nothing', async () => {
-        const { body } = opened(div('', 'one column'));
+    test('content that fits is alive, says nothing, and passes expectFits', async () => {
+        const { element, body } = opened(div('', 'one column'));
         measured(body, 390, 390);
 
         body.firstElementChild!.appendChild(div('', 'a row'));
         await settled();
 
-        expect(wideWarnings()).toHaveLength(0);
+        expect(body.hasAttribute('data-too-wide')).toBe(false);
+        expect(notice(body)).toBeNull();
+        expect(wideErrors()).toHaveLength(0);
+        expect(() => expectFits(element)).not.toThrow();
+    });
+
+    test('a pixel of rounding is not too wide', async () => {
+        const { body } = opened(div('', 'one column'));
+        measured(body, 390, 391);
+
+        body.firstElementChild!.appendChild(div('', 'a row'));
+        await settled();
+
+        expect(notice(body)).toBeNull();
     });
 });
 
-describe('Jenny: told once, and again only after it fit', () => {
-    test('still too wide when looked at again: told once; fits, then too wide again: told again', () => {
+describe('Jenny: dead while too wide, alive once it fits', () => {
+    test('looked at again while too wide: one notice, one error', () => {
         const { element, body } = opened(div('', 'two columns'), 'parity', 'Parity');
         // Watching again looks again (watchScroll): each look as content changing would bring one.
         const look = () => watchScroll(element, 'Parity');
@@ -427,13 +473,28 @@ describe('Jenny: told once, and again only after it fit', () => {
         measured(body, 390, 760);
         look();
         look();
-        expect(wideWarnings()).toHaveLength(1);
 
+        expect(body.querySelectorAll(':scope > [data-too-wide-notice]')).toHaveLength(1);
+        expect(wideErrors()).toHaveLength(1);
+    });
+
+    test('fits: alive again, the notice gone; too wide again: dead again, and said again', () => {
+        const { element, body } = opened(div('', 'two columns'), 'parity', 'Parity');
+        const look = () => watchScroll(element, 'Parity');
+
+        measured(body, 390, 760);
+        look();
         measured(body, 390, 380);
         look();
+
+        expect(body.hasAttribute('data-too-wide')).toBe(false);
+        expect(notice(body)).toBeNull();
+        expect(() => expectFits(element)).not.toThrow();
+
         measured(body, 390, 900);
         look();
 
-        expect(wideWarnings()).toHaveLength(2);
+        expect(body.dataset.tooWide).toBe('900px in 390px');
+        expect(wideErrors()).toHaveLength(2);
     });
 });

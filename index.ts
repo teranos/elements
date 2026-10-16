@@ -112,7 +112,7 @@ export type { WindowControlsConfig } from './forms/title-bar-controls';
 export { stashContent, restoreContent, hasStash } from './content/stash';
 
 // Where an element scrolls: the package's body, or the scroller a host declares
-export { declareScroller, watchScroll, expectScroll } from './content/scroll';
+export { declareScroller, watchScroll, expectScroll, expectFits } from './content/scroll';
 // A chat's field takes the bottom of its element, the whole width (content/say.ts)
 export { declareSay } from './content/say';
 

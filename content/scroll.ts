@@ -18,8 +18,8 @@
  * Only declared overflow is read, never measured overflow: the same verdict in a
  * test DOM, where every box measures zero, as on a phone.
  *
- * The element's scroller scrolls down, never sideways: content wider than the
- * element is cut off, and the host is told so (measured, so only on a page).
+ * The element's scroller scrolls down, never sideways. Content wider than the
+ * element drops it dead (measured, so only on a page): see dropDeadIfTooWide.
  */
 
 import { getLogger, getLogSegment } from '../config';
@@ -41,11 +41,40 @@ interface Watch {
     waiting: boolean;
     /** The body last seen holding the element's content. */
     body: HTMLElement | null;
-    /** The host was told its content is wider than the element, and it has not fit since. */
-    toldWide: boolean;
+    /** The scroller that dropped dead, too wide, and has not fit since. */
+    dead: HTMLElement | null;
+    /** Looks again when the scroller changes width with nothing inside it changing: a morph to a panel, a phone turned. */
+    resize: ResizeObserver | null;
+    resized: HTMLElement | null;
 }
 
 const watches = new WeakMap<HTMLElement, Watch>();
+
+/** How wide a dead scroller's content was, in how wide, as it was said. */
+const deadAt = new WeakMap<HTMLElement, { wide: number; room: number }>();
+
+const TOO_WIDE_STYLE_ID = 'elements-too-wide-style';
+
+// The host's content stays where it is, laid out, so it is measured again; it is not seen or pressed.
+const TOO_WIDE_STYLE = `
+[data-too-wide] > :not([data-too-wide-notice]) {
+    visibility: hidden !important;
+}
+
+[data-too-wide-notice] {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px 10px;
+    font-family: var(--font-mono, monospace);
+    white-space: normal;
+    overflow-wrap: anywhere;
+    color: #ffe4ec;
+    background: var(--color-error, #b3261e);
+}
+`;
 
 /** What a body wrote to make room for a declared scroller, to take back exactly that. */
 interface Room {
@@ -79,7 +108,7 @@ export function declareScroller(node: HTMLElement): void {
 export function watchScroll(element: HTMLElement, title: string): void {
     let watch = watches.get(element);
     if (!watch) {
-        const fresh: Watch = { title, observer: null, told: new WeakSet(), waiting: false, body: null, toldWide: false };
+        const fresh: Watch = { title, observer: null, told: new WeakSet(), waiting: false, body: null, dead: null, resize: null, resized: null };
         if (typeof MutationObserver === 'function') {
             fresh.observer = new MutationObserver((records) => {
                 // A drag or a morph writing the element's own style every frame changes nothing inside it.
@@ -106,6 +135,23 @@ export function expectScroll(element: HTMLElement): void {
         `SCROLL: ${idOf(element)}: ${second.map(describe).join(', ')} scroll vertically without being declared. ` +
         `declareScroller() the one that is this element's scroller; take overflow away from the rest.`,
     );
+}
+
+/**
+ * For a host's tests in a real browser: nothing in the element is wider than it.
+ * Measured now, so it fails whether or not the watch has looked yet.
+ */
+export function expectFits(element: HTMLElement): void {
+    const scrollers = element.querySelectorAll<HTMLElement>('[data-scroller="body"], [data-scroller="declared"]');
+    for (const scroller of Array.from(scrollers)) {
+        const wide = scroller.scrollWidth;
+        const room = scroller.clientWidth;
+        if (wide <= room + 1) continue;
+        throw new Error(
+            `WIDTH: ${idOf(element)}: its content is ${wide}px wide in ${room}px. ` +
+            `${offenders(scroller).join(', ') || describe(scroller)}. Let it wrap, or fit it to the element's width.`,
+        );
+    }
 }
 
 function review(element: HTMLElement, watch: Watch, candidates: HTMLElement[]): void {
@@ -144,7 +190,11 @@ function review(element: HTMLElement, watch: Watch, candidates: HTMLElement[]): 
     const scroller = body?.querySelector<HTMLElement>('[data-scroller="declared"]')
         ?? element.querySelector<HTMLElement>('[data-scroller="declared"]')
         ?? body;
-    if (scroller) sayIfTooWide(element, scroller, watch);
+    if (watch.dead && watch.dead !== scroller) revive(watch.dead, watch);
+    if (scroller) {
+        observeWidth(element, scroller, watch);
+        dropDeadIfTooWide(element, scroller, watch);
+    }
     for (const declared of Array.from(element.querySelectorAll<HTMLElement>('[data-scroller="declared"]'))) {
         reach(declared, watch.title);
     }
@@ -220,26 +270,86 @@ function reach(scroller: HTMLElement, title: string): void {
     }
 }
 
-/**
- * An element's scroller does not scroll sideways: content wider than it is cut
- * off. The host is told once, and again only after it has fit since. Measured,
- * not declared: a test DOM, where every box measures zero, says nothing.
- */
-function sayIfTooWide(element: HTMLElement, scroller: HTMLElement, watch: Watch): void {
+// "what i wanted is for the thing to just drop dead when this happens"
+/** Content wider than its scroller: hidden, said, an error, until it fits. Measured, so a test DOM says nothing. */
+function dropDeadIfTooWide(element: HTMLElement, scroller: HTMLElement, watch: Watch): void {
     const wide = scroller.scrollWidth;
     const room = scroller.clientWidth;
     if (wide <= room + 1) {
-        watch.toldWide = false;
+        if (watch.dead === scroller) revive(scroller, watch);
         return;
     }
-    if (watch.toldWide) return;
-    watch.toldWide = true;
-    getLogger().warn(
-        getLogSegment(),
-        `[Scroll] ${idOf(element)}: its content is ${wide}px wide in ${room}px, and an element does not scroll sideways, ` +
-        `so what is past its right edge is cut off. Let the content wrap, or fit it to the element's width.`,
-        { element: idOf(element), contentWidth: wide, width: room },
-    );
+    const was = deadAt.get(scroller);
+    if (watch.dead === scroller && was?.wide === wide && was.room === room) return;
+
+    const past = offenders(scroller);
+    const said = `TOO WIDE: ${idOf(element)}: its content is ${wide}px wide in ${room}px, and an element does not scroll sideways. ` +
+        `${past.length ? `Past its edge: ${past.join(', ')}. ` : ''}` +
+        `It is dead until its content fits: let it wrap, or fit it to the element's width.`;
+
+    ensureTooWideStyle();
+    scroller.dataset.tooWide = `${wide}px in ${room}px`;
+    deadAt.set(scroller, { wide, room });
+    let notice = scroller.querySelector<HTMLElement>(':scope > [data-too-wide-notice]');
+    if (!notice) {
+        notice = document.createElement('div');
+        notice.dataset.tooWideNotice = '';
+        notice.setAttribute('role', 'alert');
+        scroller.prepend(notice);
+    }
+    notice.textContent = said;
+
+    // Said once each time it dies, not again for every look while it stays dead.
+    if (watch.dead === scroller) return;
+    watch.dead = scroller;
+    getLogger().error(getLogSegment(), `[Scroll] ${said}`, {
+        element: idOf(element), contentWidth: wide, width: room, past,
+    });
+}
+
+/** The content fits again, or its scroller is not the element's any more: alive, as the host had it. */
+function revive(scroller: HTMLElement, watch: Watch): void {
+    scroller.querySelector(':scope > [data-too-wide-notice]')?.remove();
+    delete scroller.dataset.tooWide;
+    deadAt.delete(scroller);
+    if (watch.dead === scroller) watch.dead = null;
+}
+
+/** How far right a node's box, or the text it lays out past that box, reaches. */
+function reachOf(node: HTMLElement): number {
+    const box = node.getBoundingClientRect();
+    return Math.max(box.right, box.left + node.scrollWidth);
+}
+
+/** The innermost nodes reaching past the scroller's right edge, by their box or by their own text, and by how much. */
+function offenders(scroller: HTMLElement): string[] {
+    const edge = scroller.getBoundingClientRect().right;
+    const past = Array.from(scroller.querySelectorAll<HTMLElement>('*'))
+        .filter((node) => !node.closest('[data-too-wide-notice]'))
+        .filter((node) => reachOf(node) > edge + 1);
+    const innermost = past.filter((node) => !past.some((other) => other !== node && node.contains(other)));
+    return innermost.slice(0, 3).map((node) => {
+        const by = Math.round(reachOf(node) - edge);
+        const text = (node.textContent ?? '').trim().slice(0, 24);
+        return `${describe(node)}${text ? ` "${text}"` : ''} by ${by}px`;
+    });
+}
+
+/** The width an element's scroller has changes with nothing inside it changing; look again when it does. */
+function observeWidth(element: HTMLElement, scroller: HTMLElement, watch: Watch): void {
+    if (typeof ResizeObserver !== 'function' || watch.resized === scroller) return;
+    watch.resize ??= new ResizeObserver(() => { review(element, watch, []); });
+    if (watch.resized) watch.resize.unobserve(watch.resized);
+    watch.resize.observe(scroller);
+    watch.resized = scroller;
+}
+
+function ensureTooWideStyle(): void {
+    if (document.getElementById(TOO_WIDE_STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = TOO_WIDE_STYLE_ID;
+    style.textContent = TOO_WIDE_STYLE;
+    document.head.appendChild(style);
 }
 
 function tell(element: HTMLElement, node: HTMLElement): void {
