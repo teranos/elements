@@ -406,6 +406,7 @@ describe('Tim: an element does not scroll sideways', () => {
         expect(said?.textContent).toContain('760px');
         expect(said?.textContent).toContain('390px');
         expect(wideErrors()).toHaveLength(1);
+        expect(wideErrors()[0]!.message).toStartWith('[Width] TOO WIDE: parity');
         expect(wideErrors()[0]!.message).toContain('760px');
         expect(() => expectFits(element)).toThrow('760px wide in 390px');
     });
