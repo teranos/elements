@@ -39,8 +39,8 @@ test.describe('Tim: content that fits', () => {
 test.describe('Spike: content wider than the element', () => {
     test('drops it dead: hidden, and it says how wide and what reaches past the edge', async ({ page }) => {
         await open(page);
-        // A box placed past the edge stays where it was placed: what the package's fit (fit.ts) cannot move.
-        await put(page, '<div style="position: relative"><div class="wide" style="position: absolute; left: 2000px; width: 100px">past any screen</div></div>');
+        // A box in the flow, pushed past the edge by the host's own transform: what the fit (fit.ts) leaves as written.
+        await put(page, '<div class="wide" style="width: 100px; transform: translateX(3000px)">past any screen</div>');
 
         await expect(page.locator(BODY)).toHaveAttribute('data-too-wide', /^\d+px in \d+px$/);
         const notice = page.locator(`${BODY} > [data-too-wide-notice]`);
