@@ -29,6 +29,10 @@ const HOSTILE: Record<string, string> = {
     'row that does not give way': `<div style="display: flex">${'<span style="flex: none; width: 400px">a cell</span>'.repeat(6)}</div>`,
     'table': `<table><tr>${`<td style="white-space: nowrap">${LONG}</td>`.repeat(3)}</tr></table>`,
     'ellipsis': `<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">${LONG}</div>`,
+    // As QNTX's Database writes its counts on q: tracks in px, wider than a phone.
+    'grid tracks': `<div style="display: grid; grid-template-columns: 110px 84px 84px 132px 72px 300px">${'<span>12a 345s 678c</span>'.repeat(12)}</div>`,
+    // As a row of presses and icons: each keeps its size, and the row wraps.
+    'row of things that keep their size': `<div style="display: inline-flex">${'<span style="flex: none; width: 90px; white-space: nowrap">a press</span>'.repeat(8)}</div>`,
 };
 
 for (const [name, markup] of Object.entries(HOSTILE)) {
