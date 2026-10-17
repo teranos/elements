@@ -24,6 +24,7 @@
 
 import { getLogger, getLogSegment } from '../config';
 import { holdScrollbar, dropScrollbar } from './scrollbar';
+import { bringInside, loosenGrids } from '../fit';
 
 /** Elements whose scrolling is the platform's own. */
 const SCROLLS_ITSELF = new Set(['TEXTAREA', 'SELECT', 'INPUT', 'IFRAME']);
@@ -285,6 +286,9 @@ function reach(scroller: HTMLElement, title: string): void {
 // "what i wanted is for the thing to just drop dead when this happens"
 /** Content wider than its scroller: hidden, said, an error, until it fits. Measured, so a test DOM says nothing. */
 function dropDeadIfTooWide(element: HTMLElement, scroller: HTMLElement, watch: Watch): void {
+    // A grid's tracks and a placed box are what the package's rule cannot outrank (fit.ts): they give way first.
+    bringInside(scroller);
+    if (scroller.scrollWidth > scroller.clientWidth + 1) loosenGrids(scroller);
     const wide = scroller.scrollWidth;
     const room = scroller.clientWidth;
     if (wide <= room + 1) {
