@@ -2,6 +2,8 @@
 // The sizes are the package's. Inside an element, text is sized by sizeText() with a name from this
 // set, and nothing else: a host's stylesheet, a style attribute or an em has no say there.
 
+import { fitRule, takeOffFit } from './fit';
+
 /** px: the sizes text inside an element is read at, hand-tuned. */
 export const TEXT_SIZES: Readonly<{ xs: 10; sm: 11; md: 13; lg: 14 }> = Object.freeze({ xs: 10, sm: 11, md: 13, lg: 14 } as const);
 
@@ -28,6 +30,7 @@ const RULE = `@layer elements {
 ${ELEMENT} { font-size: ${TEXT_SIZES[DEFAULT]}px !important; }
 ${ELEMENT} * { font-size: inherit !important; }
 ${ELEMENT}, ${ELEMENT} * { overflow-wrap: anywhere !important; word-break: normal !important; }
+${fitRule(ELEMENT)}
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
     `${ELEMENT} [data-text-size="${name}"], ${ELEMENT}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
 ${ELEMENT} :is(input, textarea, select):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
@@ -58,6 +61,7 @@ const watching = new WeakMap<HTMLElement, MutationObserver>();
 
 function takeOffSize(node: Element): void {
     if (node instanceof HTMLElement && node.style.fontSize) node.style.removeProperty('font-size');
+    takeOffFit(node);
 }
 
 function takeOffSizes(root: Element): void {
