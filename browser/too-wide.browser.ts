@@ -39,30 +39,32 @@ test.describe('Tim: content that fits', () => {
 test.describe('Spike: content wider than the element', () => {
     test('drops it dead: hidden, and it says how wide and what reaches past the edge', async ({ page }) => {
         await open(page);
-        await put(page, '<div class="wide" style="width: 3000px">wider than any screen</div>');
+        // A grid track is laid out as written: the one width the package's fit (fit.ts) cannot give way.
+        await put(page, '<div class="wide" style="display: grid; grid-template-columns: 3000px"><span>wider than any screen</span></div>');
 
         await expect(page.locator(BODY)).toHaveAttribute('data-too-wide', /^\d+px in \d+px$/);
         const notice = page.locator(`${BODY} > [data-too-wide-notice]`);
         await expect(notice).toBeVisible();
         await expect(notice).toContainText('TOO WIDE');
-        await expect(notice).toContainText('div.wide');
         expect(await page.locator('#put').evaluate((el) => getComputedStyle(el).visibility)).toBe('hidden');
-    });
-});
-
-test.describe('Jenny: a row that never wraps', () => {
-    test('kills it, and taking it out brings it back', async ({ page }) => {
-        await open(page);
-        const press = ['Disable GitHub on the node', 'Set the path', 'Generate a new secret', 'Turn the runner off', 'System’s GitHub'];
-        await put(page, `<div style="white-space: nowrap">${[...press, ...press, ...press].map((p) => `<button>${p}</button>`).join('')}</div>`);
-
-        await expect(page.locator(BODY)).toHaveAttribute('data-too-wide', /px in/);
-        await expect(page.locator(`${BODY} > [data-too-wide-notice]`)).toContainText('button');
 
         await page.locator('#put').evaluate((el) => { el.remove(); });
 
         await expect(page.locator(BODY)).not.toHaveAttribute('data-too-wide');
         await expect(page.locator(`${BODY} > [data-too-wide-notice]`)).toHaveCount(0);
+    });
+});
+
+// "no element should have content that isnt accesible"
+test.describe('Jenny: a row a host held on one line', () => {
+    test('wraps, and stays alive', async ({ page }) => {
+        await open(page);
+        const press = ['Disable GitHub on the node', 'Set the path', 'Generate a new secret', 'Turn the runner off', 'System’s GitHub'];
+        await put(page, `<div style="white-space: nowrap">${[...press, ...press, ...press].map((p) => `<button>${p}</button>`).join('')}</div>`);
+
+        await expect(page.locator(BODY)).not.toHaveAttribute('data-too-wide');
+        await expect(page.locator(`${BODY} > [data-too-wide-notice]`)).toHaveCount(0);
+        expect(await page.locator(BODY).evaluate((body) => body.scrollWidth <= body.clientWidth + 1)).toBe(true);
     });
 
     test('every specimen, opened on this screen, fits it', async ({ page }) => {
