@@ -1,11 +1,12 @@
 {
   "name": "@teranos/elements",
-  "version": "1.21.2",
+  "version": "1.22.0",
   "license": "MIT",
   "exports": "./index.ts",
   "publish": {
     "exclude": [
-      "browser"
+      "browser",
+      "**/*.misuse.ts"
     ]
   }
 }

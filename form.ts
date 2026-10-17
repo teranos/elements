@@ -99,6 +99,7 @@ export interface FormTable {
      * "It really feels like a button. Until you click it." forms/button.ts:
      * no intermediary stage and no hover expand; a click takes Window Form, the
      * same element, leaving a gap where it was. Where it rests, not the tray.
+     * forms/press.ts too: the same form, a press that does rather than opens, part of its element.
      */
     readonly button: { readonly opensFromTray: false };
 }
