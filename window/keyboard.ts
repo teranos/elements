@@ -97,6 +97,13 @@ function answer(element: HTMLElement): void {
         height: rect.height,
     };
 
+    // A page a person has pinched in shows less of itself, and no keyboard says how much of that
+    // is the keyboard's: a window answers none of it. Cut to it, a panel stopped three quarters down.
+    if (pinched()) {
+        if (before) backFromKeyboard(element);
+        return;
+    }
+
     // A panel's background reaches the screen's edges and keeps what is in it off
     // them itself (forms/panel.ts): it answers the keyboard, not the safe area,
     // or the status bar and the home indicator are each kept off it twice.
@@ -115,6 +122,12 @@ function answer(element: HTMLElement): void {
     if (form === 'panel') element.style.paddingBottom = '0px';
     stood.set(element, { ...from, wrote: element.style.top });
     keepFieldSeen(element);
+}
+
+/** The page is zoomed in: what is seen of it is smaller than the screen, keyboard or not. */
+function pinched(): boolean {
+    const vv = (window as { visualViewport?: VisualViewport | null }).visualViewport;
+    return !!vv && vv.scale > 1.01;
 }
 
 /** What the keyboard leaves of the screen: the visual viewport, edges and all. */

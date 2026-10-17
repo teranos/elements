@@ -23,6 +23,7 @@
  */
 
 import { getLogger, getLogSegment } from '../config';
+import { holdScrollbar, dropScrollbar } from './scrollbar';
 
 /** Elements whose scrolling is the platform's own. */
 const SCROLLS_ITSELF = new Set(['TEXTAREA', 'SELECT', 'INPUT', 'IFRAME']);
@@ -111,8 +112,9 @@ export function watchScroll(element: HTMLElement, title: string): void {
         const fresh: Watch = { title, observer: null, told: new WeakSet(), waiting: false, body: null, dead: null, resize: null, resized: null };
         if (typeof MutationObserver === 'function') {
             fresh.observer = new MutationObserver((records) => {
-                // A drag or a morph writing the element's own style every frame changes nothing inside it.
-                if (records.every((record) => record.type === 'attributes' && record.target === element)) return;
+                // A drag or a morph writing the element's own style every frame changes nothing inside it,
+                // nor does the package's bar (content/scrollbar.ts) moving as the scroller does.
+                if (records.every((record) => (record.type === 'attributes' && record.target === element) || isBar(record))) return;
                 review(element, fresh, changedBy(records));
             });
             fresh.observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
@@ -194,6 +196,9 @@ function review(element: HTMLElement, watch: Watch, candidates: HTMLElement[]): 
     if (scroller) {
         observeWidth(element, scroller, watch);
         dropDeadIfTooWide(element, scroller, watch);
+        holdScrollbar(element, scroller);
+    } else {
+        dropScrollbar(element);
     }
     for (const declared of Array.from(element.querySelectorAll<HTMLElement>('[data-scroller="declared"]'))) {
         reach(declared, watch.title);
@@ -383,6 +388,13 @@ function scrollsVertically(node: HTMLElement): boolean {
 function secondOf(shorthand: string): string {
     const parts = shorthand.split(' ').filter((part) => part !== '');
     return parts[1] ?? parts[0] ?? '';
+}
+
+/** A change to the package's bar, or the bar coming and going. */
+function isBar(record: MutationRecord): boolean {
+    if (record.type === 'attributes') return (record.target as HTMLElement).dataset?.scrollbar !== undefined;
+    const nodes = [...Array.from(record.addedNodes), ...Array.from(record.removedNodes)];
+    return nodes.length > 0 && nodes.every((node) => (node as HTMLElement).dataset?.scrollbar !== undefined);
 }
 
 function changedBy(records: MutationRecord[]): HTMLElement[] {
