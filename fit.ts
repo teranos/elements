@@ -64,9 +64,14 @@ export function loosenGrids(scroller: HTMLElement): boolean {
     for (const node of Array.from(scroller.querySelectorAll<HTMLElement>('*'))) {
         const display = getComputedStyle(node).display;
         if (!display.includes('grid') || node.scrollWidth <= node.clientWidth + 1) continue;
+        // Once: the watch looks again at every style written (content/scroll.ts).
+        if (node.dataset.fitLoosened !== undefined) continue;
         const tracks = getComputedStyle(node).gridTemplateColumns.split(' ').filter((track) => track !== '' && track !== 'none');
-        if (tracks.length === 0 || tracks.every((track) => track.startsWith('minmax(0'))) continue;
-        node.style.setProperty('grid-template-columns', tracks.map((track) => `minmax(0, ${track})`).join(' '), 'important');
+        if (tracks.length === 0) continue;
+        // Each track keeps its share of the width as written; one the overflow squeezed to nothing has its content back.
+        const loose = tracks.map((track) => parseFloat(track) > 0 ? `minmax(0, ${parseFloat(track)}fr)` : 'auto');
+        node.style.setProperty('grid-template-columns', loose.join(' '), 'important');
+        node.dataset.fitLoosened = '';
         loosened = true;
     }
     return loosened;
