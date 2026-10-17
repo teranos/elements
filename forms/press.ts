@@ -11,7 +11,7 @@ export const MEANS: Readonly<{ yes: '#16a34a'; no: '#dc2626'; neither: '#fff' }>
 export const ARMED_FOR_MS = 5000;
 
 interface Said {
-    /** Its name, unique on the page: data-press, and what a failure beside it is said for. */
+    /** Its name: data-press, and what a failure beside it is said for. */
     id: string;
     /** What it says. With a mark, its name, read out and not shown. */
     title: string;
@@ -120,9 +120,18 @@ export function pressFrom(press: Press): PressHandle {
         title.replaceChildren(press.mark);
         element.setAttribute('aria-label', press.title);
     }
-    const doing = face('doing', '···', 1);
+    // Drawn, not written: what the press says stays its title and its note.
+    const doing = face('doing', '', 1);
     sized(doing, 'lg');
-    pin(doing, { 'font-family': 'var(--font-mono)' });
+    doing.setAttribute('aria-hidden', 'true');
+    pin(doing, {
+        width: '3ch',
+        height: '1.3em',
+        'font-family': 'var(--font-mono)',
+        'background-image': 'radial-gradient(circle, currentColor 0.12em, transparent 0.14em)',
+        'background-size': '1ch 100%',
+        'background-repeat': 'repeat-x',
+    });
     element.append(title, doing);
 
     let armed: HTMLSpanElement | null = null;
@@ -154,7 +163,6 @@ export function pressFrom(press: Press): PressHandle {
         });
         element.disabled = stage === 'doing' || held !== null;
         element.setAttribute('aria-busy', String(stage === 'doing'));
-        element.title = held ?? '';
     };
 
     // Beside the press, not in it: what failed never changes the press's size.
@@ -202,6 +210,8 @@ export function pressFrom(press: Press): PressHandle {
         element,
         hold: (why) => {
             held = why;
+            if (why === null) element.removeAttribute('title');
+            else element.title = why;
             show();
         },
     };
