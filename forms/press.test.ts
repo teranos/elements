@@ -17,6 +17,10 @@ const shown = (press: HTMLElement) => Array.from(press.querySelectorAll<HTMLElem
     .filter((face) => face.style.visibility !== 'hidden')
     .map((face) => face.textContent);
 
+const shownFaces = (press: HTMLElement) => Array.from(press.querySelectorAll<HTMLElement>('[data-face]'))
+    .filter((face) => face.style.visibility !== 'hidden')
+    .map((face) => face.dataset.face);
+
 const faces = (press: HTMLElement) => Array.from(press.querySelectorAll<HTMLElement>('[data-face]')).map((face) => face.dataset.face);
 
 let done: string[];
@@ -82,7 +86,8 @@ describe('Tim: one press does it, two stages arm and then do it', () => {
         expect(element.dataset.stage).toBe('doing');
         expect((element as HTMLButtonElement).disabled).toBe(true);
         expect(element.getAttribute('aria-busy')).toBe('true');
-        expect(shown(element)).toEqual(['···']);
+        expect(shownFaces(element)).toEqual(['doing']);
+        expect(element.textContent).toBe('Save');
         finish();
         await settle();
         expect(element.dataset.stage).toBe('rest');
@@ -147,6 +152,7 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         await settle();
         expect(done).toEqual([]);
         handle.hold(null);
+        expect(handle.element.hasAttribute('title')).toBe(false);
         handle.element.click();
         await settle();
         expect(done).toEqual(['save']);
