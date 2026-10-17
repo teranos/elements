@@ -19,6 +19,7 @@ import { shatter } from './shatter';
 import { growInPlace } from './grow';
 import { paintSegment, segmentStrip, type SegmentState } from './segments';
 import { sizeText } from '../text';
+import { MEANS } from '../forms/press';
 
 /** What one press says. The same option pressed again says its next step. */
 export interface ApprovalStep {
@@ -103,7 +104,8 @@ export interface ApprovalRoll {
     settle: () => void;
 }
 
-const COLOR = { yes: '#16a34a', no: '#dc2626', neither: '#fff' };
+// One table of what an outline says, the press's: an option and a press cannot drift apart.
+const COLOR = MEANS;
 
 const stepsOf = (option: ApprovalOption): ApprovalStep[] => option.steps ?? [{ says: option.label }];
 
