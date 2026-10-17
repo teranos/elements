@@ -30,18 +30,14 @@ describe('Tim: building blocks', () => {
         expect(wrapper.querySelector('input')!.type).toBe('text');
     });
 
-    test('a button fires its handler', () => {
+    test('a button is a press, and fires its handler', async () => {
         let fired = 0;
         const btn = createButton({ label: 'Run', onClick: () => { fired++; } });
+        expect(btn.dataset.press).toBe('Run');
         expect(btn.textContent).toBe('Run');
-        expect(btn.className).toBe('btn');
         btn.click();
+        await new Promise((resolve) => setTimeout(resolve, 0));
         expect(fired).toBe(1);
-    });
-
-    test('a primary button wears the modifier', () => {
-        const btn = createButton({ label: 'Save', onClick: () => {}, primary: true });
-        expect(btn.className).toBe('btn btn--primary');
     });
 });
 

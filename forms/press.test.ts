@@ -119,6 +119,17 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         expect(isColor(unbind.style.borderColor, '#fff')).toBe(true);
     });
 
+    test('a press that creates is white at rest and, armed, green and shimmering', async () => {
+        const plus = place({ id: 'plus', title: '+', again: 'the canvas is made', creates: true, does: () => {} }).element;
+        expect(isColor(plus.style.borderColor, '#fff')).toBe(true);
+        expect(plus.dataset.creates).toBeUndefined();
+        plus.click();
+        await settle();
+        expect(isColor(plus.style.borderColor, '#4ade80')).toBe(true);
+        expect(plus.style.backgroundImage).toContain('linear-gradient');
+        expect(plus.style.animationName).toBe('elements-press-shimmer');
+    });
+
     test('the arming runs out, and the press is at rest again having done nothing', async () => {
         const { element } = place({ id: 'revoke', title: 'Revoke', again: 'the token stops working', armedForMs: 5, does: () => { done.push('revoke'); } });
         element.click();
@@ -165,6 +176,8 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         expect(untyped({ id: 'y', title: 'Save', variant: 'danger', does: () => {} })).toThrow(TypeError);
         expect(untyped({ id: 'z', title: 'Revoke', again: '', does: () => {} })).toThrow(TypeError);
         expect(untyped({ id: '', title: 'Save', does: () => {} })).toThrow(TypeError);
+        expect(untyped({ id: 'c', title: '+', creates: true, does: () => {} })).toThrow(TypeError);
+        expect(untyped({ id: 'd', title: 'Nuke', again: 'x', creates: true, irrevocable: true, does: () => {} })).toThrow(TypeError);
     });
 });
 

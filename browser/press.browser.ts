@@ -1,5 +1,5 @@
 /**
- * The press, in a real browser, measured at every stage it goes through.
+ * The press, in a real browser, measured at every stage it goes through, in Germanium beside Button Form.
  *
  * Its box at rest is its box armed, doing, failed and at rest again, to the pixel,
  * with a mouse and with a finger, and with a host stylesheet that tries to say otherwise.
@@ -7,7 +7,7 @@
 
 import { test, expect, type Page, type Locator } from '@playwright/test';
 
-const press = (page: Page, id: string) => page.locator(`[data-press="yttrium-${id}"]`);
+const press = (page: Page, id: string) => page.locator(`[data-press="germanium-${id}"]`);
 
 const touching = (): boolean => !!test.info().project.use.hasTouch;
 
@@ -70,7 +70,7 @@ test('a failure is said beside it, and the press keeps its size', async ({ page 
     const send = press(page, 'fail');
     const before = await box(send);
     await hit(send);
-    await expect(page.locator('[data-press-said="yttrium-fail"]')).toHaveText('502 from the node');
+    await expect(page.locator('[data-press-said="germanium-fail"]')).toHaveText('502 from the node');
     expect(await box(send)).toEqual(before);
 });
 
@@ -88,4 +88,13 @@ test('on the bare page, in no element, the same stylesheet changes nothing eithe
     await page.addStyleTag({ content: HOSTILE });
     const boxes = await boxesThrough(page, 'bare', 2);
     sameBox([before, ...boxes]);
+});
+
+test('a press that creates is white at rest, green armed, and the same size throughout', async ({ page }) => {
+    const plus = press(page, 'plus');
+    expect(await plus.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(255, 255, 255)');
+    const before = await box(plus);
+    await hit(plus);
+    expect(await plus.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(74, 222, 128)');
+    expect(await box(plus)).toEqual(before);
 });

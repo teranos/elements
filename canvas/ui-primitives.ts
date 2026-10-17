@@ -9,6 +9,7 @@
 
 import { preventDrag } from './drag';
 import { sizeText } from '../text';
+import { pressFrom } from '../forms/press';
 
 /** Create a text input with drag protection already applied. */
 export function createInput(opts?: { label?: string; placeholder?: string; value?: string; type?: string }): HTMLElement {
@@ -33,14 +34,9 @@ export function createInput(opts?: { label?: string; placeholder?: string; value
     return wrapper;
 }
 
-/** Create a button with drag protection already applied. */
-export function createButton(opts: { label: string; onClick: () => void; primary?: boolean }): HTMLButtonElement {
-    const btn = document.createElement('button');
-    btn.className = opts.primary ? 'btn btn--primary' : 'btn';
-    btn.textContent = opts.label;
-    btn.addEventListener('click', opts.onClick);
-    preventDrag(btn);
-    return btn;
+/** ElementUI's button is a press (forms/press.ts), named by what it says: there is no other button. */
+export function createButton(opts: { label: string; onClick: () => void | Promise<void> }): HTMLButtonElement {
+    return pressFrom({ id: opts.label, title: opts.label, does: opts.onClick }).element;
 }
 
 /**

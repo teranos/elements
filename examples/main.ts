@@ -10,7 +10,6 @@ import { renderFieldSpecimen } from './field';
 import { renderApproveSpecimen } from './approve';
 import { renderTableSpecimen } from './table';
 import { renderChatSpecimen } from './chat';
-import { renderPressSpecimen } from './press';
 
 configureElements({
     windowBorderRadius: '0',
@@ -28,6 +27,4 @@ renderPanelSpecimen();
 renderChatSpecimen();
 renderApproveSpecimen();
 renderSparklineSpecimen();
-// Yttrium before Strontium: on a phone the table runs taller than its canvas, over what follows it.
-renderPressSpecimen();
 renderTableSpecimen();

@@ -10,6 +10,10 @@ export function misuse(): void {
     pressFrom({ id: 'save', title: 'Save', variant: 'danger', does: () => {} });
     // @ts-expect-error a press has no size to choose
     pressFrom({ id: 'save', title: 'Save', minWidth: '80px', does: () => {} });
+    // @ts-expect-error a single press cannot create: that is a second stage's to say
+    pressFrom({ id: 'plus', title: '+', creates: true, does: () => {} });
+    // @ts-expect-error a second press creates, or cannot be undone, not both
+    pressFrom({ id: 'plus', title: '+', again: 'made', creates: true, irrevocable: true, does: () => {} });
     // @ts-expect-error armed for a while is a second stage's
     pressFrom({ id: 'save', title: 'Save', armedForMs: 8000, does: () => {} });
 }

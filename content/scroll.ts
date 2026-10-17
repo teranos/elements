@@ -154,6 +154,13 @@ export function expectFits(element: HTMLElement): void {
             `${offenders(scroller).join(', ') || describe(scroller)}. Let it wrap, or fit it to the element's width.`,
         );
     }
+    // Content inside its element is not enough: the element itself stands whole on its screen.
+    const r = element.getBoundingClientRect();
+    if (r.width > 0 && (r.left < -1 || r.right > window.innerWidth + 1)) {
+        throw new Error(
+            `WIDTH: ${idOf(element)} runs off its screen: from ${Math.round(r.left)}px to ${Math.round(r.right)}px on a screen ${window.innerWidth}px wide.`,
+        );
+    }
 }
 
 function review(element: HTMLElement, watch: Watch, candidates: HTMLElement[]): void {

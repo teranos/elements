@@ -21,22 +21,41 @@ interface Said {
     does: () => void | Promise<void>;
 }
 
-/** One press does it. It cannot be irrevocable: that is a second stage's to say. */
+/** One press does it. It cannot be irrevocable, or create: that is a second stage's to say. */
 export interface OnePress extends Said {
     again?: never;
     irrevocable?: never;
+    creates?: never;
     armedForMs?: never;
 }
 
 /** The first press arms and says what the second does; the second does it. */
-export interface TwoPress extends Said {
+interface Second extends Said {
     /** What the second press does, said under the title once armed, after the word again. */
     again: string;
-    /** The second press cannot be undone: armed, it is red. */
-    irrevocable?: true;
     /** Default ARMED_FOR_MS. */
     armedForMs?: number;
 }
+
+/** The second press can be undone: armed, it stays white. */
+export interface UndoablePress extends Second {
+    irrevocable?: never;
+    creates?: never;
+}
+
+/** The second press cannot be undone: armed, it is red. */
+export interface IrrevocablePress extends Second {
+    irrevocable: true;
+    creates?: never;
+}
+
+/** The second press creates something: armed, it is green and shimmers. */
+export interface CreatingPress extends Second {
+    creates: true;
+    irrevocable?: never;
+}
+
+export type TwoPress = UndoablePress | IrrevocablePress | CreatingPress;
 
 export type Press = OnePress | TwoPress;
 
@@ -48,7 +67,23 @@ export interface PressHandle {
 
 type Stage = 'rest' | 'armed' | 'doing';
 
-const KEYS = new Set(['id', 'title', 'mark', 'does', 'again', 'irrevocable', 'armedForMs']);
+const KEYS = new Set(['id', 'title', 'mark', 'does', 'again', 'irrevocable', 'creates', 'armedForMs']);
+
+/** Armed to create: the green it shimmers between. */
+export const CREATES: Readonly<{ green: '#4ade80'; light: '#86efac'; ink: '#0b1a0f' }> = Object.freeze({ green: '#4ade80', light: '#86efac', ink: '#0b1a0f' } as const);
+
+const SHIMMER = 'elements-press-shimmer';
+
+/** The shimmer's keyframes, in the page once: an inline style can name an animation but not hold one. */
+function holdShimmer(): void {
+    if (document.getElementById(SHIMMER)) return;
+    const style = document.createElement('style');
+    style.id = SHIMMER;
+    style.textContent = `@keyframes ${SHIMMER} { from { background-position: 200% 0; } to { background-position: 0 0; } }`;
+    document.head.appendChild(style);
+}
+
+const stillness = (): boolean => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** What a caller with no types is stopped on, where the compiler stops a typed one. */
 function refuse(press: Press): void {
@@ -63,6 +98,12 @@ function refuse(press: Press): void {
     }
     if (said.irrevocable !== undefined && !('again' in said)) {
         throw new TypeError(`press ${said.id}: a single press cannot be irrevocable; that is a second stage's to say`);
+    }
+    if (said.creates !== undefined && !('again' in said)) {
+        throw new TypeError(`press ${said.id}: a single press cannot create; that is a second stage's to say`);
+    }
+    if (said.creates !== undefined && said.irrevocable !== undefined) {
+        throw new TypeError(`press ${said.id}: a second press creates, or cannot be undone, not both`);
     }
 }
 
@@ -154,11 +195,22 @@ export function pressFrom(press: Press): PressHandle {
         seen(title, stage !== 'doing');
         seen(doing, stage === 'doing');
         if (armed) seen(armed, stage === 'armed');
-        // White at rest whatever it does; red only armed, and only when the second press cannot be undone.
+        // White at rest whatever it does. Armed: red only when the second press cannot be undone,
+        // green and shimmering only when it creates.
         const red = stage === 'armed' && press.irrevocable === true;
+        const green = stage === 'armed' && press.creates === true;
+        const shimmers = green && !stillness();
+        if (shimmers) holdShimmer();
         pin(element, {
-            'border-color': red ? MEANS.no : MEANS.neither,
-            color: red ? MEANS.no : MEANS.neither,
+            'border-color': red ? MEANS.no : green ? CREATES.green : MEANS.neither,
+            color: red ? MEANS.no : green ? CREATES.ink : MEANS.neither,
+            'background-color': green ? CREATES.green : '#000',
+            'background-image': shimmers ? `linear-gradient(110deg, ${CREATES.green} 0%, ${CREATES.light} 40%, ${CREATES.green} 60%, ${CREATES.light} 100%)` : 'none',
+            'background-size': '200% 100%',
+            'animation-name': shimmers ? SHIMMER : 'none',
+            'animation-duration': '1.2s',
+            'animation-timing-function': 'linear',
+            'animation-iteration-count': 'infinite',
             opacity: held === null ? '1' : '0.4',
         });
         element.disabled = stage === 'doing' || held !== null;
