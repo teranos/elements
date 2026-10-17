@@ -194,6 +194,38 @@ describe('Spike: when nothing should move', () => {
         expect(top(el)).toBe(100);
     });
 
+    // "The panel stops about three quarters of the way down": a page zoomed in shows less of
+    // itself, and what it shows was taken for what a keyboard leaves. A panel was cut to it.
+    test('a page pinched in is no keyboard: a window with a field pressed is not moved or cut', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(500);
+        const cap = el.style.maxHeight;
+
+        vv.scale = 1.3;
+        vv.height = SCREEN.height / 1.3;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+        field.focus();
+
+        expect(top(el)).toBe(500);
+        expect(el.style.maxHeight).toBe(cap);
+    });
+
+    test('a page pinched in is no keyboard: a panel with a field pressed still reaches the bottom', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(0, SCREEN.height, 'krypton');
+        setForm(el, 'panel');
+        const cap = el.style.maxHeight;
+        const reached = bottom(el);
+
+        vv.scale = 1.3;
+        vv.height = SCREEN.height / 1.3;
+        field.focus();
+        vv.dispatchEvent(new (window as any).Event('resize'));
+
+        expect(el.style.maxHeight).toBe(cap);
+        expect(bottom(el)).toBe(reached);
+    });
+
     test('a visual viewport scrolled down the page: the window rises into what is seen', () => {
         const vv = giveVisualViewport();
         const { el, field } = windowWithField(500);
