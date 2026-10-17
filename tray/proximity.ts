@@ -62,6 +62,8 @@ export class Proximity {
 
     private mouseX: number = 0;
     private mouseY: number = 0;
+    /** The pointer is on an open element, not reaching for the tray. */
+    private onElement: boolean = false;
     private proximityRAF: number | null = null;
 
     // Touch browse state — active while finger is down in the tray zone
@@ -84,6 +86,7 @@ export class Proximity {
     public setPointerPosition(x: number, y: number): void {
         this.mouseX = x;
         this.mouseY = y;
+        this.onElement = false;
     }
 
     private setupPointerTracking(): void {
@@ -93,6 +96,10 @@ export class Proximity {
         document.addEventListener('mousemove', (e) => {
             this.mouseX = e.clientX;
             this.mouseY = e.clientY;
+            // The tray sits above every window: grown toward a pointer on a window by the right
+            // edge, it covered the window's Minimize, and the press opened a dot.
+            const on = e.target instanceof globalThis.Element ? e.target.closest('[data-element-id]') : null;
+            this.onElement = on !== null && !on.classList.contains('dot');
         });
 
         // Mobile: touchmove feeds the same coordinates during browse mode.
@@ -139,7 +146,7 @@ export class Proximity {
             : this.PROXIMITY_THRESHOLD_HORIZONTAL;
 
         // Calculate proximity factor (1.0 = at dot, 0.0 = at threshold or beyond)
-        const proximityRaw = Math.max(0, 1 - (distance / threshold));
+        const proximityRaw = this.onElement ? 0 : Math.max(0, 1 - (distance / threshold));
 
         return { distance, distanceX, distanceY, proximityRaw, isVerticalApproach };
     }
