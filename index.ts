@@ -158,8 +158,8 @@ export { tooltipFrom } from './forms/tooltip';
 export { buttonFrom } from './forms/button';
 export type { ButtonOptions } from './forms/button';
 // A press: button form that does what it says, once or in two stages; the same size at every stage
-export { pressFrom, MEANS, ARMED_FOR_MS } from './forms/press';
-export type { Press, OnePress, TwoPress, PressHandle } from './forms/press';
+export { pressFrom, MEANS, CREATES, ARMED_FOR_MS } from './forms/press';
+export type { Press, OnePress, TwoPress, UndoablePress, IrrevocablePress, CreatingPress, PressHandle } from './forms/press';
 export { beginMorphToTooltip, beginMorphToAnchor, beginMorphToButton } from './morph-transaction';
 export type { TooltipBox } from './morph-transaction';
 export type { TooltipTiming, Says, Anchor } from './forms/tooltip';
