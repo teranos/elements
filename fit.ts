@@ -6,9 +6,17 @@
 /** What the fit decides, which a style attribute written important would otherwise keep. */
 const FIT_PROPERTIES = ['white-space', 'text-wrap-mode', 'max-width', 'min-width', 'flex-wrap', 'table-layout'];
 
+/** What makes a button as wide as what it says, which a style attribute written important would otherwise keep. */
+const BUTTON_PROPERTIES = ['width', 'flex', 'flex-grow', 'flex-basis'];
+
 /** Inside an element, an important style attribute saying how wide is taken off; the element's own box is the form's. */
 export function takeOffFit(node: Element): void {
     if (!(node instanceof HTMLElement) || node.dataset.elementId !== undefined) return;
+    if (node.tagName === 'BUTTON') {
+        for (const name of BUTTON_PROPERTIES) {
+            if (node.style.getPropertyPriority(name) === 'important') node.style.removeProperty(name);
+        }
+    }
     for (const name of FIT_PROPERTIES) {
         if (node.style.getPropertyPriority(name) !== 'important') continue;
         // A row written to wrap already gives way, as the package's own say row is (content/say.ts).
@@ -21,6 +29,7 @@ export function takeOffFit(node: Element): void {
 export function fitRule(element: string): string {
     return `${element} * { text-wrap-mode: wrap !important; max-width: 100% !important; min-width: 0 !important; }
 ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
+${element} button { width: fit-content !important; flex: 0 0 auto !important; }
 ${element} table { table-layout: fixed !important; width: 100% !important; }`;
 }
 
@@ -34,7 +43,20 @@ export function wrapRows(scroller: HTMLElement): void {
         const squeezed = Array.from(node.children).some((child) => child.scrollWidth > child.clientWidth + 1);
         if (node.scrollWidth <= node.clientWidth + 1 && !squeezed) continue;
         node.dataset.fitWrapped = '';
+        // "buttons in row's should be consistnetly placed and alligned"
+        // The rows of one list wrap together.
+        for (const sibling of Array.from(node.parentElement?.children ?? [])) {
+            if (sibling instanceof HTMLElement && sibling !== node && sameShape(sibling, node)) sibling.dataset.fitWrapped = '';
+        }
     }
+}
+
+/** A row of the same list: the same tag and classes, laid out as a row, and as many things in it when it has no class. */
+function sameShape(a: HTMLElement, b: HTMLElement): boolean {
+    if (a.tagName !== b.tagName || a.className !== b.className) return false;
+    const style = getComputedStyle(a);
+    if (!style.display.includes('flex') || !style.flexDirection.startsWith('row')) return false;
+    return b.className !== '' || a.children.length === b.children.length;
 }
 
 /** How far the fit moved a placed box, to take back exactly that before it measures again. */

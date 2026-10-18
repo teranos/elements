@@ -203,12 +203,58 @@ export function morphDotToWindow(
         setupWindowResize(element);
         // Given a size before, what it holds fills that size again.
         if (given) fillWithContent(element);
+        // Sized by what it holds, it asks again as what it holds arrives (window/fits.ts).
+        else becomePanelOutOfRoom(element, item, verifyElement, onRemove, onMinimize);
     }).catch(error => {
         // ROLLBACK: Animation was cancelled or failed
         log.warn(seg, `[Window] Animation failed for ${item.id}: ${error instanceof Error ? error.message : String(error)}`);
         // Element stays in element state with the classes it had, can retry
         morph.rollbackClass();
     });
+}
+
+// "situations like this, the Element should just open full screen like a panel"
+// A window opened on content still on its way, a node's answer most often: once what arrives
+// has it as wide as a window may be, it is what fitsAsWindow says no to, and it is a panel.
+function becomePanelOutOfRoom(
+    element: HTMLElement,
+    item: Element,
+    verifyElement: (id: string, element: HTMLElement) => void,
+    onRemove: (id: string) => void,
+    onMinimize: (element: HTMLElement, item: Element) => void,
+): void {
+    if (typeof MutationObserver !== 'function' || typeof requestAnimationFrame !== 'function') return;
+    let asked = false;
+    const ask = () => {
+        asked = false;
+        // Not a window any more, or a person gave it a size: it is no longer this watch's to say.
+        if (element.dataset.form !== 'window' || getLastSize(element)) { watch.disconnect(); return; }
+        if (element.classList.contains('morphing')) return;
+        if (fitsAsWindow(naturalWidth(element), window.innerWidth)) return;
+        watch.disconnect();
+        getLogger().debug(getLogSegment(), `[Window] ${item.id} holds more than a window may: a panel`);
+        leaveWindow(element);
+        morphDotToPanel(element, item, verifyElement, onRemove, onMinimize);
+    };
+    // What it holds changing, once a frame however much changed.
+    const watch = new MutationObserver(() => {
+        if (asked) return;
+        asked = true;
+        requestAnimationFrame(ask);
+    });
+    watch.observe(element, { childList: true, subtree: true, characterData: true });
+}
+
+// How wide the window would be with no screen around it, as the content was measured when it opened:
+// read in one go, and put back before anything is drawn.
+function naturalWidth(element: HTMLElement): number {
+    const was = { width: element.style.width, maxWidth: element.style.maxWidth };
+    element.style.maxWidth = 'none';
+    element.style.width = 'max-content';
+    const width = element.getBoundingClientRect().width;
+    element.style.width = was.width;
+    element.style.maxWidth = was.maxWidth;
+    return width;
 }
 
 /**
