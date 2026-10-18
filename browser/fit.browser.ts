@@ -65,6 +65,58 @@ for (const [name, markup] of Object.entries(HOSTILE)) {
     });
 }
 
+// "Button should never take up element full-width"
+const STRETCHED: Record<string, string> = {
+    'a column that stretches what is in it': '<div style="display: flex; flex-direction: column"><button>Generate a new secret</button></div>',
+    'a grid cell': '<div style="display: grid"><button>Generate a new secret</button></div>',
+    'width 100%': '<button style="width: 100%">Generate a new secret</button>',
+    'width 100%, important': '<button style="width: 100% !important">Generate a new secret</button>',
+    'flex 1 in a row': '<div style="display: flex"><button style="flex: 1">Generate a new secret</button></div>',
+    'a block': '<button style="display: block">Generate a new secret</button>',
+};
+
+for (const [name, markup] of Object.entries(STRETCHED)) {
+    test(`a button in ${name} is as wide as what it says, never the element's width`, async ({ page }) => {
+        await page.goto('/');
+        await page.locator(GERMANIUM).waitFor();
+        await opened(page);
+        await page.locator(`${GERMANIUM} .content-area`).evaluate((area, markup) => {
+            const holder = document.createElement('div');
+            holder.dataset.hostile = '';
+            holder.innerHTML = markup;
+            area.appendChild(holder);
+        }, markup);
+        await expect.poll(() => page.locator(`${GERMANIUM} [data-hostile] button`).evaluate((button) => {
+            const holder = button.closest('[data-hostile]')!.getBoundingClientRect().width;
+            const text = document.createRange();
+            text.selectNodeContents(button);
+            const cs = getComputedStyle(button);
+            const needs = text.getBoundingClientRect().width + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
+                + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+            const width = button.getBoundingClientRect().width;
+            return width <= needs + 1 && width < holder - 1 ? 'as wide as it says' : `${Math.round(width)} wide for ${Math.round(needs)} in ${Math.round(holder)}`;
+        })).toBe('as wide as it says');
+    });
+}
+
+// "buttons in row's should be consistnetly placed and alligned"
+test('the presses in a list of rows stand in one place, whichever row ran out of room', async ({ page }) => {
+    await page.goto('/');
+    await page.locator(GERMANIUM).waitFor();
+    await opened(page);
+    // As QNTX's GitHub lists where each namespace calls from: a name, and its press at the far end.
+    await page.locator(`${GERMANIUM} .content-area`).evaluate((area) => {
+        const holder = document.createElement('div');
+        holder.dataset.hostile = '';
+        const row = (name: string) => `<div class="from-row" style="display: flex; justify-content: space-between; gap: 8px"><span style="white-space: nowrap">${name}:</span><button style="white-space: nowrap">System's GitHub</button></div>`;
+        holder.innerHTML = [row('AWS'), row('a namespace whose name runs on and on'), row('Clean')].join('');
+        area.appendChild(holder);
+    });
+    await expect.poll(() => page.locator(`${GERMANIUM} [data-hostile]`).evaluate((holder) =>
+        Array.from(holder.querySelectorAll('button')).map((b) => Math.round(b.getBoundingClientRect().left)).filter((left, i, all) => all.indexOf(left) === i).length,
+    )).toBe(1);
+});
+
 // As QNTX's Claude writes its transcript: a row as tall as it is given, a scroller in it, more said than it shows.
 test('a row that fits keeps its scroller as tall as the row, and the scroller scrolls', async ({ page }) => {
     await page.goto('/');

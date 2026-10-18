@@ -58,7 +58,8 @@ test('a window\'s body does not scroll sideways under the wheel either', async (
     const body = lithium.locator(':scope > [data-scroller="body"]');
     await body.evaluate((el) => {
         const wide = document.createElement('div');
-        wide.style.cssText = 'width: 3000px; height: 40px';
+        // Wider than the window, and within what a window may hold: wider than that, it is a panel (window/window.ts).
+        wide.style.cssText = `width: ${Math.floor(window.innerWidth * 0.6)}px; height: 40px`;
         el.prepend(wide);
     });
     const box = (await body.boundingBox())!;

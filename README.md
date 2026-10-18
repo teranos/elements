@@ -73,6 +73,15 @@ Where this package ends and a host begins. The test that settles each line is in
 - **What a host writes fits its element; the package's, and the host has no say.**
   "no element should have content that isnt accesible"
   Dropping dead names what does not fit; the fit makes it fit (`fit.ts`). Text wraps where a host held it on one line, a box is no wider than what holds it, a table divides the width it has, a grid's tracks give way, a box placed past the edge is brought inside. A flex row wraps once it runs out of room, or squeezes what is in it below what it holds, measured, and not before: a row that fits stays one line, and what is in it keeps the height the row gives it, so a scroller in a row still scrolls.
+- **A button is as wide as what it says; the package's, and the host has no say.**
+  "Button should never take up element full-width"
+  A column that stretches, a grid cell, `width: 100%` or `flex: 1` made a press as wide as its element. Inside an element a button is `width: fit-content` and does not grow or give way, written in the layered, important rule, and a host's important width on it is taken off (`fit.ts`). What is beside it gives way instead.
+- **A window that holds more than a window may is a panel; the package's, and the host has no say.**
+  "situations like this, the Element should just open full screen like a panel"
+  Whether an element opens as a window or a panel was asked once, of what it held when it opened: a node's answer still on its way, so a "Loading…" was measured and it opened as a window that its content then outgrew. A window sized by what it holds now asks again as what it holds arrives, measured as it was at opening, and once it holds more than a window may take it is a panel, its content carried (`window/window.ts`, `fitsAsWindow`). A window a person gave a size stays theirs.
+- **The presses of a list stand in one place; the package's, and the host has no say.**
+  "buttons in row's should be consistnetly placed and alligned"
+  Each row wrapped on its own, so a long name dropped its press to the left while the rest stayed right. The rows of one list wrap together (`fit.ts`, `wrapRows`).
 - **A window stands whole on its screen; the package's, and the host has no say.**
   "i cant even use the mail element on desktop"
   "if it overflows width, hard fail, die"

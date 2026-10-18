@@ -41,6 +41,25 @@ test('a window given a long line after it opened, standing at the right, stays w
     }).toBe(true);
 });
 
+// "situations like this, the Element should just open full screen like a panel"
+// Selenium opens from the tray as a window sized by what it holds, as QNTX's GitHub does.
+test('a window whose content arrives wider than a window may be becomes a panel, the screen wide', async ({ page }) => {
+    const selenium = page.locator('[data-element-id="field-specimen"]');
+    if (touching()) await selenium.tap();
+    else await selenium.click();
+    await expect(selenium).toHaveAttribute('data-form', 'window');
+    await expect.poll(() => selenium.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
+    // As GitHub fills in after it opened: a row of names that will not break.
+    await selenium.locator('[data-scroller="body"]').evaluate((body) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display: flex; gap: 8px';
+        row.innerHTML = '<span>Namespace</span><span>teranos minted by github:17391443</span><span>4734 / 5000</span>'.repeat(4);
+        body.appendChild(row);
+    });
+    await expect(selenium).toHaveAttribute('data-form', 'panel');
+    await expect.poll(() => selenium.evaluate((el) => Math.round(el.getBoundingClientRect().width) === window.innerWidth)).toBe(true);
+});
+
 test('a window stays whole when its screen narrows under it', async ({ page }) => {
     await openWindow(page);
     await page.locator(GERMANIUM).evaluate((el) => { el.style.left = `${Math.floor(window.innerWidth * 0.6)}px`; });
