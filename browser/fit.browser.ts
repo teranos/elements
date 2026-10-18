@@ -34,7 +34,9 @@ const HOSTILE: Record<string, string> = {
     // As QNTX's Ground hangs its labels on a line: centred on a point at the line's very end.
     'label hung at the edge': `<div style="position: relative; height: 60px"><div style="position: absolute; left: 100%; transform: translateX(-50%); width: 140px">a label hung here</div><div style="position: absolute; left: 0; transform: translateX(-50%); width: 140px">and here</div></div>`,
     // As a row of presses and icons: each keeps its size, and the row wraps.
-    'row of things that keep their size': `<div style="display: inline-flex">${'<span style="flex: none; width: 90px; white-space: nowrap">a press</span>'.repeat(8)}</div>`,
+    // As QNTX's Plugin writes its badges: rows of a glyph and a word in a row, whose words give way and glyphs cannot.
+    'row that squeezes what is in it': `<div style="display: flex; gap: 10px">${'<div style="display: flex; gap: 4px"><span>●</span><span>running</span></div>'.repeat(8)}</div>`,
+    'row of things that keep their size':`<div style="display: inline-flex">${'<span style="flex: none; width: 90px; white-space: nowrap">a press</span>'.repeat(8)}</div>`,
 };
 
 for (const [name, markup] of Object.entries(HOSTILE)) {

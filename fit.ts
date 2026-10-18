@@ -24,14 +24,15 @@ ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
 ${element} table { table-layout: fixed !important; width: 100% !important; }`;
 }
 
-/** A flex row whose content runs past it wraps, once. Measured, so only on a page. */
+/** A flex row whose content runs past it, or that squeezes what is in it below what that holds, wraps, once. Measured, so only on a page. */
 export function wrapRows(scroller: HTMLElement): void {
     for (const node of Array.from(scroller.querySelectorAll<HTMLElement>('*'))) {
         // Once: a wrapped row would measure as fitting, and unwrapped it would not.
         if (node.dataset.fitWrapped !== undefined) continue;
         const style = getComputedStyle(node);
         if (!style.display.includes('flex') || !style.flexDirection.startsWith('row')) continue;
-        if (node.scrollWidth <= node.clientWidth + 1) continue;
+        const squeezed = Array.from(node.children).some((child) => child.scrollWidth > child.clientWidth + 1);
+        if (node.scrollWidth <= node.clientWidth + 1 && !squeezed) continue;
         node.dataset.fitWrapped = '';
     }
 }
