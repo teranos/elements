@@ -61,9 +61,22 @@ export type Press = OnePress | TwoPress;
 
 export interface PressHandle {
     element: HTMLButtonElement;
-    /** Held back, and why; null lets it be pressed again. */
+    /** Held back, and why: pressed, it says why beside it. null lets it be pressed again. */
     hold: (why: string | null) => void;
 }
+
+// "foutmeding at the inputfield makes sense for example"
+
+/** What a press could not do because of a field: thrown from does, it is said at that field. */
+export class AtField extends Error {
+    constructor(readonly field: HTMLElement, message: string) {
+        super(message);
+        this.name = 'AtField';
+    }
+}
+
+/** Each saying's own id, for the field it is said at to point to. */
+let sayings = 0;
 
 type Stage = 'rest' | 'armed' | 'doing';
 
@@ -213,24 +226,50 @@ export function pressFrom(press: Press): PressHandle {
             'animation-iteration-count': 'infinite',
             opacity: held === null ? '1' : '0.4',
         });
-        element.disabled = stage === 'doing' || held !== null;
+        // Never disabled: a disabled button takes no focus, and says nothing of why.
+        element.setAttribute('aria-disabled', String(held !== null));
         element.setAttribute('aria-busy', String(stage === 'doing'));
     };
 
-    // Beside the press, not in it: what failed never changes the press's size.
+    // The field a failure was said at, and what it pointed to before.
+    let misfilled: { field: HTMLElement; describedBy: string | null } | null = null;
+
+    // Beside the press, not in it: what failed never changes the press's size. At the field, when it is a field's.
     const say = (err: unknown) => {
         said = document.createElement('div');
         said.dataset.pressSaid = press.id;
+        said.id = `elements-press-said-${++sayings}`;
+        said.setAttribute('role', 'alert');
         said.textContent = err instanceof Error ? err.message : String(err);
         sizeText(said, 'sm');
         pin(said, { 'font-family': 'var(--font-mono)', color: MEANS.no, 'user-select': 'text' });
+        if (err instanceof AtField) {
+            misfilled = { field: err.field, describedBy: err.field.getAttribute('aria-describedby') };
+            err.field.setAttribute('aria-invalid', 'true');
+            err.field.setAttribute('aria-describedby', misfilled.describedBy === null ? said.id : `${misfilled.describedBy} ${said.id}`);
+            err.field.after(said);
+            return;
+        }
         element.after(said);
     };
 
-    const pressed = async () => {
-        if (stage === 'doing' || held !== null) return;
+    const unsay = () => {
         said?.remove();
         said = null;
+        if (misfilled === null) return;
+        misfilled.field.removeAttribute('aria-invalid');
+        if (misfilled.describedBy === null) misfilled.field.removeAttribute('aria-describedby');
+        else misfilled.field.setAttribute('aria-describedby', misfilled.describedBy);
+        misfilled = null;
+    };
+
+    const pressed = async () => {
+        if (stage === 'doing') return;
+        unsay();
+        if (held !== null) {
+            say(held);
+            return;
+        }
         if (two && stage === 'rest') {
             stage = 'armed';
             show();

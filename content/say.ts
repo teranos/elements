@@ -23,6 +23,22 @@ export function declareSay(field: HTMLElement): void {
     for (const [name, value] of Object.entries(FIELD)) field.style.setProperty(name, value, 'important');
 }
 
+// "i think chatfield soudl be considered different from regular inputfied"
+
+/** The field a chat says from, the package's own: lines of text, named by its label, declared the element's. */
+export function sayFrom(say: { id: string; label: string }): HTMLTextAreaElement {
+    if (typeof say.id !== 'string' || !say.id) throw new TypeError('a chat field has a name: its id');
+    if (typeof say.label !== 'string' || !say.label) throw new TypeError(`chat field ${say.id} says nothing of what it is: it has no label`);
+    const field = document.createElement('textarea');
+    field.rows = 1;
+    field.dataset.sayId = say.id;
+    // No room above it for a label: its name is read out, and shown until it is typed over.
+    field.setAttribute('aria-label', say.label);
+    field.placeholder = say.label;
+    declareSay(field);
+    return field;
+}
+
 /** The declared field's row, at the bottom of this element, worn in the element's own colour. */
 export function holdSay(element: HTMLElement): void {
     const field = element.querySelector<HTMLElement>('[data-say]');

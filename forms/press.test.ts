@@ -2,7 +2,7 @@
 // Personas: Tim (one press, two stages), Spike (rest is never red, arming runs out, a failure beside it, misuse), Jenny (every face from the start).
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { pressFrom, type Press } from './press';
+import { pressFrom, AtField, type Press } from './press';
 
 /** JSDOM says a colour back as rgb(); happy-dom as it was set. Either is the colour. */
 const isColor = (got: string, hex: string): boolean => {
@@ -84,10 +84,13 @@ describe('Tim: one press does it, two stages arm and then do it', () => {
         element.click();
         await settle();
         expect(element.dataset.stage).toBe('doing');
-        expect((element as HTMLButtonElement).disabled).toBe(true);
+        expect((element as HTMLButtonElement).disabled).toBe(false);
         expect(element.getAttribute('aria-busy')).toBe('true');
         expect(shownFaces(element)).toEqual(['doing']);
         expect(element.textContent).toBe('Save');
+        element.click();
+        await settle();
+        expect(element.dataset.stage).toBe('doing');
         finish();
         await settle();
         expect(element.dataset.stage).toBe('rest');
@@ -154,19 +157,47 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         expect(element.nextElementSibling).toBeNull();
     });
 
-    test('a press can be held back, and says why', async () => {
+    test('a press can be held back: never disabled, and pressed it says why beside it', async () => {
         const handle = place({ id: 'save', title: 'Save', does: () => { done.push('save'); } });
         handle.hold('nothing changed yet');
-        expect((handle.element as HTMLButtonElement).disabled).toBe(true);
+        expect((handle.element as HTMLButtonElement).disabled).toBe(false);
+        expect(handle.element.getAttribute('aria-disabled')).toBe('true');
         expect(handle.element.title).toBe('nothing changed yet');
         handle.element.click();
         await settle();
         expect(done).toEqual([]);
+        const said = handle.element.nextElementSibling as HTMLElement;
+        expect(said.textContent).toBe('nothing changed yet');
+        expect(said.getAttribute('role')).toBe('alert');
         handle.hold(null);
+        expect(handle.element.getAttribute('aria-disabled')).toBe('false');
         expect(handle.element.hasAttribute('title')).toBe(false);
         handle.element.click();
         await settle();
         expect(done).toEqual(['save']);
+        expect(handle.element.nextElementSibling).toBeNull();
+    });
+
+    test('a failure that is a field\'s is said at that field, which points to it, and the next press takes it away', async () => {
+        const field = document.createElement('div');
+        field.setAttribute('aria-describedby', 'hint');
+        document.body.appendChild(field);
+        let fail = true;
+        const { element } = place({ id: 'save', title: 'Save', does: () => { if (fail) throw new AtField(field, 'a name is needed'); } });
+        element.click();
+        await settle();
+        const said = field.nextElementSibling as HTMLElement;
+        expect(said.textContent).toBe('a name is needed');
+        expect(said.getAttribute('role')).toBe('alert');
+        expect(field.getAttribute('aria-invalid')).toBe('true');
+        expect(field.getAttribute('aria-describedby')).toBe(`hint ${said.id}`);
+        expect(element.nextElementSibling).toBeNull();
+        fail = false;
+        element.click();
+        await settle();
+        expect(field.nextElementSibling).toBe(element);
+        expect(field.hasAttribute('aria-invalid')).toBe(false);
+        expect(field.getAttribute('aria-describedby')).toBe('hint');
     });
 
     // What does not compile is press.misuse.ts's, under bun run typecheck.
