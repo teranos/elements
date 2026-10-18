@@ -29,7 +29,7 @@ export function takeOffFit(node: Element): void {
 export function fitRule(element: string): string {
     return `${element} * { text-wrap-mode: wrap !important; max-width: 100% !important; min-width: 0 !important; }
 ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
-${element} button { width: fit-content !important; flex: 0 0 auto !important; }
+${element} button:not([data-element-id]) { width: fit-content !important; flex: 0 0 auto !important; }
 ${element} table { table-layout: fixed !important; width: 100% !important; }`;
 }
 
