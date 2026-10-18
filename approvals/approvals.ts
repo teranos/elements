@@ -51,9 +51,8 @@ export interface ApprovalAside {
 /**
  * One of the checks on the thing itself. "These are always targeting main, and
  * the checks are what occur on the PR itself, before we even want to present it
- * as something to approve or not." Each is said beside the buttons, running or failed, and none
- * holds a press back: "the whole ci suite runs and needs to finish before i am allowed to click merge"
- * was the bug.
+ * as something to approve or not." Until every one is done it cannot be
+ * decided; one failed, it is not ready for approval at all.
  */
 export interface ApprovalCheck {
     name: string;
@@ -376,9 +375,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
     const buttons = approval.options.map((option, i) => {
         const { btn, note } = optionButton(option);
         btn.addEventListener('click', (e) => {
-            // "as a HUMAN USER i expect to be having prio always, none of my actions need to be impeded"
-            // Checks running or failed are said beside the buttons, and never hold a press back.
-            if (locked) return;
+            if (locked || !presented()) return;
             const was = { current, locked, merging };
             if (current?.option === i) {
                 if (current.step + 1 >= stepsOf(option).length) return;
@@ -416,22 +413,23 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             // What was sent last fills with its colour; the others wear it as an outline.
             btn.style.background = on ? color : '#000';
             btn.style.color = on ? (option.means ? '#fff' : '#000') : color;
-            btn.disabled = !!locked;
-            btn.style.opacity = locked && !on ? '0.4' : '1';
+            btn.disabled = !!locked || notYet;
+            btn.style.opacity = (locked && !on) || notYet ? '0.4' : '1';
             const next = on ? steps[current!.step + 1] : steps[0];
             const said = on ? steps[current!.step]!.says : null;
             // "The countdown, why not IN THE button." In the one that stands, how long
             // until it takes effect or can no longer change; before anything is sent,
             // in each, how long to choose.
-            const count = locked ? null
+            const count = locked || notYet ? null
                 : on && merging !== null ? (merging === Infinity ? approval.merges!.label : `${approval.merges!.label} ${merging}s`)
-                : approval.openForSeconds && !notYet && (on || current === null) ? `${remaining}s` : null;
-            const lines = [
-                notYet && !locked ? (failed() ? 'checks failed' : 'checks running') : null,
-                said && said !== option.label ? said : null,
-                !locked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
-                count,
-            ].filter(Boolean);
+                : approval.openForSeconds && (on || current === null) ? `${remaining}s` : null;
+            const lines = notYet
+                ? [failed() ? 'checks failed' : 'checks running']
+                : [
+                    said && said !== option.label ? said : null,
+                    !locked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
+                    count,
+                ].filter(Boolean);
             note.textContent = lines.join('\n');
             note.style.whiteSpace = 'pre-line';
             note.hidden = lines.length === 0;

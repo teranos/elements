@@ -124,28 +124,25 @@ describe('Tim: every option visible, a press sends, the roll in order', () => {
 });
 
 describe('Spike: not yet, not at all, and nothing more', () => {
-    // "as a HUMAN USER i expect to be having prio always, none of my actions need to be impeded"
-    test('checks still running: the buttons say so, and a press sends', () => {
+    test('checks still running: nothing can be pressed, and the buttons say so', () => {
         const { card } = roll.add(merge('Merge PR #29', { checks: [{ name: 'TypeScript', state: 'done' }, { name: 'Browser', state: 'running' }] }));
-        expect(button(card, 'Merge').disabled).toBe(false);
-        expect(note(button(card, 'Merge'))).toContain('checks running');
+        expect(button(card, 'Merge').disabled).toBe(true);
+        expect(note(button(card, 'Merge'))).toBe('checks running');
         button(card, 'Merge').click();
-        expect(pressed.length).toBe(1);
+        expect(pressed).toEqual([]);
     });
 
-    test('a check failed: the buttons say so, and a press still sends', () => {
+    test('a check failed: not ready for approval at all', () => {
         const { card } = roll.add(merge('Merge PR #31', { checks: [{ name: 'TypeScript', state: 'done' }, { name: 'Browser', state: 'failed' }] }));
-        expect(button(card, 'Merge').disabled).toBe(false);
-        expect(note(button(card, 'Merge'))).toContain('checks failed');
-        button(card, 'Merge').click();
-        expect(pressed.length).toBe(1);
+        expect(button(card, 'Merge').disabled).toBe(true);
+        expect(note(button(card, 'Merge'))).toBe('checks failed');
     });
 
-    test('the host says the checks are done, and the buttons stop saying they run', () => {
+    test('the host says the checks are done, and it can be decided', () => {
         const handle = roll.add(merge('Merge PR #29', { checks: [{ name: 'TypeScript', state: 'running' }, { name: 'Browser', state: 'waiting' }] }));
-        expect(note(button(handle.card, 'Merge'))).toContain('checks running');
+        expect(button(handle.card, 'Merge').disabled).toBe(true);
         handle.checks(['done', 'done']);
-        expect(note(button(handle.card, 'Merge'))).not.toContain('checks running');
+        expect(button(handle.card, 'Merge').disabled).toBe(false);
         expect(handle.card.querySelectorAll('[data-state="done"]').length).toBeGreaterThanOrEqual(2);
     });
 
