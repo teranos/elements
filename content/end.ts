@@ -32,6 +32,8 @@ function toEnd(element: HTMLElement): void {
 /** Open this element at its end, and follow what is said after while it is there. */
 export function openAtEnd(element: HTMLElement): void {
     following.get(element)?.stop();
+    // Said on the element, so a host's gate can hold it to its end without knowing which it is.
+    element.dataset.opensAt = 'end';
     const state: Following = { at: true, stop: () => {} };
     const onScroll = (event: Event) => {
         const scroller = scrollerOf(element);
@@ -45,6 +47,7 @@ export function openAtEnd(element: HTMLElement): void {
         : null;
     observer?.observe(element, { childList: true, subtree: true, characterData: true });
     state.stop = () => {
+        delete element.dataset.opensAt;
         element.removeEventListener('scroll', onScroll, { capture: true });
         observer?.disconnect();
         following.delete(element);
