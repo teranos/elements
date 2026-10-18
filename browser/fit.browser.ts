@@ -62,3 +62,24 @@ for (const [name, markup] of Object.entries(HOSTILE)) {
         })).toEqual([]);
     });
 }
+
+// As QNTX's Claude writes its transcript: a row as tall as it is given, a scroller in it, more said than it shows.
+test('a row that fits keeps its scroller as tall as the row, and the scroller scrolls', async ({ page }) => {
+    await page.goto('/');
+    await page.locator(GERMANIUM).waitFor();
+    await opened(page);
+    const held = await page.locator(`${GERMANIUM} .content-area`).evaluate((area) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display: flex; height: 120px';
+        const scroller = document.createElement('div');
+        scroller.style.cssText = 'flex: 1; overflow-y: auto';
+        scroller.innerHTML = '<div>a line said</div>'.repeat(40);
+        row.appendChild(scroller);
+        area.appendChild(row);
+        return new Promise<string>((done) => requestAnimationFrame(() => requestAnimationFrame(() =>
+            done(`${scroller.clientHeight} of ${scroller.scrollHeight}`))));
+    });
+    const [shown, all] = held.split(' of ').map(Number);
+    expect(shown, held).toBeLessThanOrEqual(121);
+    expect(all!, held).toBeGreaterThan(shown!);
+});
