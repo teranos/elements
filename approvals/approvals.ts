@@ -51,8 +51,9 @@ export interface ApprovalAside {
 /**
  * One of the checks on the thing itself. "These are always targeting main, and
  * the checks are what occur on the PR itself, before we even want to present it
- * as something to approve or not." Until every one is done it cannot be
- * decided; one failed, it is not ready for approval at all.
+ * as something to approve or not." Each is said beside the buttons, running or failed, and none
+ * holds a press back: "the whole ci suite runs and needs to finish before i am allowed to click merge"
+ * was the bug.
  */
 export interface ApprovalCheck {
     name: string;
@@ -84,7 +85,8 @@ export interface Approval {
 
 /** The host: every press is handed to it, and it says what the press did. */
 export interface ApprovalHost {
-    pressed: (approval: Approval, option: ApprovalOption, step: ApprovalStep) => void;
+    /** A promise the roll waits on before it moves the card on; one that rejects leaves the card as it was. */
+    pressed: (approval: Approval, option: ApprovalOption, step: ApprovalStep) => void | Promise<unknown>;
 }
 
 /** One approval in the roll, for the host to keep up to date. */
@@ -374,7 +376,10 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
     const buttons = approval.options.map((option, i) => {
         const { btn, note } = optionButton(option);
         btn.addEventListener('click', (e) => {
-            if (locked || !presented()) return;
+            // "as a HUMAN USER i expect to be having prio always, none of my actions need to be impeded"
+            // Checks running or failed are said beside the buttons, and never hold a press back.
+            if (locked) return;
+            const was = { current, locked, merging };
             if (current?.option === i) {
                 if (current.step + 1 >= stepsOf(option).length) return;
                 current = { option: i, step: current.step + 1 };
@@ -385,8 +390,17 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             show();
             // After show(): the piece that breaks off wears the decision just made.
             shatter(btn, e, COLOR[option.means ?? 'neither']);
-            host.pressed(approval, option, stepNow()!);
-            changed(true);
+            const took = host.pressed(approval, option, stepNow()!);
+            if (!(took instanceof Promise)) {
+                changed(true);
+                return;
+            }
+            // "adn yet the approval dissapears as if its done"
+            // The roll moves on once the host says the press took; refused, the card stays as it was.
+            took.then(() => changed(true), () => {
+                ({ current, locked, merging } = was);
+                show();
+            });
         });
         row.appendChild(btn);
         return { btn, note };
@@ -402,23 +416,22 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             // What was sent last fills with its colour; the others wear it as an outline.
             btn.style.background = on ? color : '#000';
             btn.style.color = on ? (option.means ? '#fff' : '#000') : color;
-            btn.disabled = !!locked || notYet;
-            btn.style.opacity = (locked && !on) || notYet ? '0.4' : '1';
+            btn.disabled = !!locked;
+            btn.style.opacity = locked && !on ? '0.4' : '1';
             const next = on ? steps[current!.step + 1] : steps[0];
             const said = on ? steps[current!.step]!.says : null;
             // "The countdown, why not IN THE button." In the one that stands, how long
             // until it takes effect or can no longer change; before anything is sent,
             // in each, how long to choose.
-            const count = locked || notYet ? null
+            const count = locked ? null
                 : on && merging !== null ? (merging === Infinity ? approval.merges!.label : `${approval.merges!.label} ${merging}s`)
-                : approval.openForSeconds && (on || current === null) ? `${remaining}s` : null;
-            const lines = notYet
-                ? [failed() ? 'checks failed' : 'checks running']
-                : [
-                    said && said !== option.label ? said : null,
-                    !locked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
-                    count,
-                ].filter(Boolean);
+                : approval.openForSeconds && !notYet && (on || current === null) ? `${remaining}s` : null;
+            const lines = [
+                notYet && !locked ? (failed() ? 'checks failed' : 'checks running') : null,
+                said && said !== option.label ? said : null,
+                !locked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
+                count,
+            ].filter(Boolean);
             note.textContent = lines.join('\n');
             note.style.whiteSpace = 'pre-line';
             note.hidden = lines.length === 0;
