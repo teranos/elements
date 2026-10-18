@@ -10,14 +10,30 @@ const FIT_PROPERTIES = ['white-space', 'text-wrap-mode', 'max-width', 'min-width
 export function takeOffFit(node: Element): void {
     if (!(node instanceof HTMLElement) || node.dataset.elementId !== undefined) return;
     for (const name of FIT_PROPERTIES) {
-        if (node.style.getPropertyPriority(name) === 'important') node.style.removeProperty(name);
+        if (node.style.getPropertyPriority(name) !== 'important') continue;
+        // A row written to wrap already gives way, as the package's own say row is (content/say.ts).
+        if (name === 'flex-wrap' && node.style.getPropertyValue(name).startsWith('wrap')) continue;
+        node.style.removeProperty(name);
     }
 }
 
 /** The package's fit for the elements `element` selects, laid into its layer by text.ts. */
 export function fitRule(element: string): string {
-    return `${element} * { text-wrap-mode: wrap !important; max-width: 100% !important; min-width: 0 !important; flex-wrap: wrap !important; }
+    return `${element} * { text-wrap-mode: wrap !important; max-width: 100% !important; min-width: 0 !important; }
+${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
 ${element} table { table-layout: fixed !important; width: 100% !important; }`;
+}
+
+/** A flex row whose content runs past it wraps, once. Measured, so only on a page. */
+export function wrapRows(scroller: HTMLElement): void {
+    for (const node of Array.from(scroller.querySelectorAll<HTMLElement>('*'))) {
+        // Once: a wrapped row would measure as fitting, and unwrapped it would not.
+        if (node.dataset.fitWrapped !== undefined) continue;
+        const style = getComputedStyle(node);
+        if (!style.display.includes('flex') || !style.flexDirection.startsWith('row')) continue;
+        if (node.scrollWidth <= node.clientWidth + 1) continue;
+        node.dataset.fitWrapped = '';
+    }
 }
 
 /** How far the fit moved a placed box, to take back exactly that before it measures again. */
