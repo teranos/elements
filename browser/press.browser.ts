@@ -21,10 +21,13 @@ async function hit(target: Locator): Promise<void> {
 type Box = { x: number; y: number; width: number; height: number };
 
 // Where it stands is part of its box: a press that kept its size and moved has still jumped.
+// Measured from what holds it, so a scroll of the page or the element is not taken for a jump.
 async function box(target: Locator): Promise<Box> {
-    const b = await target.boundingBox();
-    if (!b) throw new Error('the press is not on the page');
-    return b;
+    return target.evaluate((el) => {
+        const at = el.getBoundingClientRect();
+        const holder = (el.parentElement ?? document.documentElement).getBoundingClientRect();
+        return { x: at.left - holder.left, y: at.top - holder.top, width: at.width, height: at.height };
+    });
 }
 
 const stageOf = (target: Locator) => target.getAttribute('data-stage');
