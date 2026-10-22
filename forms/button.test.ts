@@ -15,7 +15,7 @@
 
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { buttonFrom } from './button';
-import { getForm } from '../dataset';
+import { getForm, getLastSize } from '../dataset';
 import type { Element } from '../element';
 import { tray } from '../tray/tray';
 import { playAnimations, type Played, type Road } from '../test-animations';
@@ -153,6 +153,17 @@ describe('Tim: button, window, gap, button again', () => {
         expect(rendered).toBe(1);
         expect(button.querySelectorAll('.title-bar')).toHaveLength(1);
         expect(button.querySelectorAll('.bismuth-body')).toHaveLength(1);
+    });
+
+    // Measured when pressed, a window kept the size of its loading line.
+    test('the window is no size of its own: it grows with what arrives, as one opened from a dot does', async () => {
+        click(button);
+        await wait(SETTLED);
+        expectAxiom('bismuth', button);
+        expect(getLastSize(button)).toBeNull();
+        expect(button.style.width).toBe('fit-content');
+        expect(button.style.height).toBe('fit-content');
+        expect(rendered).toBe(1);
     });
 
     test('where it was is a transparent gap, the size it was', () => {

@@ -18,8 +18,8 @@
  */
 
 import { type Element } from '../element';
-import { getRestDuration, MIN_WINDOW_WIDTH, CANVAS_ELEMENT_CONTENT_PADDING } from '../element';
-import { setForm, getForm, setElementId, getElementId, getLastSize, setLastSize } from '../dataset';
+import { getRestDuration, CANVAS_ELEMENT_CONTENT_PADDING } from '../element';
+import { setForm, getForm, setElementId, getElementId } from '../dataset';
 import { stashContent, restoreContent, hasStash } from '../content/stash';
 import { holdBody } from '../content/body';
 import { watchScroll } from '../content/scroll';
@@ -194,36 +194,10 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
         element.style.padding = '0';
     };
 
-    /** The size the window will be, measured off what it carries, so nothing is drawn twice. */
-    const measure = (border: { across: number; down: number }) => {
-        if (getLastSize(element)) return;
-        const measurer = document.createElement('div');
-        measurer.style.position = 'fixed';
-        measurer.style.left = '-99999px';
-        measurer.style.top = '0';
-        measurer.style.visibility = 'hidden';
-        // Measured as it will stand, in a window: what the package sizes by form (a press) is that form's size.
-        measurer.dataset.form = 'window';
-        const children = Array.from(element.children);
-        measurer.append(...children);
-        document.body.appendChild(measurer);
-        // Rounded up: text a fraction of a pixel wider than its box wraps.
-        const box = measurer.getBoundingClientRect();
-        const width = Math.ceil(Math.max(box.width, measurer.scrollWidth));
-        const height = Math.ceil(Math.max(box.height, measurer.scrollHeight));
-        element.append(...children);
-        measurer.remove();
-        setLastSize(element, Math.max(MIN_WINDOW_WIDTH, width + border.across), height + border.down);
-    };
-
     const open = () => {
         if (getForm(element) !== 'button' || returning) return;
         const at = element.getBoundingClientRect();
         const style = window.getComputedStyle(element);
-        const border = {
-            across: (parseFloat(style.borderLeftWidth) || 0) + (parseFloat(style.borderRightWidth) || 0),
-            down: (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0),
-        };
 
         // The hole it leaves: its size and its place in the flow, and nothing to see.
         gap = document.createElement('div');
@@ -254,8 +228,8 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
         element.style.height = `${at.height}px`;
         close = pierce(gap, { x: at.left, y: at.top, width: at.width, height: at.height });
         // What the button said is the window's title now, and it never left.
+        // The window measures the body it carries, and grows as that does.
         carry();
-        measure(border);
         element.removeAttribute('role');
         element.removeAttribute('tabindex');
 

@@ -61,23 +61,29 @@ export function morphDotToWindow(
     let measuredWidth = 0;
     let measuredHeight = 0;
     if (!given) {
-        preRenderedContent = item.renderContent();
+        // A body the element already carries (forms/button.ts) is the one measured, and is never drawn twice.
+        const carried = carriedBody(element);
+        const body = carried ?? (preRenderedContent = item.renderContent());
+        const home = body.parentElement;
+        const next = body.nextSibling;
         const measurer = document.createElement('div');
         measurer.style.position = 'fixed';
         measurer.style.left = '-99999px';
         measurer.style.top = '0';
         measurer.style.visibility = 'hidden';
-        measurer.style.padding = `${CANVAS_ELEMENT_CONTENT_PADDING}px`;
+        // A carried body is its content area, which brings its own padding.
+        measurer.style.padding = carried ? '0' : `${CANVAS_ELEMENT_CONTENT_PADDING}px`;
         // Measured as it will stand, in a window: what the package sizes by form (a press) is that form's size.
         measurer.dataset.form = 'window';
-        measurer.appendChild(preRenderedContent);
+        measurer.appendChild(body);
         document.body.appendChild(measurer);
         measuredWidth = measurer.scrollWidth;
         measuredHeight = measurer.scrollHeight;
         // Detach content from measurer so it can be reparented into the window
         // without being torn down (subscriptions/timers keep firing).
-        measurer.removeChild(preRenderedContent);
+        measurer.removeChild(body);
         document.body.removeChild(measurer);
+        if (carried && home) home.insertBefore(body, next);
     }
 
     // Asked before a transaction opens, because which form this is
@@ -257,6 +263,13 @@ function naturalWidth(element: HTMLElement): number {
     element.style.width = was.width;
     element.style.maxWidth = was.maxWidth;
     return width;
+}
+
+// The body an element arrives with under its own title bar (forms/button.ts), or none.
+function carriedBody(element: HTMLElement): HTMLElement | null {
+    const children = Array.from(element.children);
+    if (!children.some((child) => child.classList.contains('title-bar'))) return null;
+    return (children.find((child) => !child.classList.contains('title-bar')) as HTMLElement | undefined) ?? null;
 }
 
 /**
