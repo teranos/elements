@@ -96,7 +96,7 @@ describe('Tim: one press does it, two stages arm and then do it', () => {
 });
 
 describe('Spike: "the immediate red communicates, irrevocable click, which is wrong for this."', () => {
-    test('at rest every press is outlined white, the irrevocable one too', () => {
+    test('at rest every press is outlined white on the surface it stands on, the irrevocable one too', () => {
         const presses: Press[] = [
             { id: 'a', title: 'Save', does: () => {} },
             { id: 'b', title: 'Unbind', again: 'it is unbound', does: () => {} },
@@ -105,7 +105,8 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         for (const press of presses) {
             const { element } = place(press);
             expect(isColor(element.style.borderColor, '#fff')).toBe(true);
-            expect(isColor(element.style.backgroundColor, '#000')).toBe(true);
+            // "how discordant the black button is compared to everything else"
+            expect(element.style.backgroundColor).toBe('transparent');
         }
     });
 
@@ -181,6 +182,47 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
     });
 });
 
+describe('Spike: "To be clear that you\'re arming the button and can then press to confirm"', () => {
+    test('at rest a two-stage press says it takes two presses; a single one says nothing more', () => {
+        const unbind = place({ id: 'unbind', title: 'Unbind', again: 'it is unbound', does: () => {} }).element;
+        const save = place({ id: 'save', title: 'Save', does: () => {} }).element;
+        expect(shown(unbind)).toEqual(['Unbind', 'press twice']);
+        expect(shown(save)).toEqual(['Save']);
+    });
+
+    test('armed, it is filled with what its outline said: white, red, or green', async () => {
+        const unbind = place({ id: 'unbind', title: 'Unbind', again: 'it is unbound', does: () => {} }).element;
+        const nuke = place({ id: 'nuke', title: 'Nuke', again: 'gone, for good', irrevocable: true, does: () => {} }).element;
+        unbind.click();
+        nuke.click();
+        await settle();
+        expect(isColor(unbind.style.backgroundColor, '#fff')).toBe(true);
+        expect(isColor(unbind.style.color, '#000')).toBe(true);
+        expect(isColor(nuke.style.backgroundColor, '#dc2626')).toBe(true);
+        expect(isColor(nuke.style.color, '#fff')).toBe(true);
+    });
+
+    test('armed, a bar runs out across its foot for as long as it stays armed, and is gone at rest', async () => {
+        const { element } = place({ id: 'revoke', title: 'Revoke', again: 'the token stops working', armedForMs: 3000, does: () => {} });
+        const bar = element.querySelector<HTMLElement>('[data-press-runs-out]')!;
+        expect(bar).not.toBeNull();
+        expect(bar.style.visibility).toBe('hidden');
+        expect(bar.style.position).toBe('absolute');
+        element.click();
+        await settle();
+        expect(bar.style.visibility).toBe('visible');
+        expect(bar.style.animationDuration).toBe('3000ms');
+        element.click();
+        await settle();
+        expect(bar.style.visibility).toBe('hidden');
+    });
+
+    test('a single press has no bar', () => {
+        const { element } = place({ id: 'save', title: 'Save', does: () => {} });
+        expect(element.querySelector('[data-press-runs-out]')).toBeNull();
+    });
+});
+
 describe('Jenny: "a button should just be the same size"', () => {
     test('a single press holds its title and its doing, at every stage', async () => {
         let finish!: () => void;
@@ -194,13 +236,13 @@ describe('Jenny: "a button should just be the same size"', () => {
         expect(faces(element)).toEqual(['title', 'doing']);
     });
 
-    test('two stages hold the title, the doing and the armed note, at rest, armed and doing', async () => {
+    test('two stages hold the title, the doing and both notes, at rest, armed and doing', async () => {
         let finish!: () => void;
         const { element } = place({
             id: 'revoke', title: 'Revoke', again: 'the token stops working',
             does: () => new Promise<void>((resolve) => { finish = resolve; }),
         });
-        const all = ['title', 'doing', 'armed-note'];
+        const all = ['title', 'doing', 'twice-note', 'armed-note'];
         expect(faces(element)).toEqual(all);
         element.click();
         await settle();

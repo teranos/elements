@@ -73,13 +73,15 @@ const KEYS = new Set(['id', 'title', 'mark', 'does', 'again', 'irrevocable', 'cr
 export const CREATES: Readonly<{ green: '#4ade80'; light: '#86efac'; ink: '#0b1a0f' }> = Object.freeze({ green: '#4ade80', light: '#86efac', ink: '#0b1a0f' } as const);
 
 const SHIMMER = 'elements-press-shimmer';
+const RUNS_OUT = 'elements-press-runs-out';
 
-/** The shimmer's keyframes, in the page once: an inline style can name an animation but not hold one. */
-function holdShimmer(): void {
+/** The shimmer's and the bar's keyframes, in the page once: an inline style can name an animation but not hold one. */
+function holdKeyframes(): void {
     if (document.getElementById(SHIMMER)) return;
     const style = document.createElement('style');
     style.id = SHIMMER;
-    style.textContent = `@keyframes ${SHIMMER} { from { background-position: 200% 0; } to { background-position: 0 0; } }`;
+    style.textContent = `@keyframes ${SHIMMER} { from { background-position: 200% 0; } to { background-position: 0 0; } }`
+        + ` @keyframes ${RUNS_OUT} { from { transform: scaleX(1); } to { transform: scaleX(0); } }`;
     document.head.appendChild(style);
 }
 
@@ -136,7 +138,8 @@ export function pressFrom(press: Press): PressHandle {
     element.type = 'button';
     // No form of its own: setForm would hold its text as an element's, and a press is part of one.
     element.dataset.press = press.id;
-    // The approvals' options: black, square, a 2px outline.
+    // Square, a 2px outline, on whatever surface it stands on: "how discordant the black button is
+    // compared to everything else". Positioned, so the bar that runs out sits on its foot.
     pin(element, {
         'box-sizing': 'border-box',
         display: 'inline-grid',
@@ -151,7 +154,8 @@ export function pressFrom(press: Press): PressHandle {
         'font-weight': 'normal',
         'line-height': '1.3',
         'touch-action': 'manipulation',
-        'background-color': '#000',
+        position: 'relative',
+        'background-color': 'transparent',
     });
     preventDrag(element);
 
@@ -175,12 +179,35 @@ export function pressFrom(press: Press): PressHandle {
     });
     element.append(title, doing);
 
+    // "To be clear that you're arming the button and can then press to confirm": at rest a two-stage
+    // press says it takes two, armed it says what the second does, and a bar runs out while it waits.
+    let twice: HTMLSpanElement | null = null;
     let armed: HTMLSpanElement | null = null;
+    let runsOut: HTMLSpanElement | null = null;
     if (two) {
+        twice = face('twice-note', 'press twice', 2);
         armed = face('armed-note', `again: ${press.again}`, 2);
-        sized(armed, 'sm');
-        pin(armed, { 'font-family': 'var(--font-mono)' });
-        element.appendChild(armed);
+        for (const note of [twice, armed]) {
+            sized(note, 'sm');
+            pin(note, { 'font-family': 'var(--font-mono)' });
+        }
+        // Out of the grid, so it never sizes the press.
+        runsOut = document.createElement('span');
+        runsOut.dataset.pressRunsOut = '';
+        runsOut.setAttribute('aria-hidden', 'true');
+        pin(runsOut, {
+            position: 'absolute',
+            left: '0',
+            right: '0',
+            bottom: '0',
+            height: '3px',
+            'transform-origin': 'left',
+            'background-color': 'currentColor',
+            'animation-duration': `${(press as TwoPress).armedForMs ?? ARMED_FOR_MS}ms`,
+            'animation-timing-function': 'linear',
+            'animation-fill-mode': 'forwards',
+        });
+        element.append(twice, armed, runsOut);
     }
 
     let stage: Stage = 'rest';
@@ -194,17 +221,23 @@ export function pressFrom(press: Press): PressHandle {
         element.dataset.stage = stage;
         seen(title, stage !== 'doing');
         seen(doing, stage === 'doing');
+        if (twice) seen(twice, stage !== 'armed');
         if (armed) seen(armed, stage === 'armed');
-        // White at rest whatever it does. Armed: red only when the second press cannot be undone,
-        // green and shimmering only when it creates.
-        const red = stage === 'armed' && press.irrevocable === true;
-        const green = stage === 'armed' && press.creates === true;
+        // White at rest whatever it does. Armed it is filled with what its outline says: white,
+        // red only when the second press cannot be undone, green and shimmering only when it creates.
+        const lit = stage === 'armed';
+        const red = lit && press.irrevocable === true;
+        const green = lit && press.creates === true;
         const shimmers = green && !stillness();
-        if (shimmers) holdShimmer();
+        if (shimmers || (lit && !stillness())) holdKeyframes();
+        if (runsOut) {
+            seen(runsOut, lit);
+            pin(runsOut, { 'animation-name': lit && !stillness() ? RUNS_OUT : 'none' });
+        }
         pin(element, {
             'border-color': red ? MEANS.no : green ? CREATES.green : MEANS.neither,
-            color: red ? MEANS.no : green ? CREATES.ink : MEANS.neither,
-            'background-color': green ? CREATES.green : '#000',
+            color: red ? MEANS.neither : green ? CREATES.ink : lit ? '#000' : MEANS.neither,
+            'background-color': red ? MEANS.no : green ? CREATES.green : lit ? MEANS.neither : 'transparent',
             'background-image': shimmers ? `linear-gradient(110deg, ${CREATES.green} 0%, ${CREATES.light} 40%, ${CREATES.green} 60%, ${CREATES.light} 100%)` : 'none',
             'background-size': '200% 100%',
             'animation-name': shimmers ? SHIMMER : 'none',
