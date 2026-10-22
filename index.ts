@@ -158,11 +158,11 @@ export { tooltipFrom } from './forms/tooltip';
 export { buttonFrom } from './forms/button';
 export type { ButtonOptions } from './forms/button';
 // A press: button form that does what it says, once or in two stages; the same size at every stage
-export { pressFrom, AtField, MEANS, CREATES, ARMED_FOR_MS } from './forms/press';
+export { pressFrom, pressSizeFor, AtField, MEANS, CREATES, ARMED_FOR_MS, PRESS_SIZES } from './forms/press';
 // A field: one line of text with its label, the package's only field but the chat's
 export { fieldFrom, KEYBOARDS } from './forms/field';
 export type { Field, FieldHandle, Keyboard } from './forms/field';
-export type { Press, OnePress, TwoPress, UndoablePress, IrrevocablePress, CreatingPress, PressHandle } from './forms/press';
+export type { Press, OnePress, TwoPress, UndoablePress, IrrevocablePress, CreatingPress, PressHandle, PressSize } from './forms/press';
 export { beginMorphToTooltip, beginMorphToAnchor, beginMorphToButton } from './morph-transaction';
 export type { TooltipBox } from './morph-transaction';
 export type { TooltipTiming, Says, Anchor } from './forms/tooltip';

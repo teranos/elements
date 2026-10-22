@@ -3,6 +3,7 @@
 
 import { preventDrag } from '../canvas/drag';
 import { sizeText, TEXT_SIZES, type TextSize } from '../text';
+import type { Form } from '../form';
 
 /** What an outline says: yes is green, no is red, neither is white. The approvals' options wear it too. */
 export const MEANS: Readonly<{ yes: '#16a34a'; no: '#dc2626'; neither: '#fff' }> = Object.freeze({ yes: '#16a34a', no: '#dc2626', neither: '#fff' } as const);
@@ -31,7 +32,7 @@ export interface OnePress extends Said {
 
 /** The first press arms and says what the second does; the second does it. */
 interface Second extends Said {
-    /** What the second press does, said under the title once armed, after the word again. */
+    /** What the second press does, said beside the press once armed, after the word again. */
     again: string;
     /** Default ARMED_FOR_MS. */
     armedForMs?: number;
@@ -78,6 +79,70 @@ export class AtField extends Error {
 /** Each saying's own id, for the field it is said at to point to. */
 let sayings = 0;
 
+// "I just want a preselection of sizes"
+//
+// A press is one of these boxes, and nothing in it decides how big it is: not its title, not what
+// it is doing, not what it will say. Which box is the package's to pick, by the form the press
+// stands in. Its title is held to two lines of it.
+
+/** px: every box a press can be. Two small ones side by side fit a window on a 390px phone (80% of it, less its padding). */
+export const PRESS_SIZES: Readonly<{
+    sm: { readonly width: 136; readonly height: 52 };
+    md: { readonly width: 176; readonly height: 52 };
+    lg: { readonly width: 208; readonly height: 60 };
+}> = Object.freeze({
+    sm: Object.freeze({ width: 136, height: 52 } as const),
+    md: Object.freeze({ width: 176, height: 52 } as const),
+    lg: Object.freeze({ width: 208, height: 60 } as const),
+});
+
+/** A box from the set. */
+export type PressSize = keyof typeof PRESS_SIZES;
+
+/** Which box a press is, by the form of the element it stands in; null is no element, the bare page. */
+const SIZE_IN: Readonly<Record<Form, PressSize>> = Object.freeze({
+    dot: 'sm',
+    proximity: 'sm',
+    window: 'sm',
+    panel: 'md',
+    workspace: 'md',
+    canvasPlaced: 'sm',
+    canvasExpanded: 'md',
+    cursor: 'sm',
+    tooltip: 'sm',
+    button: 'sm',
+});
+
+/** The box a press is in a form, or on the bare page. */
+export function pressSizeFor(form: Form | null): PressSize {
+    return form === null ? 'lg' : SIZE_IN[form];
+}
+
+const SIZE_RULE_ID = 'elements-press-size';
+
+const boxed = (size: PressSize) =>
+    `width: ${PRESS_SIZES[size].width}px !important; height: ${PRESS_SIZES[size].height}px !important;`;
+
+// Layered and important, as text sizes are: no host stylesheet or style attribute sizes a press.
+// The bare page first, then the wide forms, then the narrow: a press in a window on a workspace is
+// the window's, the later rule of two that both match.
+const SIZE_RULE = `@layer elements {
+[data-press] { box-sizing: border-box !important; ${boxed('lg')} min-height: 0 !important; max-height: none !important; padding: 0 8px !important; margin: 0 !important; flex: none !important; overflow: hidden !important; }
+${(['md', 'sm'] as const).map((size) => {
+    const forms = (Object.keys(SIZE_IN) as Form[]).filter((form) => SIZE_IN[form] === size);
+    return `${forms.map((form) => `[data-form="${form}"] [data-press]`).join(', ')} { ${boxed(size)} }`;
+}).join('\n')}
+}`;
+
+/** The boxes, in the page once. */
+function holdPressSizes(): void {
+    if (document.getElementById(SIZE_RULE_ID)) return;
+    const style = document.createElement('style');
+    style.id = SIZE_RULE_ID;
+    style.textContent = SIZE_RULE;
+    document.head.appendChild(style);
+}
+
 type Stage = 'rest' | 'armed' | 'doing';
 
 const KEYS = new Set(['id', 'title', 'mark', 'does', 'again', 'irrevocable', 'creates', 'armedForMs']);
@@ -86,13 +151,15 @@ const KEYS = new Set(['id', 'title', 'mark', 'does', 'again', 'irrevocable', 'cr
 export const CREATES: Readonly<{ green: '#4ade80'; light: '#86efac'; ink: '#0b1a0f' }> = Object.freeze({ green: '#4ade80', light: '#86efac', ink: '#0b1a0f' } as const);
 
 const SHIMMER = 'elements-press-shimmer';
+const RUNS_OUT = 'elements-press-runs-out';
 
-/** The shimmer's keyframes, in the page once: an inline style can name an animation but not hold one. */
-function holdShimmer(): void {
+/** The shimmer's and the bar's keyframes, in the page once: an inline style can name an animation but not hold one. */
+function holdKeyframes(): void {
     if (document.getElementById(SHIMMER)) return;
     const style = document.createElement('style');
     style.id = SHIMMER;
-    style.textContent = `@keyframes ${SHIMMER} { from { background-position: 200% 0; } to { background-position: 0 0; } }`;
+    style.textContent = `@keyframes ${SHIMMER} { from { background-position: 200% 0; } to { background-position: 0 0; } }`
+        + ` @keyframes ${RUNS_OUT} { from { transform: scaleX(1); } to { transform: scaleX(0); } }`;
     document.head.appendChild(style);
 }
 
@@ -131,51 +198,53 @@ function sized(node: HTMLElement, size: TextSize): void {
     pin(node, { 'font-size': `${TEXT_SIZES[size]}px` });
 }
 
-// Every face shares the press's grid from birth; one not shown is unseen, never taken out.
-function face(name: string, text: string, row: number): HTMLSpanElement {
+// The title and its doing share the box's one cell; the one not shown is unseen.
+function face(name: string, text: string): HTMLSpanElement {
     const span = document.createElement('span');
     span.dataset.face = name;
     span.textContent = text;
-    pin(span, { display: 'block', 'grid-row': String(row), 'grid-column': '1', margin: '0', padding: '0', 'line-height': 'inherit' });
+    pin(span, { display: 'block', 'grid-area': '1 / 1', margin: '0', padding: '0', 'line-height': '1.3' });
     return span;
 }
 
 /** A press, to put where a button goes. */
 export function pressFrom(press: Press): PressHandle {
     refuse(press);
+    holdPressSizes();
     const two = press.again !== undefined;
 
     const element = document.createElement('button');
     element.type = 'button';
     // No form of its own: setForm would hold its text as an element's, and a press is part of one.
     element.dataset.press = press.id;
-    // The approvals' options: black, square, a 2px outline.
+    // Square, a 2px outline, on whatever surface it stands on. Its box is PRESS_SIZES', from the page's rule.
+    // Positioned, so the bar that runs out sits on its foot.
     pin(element, {
-        'box-sizing': 'border-box',
         display: 'inline-grid',
         'justify-items': 'center',
-        'align-content': 'center',
-        'min-height': '44px',
-        padding: '8px 12px',
+        'align-items': 'center',
+        'text-align': 'center',
+        'vertical-align': 'top',
+        position: 'relative',
         'border-width': '2px',
         'border-style': 'solid',
         'border-radius': '0',
         'font-family': 'inherit',
         'font-weight': 'normal',
-        'line-height': '1.3',
         'touch-action': 'manipulation',
-        'background-color': '#000',
     });
     preventDrag(element);
 
-    const title = face('title', press.title, 1);
+    const title = face('title', press.title);
     sized(title, 'lg');
+    // Two lines of the title at most: a box from the set is never made bigger by what it says.
+    pin(title, { 'max-height': '2.6em', overflow: 'hidden', 'overflow-wrap': 'anywhere' });
     if (press.mark !== undefined) {
         title.replaceChildren(press.mark);
         element.setAttribute('aria-label', press.title);
     }
-    // Drawn, not written: what the press says stays its title and its note.
-    const doing = face('doing', '', 1);
+    // Drawn, not written: what the press says stays its title.
+    const doing = face('doing', '');
     sized(doing, 'lg');
     doing.setAttribute('aria-hidden', 'true');
     pin(doing, {
@@ -188,36 +257,73 @@ export function pressFrom(press: Press): PressHandle {
     });
     element.append(title, doing);
 
-    let armed: HTMLSpanElement | null = null;
+    // "To be clear that you're arming the button and can then press to confirm": armed, it is
+    // filled, a bar runs out across its foot while it waits, and beside it is said what the second does.
+    let runsOut: HTMLSpanElement | null = null;
     if (two) {
-        armed = face('armed-note', `again: ${press.again}`, 2);
-        sized(armed, 'sm');
-        pin(armed, { 'font-family': 'var(--font-mono)' });
-        element.appendChild(armed);
+        // Out of the grid, so it never sizes the press.
+        runsOut = document.createElement('span');
+        runsOut.dataset.pressRunsOut = '';
+        runsOut.setAttribute('aria-hidden', 'true');
+        pin(runsOut, {
+            position: 'absolute',
+            left: '0',
+            right: '0',
+            bottom: '0',
+            height: '3px',
+            'transform-origin': 'left',
+            'background-color': 'currentColor',
+            'animation-duration': `${(press as TwoPress).armedForMs ?? ARMED_FOR_MS}ms`,
+            'animation-timing-function': 'linear',
+            'animation-fill-mode': 'forwards',
+        });
+        element.appendChild(runsOut);
     }
 
     let stage: Stage = 'rest';
     let held: string | null = null;
     let disarm: ReturnType<typeof setTimeout> | undefined;
     let said: HTMLElement | null = null;
+    let again: HTMLElement | null = null;
 
     const seen = (node: HTMLElement, shown: boolean) => pin(node, { visibility: shown ? 'visible' : 'hidden' });
+
+    // Beside the press, never in it.
+    const beside = (text: string, color: string): HTMLElement => {
+        const line = document.createElement('div');
+        line.textContent = text;
+        sizeText(line, 'sm');
+        pin(line, { 'font-family': 'var(--font-mono)', color, 'user-select': 'text' });
+        element.after(line);
+        return line;
+    };
 
     const show = () => {
         element.dataset.stage = stage;
         seen(title, stage !== 'doing');
         seen(doing, stage === 'doing');
-        if (armed) seen(armed, stage === 'armed');
-        // White at rest whatever it does. Armed: red only when the second press cannot be undone,
-        // green and shimmering only when it creates.
-        const red = stage === 'armed' && press.irrevocable === true;
-        const green = stage === 'armed' && press.creates === true;
+        if (stage === 'armed' && again === null) {
+            again = beside(`again: ${(press as TwoPress).again}`, MEANS.neither);
+            again.dataset.pressAgain = press.id;
+        } else if (stage !== 'armed' && again !== null) {
+            again.remove();
+            again = null;
+        }
+        // White at rest whatever it does. Armed it is filled with what its outline says: white,
+        // red only when the second press cannot be undone, green and shimmering only when it creates.
+        const lit = stage === 'armed';
+        const red = lit && press.irrevocable === true;
+        const green = lit && press.creates === true;
         const shimmers = green && !stillness();
-        if (shimmers) holdShimmer();
+        if (lit && !stillness()) holdKeyframes();
+        if (runsOut) {
+            seen(runsOut, lit);
+            pin(runsOut, { 'animation-name': lit && !stillness() ? RUNS_OUT : 'none' });
+        }
         pin(element, {
             'border-color': red ? MEANS.no : green ? CREATES.green : MEANS.neither,
-            color: red ? MEANS.no : green ? CREATES.ink : MEANS.neither,
-            'background-color': green ? CREATES.green : '#000',
+            color: red ? MEANS.neither : green ? CREATES.ink : lit ? '#000' : MEANS.neither,
+            'background-color': red ? MEANS.no : green ? CREATES.green : lit ? MEANS.neither : 'transparent',
             'background-image': shimmers ? `linear-gradient(110deg, ${CREATES.green} 0%, ${CREATES.light} 40%, ${CREATES.green} 60%, ${CREATES.light} 100%)` : 'none',
             'background-size': '200% 100%',
             'animation-name': shimmers ? SHIMMER : 'none',
@@ -236,21 +342,16 @@ export function pressFrom(press: Press): PressHandle {
 
     // Beside the press, not in it: what failed never changes the press's size. At the field, when it is a field's.
     const say = (err: unknown) => {
-        said = document.createElement('div');
+        said = beside(err instanceof Error ? err.message : String(err), MEANS.no);
         said.dataset.pressSaid = press.id;
         said.id = `elements-press-said-${++sayings}`;
         said.setAttribute('role', 'alert');
-        said.textContent = err instanceof Error ? err.message : String(err);
-        sizeText(said, 'sm');
-        pin(said, { 'font-family': 'var(--font-mono)', color: MEANS.no, 'user-select': 'text' });
         if (err instanceof AtField) {
             misfilled = { field: err.field, describedBy: err.field.getAttribute('aria-describedby') };
             err.field.setAttribute('aria-invalid', 'true');
             err.field.setAttribute('aria-describedby', misfilled.describedBy === null ? said.id : `${misfilled.describedBy} ${said.id}`);
             err.field.after(said);
-            return;
         }
-        element.after(said);
     };
 
     const unsay = () => {
@@ -287,11 +388,13 @@ export function pressFrom(press: Press): PressHandle {
         try {
             await press.does();
         } catch (err) {
-            say(err);
-        } finally {
             stage = 'rest';
             show();
+            say(err);
+            return;
         }
+        stage = 'rest';
+        show();
     };
 
     element.addEventListener('click', () => { void pressed(); });

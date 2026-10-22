@@ -13,7 +13,7 @@
 
 import type { Element } from '../element';
 import { DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
-import { setSymbol } from '../dataset';
+import { setForm, setSymbol } from '../dataset';
 import { wearIdentity, wearShadow } from '../paint';
 import { holdable } from '../hold';
 import { createSymbolSpan, settleSymbolSpan } from '../symbol-span';
@@ -22,7 +22,6 @@ import { makeResizable } from './resize';
 import { storeCleanup } from './cleanup';
 import { createCorner } from '../corner';
 import { watchScroll } from '../content/scroll';
-import { holdElementText } from '../text';
 import type { MakeDraggableOptions } from './element-ui';
 
 // ── Config ──────────────────────────────────────────────────────────
@@ -67,8 +66,9 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
     const element = config.element ?? item.cursorElement ?? document.createElement('div');
     element.className = `${className} canvas-element`;
     element.dataset.elementId = item.id;
-    // Its text is at the package's sizes, as in every other form (text.ts).
-    holdElementText(element);
+    // Placed on the canvas, and it says so from birth, as a morph back from a window does (canvas/window.ts).
+    // setForm holds its text at the package's sizes, as in every other form (text.ts).
+    setForm(element, 'canvasPlaced');
     setSymbol(element, item.symbol);
     element.style.backgroundColor = item.color ?? DEFAULT_COLOR;
     element.style.color = item.textColor ?? DEFAULT_TEXT_COLOR;

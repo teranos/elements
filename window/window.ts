@@ -68,6 +68,8 @@ export function morphDotToWindow(
         measurer.style.top = '0';
         measurer.style.visibility = 'hidden';
         measurer.style.padding = `${CANVAS_ELEMENT_CONTENT_PADDING}px`;
+        // Measured as it will stand, in a window: what the package sizes by form (a press) is that form's size.
+        measurer.dataset.form = 'window';
         measurer.appendChild(preRenderedContent);
         document.body.appendChild(measurer);
         measuredWidth = measurer.scrollWidth;

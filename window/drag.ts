@@ -29,9 +29,12 @@ export function setNaturalWidth(el: HTMLElement, width: number): void {
     (el as unknown as Record<string, number>)[NATURAL_KEY] = width;
 }
 
+// Never narrower than the window stands: the number held is its content's measure, and a
+// border a host gives it is not in it. Squeezed by a drag, it stands narrower, and the held number is it.
 function naturalWidth(el: HTMLElement): number {
     const held = (el as unknown as Record<string, number>)[NATURAL_KEY];
-    return typeof held === 'number' ? held : el.getBoundingClientRect().width;
+    const standing = el.getBoundingClientRect().width;
+    return typeof held === 'number' ? Math.max(held, standing) : standing;
 }
 
 /**

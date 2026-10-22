@@ -202,6 +202,8 @@ export function buttonFrom(item: Element, options: ButtonOptions = {}): HTMLElem
         measurer.style.left = '-99999px';
         measurer.style.top = '0';
         measurer.style.visibility = 'hidden';
+        // Measured as it will stand, in a window: what the package sizes by form (a press) is that form's size.
+        measurer.dataset.form = 'window';
         const children = Array.from(element.children);
         measurer.append(...children);
         document.body.appendChild(measurer);
