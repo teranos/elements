@@ -114,7 +114,7 @@ export { stashContent, restoreContent, hasStash } from './content/stash';
 // Where an element scrolls: the package's body, or the scroller a host declares
 export { declareScroller, watchScroll, expectScroll, expectFits } from './content/scroll';
 // A chat's field takes the bottom of its element, the whole width (content/say.ts)
-export { declareSay } from './content/say';
+export { declareSay, sayFrom } from './content/say';
 
 export { renderContent } from './content/render';
 export type { RenderContentResult } from './content/render';
@@ -158,7 +158,10 @@ export { tooltipFrom } from './forms/tooltip';
 export { buttonFrom } from './forms/button';
 export type { ButtonOptions } from './forms/button';
 // A press: button form that does what it says, once or in two stages; the same size at every stage
-export { pressFrom, pressSizeFor, MEANS, CREATES, ARMED_FOR_MS, PRESS_SIZES } from './forms/press';
+export { pressFrom, pressSizeFor, AtField, MEANS, CREATES, ARMED_FOR_MS, PRESS_SIZES } from './forms/press';
+// A field: one line of text with its label, the package's only field but the chat's
+export { fieldFrom, KEYBOARDS } from './forms/field';
+export type { Field, FieldHandle, Keyboard } from './forms/field';
 export type { Press, OnePress, TwoPress, UndoablePress, IrrevocablePress, CreatingPress, PressHandle, PressSize } from './forms/press';
 export { beginMorphToTooltip, beginMorphToAnchor, beginMorphToButton } from './morph-transaction';
 export type { TooltipBox } from './morph-transaction';

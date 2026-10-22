@@ -62,9 +62,22 @@ export type Press = OnePress | TwoPress;
 
 export interface PressHandle {
     element: HTMLButtonElement;
-    /** Held back, and why; null lets it be pressed again. */
+    /** Held back, and why: pressed, it says why beside it. null lets it be pressed again. */
     hold: (why: string | null) => void;
 }
+
+// "foutmeding at the inputfield makes sense for example"
+
+/** What a press could not do because of a field: thrown from does, it is said at that field. */
+export class AtField extends Error {
+    constructor(readonly field: HTMLElement, message: string) {
+        super(message);
+        this.name = 'AtField';
+    }
+}
+
+/** Each saying's own id, for the field it is said at to point to. */
+let sayings = 0;
 
 // "I just want a preselection of sizes"
 //
@@ -72,13 +85,13 @@ export interface PressHandle {
 // it is doing, not what it will say. Which box is the package's to pick, by the form the press
 // stands in. Its title is held to two lines of it.
 
-/** px: every box a press can be. */
+/** px: every box a press can be. Two small ones side by side fit a window on a 390px phone (80% of it, less its padding). */
 export const PRESS_SIZES: Readonly<{
-    sm: { readonly width: 144; readonly height: 52 };
+    sm: { readonly width: 136; readonly height: 52 };
     md: { readonly width: 176; readonly height: 52 };
     lg: { readonly width: 208; readonly height: 60 };
 }> = Object.freeze({
-    sm: Object.freeze({ width: 144, height: 52 } as const),
+    sm: Object.freeze({ width: 136, height: 52 } as const),
     md: Object.freeze({ width: 176, height: 52 } as const),
     lg: Object.freeze({ width: 208, height: 60 } as const),
 });
@@ -319,19 +332,45 @@ export function pressFrom(press: Press): PressHandle {
             'animation-iteration-count': 'infinite',
             opacity: held === null ? '1' : '0.4',
         });
-        element.disabled = stage === 'doing' || held !== null;
+        // Never disabled: a disabled button takes no focus, and says nothing of why.
+        element.setAttribute('aria-disabled', String(held !== null));
         element.setAttribute('aria-busy', String(stage === 'doing'));
     };
 
+    // The field a failure was said at, and what it pointed to before.
+    let misfilled: { field: HTMLElement; describedBy: string | null } | null = null;
+
+    // Beside the press, not in it: what failed never changes the press's size. At the field, when it is a field's.
     const say = (err: unknown) => {
         said = beside(err instanceof Error ? err.message : String(err), MEANS.no);
         said.dataset.pressSaid = press.id;
+        said.id = `elements-press-said-${++sayings}`;
+        said.setAttribute('role', 'alert');
+        if (err instanceof AtField) {
+            misfilled = { field: err.field, describedBy: err.field.getAttribute('aria-describedby') };
+            err.field.setAttribute('aria-invalid', 'true');
+            err.field.setAttribute('aria-describedby', misfilled.describedBy === null ? said.id : `${misfilled.describedBy} ${said.id}`);
+            err.field.after(said);
+        }
+    };
+
+    const unsay = () => {
+        said?.remove();
+        said = null;
+        if (misfilled === null) return;
+        misfilled.field.removeAttribute('aria-invalid');
+        if (misfilled.describedBy === null) misfilled.field.removeAttribute('aria-describedby');
+        else misfilled.field.setAttribute('aria-describedby', misfilled.describedBy);
+        misfilled = null;
     };
 
     const pressed = async () => {
-        if (stage === 'doing' || held !== null) return;
-        said?.remove();
-        said = null;
+        if (stage === 'doing') return;
+        unsay();
+        if (held !== null) {
+            say(held);
+            return;
+        }
         if (two && stage === 'rest') {
             stage = 'armed';
             show();

@@ -8,7 +8,7 @@
 import { tray } from '../tray/tray';
 import type { Element } from '../element';
 import { createButton } from '../canvas/ui-primitives';
-import { declareSay } from '../content/say';
+import { sayFrom } from '../content/say';
 
 export function renderChatSpecimen(): void {
     const item: Element = {
@@ -33,13 +33,11 @@ export function renderChatSpecimen(): void {
             row.style.gap = '4px';
             const mode = document.createElement('select');
             mode.appendChild(new Option('', ''));
-            const says = document.createElement('input');
-            says.className = 'input';
-            says.placeholder = 'say something';
+            // "the inputfield take up the entire bottom of the screen for chat elements"
+            // The package's chat field, which takes that bottom (#40).
+            const says = sayFrom({ id: 'xenon-says', label: 'say something' });
             const send = createButton({ label: 'Say', onClick: () => {} });
             row.append(mode, says, send);
-            // "the inputfield take up the entire bottom of the screen for chat elements" (#40)
-            declareSay(says);
             body.append(log, row);
             return body;
         },
