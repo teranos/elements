@@ -1,11 +1,13 @@
 /**
  * The press, in a real browser, measured at every stage it goes through, in Germanium beside Button Form.
  *
- * Its box at rest is its box armed, doing, failed and at rest again, to the pixel,
+ * "I just want a preselection of sizes": its box is one of PRESS_SIZES, picked by the form it stands
+ * in, and it is that box, where it stood, at rest, armed, doing, failed and at rest again, to the pixel,
  * with a mouse and with a finger, and with a host stylesheet that tries to say otherwise.
  */
 
 import { test, expect, type Page, type Locator } from '@playwright/test';
+import { PRESS_SIZES } from '../forms/press';
 
 const press = (page: Page, id: string) => page.locator(`[data-press="germanium-${id}"]`);
 
@@ -16,16 +18,19 @@ async function hit(target: Locator): Promise<void> {
     else await target.click();
 }
 
-async function box(target: Locator): Promise<{ width: number; height: number }> {
+type Box = { x: number; y: number; width: number; height: number };
+
+// Where it stands is part of its box: a press that kept its size and moved has still jumped.
+async function box(target: Locator): Promise<Box> {
     const b = await target.boundingBox();
     if (!b) throw new Error('the press is not on the page');
-    return { width: b.width, height: b.height };
+    return b;
 }
 
 const stageOf = (target: Locator) => target.getAttribute('data-stage');
 
 /** Every box it had, through two presses and back to rest: one box, said as many times. */
-async function boxesThrough(page: Page, id: string, presses: number): Promise<{ width: number; height: number }[]> {
+async function boxesThrough(page: Page, id: string, presses: number): Promise<Box[]> {
     const target = press(page, id);
     await target.scrollIntoViewIfNeeded();
     const boxes = [await box(target)];
@@ -39,8 +44,13 @@ async function boxesThrough(page: Page, id: string, presses: number): Promise<{ 
     return boxes;
 }
 
-const sameBox = (boxes: { width: number; height: number }[]) => {
+const sameBox = (boxes: Box[]) => {
     for (const b of boxes) expect(b).toEqual(boxes[0]!);
+};
+
+const isPreset = (b: Box, size: keyof typeof PRESS_SIZES) => {
+    expect(b.width).toBe(PRESS_SIZES[size].width);
+    expect(b.height).toBe(PRESS_SIZES[size].height);
 };
 
 test.beforeEach(async ({ page }) => {
@@ -50,6 +60,19 @@ test.beforeEach(async ({ page }) => {
 
 test('one press is the same size at rest, doing, and at rest again', async ({ page }) => {
     sameBox(await boxesThrough(page, 'save', 1));
+});
+
+test('in an element placed on a canvas a press is the small box, on the bare page the large one', async ({ page }) => {
+    for (const id of ['save', 'unbind', 'nuke', 'plus', 'fail']) isPreset(await box(press(page, id)), 'sm');
+    isPreset(await box(press(page, 'bare')), 'lg');
+});
+
+test('what the second press does is said beside it, and the press stays where it stood', async ({ page }) => {
+    const unbind = press(page, 'unbind');
+    const before = await box(unbind);
+    await hit(unbind);
+    await expect(page.locator('[data-press-again="germanium-unbind"]')).toHaveText('again: it is unbound');
+    expect(await box(unbind)).toEqual(before);
 });
 
 test('two stages are the same size at rest, armed, doing, and at rest again', async ({ page }) => {
@@ -84,6 +107,8 @@ test('a host stylesheet that sizes a press by its stage changes nothing', async 
 });
 
 test('on the bare page, in no element, the same stylesheet changes nothing either', async ({ page }) => {
+    // Scrolled to first: where it stands is measured, and a scroll is not the press moving.
+    await press(page, 'bare').scrollIntoViewIfNeeded();
     const before = await box(press(page, 'bare'));
     await page.addStyleTag({ content: HOSTILE });
     const boxes = await boxesThrough(page, 'bare', 2);

@@ -87,6 +87,9 @@ describe('Spike: full cursor → canvas-placed lifecycle', () => {
         expect(element.classList.contains('canvas-element')).toBe(true);
         expect(element.classList.contains('cursor')).toBe(false);
 
+        // On the canvas, and it says so from birth: what is in it, a press too, is sized by that.
+        expect(element.dataset.form).toBe('canvasPlaced');
+
         // applyCanvasElementLayout set canvas coordinates
         expect(element.style.left).toBe('120px');
         expect(element.style.top).toBe('80px');
