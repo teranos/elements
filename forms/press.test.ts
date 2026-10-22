@@ -2,7 +2,7 @@
 // Personas: Tim (one press, two stages), Spike (rest is never red, arming runs out, a failure beside it, misuse), Jenny (every face from the start).
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { pressFrom, type Press } from './press';
+import { pressFrom, pressSizeFor, PRESS_SIZES, type Press } from './press';
 
 /** JSDOM says a colour back as rgb(); happy-dom as it was set. Either is the colour. */
 const isColor = (got: string, hex: string): boolean => {
@@ -71,11 +71,15 @@ describe('Tim: one press does it, two stages arm and then do it', () => {
         await settle();
         expect(done).toEqual([]);
         expect(element.dataset.stage).toBe('armed');
-        expect(shown(element)).toEqual(['Revoke', 'again: the token stops working']);
+        expect(shown(element)).toEqual(['Revoke']);
+        const again = element.nextElementSibling as HTMLElement;
+        expect(again.dataset.pressAgain).toBe('revoke');
+        expect(again.textContent).toBe('again: the token stops working');
         element.click();
         await settle();
         expect(done).toEqual(['revoke']);
         expect(element.dataset.stage).toBe('rest');
+        expect(element.nextElementSibling).toBeNull();
     });
 
     test('while it is being done it says so and takes no press', async () => {
@@ -105,7 +109,8 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         for (const press of presses) {
             const { element } = place(press);
             expect(isColor(element.style.borderColor, '#fff')).toBe(true);
-            expect(isColor(element.style.backgroundColor, '#000')).toBe(true);
+            // "how discordant the black button is compared to everything else"
+            expect(element.style.backgroundColor).toBe('transparent');
         }
     });
 
@@ -181,36 +186,79 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
     });
 });
 
-describe('Jenny: "a button should just be the same size"', () => {
-    test('a single press holds its title and its doing, at every stage', async () => {
-        let finish!: () => void;
-        const { element } = place({ id: 'save', title: 'Save', does: () => new Promise<void>((resolve) => { finish = resolve; }) });
-        expect(faces(element)).toEqual(['title', 'doing']);
-        element.click();
+describe('Spike: "To be clear that you\'re arming the button and can then press to confirm"', () => {
+    test('armed, it is filled with what its outline said: white, red, or green', async () => {
+        const unbind = place({ id: 'unbind', title: 'Unbind', again: 'it is unbound', does: () => {} }).element;
+        const nuke = place({ id: 'nuke', title: 'Nuke', again: 'gone, for good', irrevocable: true, does: () => {} }).element;
+        unbind.click();
+        nuke.click();
         await settle();
-        expect(faces(element)).toEqual(['title', 'doing']);
-        finish();
-        await settle();
-        expect(faces(element)).toEqual(['title', 'doing']);
+        expect(isColor(unbind.style.backgroundColor, '#fff')).toBe(true);
+        expect(isColor(unbind.style.color, '#000')).toBe(true);
+        expect(isColor(nuke.style.backgroundColor, '#dc2626')).toBe(true);
+        expect(isColor(nuke.style.color, '#fff')).toBe(true);
     });
 
-    test('two stages hold the title, the doing and the armed note, at rest, armed and doing', async () => {
-        let finish!: () => void;
-        const { element } = place({
-            id: 'revoke', title: 'Revoke', again: 'the token stops working',
-            does: () => new Promise<void>((resolve) => { finish = resolve; }),
-        });
-        const all = ['title', 'doing', 'armed-note'];
-        expect(faces(element)).toEqual(all);
+    test('armed, a bar runs out across its foot for as long as it stays armed, and is gone at rest', async () => {
+        const { element } = place({ id: 'revoke', title: 'Revoke', again: 'the token stops working', armedForMs: 3000, does: () => {} });
+        const bar = element.querySelector<HTMLElement>('[data-press-runs-out]')!;
+        expect(bar.style.visibility).toBe('hidden');
+        expect(bar.style.position).toBe('absolute');
         element.click();
         await settle();
-        expect(faces(element)).toEqual(all);
+        expect(bar.style.visibility).toBe('visible');
+        expect(bar.style.animationDuration).toBe('3000ms');
         element.click();
         await settle();
-        expect(faces(element)).toEqual(all);
-        finish();
+        expect(bar.style.visibility).toBe('hidden');
+    });
+
+    test('the arming that runs out takes what it said beside the press with it', async () => {
+        const { element } = place({ id: 'revoke', title: 'Revoke', again: 'the token stops working', armedForMs: 5, does: () => {} });
+        element.click();
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        expect(element.nextElementSibling).toBeNull();
+    });
+});
+
+describe('Jenny: "I just want a preselection of sizes"', () => {
+    test('there are three boxes, each a width and a height', () => {
+        expect(Object.keys(PRESS_SIZES)).toEqual(['sm', 'md', 'lg']);
+        for (const box of Object.values(PRESS_SIZES)) {
+            expect(box.width).toBeGreaterThan(0);
+            expect(box.height).toBeGreaterThanOrEqual(44);
+        }
+    });
+
+    test('the package picks the box by the form the press stands in', () => {
+        expect(pressSizeFor('window')).toBe('sm');
+        expect(pressSizeFor('canvasPlaced')).toBe('sm');
+        expect(pressSizeFor('panel')).toBe('md');
+        expect(pressSizeFor('workspace')).toBe('md');
+        expect(pressSizeFor('canvasExpanded')).toBe('md');
+        expect(pressSizeFor(null)).toBe('lg');
+    });
+
+    test('the box is the page rule\'s, by form; the press carries no size of its own', () => {
+        const { element } = place({ id: 'save', title: 'Save', does: () => {} });
+        const rule = document.getElementById('elements-press-size')!.textContent!;
+        expect(rule).toContain('@layer elements');
+        expect(rule).toContain(`[data-form="panel"] [data-press]`);
+        expect(rule).toContain(`width: ${PRESS_SIZES.md.width}px !important; height: ${PRESS_SIZES.md.height}px !important;`);
+        expect(rule).toContain(`[data-form="window"] [data-press]`);
+        for (const name of ['width', 'height', 'min-height', 'min-width', 'padding']) {
+            expect(element.style.getPropertyValue(name)).toBe('');
+        }
+    });
+
+    test('nothing is reserved in it: a press holds its title and its doing, whatever it is', async () => {
+        const single = place({ id: 'save', title: 'Save', does: () => {} }).element;
+        const twice = place({ id: 'revoke', title: 'Revoke', again: 'the token stops working', does: () => {} }).element;
+        expect(faces(single)).toEqual(['title', 'doing']);
+        expect(faces(twice)).toEqual(['title', 'doing']);
+        twice.click();
         await settle();
-        expect(faces(element)).toEqual(all);
+        expect(faces(twice)).toEqual(['title', 'doing']);
     });
 
     test('a face is never taken out of the layout: it is unseen, not gone', async () => {
