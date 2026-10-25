@@ -55,7 +55,21 @@ export interface WindowBox {
 // A window stands whole on its screen, whatever it is given to hold after it opened and
 // whatever the screen does under it: past the right edge it slides back; wider than the
 // screen, it is the screen's width and what it holds wraps. The README's Boundary says why.
-const held = new WeakSet<HTMLElement>();
+const held = new WeakMap<HTMLElement, MutationObserver | null>();
+
+// A window sized by what it holds is squeezed by the screen's right edge long before it
+// passes it: what arrived after it opened wrapped a word a letter a line, on a phone.
+// It is as wide as it wants, up to its cap, and slides back for it.
+function wanted(element: HTMLElement): number {
+    if (element.style.width !== 'fit-content') return element.getBoundingClientRect().width;
+    const was = element.style.width;
+    element.style.width = 'max-content';
+    const width = element.getBoundingClientRect().width;
+    element.style.width = was;
+    // Its own measuring is not someone writing where it stands.
+    held.get(element)?.takeRecords();
+    return width;
+}
 
 function onScreen(element: HTMLElement): void {
     if (element.dataset.form !== 'window' || !element.isConnected) return;
@@ -63,8 +77,10 @@ function onScreen(element: HTMLElement): void {
     const widest = Math.floor(area.width);
     if (parseFloat(element.style.maxWidth) > widest) element.style.maxWidth = `${widest}px`;
     const r = element.getBoundingClientRect();
+    const cap = parseFloat(element.style.maxWidth);
+    const width = Math.min(Math.max(r.width, wanted(element)), isNaN(cap) ? widest : cap, widest);
     const right = area.x + area.width;
-    if (r.right > right + 0.5) element.style.left = `${Math.max(area.x, Math.floor(right - Math.min(r.width, widest)))}px`;
+    if (r.left + width > right + 0.5) element.style.left = `${Math.max(area.x, Math.floor(right - width))}px`;
     else if (r.left < area.x - 0.5) element.style.left = `${area.x}px`;
 }
 
@@ -72,10 +88,16 @@ function onScreen(element: HTMLElement): void {
 export function holdOnScreen(element: HTMLElement): void {
     onScreen(element);
     if (held.has(element)) return;
-    held.add(element);
+    held.set(element, null);
+    // What it holds growing does not resize a window squeezed by the edge: that is asked of what it holds.
     if (typeof ResizeObserver === 'function') new ResizeObserver(() => onScreen(element)).observe(element);
-    // Whoever writes where it stands, a host's code included: it ends on its screen.
-    if (typeof MutationObserver === 'function') new MutationObserver(() => onScreen(element)).observe(element, { attributes: true, attributeFilter: ['style'] });
+    if (typeof MutationObserver === 'function') {
+        new MutationObserver(() => onScreen(element)).observe(element, { childList: true, subtree: true, characterData: true });
+        // Whoever writes where it stands, a host's code included: it ends on its screen.
+        const style = new MutationObserver(() => onScreen(element));
+        style.observe(element, { attributes: true, attributeFilter: ['style'] });
+        held.set(element, style);
+    }
     window.addEventListener('resize', () => onScreen(element));
 }
 

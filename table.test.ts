@@ -175,8 +175,8 @@ describe('Jenny: the tables a host draws', () => {
         };
         const container = document.createElement('div');
         container.appendChild(createTable('mail-sent', ['When', 'To', 'Subject', 'Outcome'], [
-            { cells: [tableCell('2026-09-24 14:03:11', 'element-time', 'AS-1'), 'tim@defacile.nl', 'Welkom', outcome(false, 'MessageRejected: Email address is not verified')], onPress: () => {} },
-            { cells: [tableCell('2026-09-24 14:03:11', 'element-time', 'AS-2'), 'tim@defacile.nl', 'Welkom', outcome(true, '0100019a-ses')], onPress: () => {} },
+            { cells: [tableCell('2026-09-24 14:03:11', 'element-time', 'AS-1'), 'tim@example.com', 'Welkom', outcome(false, 'MessageRejected: Email address is not verified')], onPress: () => {} },
+            { cells: [tableCell('2026-09-24 14:03:11', 'element-time', 'AS-2'), 'tim@example.com', 'Welkom', outcome(true, '0100019a-ses')], onPress: () => {} },
         ]));
         const rows = container.querySelectorAll('tbody tr');
         expect(rows.length).toBe(2);
@@ -184,7 +184,7 @@ describe('Jenny: the tables a host draws', () => {
         expect(rows[0]!.textContent).toContain('MessageRejected');
         expect(rows[1]!.textContent).toContain('sent');
         expect(rows[1]!.textContent).toContain('0100019a-ses');
-        expect(rows[1]!.textContent).toContain('tim@defacile.nl');
+        expect(rows[1]!.textContent).toContain('tim@example.com');
     });
 
     // One row per line, in the order the node answered, and nothing folded.
@@ -272,5 +272,28 @@ describe('Spike: four columns at most, every row as wide as the heads', () => {
     test('a caller with no types is stopped too: a fifth column, and a row of another width', () => {
         expect(() => createTable('mail', ['a', 'b', 'c', 'd', 'e'] as never, [])).toThrow(TypeError);
         expect(() => createTable('mail', ['a', 'b'], [{ cells: ['a'] } as never])).toThrow(TypeError);
+    });
+});
+
+// "You can clearly see how this element is not usable on mobile right ?"
+describe('Jenny: four columns on a phone', () => {
+    test('each cell carries its head, for a row that stands as a card', () => {
+        const t = createTable('users', ['Name', 'Level', 'Created', 'Status'], [
+            { cells: ['grace', 'USER', '2026-01-03 11:00:00', 'on'] },
+        ]);
+        expect([...t.querySelectorAll('tbody td')].map(td => (td as HTMLElement).dataset.head))
+            .toEqual(['Name', 'Level', 'Created', 'Status']);
+    });
+
+    test('a head the host built whole lends its text', () => {
+        const th = document.createElement('th');
+        th.textContent = 'When';
+        const t = createTable('mail', [th, 'To'], [{ cells: ['2026-09-24', 'tim@example.com'] }]);
+        expect((t.querySelector('tbody td') as HTMLElement).dataset.head).toBe('When');
+    });
+
+    test('the stylesheet stacks a row on a narrow screen', () => {
+        createTable('users', ['Name'], []);
+        expect(document.getElementById(STYLE_ID)!.textContent).toContain('@media (max-width: 600px)');
     });
 });

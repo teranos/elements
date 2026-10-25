@@ -27,6 +27,8 @@ export interface TableRow<H extends TableHeads = TableHeads> {
 const STYLE_ID = 'elements-table-style';
 
 // One class and the design tokens; a time, a DID, a status on one line, never broken.
+
+// "You can clearly see how this element is not usable on mobile right ?"
 const STYLE = `
 .element-table {
     width: 100%;
@@ -56,6 +58,41 @@ const STYLE = `
 .element-table .element-time,
 .element-table .element-pill {
     white-space: nowrap;
+}
+
+/* Four columns broke every word on a phone: there a row stands as a card,
+   each cell under its head, and the heads are kept for a screen reader. */
+@media (max-width: 600px) {
+    .element-table,
+    .element-table tbody,
+    .element-table tr,
+    .element-table td {
+        display: block;
+        width: auto;
+    }
+
+    .element-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+    }
+
+    .element-table tr {
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border-on-dark);
+    }
+
+    .element-table td {
+        padding: 2px 8px;
+    }
+
+    .element-table td[data-head]::before {
+        content: attr(data-head);
+        display: block;
+        color: var(--text-on-dark-tertiary);
+    }
 }
 `;
 
@@ -113,7 +150,14 @@ export function createTable<const H extends TableHeads>(name: string, heads: H, 
             tr.style.cursor = 'pointer';
             tr.addEventListener('click', () => { press(); });
         }
-        for (const cell of row.cells) tr.appendChild(typeof cell === 'string' ? tableCell(cell) : cell);
+        row.cells.forEach((cell, i) => {
+            const td = typeof cell === 'string' ? tableCell(cell) : cell;
+            // What the cell is, said beside it where a row stands as a card.
+            const head = heads[i]!;
+            const said = typeof head === 'string' ? head : head.textContent ?? '';
+            if (said !== '') td.dataset.head = said;
+            tr.appendChild(td);
+        });
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
