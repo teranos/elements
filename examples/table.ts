@@ -7,9 +7,9 @@ import { createTable, tableCell } from '../table';
 import type { Element } from '../element';
 
 const MAILS: [when: string, to: string, subject: string, sent: boolean][] = [
-    ['2026-09-24 14:03:11', 'tim@defacile.nl', 'Welkom', true],
-    ['2026-09-24 13:51:40', 'spike@defacile.nl', 'Je account staat klaar', false],
-    ['2026-09-23 09:12:05', 'jenny@defacile.nl', 'Een herinnering voor de afspraak van morgen om negen uur', true],
+    ['2026-09-24 14:03:11', 'tim@example.com', 'Welkom', true],
+    ['2026-09-24 13:51:40', 'spike@example.com', 'Je account staat klaar', false],
+    ['2026-09-23 09:12:05', 'jenny@example.com', 'Een herinnering voor de afspraak van morgen om negen uur', true],
 ];
 
 function outcome(sent: boolean): HTMLTableCellElement {

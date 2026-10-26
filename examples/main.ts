@@ -10,6 +10,7 @@ import { renderFieldSpecimen } from './field';
 import { renderApproveSpecimen } from './approve';
 import { renderTableSpecimen } from './table';
 import { renderChatSpecimen } from './chat';
+import { renderLateTableSpecimen } from './late-table';
 
 configureElements({
     windowBorderRadius: '0',
@@ -28,3 +29,4 @@ renderChatSpecimen();
 renderApproveSpecimen();
 renderSparklineSpecimen();
 renderTableSpecimen();
+renderLateTableSpecimen();
