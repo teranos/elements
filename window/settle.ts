@@ -66,6 +66,12 @@ function onScreen(element: HTMLElement): void {
     const right = area.x + area.width;
     if (r.right > right + 0.5) element.style.left = `${Math.max(area.x, Math.floor(right - Math.min(r.width, widest)))}px`;
     else if (r.left < area.x - 0.5) element.style.left = `${area.x}px`;
+    // Past the bottom it slides back up; taller than the screen, it is the screen tall.
+    const tallest = Math.floor(area.height);
+    if (parseFloat(element.style.maxHeight) > tallest) element.style.maxHeight = `${tallest}px`;
+    const bottom = area.y + area.height;
+    if (r.bottom > bottom + 0.5) element.style.top = `${Math.max(area.y, Math.floor(bottom - Math.min(r.height, tallest)))}px`;
+    else if (r.top < area.y - 0.5) element.style.top = `${area.y}px`;
 }
 
 /** Hold a window on its screen from now on: as it settles, as what it holds grows, as the screen changes. */

@@ -137,3 +137,26 @@ test('a row that fits keeps its scroller as tall as the row, and the scroller sc
     expect(shown, held).toBeLessThanOrEqual(121);
     expect(all!, held).toBeGreaterThan(shown!);
 });
+
+// "buttons not being the same size SUCKS"
+const LISTS: Record<string, string> = {
+    'buttons stacked in one column': '<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px"><button>Obsidian</button><button>OpenRouter</button><button>Anthropic API key</button></div>',
+    'one button in each row of a list': ['Obsidian', 'OpenRouter', 'Anthropic API key'].map((name) => `<div class="platform"><button>${name}</button></div>`).join(''),
+};
+
+for (const [name, markup] of Object.entries(LISTS)) {
+    test(`${name}: the presses of one list are one size`, async ({ page }) => {
+        await page.goto('/');
+        await page.locator(GERMANIUM).waitFor();
+        await opened(page);
+        await page.locator(`${GERMANIUM} .content-area`).evaluate((area, markup) => {
+            const holder = document.createElement('div');
+            holder.dataset.hostile = '';
+            holder.innerHTML = markup;
+            area.appendChild(holder);
+        }, markup);
+        await expect.poll(() => page.locator(`${GERMANIUM} [data-hostile]`).evaluate((holder) =>
+            Array.from(holder.querySelectorAll('button')).map((b) => `${Math.round(b.getBoundingClientRect().width)}`).filter((w, i, all) => all.indexOf(w) === i),
+        )).toHaveLength(1);
+    });
+}

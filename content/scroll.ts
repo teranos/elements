@@ -24,7 +24,7 @@
 
 import { getLogger, getLogSegment } from '../config';
 import { holdScrollbar, dropScrollbar } from './scrollbar';
-import { bringInside, loosenGrids, wrapRows } from '../fit';
+import { bringInside, evenButtons, loosenGrids, wrapRows } from '../fit';
 
 /** Elements whose scrolling is the platform's own. */
 const SCROLLS_ITSELF = new Set(['TEXTAREA', 'SELECT', 'INPUT', 'IFRAME']);
@@ -289,6 +289,7 @@ function dropDeadIfTooWide(element: HTMLElement, scroller: HTMLElement, watch: W
     // A grid's tracks and a placed box are what the package's rule cannot outrank (fit.ts): they give way first,
     // and a row that ran out of room wraps, wherever it is, clipped or not.
     wrapRows(scroller);
+    evenButtons(scroller);
     bringInside(scroller);
     if (scroller.scrollWidth > scroller.clientWidth + 1) loosenGrids(scroller);
     const wide = scroller.scrollWidth;

@@ -149,3 +149,48 @@ describe('Jenny: stacking, and the way back', () => {
         expect(left).toEqual([]);
     });
 });
+
+// A window stands whole on its screen on both axes, whatever it grows to hold.
+describe('Spike: a window stands whole on its screen', () => {
+    /** The element measures as wide and tall as given, where its style puts it. */
+    function measuring(el: HTMLElement, size: { width: number; height: number }): void {
+        el.getBoundingClientRect = () => {
+            const left = parseFloat(el.style.left) || 0;
+            const top = parseFloat(el.style.top) || 0;
+            return { left, top, width: size.width, height: size.height, right: left + size.width, bottom: top + size.height, x: left, y: top, toJSON: () => ({}) } as DOMRect;
+        };
+    }
+
+    test('past the right edge, it slides back left', () => {
+        const el = windowEl();
+        el.dataset.form = 'window';
+        measuring(el, { width: 400, height: 200 });
+        settleWindow(el, { x: window.innerWidth - 100, y: 60, width: 400, height: 200 });
+        expect(parseFloat(el.style.left) + 400).toBeLessThanOrEqual(window.innerWidth);
+    });
+
+    test('past the bottom edge, it slides back up', () => {
+        const el = windowEl();
+        el.dataset.form = 'window';
+        measuring(el, { width: 400, height: 300 });
+        settleWindow(el, { x: 40, y: window.innerHeight - 100, width: 400, height: 300 });
+        expect(parseFloat(el.style.top) + 300).toBeLessThanOrEqual(window.innerHeight);
+    });
+
+    test('above the top edge, it comes down to it', () => {
+        const el = windowEl();
+        el.dataset.form = 'window';
+        measuring(el, { width: 400, height: 300 });
+        settleWindow(el, { x: 40, y: -120, width: 400, height: 300 });
+        expect(parseFloat(el.style.top)).toBe(0);
+    });
+
+    test('taller than the screen, it is the screen tall, from the top', () => {
+        const el = windowEl();
+        el.dataset.form = 'window';
+        measuring(el, { width: 400, height: window.innerHeight + 500 });
+        settleWindow(el, { x: 40, y: 200, width: 400, height: window.innerHeight + 500 });
+        expect(parseFloat(el.style.top)).toBe(0);
+        expect(parseFloat(el.style.maxHeight)).toBeLessThanOrEqual(window.innerHeight);
+    });
+});
