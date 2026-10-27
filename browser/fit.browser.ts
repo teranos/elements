@@ -160,3 +160,21 @@ for (const [name, markup] of Object.entries(LISTS)) {
         )).toHaveLength(1);
     });
 }
+
+// "ban unstyled inputfield"
+test('a field a host made by hand wears the field look all the same, the chat field its own', async ({ page }) => {
+    await page.goto('/');
+    await page.locator(GERMANIUM).waitFor();
+    await opened(page);
+    const looks = await page.locator(`${GERMANIUM} .content-area`).evaluate((area) => {
+        const holder = document.createElement('div');
+        holder.dataset.hostile = '';
+        holder.innerHTML = '<textarea data-by-hand></textarea><input data-by-hand type="text"><select data-by-hand><option>a</option></select>';
+        area.appendChild(holder);
+        return Array.from(holder.querySelectorAll<HTMLElement>('[data-by-hand]')).map((field) => {
+            const cs = getComputedStyle(field);
+            return `${field.tagName} ${cs.backgroundColor} ${cs.color} ${cs.borderTopColor} ${cs.borderTopWidth}`;
+        });
+    });
+    for (const look of looks) expect(look).toContain('rgba(25, 25, 30, 0.95) rgb(212, 240, 212) rgba(220, 222, 221, 0.4) 2px');
+});

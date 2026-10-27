@@ -162,6 +162,7 @@ export { pressFrom, pressSizeFor, AtField, MEANS, CREATES, ARMED_FOR_MS, PRESS_S
 // A field: one line of text with its label, the package's only field but the chat's
 export { fieldFrom, KEYBOARDS } from './forms/field';
 export { flowFrom } from './forms/flow';
+export { AX } from './forms/ax';
 export type { Flow, FlowStep, FlowHandle } from './forms/flow';
 export type { Field, FieldHandle, Keyboard } from './forms/field';
 export type { Press, OnePress, TwoPress, UndoablePress, IrrevocablePress, CreatingPress, PressHandle, PressSize } from './forms/press';

@@ -8,6 +8,9 @@ import type { Form } from '../form';
 /** What an outline says: yes is green, no is red, neither is white. The approvals' options wear it too. */
 export const MEANS: Readonly<{ yes: '#16a34a'; no: '#dc2626'; neither: '#fff' }> = Object.freeze({ yes: '#16a34a', no: '#dc2626', neither: '#fff' } as const);
 
+import { AX } from './ax';
+export { AX };
+
 /** How long an armed press waits for its second press before it is at rest again. */
 export const ARMED_FOR_MS = 5000;
 
@@ -228,8 +231,8 @@ export function pressFrom(press: Press): PressHandle {
         position: 'relative',
         'border-width': '2px',
         'border-style': 'solid',
-        'border-radius': '0',
-        'font-family': 'inherit',
+        'border-radius': '2px',
+        'font-family': 'var(--font-mono, monospace)',
         'font-weight': 'normal',
         'touch-action': 'manipulation',
     });
@@ -309,7 +312,7 @@ export function pressFrom(press: Press): PressHandle {
             again.remove();
             again = null;
         }
-        // White at rest whatever it does. Armed it is filled with what its outline says: white,
+        // The ax element's at rest whatever it does. Armed it is filled with what its outline says: its ink,
         // red only when the second press cannot be undone, green and shimmering only when it creates.
         const lit = stage === 'armed';
         const red = lit && press.irrevocable === true;
@@ -321,9 +324,9 @@ export function pressFrom(press: Press): PressHandle {
             pin(runsOut, { 'animation-name': lit && !stillness() ? RUNS_OUT : 'none' });
         }
         pin(element, {
-            'border-color': red ? MEANS.no : green ? CREATES.green : MEANS.neither,
-            color: red ? MEANS.neither : green ? CREATES.ink : lit ? '#000' : MEANS.neither,
-            'background-color': red ? MEANS.no : green ? CREATES.green : lit ? MEANS.neither : 'transparent',
+            'border-color': red ? MEANS.no : green ? CREATES.green : lit ? AX.ink : AX.frame,
+            color: red ? MEANS.neither : green ? CREATES.ink : lit ? '#000' : AX.ink,
+            'background-color': red ? MEANS.no : green ? CREATES.green : lit ? AX.ink : AX.ground,
             'background-image': shimmers ? `linear-gradient(110deg, ${CREATES.green} 0%, ${CREATES.light} 40%, ${CREATES.green} 60%, ${CREATES.light} 100%)` : 'none',
             'background-size': '200% 100%',
             'animation-name': shimmers ? SHIMMER : 'none',

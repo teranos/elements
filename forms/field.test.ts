@@ -76,3 +76,21 @@ describe('Jenny: the chat\'s field is not a field', () => {
         expect(() => sayFrom({ id: 'xenon', label: '' })).toThrow(TypeError);
     });
 });
+
+// "ban unstyled inputfield"
+describe('Spike: a field of several lines', () => {
+    test('is a textarea of the lines asked for, drawn as every field is', () => {
+        const one = fieldFrom({ id: 'one', label: 'One' });
+        const many = fieldFrom({ id: 'snippet', label: 'Snippet', lines: 6 });
+        expect(many.input.tagName).toBe('TEXTAREA');
+        expect(Number((many.input as HTMLTextAreaElement).rows)).toBe(6);
+        for (const name of ['border-width', 'border-style', 'border-color', 'background-color', 'color', 'padding', 'border-radius']) {
+            expect(many.input.style.getPropertyValue(name), name).toBe(one.input.style.getPropertyValue(name));
+        }
+    });
+
+    test('a number of lines that is no whole number above one is refused', () => {
+        expect(() => fieldFrom({ id: 'x', label: 'X', lines: 1 })).toThrow(TypeError);
+        expect(() => fieldFrom({ id: 'x', label: 'X', lines: 2.5 })).toThrow(TypeError);
+    });
+});
