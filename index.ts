@@ -161,6 +161,8 @@ export type { ButtonOptions } from './forms/button';
 export { pressFrom, pressSizeFor, AtField, MEANS, CREATES, ARMED_FOR_MS, PRESS_SIZES } from './forms/press';
 // A field: one line of text with its label, the package's only field but the chat's
 export { fieldFrom, KEYBOARDS } from './forms/field';
+export { flowFrom } from './forms/flow';
+export type { Flow, FlowStep, FlowHandle } from './forms/flow';
 export type { Field, FieldHandle, Keyboard } from './forms/field';
 export type { Press, OnePress, TwoPress, UndoablePress, IrrevocablePress, CreatingPress, PressHandle, PressSize } from './forms/press';
 export { beginMorphToTooltip, beginMorphToAnchor, beginMorphToButton } from './morph-transaction';

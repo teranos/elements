@@ -85,6 +85,10 @@ Where this package ends and a host begins. The test that settles each line is in
 - **The presses of one list are one size; the package's, and the host has no say.**
   "buttons not being the same size SUCKS"
   A button as wide as what it says made a list of them as many widths as it had labels. Buttons stacked in one holder, or the one button of each row of a list, are as wide as the widest of them says, measured (`fit.ts`, `evenButtons`).
+- **A flow is seen through to the end; the package's, and the host says only its steps.**
+  "there is actually a kind of distinction Anthropic does well here"
+  "which is to accept that this is a 1,2,3,4 flow, and needs to bee seen through until the end."
+  As Anthropic's Connect workload wizard is: numbered steps down the side, each named with what it is, one drawn at a time, a scrim over everything under the window it stands in. Continue is never greyed out: on a step not done it says what the step still needs, and stays. The last step says Done, and Done is the only way out (`forms/flow.ts`, `flowFrom`).
 - **A window stands whole on its screen; the package's, and the host has no say.**
   "i cant even use the mail element on desktop"
   "if it overflows width, hard fail, die"
