@@ -55,6 +55,15 @@ describe('Tim: a flow is its steps, one at a time', () => {
         press(flow.element, 'connect-done');
         expect(ended).toBe(1);
     });
+
+    test('every step is drawn at one height, a step taller than it scrolling in its panel', () => {
+        const flow = flowFrom({ id: 'connect', steps: [step('Issuer', ''), step('Test', '')], onDone: () => {} });
+        const height = flow.element.style.getPropertyValue('height');
+        expect(height).not.toBe('');
+        press(flow.element, 'connect-continue');
+        expect(flow.element.style.getPropertyValue('height')).toBe(height);
+        expect((flow.element.querySelector('[data-flow-panel]') as HTMLElement).style.getPropertyValue('overflow-y')).toBe('auto');
+    });
 });
 
 describe('Spike: a step not done', () => {

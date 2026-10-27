@@ -184,6 +184,17 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         expect(handle.element.nextElementSibling).toBeNull();
     });
 
+    // What a flow walked in a browser showed: the reason stood in red after the step was done.
+    test('why it was held goes the moment the hold is lifted, without another press', async () => {
+        const handle = place({ id: 'done', title: 'Done', does: () => {} });
+        handle.hold("paste the wizard's snippet");
+        handle.element.click();
+        await settle();
+        expect(handle.element.nextElementSibling?.textContent).toBe("paste the wizard's snippet");
+        handle.hold(null);
+        expect(handle.element.nextElementSibling).toBeNull();
+    });
+
     test('a failure that is a field\'s is said at that field, which points to it, and the next press takes it away', async () => {
         const field = document.createElement('div');
         field.setAttribute('aria-describedby', 'hint');
