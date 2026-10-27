@@ -1,3 +1,5 @@
+import { AX } from './forms/ax';
+
 // "no element should have content that isnt accesible"
 // Nothing in an element is wider than what holds it: text wraps even where a host said nowrap,
 // a box is no wider than its holder, a row that runs out of room wraps rather than squeezing what
@@ -26,13 +28,16 @@ export function takeOffFit(node: Element): void {
     }
 }
 
+// "ban unstyled inputfield"
+// A field a host made by hand wears the field look all the same (forms/field.ts); the chat's field is its own (content/say.ts).
 /** The package's fit for the elements `element` selects, laid into its layer by text.ts. */
 export function fitRule(element: string): string {
     return `${element} * { text-wrap-mode: wrap !important; max-width: 100% !important; min-width: 0 !important; }
 ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
 ${element} button:not([data-element-id]):not([data-press]) { width: fit-content !important; flex: 0 0 auto !important; }
 ${element} button[data-fit-even]:not([data-element-id]):not([data-press]) { min-width: var(--fit-even) !important; }
-${element} table { table-layout: fixed !important; width: 100% !important; }`;
+${element} table { table-layout: fixed !important; width: 100% !important; }
+${element} input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]), ${element} textarea:not([data-say]), ${element} select { background-color: ${AX.ground} !important; color: ${AX.ink} !important; border: 2px solid ${AX.frame} !important; border-radius: 2px !important; }`;
 }
 
 /** A flex row whose content runs past it, or that squeezes what is in it below what that holds, wraps, once. Measured, so only on a page. */

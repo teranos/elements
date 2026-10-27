@@ -85,6 +85,18 @@ Where this package ends and a host begins. The test that settles each line is in
 - **The presses of one list are one size; the package's, and the host has no say.**
   "buttons not being the same size SUCKS"
   A button as wide as what it says made a list of them as many widths as it had labels. Buttons stacked in one holder, or the one button of each row of a list, are as wide as the widest of them says, measured (`fit.ts`, `evenButtons`).
+- **A press and a field look as the ax element does, canvas-placed; the package's, and the host has no say.**
+  "so, QNTX wide, buttons need to look more like the ax element"
+  "the way the ax element looks when its canvas-placed"
+  "the high contrast is for approvals element only"
+  The ax element's query field is the look: its ground, its ink, the canvas-placed frame's outline, a 2px corner (`forms/ax.ts`, `AX`). Armed, a press fills with the ink, red or green as before. The approvals draw their own presses, in high contrast.
+- **No field in an element is left unstyled; the package's, and the host has no say.**
+  "ban unstyled inputfield"
+  A field of several lines is a field too (`fieldFrom`, `lines`). A field a host made by hand inside an element wears the field look all the same, written in the layered, important rule (`fit.ts`); the chat's field is its own.
+- **A flow is seen through to the end; the package's, and the host says only its steps.**
+  "there is actually a kind of distinction Anthropic does well here"
+  "which is to accept that this is a 1,2,3,4 flow, and needs to bee seen through until the end."
+  As Anthropic's Connect workload wizard is: numbered steps down the side, each named with what it is, one drawn at a time, a scrim over everything under the window it stands in. Continue is never greyed out: on a step not done it says what the step still needs, and stays. The last step says Done, and Done is the only way out (`forms/flow.ts`, `flowFrom`).
 - **A window stands whole on its screen; the package's, and the host has no say.**
   "i cant even use the mail element on desktop"
   "if it overflows width, hard fail, die"

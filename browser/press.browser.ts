@@ -82,14 +82,14 @@ test('two stages are the same size at rest, armed, doing, and at rest again', as
     sameBox(await boxesThrough(page, 'unbind', 2));
 });
 
-test('the irrevocable one is white at rest, red armed, and the same size throughout', async ({ page }) => {
+test('the irrevocable one wears the ax frame at rest, red armed, and the same size throughout', async ({ page }) => {
     const nuke = press(page, 'nuke');
-    expect(await nuke.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(255, 255, 255)');
+    expect(await nuke.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgba(220, 222, 221, 0.4)');
     await hit(nuke);
     expect(await nuke.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(220, 38, 38)');
     await hit(nuke);
     await expect(nuke).toHaveAttribute('data-stage', 'rest');
-    expect(await nuke.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(255, 255, 255)');
+    expect(await nuke.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgba(220, 222, 221, 0.4)');
 });
 
 test('a failure is said beside it, and the press keeps its size', async ({ page }) => {
@@ -118,9 +118,9 @@ test('on the bare page, in no element, the same stylesheet changes nothing eithe
     sameBox([before, ...boxes]);
 });
 
-test('a press that creates is white at rest, green armed, and the same size throughout', async ({ page }) => {
+test('a press that creates wears the ax frame at rest, green armed, and the same size throughout', async ({ page }) => {
     const plus = press(page, 'plus');
-    expect(await plus.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(255, 255, 255)');
+    expect(await plus.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgba(220, 222, 221, 0.4)');
     const before = await box(plus);
     await hit(plus);
     expect(await plus.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(74, 222, 128)');

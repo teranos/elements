@@ -2,7 +2,7 @@
 // Personas: Tim (one press, two stages), Spike (rest is never red, arming runs out, a failure beside it, misuse), Jenny (every face from the start).
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { pressFrom, pressSizeFor, AtField, PRESS_SIZES, type Press } from './press';
+import { pressFrom, pressSizeFor, AtField, AX, PRESS_SIZES, type Press } from './press';
 
 /** JSDOM says a colour back as rgb(); happy-dom as it was set. Either is the colour. */
 const isColor = (got: string, hex: string): boolean => {
@@ -103,7 +103,7 @@ describe('Tim: one press does it, two stages arm and then do it', () => {
 });
 
 describe('Spike: "the immediate red communicates, irrevocable click, which is wrong for this."', () => {
-    test('at rest every press is outlined white, the irrevocable one too', () => {
+    test('at rest every press wears the ax element\'s look, the irrevocable one too', () => {
         const presses: Press[] = [
             { id: 'a', title: 'Save', does: () => {} },
             { id: 'b', title: 'Unbind', again: 'it is unbound', does: () => {} },
@@ -111,25 +111,26 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         ];
         for (const press of presses) {
             const { element } = place(press);
-            expect(isColor(element.style.borderColor, '#fff')).toBe(true);
-            // "how discordant the black button is compared to everything else"
-            expect(element.style.backgroundColor).toBe('transparent');
+            expect(element.style.borderColor).toBe(AX.frame);
+            // "how discordant the black button is compared to everything else": the ax ground, an element's own dark.
+            expect(element.style.backgroundColor).toBe(AX.ground);
+            expect(isColor(element.style.color, AX.ink)).toBe(true);
         }
     });
 
-    test('armed, the irrevocable one turns red; the one that can be undone stays white', async () => {
+    test('armed, the irrevocable one turns red; the one that can be undone takes the ax ink', async () => {
         const nuke = place({ id: 'nuke', title: 'Nuke', again: 'gone, for good', irrevocable: true, does: () => {} }).element;
         const unbind = place({ id: 'unbind', title: 'Unbind', again: 'it is unbound', does: () => {} }).element;
         nuke.click();
         unbind.click();
         await settle();
         expect(isColor(nuke.style.borderColor, '#dc2626')).toBe(true);
-        expect(isColor(unbind.style.borderColor, '#fff')).toBe(true);
+        expect(isColor(unbind.style.borderColor, AX.ink)).toBe(true);
     });
 
-    test('a press that creates is white at rest and, armed, green and shimmering', async () => {
+    test('a press that creates is at rest as every press and, armed, green and shimmering', async () => {
         const plus = place({ id: 'plus', title: '+', again: 'the canvas is made', creates: true, does: () => {} }).element;
-        expect(isColor(plus.style.borderColor, '#fff')).toBe(true);
+        expect(plus.style.borderColor).toBe(AX.frame);
         expect(plus.dataset.creates).toBeUndefined();
         plus.click();
         await settle();
@@ -218,13 +219,13 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
 });
 
 describe('Spike: "To be clear that you\'re arming the button and can then press to confirm"', () => {
-    test('armed, it is filled with what its outline said: white, red, or green', async () => {
+    test('armed, it is filled with what its outline said: the ax ink, red, or green', async () => {
         const unbind = place({ id: 'unbind', title: 'Unbind', again: 'it is unbound', does: () => {} }).element;
         const nuke = place({ id: 'nuke', title: 'Nuke', again: 'gone, for good', irrevocable: true, does: () => {} }).element;
         unbind.click();
         nuke.click();
         await settle();
-        expect(isColor(unbind.style.backgroundColor, '#fff')).toBe(true);
+        expect(isColor(unbind.style.backgroundColor, AX.ink)).toBe(true);
         expect(isColor(unbind.style.color, '#000')).toBe(true);
         expect(isColor(nuke.style.backgroundColor, '#dc2626')).toBe(true);
         expect(isColor(nuke.style.color, '#fff')).toBe(true);
