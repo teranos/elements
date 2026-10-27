@@ -42,10 +42,14 @@ in
   on = {
     pull_request = null;
     workflow_dispatch = null;
+    # Mondays at 06:00 UTC: Android's run.
+    schedule = [ { cron = "0 6 * * 1"; } ];
   };
 
   jobs.ios = {
     name = "iPhone Simulator, Safari";
+    # A pull request runs iOS only; the schedule is Android's.
+    "if" = "github.event_name != 'schedule'";
     runs-on = "macos-15";
     timeout-minutes = 30;
     steps = [
@@ -62,6 +66,8 @@ in
 
   jobs.android = {
     name = "Android emulator, Chrome";
+    # "you can make the android ci a weekyl thing"
+    "if" = "github.event_name != 'pull_request'";
     runs-on = "ubuntu-latest";
     timeout-minutes = 30;
     steps = [
