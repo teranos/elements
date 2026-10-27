@@ -251,6 +251,10 @@ function becomePanelOutOfRoom(
         requestAnimationFrame(ask);
     });
     watch.observe(element, { childList: true, subtree: true, characterData: true });
+    // What it holds may have arrived before the watch began: from the tray, the
+    // stash is the loaded content, not the placeholder that was measured.
+    asked = true;
+    requestAnimationFrame(ask);
 }
 
 // How wide the window would be with no screen around it, as the content was measured when it opened:
