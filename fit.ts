@@ -31,6 +31,7 @@ export function fitRule(element: string): string {
     return `${element} * { text-wrap-mode: wrap !important; max-width: 100% !important; min-width: 0 !important; }
 ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
 ${element} button:not([data-element-id]):not([data-press]) { width: fit-content !important; flex: 0 0 auto !important; }
+${element} button[data-fit-even]:not([data-element-id]):not([data-press]) { min-width: var(--fit-even) !important; }
 ${element} table { table-layout: fixed !important; width: 100% !important; }`;
 }
 
@@ -50,6 +51,49 @@ export function wrapRows(scroller: HTMLElement): void {
             if (sibling instanceof HTMLElement && sibling !== node && sameShape(sibling, node)) sibling.dataset.fitWrapped = '';
         }
     }
+}
+
+// "buttons not being the same size SUCKS"
+/** The presses of one list are as wide as its widest says: buttons stacked in one holder, or the one button of each row. Measured, so only on a page. */
+export function evenButtons(scroller: HTMLElement): void {
+    const lists = new Map<HTMLElement, HTMLButtonElement[]>();
+    for (const button of Array.from(scroller.querySelectorAll<HTMLButtonElement>('button:not([data-element-id]):not([data-press])'))) {
+        const list = listOf(button);
+        if (!list) continue;
+        lists.set(list, [...(lists.get(list) ?? []), button]);
+    }
+    for (const [list, buttons] of lists) {
+        if (buttons.length < 2) continue;
+        const widest = `${Math.ceil(Math.max(...buttons.map(says)))}px`;
+        // Written only when it changes: the watch looks again at every style written (content/scroll.ts).
+        if (list.style.getPropertyValue('--fit-even') !== widest) list.style.setProperty('--fit-even', widest);
+        for (const button of buttons) if (button.dataset.fitEven === undefined) button.dataset.fitEven = '';
+    }
+}
+
+/** The list a button is a press of: its holder when that stacks two or more, or the list its holder is one row of. */
+function listOf(button: HTMLButtonElement): HTMLElement | undefined {
+    const holder = button.parentElement;
+    if (!holder) return undefined;
+    const presses = Array.from(holder.children).filter((child) => child.tagName === 'BUTTON');
+    if (presses.length > 1) {
+        const style = getComputedStyle(holder);
+        return style.display.includes('flex') && style.flexDirection.startsWith('row') ? undefined : holder;
+    }
+    const list = holder.parentElement;
+    if (!list) return undefined;
+    const rows = Array.from(list.children).filter((row) => row.tagName === holder.tagName && row.className === holder.className
+        && Array.from(row.children).filter((child) => child.tagName === 'BUTTON').length === 1);
+    return rows.length > 1 ? list : undefined;
+}
+
+/** How wide a button's own words make it, whatever width it was given. */
+function says(button: HTMLButtonElement): number {
+    const words = document.createRange();
+    words.selectNodeContents(button);
+    const style = getComputedStyle(button);
+    return words.getBoundingClientRect().width + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+        + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
 }
 
 /** A row of the same list: the same tag and classes, laid out as a row, and as many things in it when it has no class. */
