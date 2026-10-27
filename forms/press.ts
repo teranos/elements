@@ -372,6 +372,8 @@ export function pressFrom(press: Press): PressHandle {
         unsay();
         if (held !== null) {
             say(held);
+            // Said for the hold, so it goes when the hold does.
+            said!.dataset.pressHeld = '';
             return;
         }
         if (two && stage === 'rest') {
@@ -407,6 +409,8 @@ export function pressFrom(press: Press): PressHandle {
         element,
         hold: (why) => {
             held = why;
+            // Why it was held is no longer so: said, it goes now, not at the next press.
+            if (said?.dataset.pressHeld !== undefined) unsay();
             if (why === null) element.removeAttribute('title');
             else element.title = why;
             show();

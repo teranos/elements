@@ -291,7 +291,8 @@ function dropDeadIfTooWide(element: HTMLElement, scroller: HTMLElement, watch: W
     wrapRows(scroller);
     evenButtons(scroller);
     bringInside(scroller);
-    if (scroller.scrollWidth > scroller.clientWidth + 1) loosenGrids(scroller);
+    // Not only when the scroller is too wide: tracks that fill it exactly leave an auto track at nothing.
+    loosenGrids(scroller);
     const wide = scroller.scrollWidth;
     const room = scroller.clientWidth;
     if (wide <= room + 1) {

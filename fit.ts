@@ -152,7 +152,10 @@ export function loosenGrids(scroller: HTMLElement): boolean {
     let loosened = false;
     for (const node of Array.from(scroller.querySelectorAll<HTMLElement>('*'))) {
         const display = getComputedStyle(node).display;
-        if (!display.includes('grid') || node.scrollWidth <= node.clientWidth + 1) continue;
+        if (!display.includes('grid')) continue;
+        // Wider than its holder, or written tracks that fill it exactly and leave an auto track at nothing.
+        const squeezed = Array.from(node.children).some((cell) => cell.scrollWidth > cell.clientWidth + 1);
+        if (node.scrollWidth <= node.clientWidth + 1 && !squeezed) continue;
         // Once: the watch looks again at every style written (content/scroll.ts).
         if (node.dataset.fitLoosened !== undefined) continue;
         const tracks = getComputedStyle(node).gridTemplateColumns.split(' ').filter((track) => track !== '' && track !== 'none');

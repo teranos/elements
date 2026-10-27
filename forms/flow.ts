@@ -41,17 +41,20 @@ export function flowFrom(flow: Flow): FlowHandle {
 
     const element = document.createElement('div');
     element.dataset.flow = flow.id;
-    pin(element, { display: 'grid', 'grid-template-columns': 'minmax(0, 12em) minmax(0, 1fr)', gap: '16px', 'min-width': '0' });
+    // A row, not a grid: the fit loosens a grid's tracks, and the steps were squeezed to a letter a line.
+    // One height for every step: the window does not change size under the person going through it.
+    pin(element, { display: 'flex', 'align-items': 'stretch', gap: '16px', 'min-width': '0', height: '36em', 'max-height': '60vh' });
 
     const rail = document.createElement('ol');
-    pin(rail, { 'list-style': 'none', margin: '0', padding: '0', display: 'flex', 'flex-direction': 'column', gap: '12px' });
+    pin(rail, { 'list-style': 'none', margin: '0', padding: '0', display: 'flex', 'flex-direction': 'column', gap: '12px', flex: '0 0 11em', width: '11em', 'align-self': 'flex-start' });
     const main = document.createElement('div');
-    pin(main, { display: 'flex', 'flex-direction': 'column', gap: '12px', 'min-width': '0' });
+    pin(main, { display: 'flex', 'flex-direction': 'column', gap: '12px', 'min-width': '0', 'min-height': '0', 'max-height': '100%', flex: '1 1 0' });
     const panel = document.createElement('div');
     panel.dataset.flowPanel = '';
-    pin(panel, { display: 'flex', 'flex-direction': 'column', gap: '8px', 'min-width': '0' });
+    // A step taller than the flow scrolls in its panel; Back and Continue stay in sight.
+    pin(panel, { display: 'flex', 'flex-direction': 'column', gap: '8px', 'min-width': '0', 'min-height': '0', flex: '1 1 auto', 'overflow-y': 'auto' });
     const foot = document.createElement('div');
-    pin(foot, { display: 'flex', 'justify-content': 'space-between', 'align-items': 'flex-start', gap: '8px' });
+    pin(foot, { flex: '0 0 auto', display: 'flex', 'justify-content': 'space-between', 'align-items': 'flex-start', gap: '8px' });
     main.append(panel, foot);
     element.append(rail, main);
 
