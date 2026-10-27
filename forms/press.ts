@@ -9,6 +9,7 @@ import type { Form } from '../form';
 export const MEANS: Readonly<{ yes: '#16a34a'; no: '#dc2626'; neither: '#fff' }> = Object.freeze({ yes: '#16a34a', no: '#dc2626', neither: '#fff' } as const);
 
 import { AX } from './ax';
+import { getWindowBorderRadius } from '../config';
 export { AX };
 
 /** How long an armed press waits for its second press before it is at rest again. */
@@ -88,15 +89,17 @@ let sayings = 0;
 // it is doing, not what it will say. Which box is the package's to pick, by the form the press
 // stands in. Its title is held to two lines of it.
 
-/** px: every box a press can be. Two small ones side by side fit a window on a 390px phone (80% of it, less its padding). */
+// "just generally speaking, these buttons are too big, i never liked the outline, and they can be as rounded as the other things"
+
+/** px: every box a press can be, none shorter than a finger needs (44). */
 export const PRESS_SIZES: Readonly<{
-    sm: { readonly width: 136; readonly height: 52 };
-    md: { readonly width: 176; readonly height: 52 };
-    lg: { readonly width: 208; readonly height: 60 };
+    sm: { readonly width: 104; readonly height: 44 };
+    md: { readonly width: 128; readonly height: 44 };
+    lg: { readonly width: 152; readonly height: 44 };
 }> = Object.freeze({
-    sm: Object.freeze({ width: 136, height: 52 } as const),
-    md: Object.freeze({ width: 176, height: 52 } as const),
-    lg: Object.freeze({ width: 208, height: 60 } as const),
+    sm: Object.freeze({ width: 104, height: 44 } as const),
+    md: Object.freeze({ width: 128, height: 44 } as const),
+    lg: Object.freeze({ width: 152, height: 44 } as const),
 });
 
 /** A box from the set. */
@@ -220,7 +223,7 @@ export function pressFrom(press: Press): PressHandle {
     element.type = 'button';
     // No form of its own: setForm would hold its text as an element's, and a press is part of one.
     element.dataset.press = press.id;
-    // Square, a 2px outline, on whatever surface it stands on. Its box is PRESS_SIZES', from the page's rule.
+    // Rounded as a window is, with no outline, on whatever surface it stands on. Its box is PRESS_SIZES', from the page's rule.
     // Positioned, so the bar that runs out sits on its foot.
     pin(element, {
         display: 'inline-grid',
@@ -229,9 +232,9 @@ export function pressFrom(press: Press): PressHandle {
         'text-align': 'center',
         'vertical-align': 'top',
         position: 'relative',
-        'border-width': '2px',
-        'border-style': 'solid',
-        'border-radius': '2px',
+        'border-width': '0',
+        'border-style': 'none',
+        'border-radius': getWindowBorderRadius(),
         'font-family': 'var(--font-mono, monospace)',
         'font-weight': 'normal',
         'touch-action': 'manipulation',
@@ -239,7 +242,7 @@ export function pressFrom(press: Press): PressHandle {
     preventDrag(element);
 
     const title = face('title', press.title);
-    sized(title, 'lg');
+    sized(title, 'md');
     // Two lines of the title at most: a box from the set is never made bigger by what it says.
     pin(title, { 'max-height': '2.6em', overflow: 'hidden', 'overflow-wrap': 'anywhere' });
     if (press.mark !== undefined) {
@@ -248,7 +251,7 @@ export function pressFrom(press: Press): PressHandle {
     }
     // Drawn, not written: what the press says stays its title.
     const doing = face('doing', '');
-    sized(doing, 'lg');
+    sized(doing, 'md');
     doing.setAttribute('aria-hidden', 'true');
     pin(doing, {
         width: '3ch',
