@@ -251,6 +251,9 @@ function becomePanelOutOfRoom(
         requestAnimationFrame(ask);
     });
     watch.observe(element, { childList: true, subtree: true, characterData: true });
+    // What arrived while it was opening changes nothing from here on, so it is asked about now.
+    asked = true;
+    requestAnimationFrame(ask);
 }
 
 // How wide the window would be with no screen around it, as the content was measured when it opened:
