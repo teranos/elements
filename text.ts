@@ -18,6 +18,10 @@ const DEFAULT: TextSize = 'sm';
 
 const RULE_ID = 'elements-text-size';
 
+// Text the package draws outside any element, on a surface of its own (the spawn menu, and the
+// cursor carried from it until it is placed): sized from the same set, by the same call.
+const SURFACE = '[data-text-surface]';
+
 // An element in any form but a dot: a dot's symbol is the tray's.
 const ELEMENT = '[data-element-id]:not(.dot)';
 
@@ -34,6 +38,8 @@ ${fitRule(ELEMENT)}
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
     `${ELEMENT} [data-text-size="${name}"], ${ELEMENT}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
 ${ELEMENT} :is(input, textarea, select):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
+${Object.entries(TEXT_SIZES).map(([name, px]) =>
+    `${SURFACE} [data-text-size="${name}"], ${SURFACE}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
 }`;
 
 /** The package's rule, in the page once. */

@@ -173,6 +173,12 @@ export type { TooltipTiming, Says, Anchor } from './forms/tooltip';
 // Cursor form — transient placement preview
 export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './canvas/cursor';
 
+// The spawn menu — what a right-click or a held finger opens on a canvas
+export { isSpawnMenuOpen, isPlacementActive, cancelPlacement } from './canvas/spawn';
+export type { SpawnEntry, SpawnHost } from './canvas/spawn';
+export { onTouchHold, HOLD_MS, HOLD_SLOP_PX } from './canvas/touch-hold';
+export type { TouchHold, TouchHoldOptions } from './canvas/touch-hold';
+
 // Canvas-placed factory (CPLCD)
 export { canvasPlaced } from './canvas/placed';
 export type { CanvasPlacedConfig, CanvasPlacedResult } from './canvas/placed';
