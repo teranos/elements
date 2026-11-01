@@ -11,6 +11,7 @@ import { renderApproveSpecimen } from './approve';
 import { renderTableSpecimen } from './table';
 import { renderChatSpecimen } from './chat';
 import { renderLateSpecimen } from './late';
+import { renderSpawnSpecimen } from './spawn';
 
 configureElements({
     windowBorderRadius: '0',
@@ -30,3 +31,4 @@ renderApproveSpecimen();
 renderSparklineSpecimen();
 renderTableSpecimen();
 renderLateSpecimen();
+renderSpawnSpecimen();

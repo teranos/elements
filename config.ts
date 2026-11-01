@@ -10,6 +10,8 @@
 
 import type { CompositionState } from './canvas/composition';
 import type { Meldability } from './canvas/meld/meldability';
+import { installSpawn } from './canvas/spawn';
+import type { SpawnHost } from './canvas/spawn';
 
 export interface Logger {
     debug(segment: string, message: string, metadata?: Record<string, unknown>): void;
@@ -100,6 +102,13 @@ export interface ElementConfig {
     trayZIndex?: number;
     /** Which element classes meld with which, and on which side. Unset, nothing melds. */
     meldability?: Meldability;
+    /**
+     * What a canvas can spawn, and what becomes of an element once it is placed.
+     * Given, every element carrying `data-canvas-id` opens the spawn menu on a
+     * right-click or a finger held still; the package draws it and carries the
+     * choice to where it is put down. Unset, no canvas has one.
+     */
+    spawn?: SpawnHost;
 }
 
 // Default no-op logger
@@ -152,6 +161,7 @@ let config: {
     dotSymbol: boolean;
     trayZIndex: number;
     meldability: Meldability;
+    spawn: SpawnHost | null;
 } = {
     logger: noopLogger,
     logSegment: 'ELEMENT',
@@ -164,6 +174,7 @@ let config: {
     dotSymbol: false,
     trayZIndex: 100002,
     meldability: {},
+    spawn: null,
 };
 
 /**
@@ -181,6 +192,7 @@ export function configureElements(opts: ElementConfig): void {
     if (opts.dotSymbol !== undefined) config.dotSymbol = opts.dotSymbol;
     if (typeof opts.trayZIndex === 'number') config.trayZIndex = opts.trayZIndex;
     if (opts.meldability !== undefined) config.meldability = opts.meldability;
+    if (opts.spawn) { config.spawn = opts.spawn; installSpawn(); }
     if (opts.dotGeometry) {
         // Field by field, so a partial geometry merges instead of replacing, and
         // so 0 means 0 (a truthiness check would silently drop a zero radius).
@@ -223,6 +235,16 @@ export function getPersistence(): Persistence {
 /** The host's meld table; empty until a host gives one. */
 export function getMeldability(): Meldability {
     return config.meldability;
+}
+
+/** What the host spawns, or null while it has said nothing. */
+export function getSpawnHost(): SpawnHost | null {
+    return config.spawn;
+}
+
+/** The host's spawn answers forgotten, as if it had given none. */
+export function clearSpawnHost(): void {
+    config.spawn = null;
 }
 
 /** Get the active canvas host */

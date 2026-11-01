@@ -104,6 +104,23 @@ function compile(lines: string): string {
     }
 }
 
+describe('Tim: a surface the package draws itself', () => {
+    // The spawn menu and the cursor carried from it stand outside any element,
+    // and are sized from the same set: the package's rule reaches them by name.
+    test('text on a surface is sized by the same set, and the rule says so', () => {
+        const surface = document.createElement('div');
+        surface.setAttribute('data-text-surface', '');
+        const node = document.createElement('span');
+        surface.appendChild(node);
+        sizeText(node, 'lg');
+        const css = rule()!.textContent!;
+
+        expect(css).toContain('[data-text-surface] [data-text-size="lg"]');
+        expect(css).toContain('[data-text-surface][data-text-size="lg"]');
+        expect(css).toContain(`font-size: ${TEXT_SIZES.lg}px !important`);
+    });
+});
+
 describe('Spike: a size not in the set', () => {
     test('a size from the set compiles', () => {
         expect(compile(`sizeText(node, 'lg');`)).toBe('');
