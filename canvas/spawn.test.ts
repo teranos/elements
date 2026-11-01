@@ -290,6 +290,17 @@ describe('Spike: gestures that are not an open', () => {
         expect(asked).toHaveLength(0);
     });
 
+    // QNTX's transcript turns take their own right-click and stop it, which kept
+    // the canvas's menu from opening over them when the canvas listened itself.
+    test('an element that takes its own right-click and stops it is left alone', () => {
+        const mine = document.createElement('div');
+        mine.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); });
+        canvas.appendChild(mine);
+        rightClick(mine);
+        expect(menu()).toBeNull();
+        expect(asked).toHaveLength(0);
+    });
+
     test('a host with nothing to spawn opens no menu and no scrim', () => {
         answer = () => [];
         rightClick(canvas);

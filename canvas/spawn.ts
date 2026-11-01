@@ -110,12 +110,21 @@ export function installSpawn(): void {
     if (installed) return;
     const hold = onTouchHold(document, (x, y, target) => onHold(x, y, target));
 
+    // A right-click that closed or cancelled something has had its answer; it opens nothing.
+    const answered = new WeakSet<Event>();
+    // What is already open or carried answers first, before the page can: capture.
     const onContext = (raw: Event): void => {
         const e = raw as MouseEvent;
         // The platform fires contextmenu for the press a hold already answered.
         if (hold.isHeld()) { e.preventDefault(); e.stopImmediatePropagation(); return; }
-        if (placement) { e.preventDefault(); cancelPlacement(); return; }
-        if (menu) { e.preventDefault(); closeMenu(false); return; }
+        if (placement) { e.preventDefault(); answered.add(e); cancelPlacement(); return; }
+        if (menu) { e.preventDefault(); answered.add(e); closeMenu(false); }
+    };
+    // A menu opens last, once the element pressed has had its say: bubble. An
+    // element that takes its own right-click and stops it keeps it.
+    const onContextOpen = (raw: Event): void => {
+        const e = raw as MouseEvent;
+        if (answered.has(e)) return;
         const canvas = canvasOf(e.target);
         if (canvas && openMenu(e.clientX, e.clientY, e.target as HTMLElement, canvas)) e.preventDefault();
     };
@@ -143,12 +152,14 @@ export function installSpawn(): void {
     };
 
     document.addEventListener('contextmenu', onContext, true);
+    document.addEventListener('contextmenu', onContextOpen);
     document.addEventListener('mousedown', onMouseDown, true);
     document.addEventListener('keydown', onKey);
     installed = {
         hold,
         remove: () => {
             document.removeEventListener('contextmenu', onContext, true);
+            document.removeEventListener('contextmenu', onContextOpen);
             document.removeEventListener('mousedown', onMouseDown, true);
             document.removeEventListener('keydown', onKey);
             hold.dispose();
