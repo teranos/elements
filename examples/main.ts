@@ -10,6 +10,7 @@ import { renderFieldSpecimen } from './field';
 import { renderApproveSpecimen } from './approve';
 import { renderTableSpecimen } from './table';
 import { renderChatSpecimen } from './chat';
+import { renderLateSpecimen } from './late';
 import { renderSpawnSpecimen } from './spawn';
 
 configureElements({
@@ -29,4 +30,5 @@ renderChatSpecimen();
 renderApproveSpecimen();
 renderSparklineSpecimen();
 renderTableSpecimen();
+renderLateSpecimen();
 renderSpawnSpecimen();
