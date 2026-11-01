@@ -139,6 +139,12 @@ afterEach(() => {
 });
 
 describe('Tim: a right-click opens what can be spawned', () => {
+    // The cursor is drawn by the same stylesheet, and a host carries one of its own
+    // (a thread) with no menu opened first.
+    test('the stylesheet is in the page once a host has said what it spawns, before any menu', () => {
+        expect(document.head.querySelector('style[data-elements-spawn]')).not.toBeNull();
+    });
+
     test('one menu, one item per entry the host answers, each showing its symbol', () => {
         rightClick(canvas);
         expect(menu()).not.toBeNull();

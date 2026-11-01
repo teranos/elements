@@ -108,6 +108,7 @@ const canvasOf = (target: EventTarget | null): HTMLElement | null =>
 /** The listeners that make every canvas open its menu. Once; later calls change nothing. */
 export function installSpawn(): void {
     if (installed) return;
+    putStylesheetInPage();
     const hold = onTouchHold(document, (x, y, target) => onHold(x, y, target));
 
     // A right-click that closed or cancelled something has had its answer; it opens nothing.
