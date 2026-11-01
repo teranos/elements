@@ -20,17 +20,15 @@ import {
     type SpawnHost,
     isSpawnMenuOpen,
     isPlacementActive,
-    putDownCarried,
     resetSpawn,
 } from './spawn';
-import { createCursorElement } from './cursor';
 
 const DomEvent: typeof Event = (window as any).Event;
 const DomMouseEvent: typeof MouseEvent = (window as any).MouseEvent;
 
 const AX: SpawnEntry = { id: 'ax', symbol: '⋈', title: 'AX', description: 'Query the attestation graph', hint: 'subject predicate' };
 const NOTE: SpawnEntry = { id: 'note', symbol: '✎', title: 'Note' };
-const THREAD: SpawnEntry = { id: 'thread', symbol: '〽', title: 'Thread' };
+const LINK: SpawnEntry = { id: 'link', symbol: '\u221E', title: 'Link' };
 
 interface Finger { identifier: number; clientX: number; clientY: number }
 const finger = (x = 100, y = 200, identifier = 1): Finger => ({ identifier, clientX: x, clientY: y });
@@ -101,8 +99,6 @@ let logged: string[];
 let does: (p: Placing) => Promise<HTMLElement>;
 let answer: (where: { target: HTMLElement; canvas: HTMLElement }) => SpawnEntry[];
 let played: Played;
-/** What the host does when an entry is chosen; unset, the host has no `take` at all. */
-let takes: ((t: { entry: SpawnEntry; canvas: HTMLElement; target: HTMLElement }) => boolean) | undefined;
 
 const capturing: Logger = {
     debug() {},
@@ -122,12 +118,10 @@ beforeEach(() => {
     placed = [];
     logged = [];
     does = async (p) => p.carried;
-    takes = undefined;
-    answer = ({ target }) => (target.closest('.symbol') ? [THREAD] : [AX, NOTE]);
+    answer = ({ target }) => (target.closest('.symbol') ? [LINK] : [AX, NOTE]);
     const host: SpawnHost = {
         entries: (where) => { asked.push(where); return answer(where); },
         place: (p) => { placed.push(p); return does(p); },
-        take: (t) => (takes ? takes(t) : false),
     };
     configureElements({ logger: capturing, spawn: host });
 });
@@ -163,7 +157,7 @@ describe('Tim: a right-click opens what can be spawned', () => {
         expect(asked).toHaveLength(1);
         expect(asked[0].target).toBe(symbol);
         expect(asked[0].canvas).toBe(canvas);
-        expect(items().map(i => i.textContent)).toEqual([expect.stringContaining(THREAD.symbol)]);
+        expect(items().map(i => i.textContent)).toEqual([expect.stringContaining(LINK.symbol)]);
     });
 
     test('the menu opens where the pointer is', () => {
@@ -243,47 +237,6 @@ describe('Tim: a right-click opens what can be spawned', () => {
         expect(menu()).toBeNull();
         expect(isSpawnMenuOpen()).toBe(false);
         expect(placed).toHaveLength(0);
-    });
-});
-
-describe('Tim: an entry the host carries itself', () => {
-    // A thread is built by pressing symbols one after another and only then put
-    // down, which is not carrying and pressing once: the host takes it.
-    test('a taken entry is the host\'s: the menu and its scrim go, nothing is carried', async () => {
-        const taken: { entry: SpawnEntry; canvas: HTMLElement; target: HTMLElement }[] = [];
-        takes = (t) => { taken.push(t); return true; };
-        const symbol = document.createElement('span');
-        symbol.className = 'symbol';
-        canvas.appendChild(symbol);
-        rightClick(symbol);
-        press(itemFor(THREAD));
-        await settle();
-        expect(taken).toHaveLength(1);
-        expect(taken[0].entry).toEqual(THREAD);
-        expect(taken[0].canvas).toBe(canvas);
-        expect(taken[0].target).toBe(symbol);
-        expect(isSpawnMenuOpen()).toBe(false);
-        expect(isPlacementActive()).toBe(false);
-        expect(menu()).toBeNull();
-        expect(document.querySelector('[data-spawn-scrim]')).toBeNull();
-        expect(document.querySelector('.cursor')).toBeNull();
-        expect(placed).toHaveLength(0);
-    });
-
-    test('an entry the host does not take is carried, as before', () => {
-        takes = () => false;
-        rightClick(canvas);
-        press(itemFor(AX));
-        expect(isPlacementActive()).toBe(true);
-    });
-
-    test('a host that has no take at all has everything carried', () => {
-        configureElements({
-            spawn: { entries: () => [AX], place: async (p) => p.carried },
-        });
-        rightClick(canvas);
-        press(itemFor(AX));
-        expect(isPlacementActive()).toBe(true);
     });
 });
 
@@ -460,20 +413,6 @@ describe('Spike: gestures that are not an open', () => {
     });
 });
 
-describe('Spike: an entry taken badly', () => {
-    test('a host that throws in take is said, and nothing is left open or carried', async () => {
-        takes = () => { throw new Error('no thread today'); };
-        rightClick(canvas);
-        press(itemFor(AX));
-        await settle();
-        expect(logged.some(m => /no thread today/.test(m))).toBe(true);
-        expect(isSpawnMenuOpen()).toBe(false);
-        expect(isPlacementActive()).toBe(false);
-        expect(menu()).toBeNull();
-        expect(document.querySelector('[data-spawn-scrim]')).toBeNull();
-    });
-});
-
 describe('Jenny: canvases inside canvases, holds that last, morphs that end', () => {
     test('the canvas pressed is the nearest one, and only its host answers are asked', async () => {
         const inner = canvasIn(canvas, 'subcanvas-1');
@@ -567,62 +506,5 @@ describe('Jenny: canvases inside canvases, holds that last, morphs that end', ()
         rightClick(canvas, 20, 30);
         expect(menu()).not.toBeNull();
         expect(menu()!.style.left).toBe('20px');
-    });
-});
-
-
-describe('Jenny: an element the host carried itself is put down by the package', () => {
-    function hostCarried(): { carried: HTMLElement; symbol: HTMLElement | null } {
-        const carried = createCursorElement(THREAD.symbol, THREAD.title);
-        document.body.appendChild(carried);
-        return { carried, symbol: carried.querySelector<HTMLElement>('.cursor-symbol') };
-    }
-    const at = { clientX: 300, clientY: 400 };
-
-    test('the host is asked to place it, and it takes the road into place once', async () => {
-        const { carried, symbol } = hostCarried();
-        await putDownCarried({ entry: THREAD, canvas, at, carried, symbol });
-        await settle();
-        expect(placed).toHaveLength(1);
-        expect(placed[0].entry).toEqual(THREAD);
-        expect(placed[0].canvas).toBe(canvas);
-        expect(placed[0].carried).toBe(carried);
-        expect(placed[0].symbol).toBe(symbol);
-        expect(played.of(carried)).toHaveLength(1);
-        expect(carried.classList.contains('cursor')).toBe(false);
-    });
-
-    test('an element that is not the one carried is an error, and the carried one goes', async () => {
-        const { carried, symbol } = hostCarried();
-        does = async () => document.createElement('div');
-        await putDownCarried({ entry: THREAD, canvas, at, carried, symbol });
-        await settle();
-        expect(logged.some(m => /carried/i.test(m))).toBe(true);
-        expect(document.body.contains(carried)).toBe(false);
-    });
-
-    test('a host that throws is said, and the carried one goes', async () => {
-        const { carried, symbol } = hostCarried();
-        does = async () => { throw new Error('no room'); };
-        await putDownCarried({ entry: THREAD, canvas, at, carried, symbol });
-        await settle();
-        expect(logged.some(m => /no room/.test(m))).toBe(true);
-        expect(document.body.contains(carried)).toBe(false);
-    });
-
-    test('a taken entry comes back to the package at the end: take, build, put down', async () => {
-        let held: { carried: HTMLElement; symbol: HTMLElement | null } | null = null;
-        takes = ({ canvas: on }) => {
-            held = hostCarried();
-            // The host builds its thread for a while, then puts it down where the last press was.
-            void putDownCarried({ entry: THREAD, canvas: on, at, carried: held.carried, symbol: held.symbol });
-            return true;
-        };
-        rightClick(canvas);
-        press(itemFor(AX));
-        await settle();
-        expect(placed).toHaveLength(1);
-        expect(placed[0].carried).toBe(held!.carried);
-        expect(isPlacementActive()).toBe(false);
     });
 });

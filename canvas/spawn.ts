@@ -49,21 +49,6 @@ export interface SpawnHost {
         symbol: HTMLElement | null;
         content?: string;
     }): Promise<HTMLElement>;
-    /**
-     * An entry the host carries itself, when it is chosen. Return true to take
-     * it: the menu and its scrim are gone, nothing is carried, and the host
-     * puts the element down when it is ready, with `putDownCarried`. Return
-     * false, or have no `take`, and the package carries it.
-     */
-    take?(taking: { entry: SpawnEntry; canvas: HTMLElement; target: HTMLElement }): boolean;
-}
-
-/** What `place` is handed, and what `putDownCarried` hands to it. */
-export type Placing = Parameters<SpawnHost['place']>[0];
-
-/** The host carried an element of its own; the package hands it to `place` and morphs it into place. */
-export async function putDownCarried(placing: Placing): Promise<void> {
-    await handOver(placing, placing.carried.getBoundingClientRect());
 }
 
 const CANVAS = '[data-canvas-id]';
@@ -228,7 +213,7 @@ function openMenu(x: number, y: number, target: HTMLElement, canvas: HTMLElement
         const choose = (): void => {
             if (chosen) return;
             chosen = true;
-            chooseEntry(entry, item, canvas, target);
+            chooseEntry(entry, item, canvas);
         };
         item.addEventListener('mousedown', (e) => { e.stopPropagation(); choose(); });
         item.addEventListener('keydown', (e) => {
@@ -312,24 +297,10 @@ function closeMenu(keepScrim: boolean): void {
 
 // ------------------------------------------------------------- the carrying
 
-function chooseEntry(entry: SpawnEntry, item: HTMLElement, canvas: HTMLElement, target: HTMLElement): void {
+function chooseEntry(entry: SpawnEntry, item: HTMLElement, canvas: HTMLElement): void {
     // The button leaves the menu before the menu goes: it is the element carried.
     item.remove();
     closeMenu(true);
-
-    // An entry the host carries itself is the host's from here: nothing of the package's is left standing.
-    const host = getSpawnHost();
-    if (host?.take) {
-        let taken = false;
-        try {
-            taken = host.take({ entry, canvas, target }) === true;
-        } catch (err) {
-            say('error', `spawn: taking ${entry.title} failed: ${err instanceof Error ? err.message : String(err)}`);
-            removeScrim();
-            return;
-        }
-        if (taken) { removeScrim(); return; }
-    }
 
     const rect = item.getBoundingClientRect();
     item.className = 'cursor';

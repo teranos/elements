@@ -174,8 +174,8 @@ export type { TooltipTiming, Says, Anchor } from './forms/tooltip';
 export { createCursorElement, attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './canvas/cursor';
 
 // The spawn menu — what a right-click or a held finger opens on a canvas
-export { isSpawnMenuOpen, isPlacementActive, cancelPlacement, putDownCarried, resetSpawn } from './canvas/spawn';
-export type { SpawnEntry, SpawnHost, Placing } from './canvas/spawn';
+export { isSpawnMenuOpen, isPlacementActive, cancelPlacement, resetSpawn } from './canvas/spawn';
+export type { SpawnEntry, SpawnHost } from './canvas/spawn';
 export { onTouchHold, HOLD_MS, HOLD_SLOP_PX } from './canvas/touch-hold';
 export type { TouchHold, TouchHoldOptions } from './canvas/touch-hold';
 
