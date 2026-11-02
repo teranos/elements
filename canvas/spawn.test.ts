@@ -132,7 +132,7 @@ afterEach(() => {
 });
 
 describe('Tim: a right-click opens what can be spawned', () => {
-    // The cursor is drawn by the same stylesheet, so it is in the page before any menu has opened.
+    // 「[Sonnet 5.5] The cursor is drawn by the same stylesheet, so it is in the page before any menu has opened.」
     test('the stylesheet is in the page once a host has said what it spawns, before any menu', () => {
         expect(document.head.querySelector('style[data-elements-spawn]')).not.toBeNull();
     });
@@ -246,8 +246,8 @@ describe('Spike: gestures that are not an open', () => {
         expect(asked).toHaveLength(0);
     });
 
-    // QNTX's transcript turns take their own right-click and stop it, which kept
-    // the canvas's menu from opening over them when the canvas listened itself.
+    // 「[Sonnet 5.5] QNTX's transcript turns take their own right-click and stop it, which kept」
+    // 「[Sonnet 5.5] the canvas's menu from opening over them when the canvas listened itself.」
     test('an element that takes its own right-click and stops it is left alone', () => {
         const mine = document.createElement('div');
         mine.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); });
