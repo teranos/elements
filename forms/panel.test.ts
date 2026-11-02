@@ -164,9 +164,9 @@ describe('Spike: what is not a swipe', () => {
 });
 
 /**
- * A swipe of `dy` px that takes `ms`: the page reads performance.now() when the
- * finger goes down and when it lifts, so the swipe's speed is what the test says
- * it is, not how quickly this machine ran the lines between them.
+ * 「[Sonnet 5.5] A swipe of `dy` px that takes `ms`: the page reads performance.now() when the」
+ * 「[Sonnet 5.5] finger goes down and when it lifts, so the swipe's speed is what the test says」
+ * 「[Sonnet 5.5] it is, not how quickly this machine ran the lines between them.」
  */
 function swipeOf(bar: HTMLElement, dy: number, ms: number): void {
     const real = performance.now;
@@ -223,8 +223,8 @@ describe('Spike: let go short, with Reduce Motion on', () => {
 });
 
 describe('Spike: exactly how fast, how far, and how much of the screen', () => {
-    // 0.5px/ms and 24px are the package's numbers (the header says so). None of the
-    // others in this file pins them: a flick of 0.9 or of 0.3, or one of 20px or of 30px, passed all of them.
+    // 「[Sonnet 5.5] 0.5px/ms and 24px are the package's numbers (the header says so). None of the」
+    // 「[Sonnet 5.5] others in this file pins them: a flick of 0.9 or of 0.3, or one of 20px or of 30px, passed all of them.」
     test('0.5px/ms over 25px is a flick: it goes to the tray', async () => {
         const bar = await open(element);
         swipeOf(bar, 25, 50);
