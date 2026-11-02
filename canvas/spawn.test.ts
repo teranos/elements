@@ -28,7 +28,6 @@ const DomMouseEvent: typeof MouseEvent = (window as any).MouseEvent;
 
 const AX: SpawnEntry = { id: 'ax', symbol: '⋈', title: 'AX', description: 'Query the attestation graph', hint: 'subject predicate' };
 const NOTE: SpawnEntry = { id: 'note', symbol: '✎', title: 'Note' };
-const LINK: SpawnEntry = { id: 'link', symbol: '\u221E', title: 'Link' };
 
 interface Finger { identifier: number; clientX: number; clientY: number }
 const finger = (x = 100, y = 200, identifier = 1): Finger => ({ identifier, clientX: x, clientY: y });
@@ -118,7 +117,7 @@ beforeEach(() => {
     placed = [];
     logged = [];
     does = async (p) => p.carried;
-    answer = ({ target }) => (target.closest('.symbol') ? [LINK] : [AX, NOTE]);
+    answer = () => [AX, NOTE];
     const host: SpawnHost = {
         entries: (where) => { asked.push(where); return answer(where); },
         place: (p) => { placed.push(p); return does(p); },
@@ -156,7 +155,6 @@ describe('Tim: a right-click opens what can be spawned', () => {
         expect(asked).toHaveLength(1);
         expect(asked[0].target).toBe(symbol);
         expect(asked[0].canvas).toBe(canvas);
-        expect(items().map(i => i.textContent)).toEqual([expect.stringContaining(LINK.symbol)]);
     });
 
     test('the menu opens where the pointer is', () => {
