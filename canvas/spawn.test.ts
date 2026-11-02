@@ -28,7 +28,7 @@ const DomMouseEvent: typeof MouseEvent = (window as any).MouseEvent;
 
 const AX: SpawnEntry = { id: 'ax', symbol: '⋈', title: 'AX', description: 'Query the attestation graph', hint: 'subject predicate' };
 const NOTE: SpawnEntry = { id: 'note', symbol: '✎', title: 'Note' };
-const THREAD: SpawnEntry = { id: 'thread', symbol: '〽', title: 'Thread' };
+const LINK: SpawnEntry = { id: 'link', symbol: '\u221E', title: 'Link' };
 
 interface Finger { identifier: number; clientX: number; clientY: number }
 const finger = (x = 100, y = 200, identifier = 1): Finger => ({ identifier, clientX: x, clientY: y });
@@ -118,7 +118,7 @@ beforeEach(() => {
     placed = [];
     logged = [];
     does = async (p) => p.carried;
-    answer = ({ target }) => (target.closest('.symbol') ? [THREAD] : [AX, NOTE]);
+    answer = ({ target }) => (target.closest('.symbol') ? [LINK] : [AX, NOTE]);
     const host: SpawnHost = {
         entries: (where) => { asked.push(where); return answer(where); },
         place: (p) => { placed.push(p); return does(p); },
@@ -133,6 +133,11 @@ afterEach(() => {
 });
 
 describe('Tim: a right-click opens what can be spawned', () => {
+    // The cursor is drawn by the same stylesheet, so it is in the page before any menu has opened.
+    test('the stylesheet is in the page once a host has said what it spawns, before any menu', () => {
+        expect(document.head.querySelector('style[data-elements-spawn]')).not.toBeNull();
+    });
+
     test('one menu, one item per entry the host answers, each showing its symbol', () => {
         rightClick(canvas);
         expect(menu()).not.toBeNull();
@@ -151,7 +156,7 @@ describe('Tim: a right-click opens what can be spawned', () => {
         expect(asked).toHaveLength(1);
         expect(asked[0].target).toBe(symbol);
         expect(asked[0].canvas).toBe(canvas);
-        expect(items().map(i => i.textContent)).toEqual([expect.stringContaining(THREAD.symbol)]);
+        expect(items().map(i => i.textContent)).toEqual([expect.stringContaining(LINK.symbol)]);
     });
 
     test('the menu opens where the pointer is', () => {
@@ -239,6 +244,17 @@ describe('Spike: gestures that are not an open', () => {
         const outside = document.createElement('div');
         document.body.appendChild(outside);
         expect(rightClick(outside).defaultPrevented).toBe(false);
+        expect(menu()).toBeNull();
+        expect(asked).toHaveLength(0);
+    });
+
+    // QNTX's transcript turns take their own right-click and stop it, which kept
+    // the canvas's menu from opening over them when the canvas listened itself.
+    test('an element that takes its own right-click and stops it is left alone', () => {
+        const mine = document.createElement('div');
+        mine.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); });
+        canvas.appendChild(mine);
+        rightClick(mine);
         expect(menu()).toBeNull();
         expect(asked).toHaveLength(0);
     });
