@@ -163,6 +163,25 @@ describe('Spike: what is not a swipe', () => {
     });
 });
 
+/**
+ * A swipe of `dy` px that takes `ms`: the page reads performance.now() when the
+ * finger goes down and when it lifts, so the swipe's speed is what the test says
+ * it is, not how quickly this machine ran the lines between them.
+ */
+function swipeOf(bar: HTMLElement, dy: number, ms: number): void {
+    const real = performance.now;
+    let now = 1000;
+    performance.now = () => now;
+    try {
+        down(bar, 20);
+        move(bar, 20 + dy);
+        now += ms;
+        up(bar, 20 + dy);
+    } finally {
+        performance.now = real;
+    }
+}
+
 /** The person's setting for motion, as the page reads it. */
 function reduceMotion(reduce: boolean): () => void {
     const had = window.matchMedia;
@@ -200,6 +219,58 @@ describe('Spike: let go short, with Reduce Motion on', () => {
         expect(slidBack(element)).toHaveLength(0);
         expect(element.style.transform).toBe('');
         expect(getForm(element)).toBe('panel');
+    });
+});
+
+describe('Spike: exactly how fast, how far, and how much of the screen', () => {
+    // 0.5px/ms and 24px are the package's numbers (the header says so). None of the
+    // others in this file pins them: a flick of 0.9 or of 0.3, or one of 20px or of 30px, passed all of them.
+    test('0.5px/ms over 25px is a flick: it goes to the tray', async () => {
+        const bar = await open(element);
+        swipeOf(bar, 25, 50);
+        await wait(SETTLED);
+        expect(rested).toBe(1);
+        expect(getForm(element)).toBe('dot');
+    });
+
+    test('a hair slower, 25px in 51ms, is not: it comes back', async () => {
+        const bar = await open(element);
+        swipeOf(bar, 25, 51);
+        await wait(SETTLED);
+        expect(rested).toBe(0);
+        expect(getForm(element)).toBe('panel');
+    });
+
+    test('24px, fast enough, is the least a flick can be', async () => {
+        const bar = await open(element);
+        swipeOf(bar, 24, 48);
+        await wait(SETTLED);
+        expect(rested).toBe(1);
+        expect(getForm(element)).toBe('dot');
+    });
+
+    test('23px, much faster than that, is a finger settling and not a flick', async () => {
+        const bar = await open(element);
+        swipeOf(bar, 23, 10);
+        await wait(SETTLED);
+        expect(rested).toBe(0);
+        expect(getForm(element)).toBe('panel');
+    });
+
+    test('a slow drag one px short of a quarter of the screen comes back', async () => {
+        const bar = await open(element);
+        swipeOf(bar, Math.floor(window.innerHeight / 4) - 1, 5000);
+        await wait(SETTLED);
+        expect(rested).toBe(0);
+        expect(getForm(element)).toBe('panel');
+    });
+
+    test('a slow drag of exactly a quarter of the screen goes to the tray', async () => {
+        const bar = await open(element);
+        swipeOf(bar, window.innerHeight / 4, 5000);
+        await wait(SETTLED);
+        expect(rested).toBe(1);
+        expect(getForm(element)).toBe('dot');
     });
 });
 
