@@ -6,7 +6,7 @@
  * The package draws the menu, carries a choice to where it is put down, takes
  * it back if it is not, and morphs it into place. The host says what can be
  * spawned where (`entries`) and what becomes of a choice (`place`): ids,
- * persistence, pan and zoom, threads. One listener on the document serves every
+ * persistence, pan and zoom. One listener on the document serves every
  * element carrying `data-canvas-id`, the nearest one asked, so a host wires
  * nothing and a canvas inside a canvas has the menu too.
  *
