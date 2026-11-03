@@ -69,6 +69,31 @@ describe('Tim: the corner sizes the window', () => {
         expect(el.style.height).toBe('360px');
     });
 
+    // "and on desktop i cant even resize it, why show rezise option, but i cant resize"
+    // What a window holds fills it once pressed, and a window fitted to what fills it has no size left.
+    test('a window is measured before what it holds fills it, and keeps that size under the press', () => {
+        const el = windowEl();
+        const body = document.createElement('div');
+        body.dataset.scroller = 'body';
+        const content = document.createElement('div');
+        body.appendChild(content);
+        el.appendChild(body);
+        el.getBoundingClientRect = () => {
+            const height = content.dataset.fills === undefined ? 688 : 100;
+            return { x: 0, y: 0, left: 0, top: 0, right: 536, bottom: height, width: 536, height, toJSON: () => ({}) } as DOMRect;
+        };
+        setupWindowResize(el);
+
+        press(corners(el)[0], 536, 688);
+        expect(el.style.width).toBe('536px');
+        expect(el.style.height).toBe('688px');
+
+        move(436, 488);
+        release();
+        expect(el.style.width).toBe('436px');
+        expect(el.style.height).toBe('488px');
+    });
+
     // "i expect all windows to have a resize handler from now on"
     test('the corner can be seen and grabbed without a host stylesheet', () => {
         const el = windowEl();
