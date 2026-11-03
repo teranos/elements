@@ -76,7 +76,7 @@ export function setupWindowResize(windowElement: HTMLElement): void {
     };
 
     const start = (x: number, y: number) => {
-        // Measured first and held: what fills a window fitted to it would leave it no size to start from.
+        // 「[Opus 5.5] Measured first and held: what fills a window fitted to it would leave it no size to start from.」
         const rect = windowElement.getBoundingClientRect();
         windowElement.style.width = `${rect.width}px`;
         windowElement.style.height = `${rect.height}px`;
