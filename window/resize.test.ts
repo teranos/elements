@@ -70,7 +70,7 @@ describe('Tim: the corner sizes the window', () => {
     });
 
     // "and on desktop i cant even resize it, why show rezise option, but i cant resize"
-    // What a window holds fills it once pressed, and a window fitted to what fills it has no size left.
+    // 「[Opus 5.5] What a window holds fills it once pressed, and a window fitted to what fills it has no size left.」
     test('a window is measured before what it holds fills it, and keeps that size under the press', () => {
         const el = windowEl();
         const body = document.createElement('div');
