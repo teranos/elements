@@ -87,6 +87,9 @@ describe('Tim: the corner sizes the window', () => {
         press(corners(el)[0], 536, 688);
         expect(el.style.width).toBe('536px');
         expect(el.style.height).toBe('688px');
+        // A person has given it a size from the press on: nothing decides it is too wide
+        // for a window while it is being dragged, pressed for real a long chat became a panel.
+        expect(getLastSize(el)).toEqual({ width: 536, height: 688 });
 
         move(436, 488);
         release();
