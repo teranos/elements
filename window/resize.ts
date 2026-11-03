@@ -80,6 +80,8 @@ export function setupWindowResize(windowElement: HTMLElement): void {
         const rect = windowElement.getBoundingClientRect();
         windowElement.style.width = `${rect.width}px`;
         windowElement.style.height = `${rect.height}px`;
+        // A person gave it a size from the press on, before what fills it wakes what watches its width.
+        setLastSize(windowElement, rect.width, rect.height);
         fillWithContent(windowElement);
         startX = x;
         startY = y;
