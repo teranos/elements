@@ -209,9 +209,9 @@ function openMenu(x: number, y: number, target: HTMLElement, canvas: HTMLElement
         sizeText(item, 'lg');
         item.appendChild(revealOf(entry));
 
-        // What makes the button a menu item. Chosen, it is the element carried and then placed,
-        // one DOM element, and none of this stays on it: a key would be taken from every field
-        // in it, a press would never reach what stands above it.
+        // 「[Sonnet 5.5] What makes the button a menu item. Chosen, it is the element carried and then placed,」
+        // 「[Sonnet 5.5] one DOM element, and none of this stays on it: a key would be taken from every field」
+        // 「[Sonnet 5.5] in it, a press would never reach what stands above it.」
         const asMenuItem = new AbortController();
         let chosen = false;
         const choose = (): void => {
