@@ -411,9 +411,9 @@ describe('Spike: gestures that are not an open', () => {
 });
 
 describe('Spike: a button chosen is an element, and no longer a menu item', () => {
-    // The menu's button is the element that is carried and then placed: one DOM element. What
-    // made it a menu item (choose on a key, take the press) must not stay on it, or every field
-    // inside a spawned element loses its Space and its Enter.
+    // 「[Sonnet 5.5] The menu's button is the element that is carried and then placed: one DOM element. What」
+    // 「[Sonnet 5.5] made it a menu item (choose on a key, take the press) must not stay on it, or every field」
+    // 「[Sonnet 5.5] inside a spawned element loses its Space and its Enter.」
     const key = (target: EventTarget, k: string): Event => {
         const e = new (window as any).KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
         target.dispatchEvent(e);
@@ -446,7 +446,7 @@ describe('Spike: a button chosen is an element, and no longer a menu item', () =
         let reached = 0;
         document.body.addEventListener('mousedown', () => { reached++; });
 
-        // Put down first, so the next press is a press and not a place.
+        // 「[Sonnet 5.5] Put down first, so the next press is a press and not a place.」
         press(canvas, 5, 5);
         item.dispatchEvent(new (window as any).MouseEvent('mousedown', { bubbles: true, cancelable: true }));
 
