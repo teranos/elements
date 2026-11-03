@@ -209,16 +209,21 @@ function openMenu(x: number, y: number, target: HTMLElement, canvas: HTMLElement
         sizeText(item, 'lg');
         item.appendChild(revealOf(entry));
 
+        // What makes the button a menu item. Chosen, it is the element carried and then placed,
+        // one DOM element, and none of this stays on it: a key would be taken from every field
+        // in it, a press would never reach what stands above it.
+        const asMenuItem = new AbortController();
         let chosen = false;
         const choose = (): void => {
             if (chosen) return;
             chosen = true;
+            asMenuItem.abort();
             chooseEntry(entry, item, canvas);
         };
-        item.addEventListener('mousedown', (e) => { e.stopPropagation(); choose(); });
+        item.addEventListener('mousedown', (e) => { e.stopPropagation(); choose(); }, { signal: asMenuItem.signal });
         item.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); }
-        });
+        }, { signal: asMenuItem.signal });
         el.appendChild(item);
         nodes.push({ el: item, baseY: i * ELEMENT_SPACING - totalHeight / 2, phase: Math.random() * Math.PI * 2 });
     });

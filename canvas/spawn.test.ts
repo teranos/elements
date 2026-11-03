@@ -410,6 +410,50 @@ describe('Spike: gestures that are not an open', () => {
     });
 });
 
+describe('Spike: a button chosen is an element, and no longer a menu item', () => {
+    // The menu's button is the element that is carried and then placed: one DOM element. What
+    // made it a menu item (choose on a key, take the press) must not stay on it, or every field
+    // inside a spawned element loses its Space and its Enter.
+    const key = (target: EventTarget, k: string): Event => {
+        const e = new (window as any).KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+        target.dispatchEvent(e);
+        return e;
+    };
+
+    test('Enter and Space choose an entry from the menu, by keyboard', () => {
+        rightClick(canvas);
+        const item = itemFor(AX);
+        expect(key(item, 'Enter').defaultPrevented).toBe(true);
+        expect(isPlacementActive()).toBe(true);
+    });
+
+    test('once chosen, a Space or an Enter typed into a field inside it is the field\'s', () => {
+        rightClick(canvas);
+        const item = itemFor(AX);
+        press(item);
+        const field = document.createElement('textarea');
+        item.appendChild(field);
+
+        expect(key(field, ' ').defaultPrevented).toBe(false);
+        expect(key(field, 'Enter').defaultPrevented).toBe(false);
+        expect(key(item, ' ').defaultPrevented).toBe(false);
+    });
+
+    test('once chosen, a press on it reaches what stands above it', () => {
+        rightClick(canvas);
+        const item = itemFor(AX);
+        press(item);
+        let reached = 0;
+        document.body.addEventListener('mousedown', () => { reached++; });
+
+        // Put down first, so the next press is a press and not a place.
+        press(canvas, 5, 5);
+        item.dispatchEvent(new (window as any).MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+
+        expect(reached).toBeGreaterThan(0);
+    });
+});
+
 describe('Jenny: canvases inside canvases, holds that last, morphs that end', () => {
     test('the canvas pressed is the nearest one, and only its host answers are asked', async () => {
         const inner = canvasIn(canvas, 'subcanvas-1');
