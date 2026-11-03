@@ -6,7 +6,7 @@
  * The package draws the menu, carries a choice to where it is put down, takes
  * it back if it is not, and morphs it into place. The host says what can be
  * spawned where (`entries`) and what becomes of a choice (`place`): ids,
- * persistence, pan and zoom. One listener on the document serves every
+ * 「[Sonnet 5.5] persistence, pan and zoom. One listener on the document serves every」
  * element carrying `data-canvas-id`, the nearest one asked, so a host wires
  * nothing and a canvas inside a canvas has the menu too.
  *
@@ -96,9 +96,9 @@ export function installSpawn(): void {
     putStylesheetInPage();
     const hold = onTouchHold(document, (x, y, target) => onHold(x, y, target));
 
-    // A right-click that closed or cancelled something has had its answer; it opens nothing.
+    // 「[Sonnet 5.5] A right-click that closed or cancelled something has had its answer; it opens nothing.」
     const answered = new WeakSet<Event>();
-    // What is already open or carried answers first, before the page can: capture.
+    // 「[Sonnet 5.5] What is already open or carried answers first, before the page can: capture.」
     const onContext = (raw: Event): void => {
         const e = raw as MouseEvent;
         // The platform fires contextmenu for the press a hold already answered.
@@ -106,8 +106,8 @@ export function installSpawn(): void {
         if (placement) { e.preventDefault(); answered.add(e); cancelPlacement(); return; }
         if (menu) { e.preventDefault(); answered.add(e); closeMenu(false); }
     };
-    // A menu opens last, once the element pressed has had its say: bubble. An
-    // element that takes its own right-click and stops it keeps it.
+    // 「[Sonnet 5.5] A menu opens last, once the element pressed has had its say: bubble. An」
+    // 「[Sonnet 5.5] element that takes its own right-click and stops it keeps it.」
     const onContextOpen = (raw: Event): void => {
         const e = raw as MouseEvent;
         if (answered.has(e)) return;
