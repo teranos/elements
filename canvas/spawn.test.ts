@@ -454,6 +454,38 @@ describe('Spike: a button chosen is an element, and no longer a menu item', () =
     });
 });
 
+describe('Spike: a menu that is closing is no menu', () => {
+    // Found in a real browser: a right-click within the fade of a closed menu lands on one of its
+    // dying buttons, which chose its entry (carrying began, then the same right-click cancelled
+    // it), so the menu that click should have opened never opened.
+    test('a press on a button of a menu already closed carries nothing', () => {
+        rightClick(canvas);
+        const item = itemFor(AX);
+        escape();
+
+        press(item);
+
+        expect(isPlacementActive()).toBe(false);
+    });
+
+    test('a menu that is closing cannot be pointed at or reached by key', () => {
+        rightClick(canvas);
+        const menu = document.querySelector('.elements-spawn-menu') as HTMLElement;
+        escape();
+
+        expect(menu.hasAttribute('inert')).toBe(true);
+    });
+
+    test('a right-click on a button does not choose it: the menu is for the primary button', () => {
+        rightClick(canvas);
+
+        press(itemFor(AX), 0, 0, 2);
+
+        expect(isPlacementActive()).toBe(false);
+        expect(isSpawnMenuOpen()).toBe(true);
+    });
+});
+
 describe('Jenny: canvases inside canvases, holds that last, morphs that end', () => {
     test('the canvas pressed is the nearest one, and only its host answers are asked', async () => {
         const inner = canvasIn(canvas, 'subcanvas-1');

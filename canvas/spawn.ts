@@ -215,12 +215,16 @@ function openMenu(x: number, y: number, target: HTMLElement, canvas: HTMLElement
         const asMenuItem = new AbortController();
         let chosen = false;
         const choose = (): void => {
-            if (chosen) return;
+            if (chosen || menu?.el !== el) return;
             chosen = true;
             asMenuItem.abort();
             chooseEntry(entry, item, canvas);
         };
-        item.addEventListener('mousedown', (e) => { e.stopPropagation(); choose(); }, { signal: asMenuItem.signal });
+        item.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            e.stopPropagation();
+            choose();
+        }, { signal: asMenuItem.signal });
         item.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); }
         }, { signal: asMenuItem.signal });
@@ -292,6 +296,7 @@ function closeMenu(keepScrim: boolean): void {
     menu = null;
     closing.stop();
     closing.el.removeAttribute('role');
+    closing.el.setAttribute('inert', '');
     if (!keepScrim) removeScrim();
     const el = closing.el;
     if (typeof el.animate !== 'function' || getRestDuration() === 0) { el.remove(); return; }
