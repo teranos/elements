@@ -197,7 +197,7 @@ function openMenu(x: number, y: number, target: HTMLElement, canvas: HTMLElement
     el.style.top = `${y}px`;
 
     const totalHeight = (entries.length - 1) * ELEMENT_SPACING;
-    const nodes: { el: HTMLElement; baseY: number; phase: number }[] = [];
+    const nodes: { el: HTMLElement; phase: number }[] = [];
 
     entries.forEach((entry, i) => {
         const item = document.createElement('button');
@@ -229,7 +229,11 @@ function openMenu(x: number, y: number, target: HTMLElement, canvas: HTMLElement
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); }
         }, { signal: asMenuItem.signal });
         el.appendChild(item);
-        nodes.push({ el: item, baseY: i * ELEMENT_SPACING - totalHeight / 2, phase: Math.random() * Math.PI * 2 });
+        // Placed by `top`, where it is drawn: the menu has no size, and an entry moved away from it by
+        // transform alone is not found by the mouse events a tap makes. The drift only moves it a little.
+        const baseY = i * ELEMENT_SPACING - totalHeight / 2;
+        item.style.top = `${baseY}px`;
+        nodes.push({ el: item, phase: Math.random() * Math.PI * 2 });
     });
 
     document.body.appendChild(el);
@@ -247,13 +251,13 @@ function openMenu(x: number, y: number, target: HTMLElement, canvas: HTMLElement
     const drift = (now: number): void => {
         const t = (now - start) / 1000;
         for (const n of nodes) {
-            if (hovered(n.el)) { n.el.style.transform = `translate3d(0px, ${n.baseY}px, 0px)`; continue; }
+            if (hovered(n.el)) { n.el.style.transform = 'translate3d(0px, 0px, 0px)'; continue; }
             const dx = Math.sin(t * 0.8 + n.phase) * 3;
             const dy = Math.cos(t * 0.6 + n.phase * 1.3) * 2;
             const dz = Math.sin(t * 0.3 + n.phase * 0.7) * FLOAT_DEPTH;
             const rotY = (pointerX - x) * FACE_INTENSITY * 0.1;
             const rotX = -(pointerY - y) * FACE_INTENSITY * 0.1;
-            n.el.style.transform = `translate3d(${dx}px, ${n.baseY + dy}px, ${dz}px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+            n.el.style.transform = `translate3d(${dx}px, ${dy}px, ${dz}px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
         }
         frame = requestAnimationFrame(drift);
     };

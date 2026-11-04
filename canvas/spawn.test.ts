@@ -486,6 +486,19 @@ describe('Spike: a menu that is closing is no menu', () => {
     });
 });
 
+describe('Spike: entries are placed in the page, not only moved by a transform', () => {
+    // Found with a finger in a real browser: the menu has no size, and its entries stood far from
+    // it by transform alone. The browser hit-tests the mouse events it makes of a tap again, and
+    // finds nothing there: the entry was never chosen. Placed by `top` it is where it is drawn.
+    test('each entry stands at its own offset from the menu, by top', () => {
+        rightClick(canvas);
+
+        const tops = Array.from(document.querySelectorAll<HTMLElement>('.elements-spawn-item')).map((i) => i.style.top);
+
+        expect(tops).toEqual(['-24px', '24px']);
+    });
+});
+
 describe('Jenny: canvases inside canvases, holds that last, morphs that end', () => {
     test('the canvas pressed is the nearest one, and only its host answers are asked', async () => {
         const inner = canvasIn(canvas, 'subcanvas-1');
