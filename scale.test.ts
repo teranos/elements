@@ -1,21 +1,22 @@
 /**
- * The page's scale, and a field taking the keyboard.
+ * The page's scale is the person's.
  *
- * "You tap a box to type, and the only thing that should happen is the keyboard
- * coming up. Nothing on the screen should move, zoom or refocus."
+ * "Be prepared for text-size changes ... Apps that don't respond to this setting can be difficult
+ * or impossible to use for people who rely on this feature." (Apple Human Interface Guidelines)
  *
- * The package holds it, and the host has no say: whatever the page's viewport
- * line says, it says maximum-scale=1 as well. The real keyboard run
- * (browser/keyboard) is what shows Safari not zooming; these show the line. A
- * host changing its line after is a browser's to show (browser/scale.browser.ts).
+ * The package once held maximum-scale=1 on every viewport line so iOS Safari would not zoom onto a
+ * small field, and in a Chromium phone that took pinch zoom away (browser/zoom.browser.ts measures
+ * it). A field inside an element is at 16 whatever a host writes (text.ts), so the package leaves
+ * the page's viewport line as the host wrote it. The real keyboard run (browser/keyboard) is what
+ * shows Safari not zooming a field.
  *
  * Personas:
- * - Tim: Happy path — the host's viewport line, held
- * - Spike: Edge cases — no viewport line, a host's own maximum-scale, a line with no content
+ * - Tim: Happy path — the host's viewport line, as written
+ * - Spike: Edge cases — no viewport line, a host's own maximum-scale
+ * - Jenny: Complex scenarios — the package taken after the host's line, and a line the host changes after
  */
 
-import { describe, test, expect } from 'bun:test';
-import { holdScale } from './scale';
+import { describe, test, expect, beforeEach } from 'bun:test';
 // The package as a host takes it, and nothing called.
 import './index';
 
@@ -23,8 +24,6 @@ function lines(): string[] {
     return [...document.querySelectorAll<HTMLMetaElement>('meta[name="viewport"]')].map((m) => m.content);
 }
 
-// The page's one viewport line, saying what the host wrote. Once the package
-// holds the scale it keeps a line on the page, so the host's words go in it.
 function hostSays(content: string): HTMLMetaElement {
     let meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
     if (!meta) {
@@ -36,48 +35,41 @@ function hostSays(content: string): HTMLMetaElement {
     return meta;
 }
 
-function noLine(): void {
+beforeEach(() => {
     for (const meta of document.querySelectorAll('meta[name="viewport"]')) meta.remove();
-}
+});
 
-describe('Tim: the host\'s viewport line, held', () => {
-    test('the package holds it without the host calling anything', () => {
-        expect(lines()).toEqual(['maximum-scale=1']);
-    });
-
-    test('a host\'s line keeps what it says and holds the scale', () => {
-        hostSays('width=device-width, initial-scale=1, viewport-fit=cover');
-        holdScale();
-        expect(lines()).toEqual(['width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1']);
-    });
-
-    test('holding twice says it once', () => {
+describe('Tim: the host\'s viewport line, as written', () => {
+    test('the package leaves it alone', async () => {
         hostSays('width=device-width, initial-scale=1');
-        holdScale();
-        holdScale();
-        expect(lines()).toEqual(['width=device-width, initial-scale=1, maximum-scale=1']);
+        await Promise.resolve();
+
+        expect(lines()).toEqual(['width=device-width, initial-scale=1']);
     });
 });
 
-describe('Spike: a page that says little, or the wrong thing', () => {
-    test('a page with no viewport line is given one that holds the scale, and nothing else', () => {
-        noLine();
-        holdScale();
-        expect(lines()).toEqual(['maximum-scale=1']);
+describe('Spike: nothing said, or too much', () => {
+    test('a page with no viewport line gets none from the package', async () => {
+        await Promise.resolve();
+
+        expect(lines()).toEqual([]);
     });
 
-    test('a host\'s own maximum-scale is not the host\'s to say', () => {
-        hostSays('width=device-width, maximum-scale=5, initial-scale=1');
-        holdScale();
+    test('a host\'s own maximum-scale is the host\'s', async () => {
+        hostSays('width=device-width, maximum-scale=3');
+        await Promise.resolve();
+
+        expect(lines()).toEqual(['width=device-width, maximum-scale=3']);
+    });
+});
+
+describe('Jenny: a line the host changes', () => {
+    test('rewritten after the package is in, it stays as it was written', async () => {
+        const meta = hostSays('width=device-width, initial-scale=1');
+        meta.content = 'width=device-width, initial-scale=1, maximum-scale=1';
+        // A mutation observer answers in a microtask, if there is one.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
         expect(lines()).toEqual(['width=device-width, initial-scale=1, maximum-scale=1']);
-    });
-
-    test('a line with no content holds the scale', () => {
-        noLine();
-        const meta = document.createElement('meta');
-        meta.name = 'viewport';
-        document.head.appendChild(meta);
-        holdScale();
-        expect(lines()).toEqual(['maximum-scale=1']);
     });
 });
