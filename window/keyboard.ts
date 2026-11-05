@@ -16,11 +16,10 @@
 
 import { visibleArea } from '../safe-area';
 import { getForm } from '../dataset';
-import { holdScale } from '../scale';
 import { holdPosition } from '../position';
 
-// A field taking the keyboard zooms nothing, in any host that has the package (scale.ts).
-holdScale();
+// A field taking the keyboard zooms nothing: inside an element a field is at 16, whatever a host writes
+// (text.ts), and the page's scale is the person's. It is not held (browser/zoom.browser.ts).
 // Nor does it move the page under it (position.ts).
 holdPosition();
 
