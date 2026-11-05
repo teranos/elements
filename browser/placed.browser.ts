@@ -48,6 +48,21 @@ test.describe('Spike: what a page says does not move it', () => {
     });
 });
 
+test.describe('Spike: one stage for every specimen', () => {
+    // Each example once built its own box: position, a literal height, a canvas id. One does it.
+    for (const id of PLACED) {
+        test(`${id} stands in a stage`, async ({ page }) => {
+            const stage = await page.locator(`[data-element-id="${id}"]`).evaluate((element) => {
+                const canvas = element.parentElement!;
+                return { staged: canvas.hasAttribute('data-stage'), position: getComputedStyle(canvas).position, canvasId: canvas.dataset.canvasId };
+            });
+            expect(stage.staged).toBe(true);
+            expect(stage.position).toBe('relative');
+            expect(stage.canvasId).toMatch(/-canvas$/);
+        });
+    }
+});
+
 test.describe('Jenny: out to a window and back', () => {
     test('Uranium opened as a window and put back lands where it started', async ({ page }) => {
         const before = await declaredAndLanded(page, 'border-specimen');
