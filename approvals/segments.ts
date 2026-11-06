@@ -1,9 +1,12 @@
 /**
  * A strip of segments, one per run of something, fuller as more of them end:
  * not started black, running grey lines moving left, done white, "failed is
- * RED". Its label is the exact inverse of whatever is behind it, segment by
- * segment. First made for a PR's checks; anything that runs in parts — a
+ * RED". First made for a PR's checks; anything that runs in parts — a
  * schedule's last runs — can wear it.
+ *
+ * "I don't want to see any piece of text ui that has lines behind it."
+ * Nothing is written over the segments: what the strip is called is its name,
+ * said to whoever reads the page aloud, not drawn on it.
  */
 
 export type SegmentState = 'waiting' | 'running' | 'done' | 'failed';
@@ -27,7 +30,6 @@ export function segmentStrip(text: string, count: number): { strip: HTMLElement;
     strip.style.display = 'flex';
     strip.style.alignItems = 'center';
     strip.style.justifyContent = 'center';
-    strip.style.isolation = 'isolate';
     const bar = document.createElement('span');
     bar.style.position = 'absolute';
     bar.style.inset = '0';
@@ -40,14 +42,8 @@ export function segmentStrip(text: string, count: number): { strip: HTMLElement;
         paintSegment(seg, 'waiting');
         return seg;
     });
-    const label = document.createElement('span');
-    label.textContent = text;
-    label.style.position = 'relative';
-    // Each letter is the exact inverse of what is behind it: white over black is
-    // black over white. Blended against the strip alone.
-    label.style.color = '#fff';
-    label.style.mixBlendMode = 'difference';
-    strip.append(bar, label);
+    if (text) strip.setAttribute('aria-label', text);
+    strip.append(bar);
     return { strip, segments };
 }
 
@@ -59,7 +55,6 @@ function ensureStyle(): void {
     style.textContent = `
         .segment-running {
             background-color: #000;
-            /* Dark grey, so the label inverted over it is light grey and still reads. */
             background-image: linear-gradient(-45deg, #3a3a3a 25%, transparent 25%, transparent 50%, #3a3a3a 50%, #3a3a3a 75%, transparent 75%);
             background-size: 8px 8px;
             animation: segment-running 1.6s linear infinite;

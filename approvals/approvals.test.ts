@@ -123,6 +123,17 @@ describe('Tim: every option visible, a press sends, the roll in order', () => {
     });
 });
 
+describe('Tim: the checks button is named, and nothing is written over its checks', () => {
+    // "I don't want to see any piece of text ui that has lines behind it."
+    test('the button that holds the checks is named by its link, and shows no text over the segments', () => {
+        roll.add(merge('Codevault', { link: { label: 'codevault', href: 'https://github.com/teranos/elements/pull/29' }, checks: [{ name: 'TypeScript', state: 'running' }] }));
+        const checks = roll.body.querySelector<HTMLElement>('[role="button"][aria-expanded]')!;
+        expect(checks.getAttribute('aria-label')).toBe('codevault');
+        const strip = checks.firstElementChild!.firstElementChild as HTMLElement;
+        expect(strip.textContent).toBe('');
+    });
+});
+
 describe('Spike: not yet, not at all, and nothing more', () => {
     test('checks still running: nothing can be pressed, and the buttons say so', () => {
         const { card } = roll.add(merge('Merge PR #29', { checks: [{ name: 'TypeScript', state: 'done' }, { name: 'Browser', state: 'running' }] }));
