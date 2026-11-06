@@ -218,6 +218,8 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
         gh.setAttribute('role', 'button');
         gh.tabIndex = 0;
         gh.setAttribute('aria-expanded', 'false');
+        // Its name is its link's: nothing is written over the checks it holds.
+        gh.setAttribute('aria-label', link.label);
         gh.style.boxSizing = 'border-box';
         gh.style.border = '1px solid #fff';
         gh.style.background = '#000';
