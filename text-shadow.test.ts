@@ -231,3 +231,50 @@ describe('Jenny: an element released', () => {
         expect(rules(root)).toHaveLength(0);
     });
 });
+
+describe('Jenny: a host that moves', () => {
+    test('out of the element: the root is the host\'s again', async () => {
+        const el = element();
+        const { host, root } = hostWithRoot(el);
+        holdElementText(el);
+        expect(rules(root)).toHaveLength(1);
+
+        document.body.appendChild(host);
+        await tick();
+
+        expect(rules(root)).toHaveLength(0);
+    });
+
+    test('into another held element: that one holds it, and the first letting go does not take it', async () => {
+        const first = element();
+        const second = document.createElement('div');
+        second.dataset.elementId = 'second';
+        document.body.appendChild(second);
+        const { host, root } = hostWithRoot(first);
+        holdElementText(first);
+        holdElementText(second);
+
+        second.appendChild(host);
+        await tick();
+        expect(rules(root)).toHaveLength(1);
+
+        releaseElementText(first);
+        expect(rules(root)).toHaveLength(1);
+
+        releaseElementText(second);
+        expect(rules(root)).toHaveLength(0);
+    });
+
+    test('out, and later back in: dressed again', async () => {
+        const el = element();
+        const { host, root } = hostWithRoot(el);
+        holdElementText(el);
+        document.body.appendChild(host);
+        await tick();
+
+        el.appendChild(host);
+        await tick();
+
+        expect(rules(root)).toHaveLength(1);
+    });
+});

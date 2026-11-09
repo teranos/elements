@@ -155,6 +155,31 @@ test.describe('Jenny: a field, small by a host, in an element', () => {
         expect(await size()).toBe('16px');
     });
 
+    test('a component that replaces its adopted sheets has the rule back by the time a finger lands in it', async ({ page }) => {
+        const krypton = page.locator(KRYPTON);
+        await krypton.click();
+        await expect(krypton).toHaveAttribute('data-form', 'panel');
+        await expect.poll(() => krypton.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
+        await krypton.evaluate(async (el) => {
+            const host = document.createElement('div');
+            host.id = 'restyled-host';
+            el.appendChild(host);
+            const root = host.attachShadow({ mode: 'open' });
+            root.innerHTML = '<input type="text">';
+            const own = new CSSStyleSheet();
+            own.replaceSync('input { font-size: 11px; display: block; width: 120px; height: 30px; }');
+            root.adoptedStyleSheets = [own];
+            await new Promise((done) => setTimeout(done, 100));
+            // No node changes in the root, and the package's sheet is gone from it.
+            root.adoptedStyleSheets = [own];
+        });
+        const size = () => page.evaluate(() => getComputedStyle(document.querySelector('#restyled-host')!.shadowRoot!.querySelector('input')!).fontSize);
+        expect(await size()).toBe('11px');
+
+        await page.locator('#restyled-host input').click();
+        expect(await size()).toBe('16px');
+    });
+
     test('an element that rests as a dot gives the root back to the host', async ({ page }) => {
         const krypton = page.locator(KRYPTON);
         await krypton.click();

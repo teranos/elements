@@ -154,16 +154,41 @@ function reach(root: Element | ShadowRoot): void {
     hosts.forEach((host) => { if (host.shadowRoot) hold(host.shadowRoot); });
 }
 
-/** The rule into this root, if a held element is around it and it has none; the root watched, since an element's watch stops at a root's edge. */
+// The held element each styled root belongs to.
+const ownerOf = new WeakMap<ShadowRoot, HTMLElement>();
+
+/**
+ * A root put right with the held element nearest it now: styled and watched by it, moved to it from
+ * another, or given back to its host when no held element is around it any more.
+ */
 function hold(shadow: ShadowRoot): void {
     const owner = heldAround(shadow.host);
-    if (!owner || styled(shadow)) return;
-    style(shadow);
+    const was = ownerOf.get(shadow);
+    if (!owner) {
+        if (was) {
+            roots.get(was)?.delete(shadow);
+            ownerOf.delete(shadow);
+            unstyle(shadow);
+        }
+        return;
+    }
+    if (was === owner && styled(shadow)) return;
+    if (!styled(shadow)) style(shadow);
+    if (was && was !== owner) roots.get(was)?.delete(shadow);
+    ownerOf.set(shadow, owner);
     let held = roots.get(owner);
     if (!held) roots.set(owner, (held = new Set()));
     held.add(shadow);
+    // An element's own watch stops at a root's edge.
     watching.get(owner)?.observe(shadow, WATCH);
     reach(shadow);
+}
+
+/** Every open root in a subtree that came or went, put right with whoever holds it now. */
+function settle(node: Element): void {
+    const hosts = Array.from(node.querySelectorAll('*'));
+    hosts.unshift(node);
+    hosts.forEach((host) => { if (host.shadowRoot) hold(host.shadowRoot); });
 }
 
 // A shadow root attached to a host already in an element gives the page no signal. Whatever a person
@@ -189,6 +214,7 @@ export function holdElementText(element: HTMLElement): void {
         records.forEach((record) => {
             if (record.type === 'attributes') takeOffSize(record.target as Element);
             else {
+                record.removedNodes.forEach((removed) => { if (removed instanceof Element) settle(removed); });
                 record.addedNodes.forEach((added) => { if (added instanceof Element) reach(added); });
                 // A root whose contents were replaced.
                 if (isRoot(record.target)) hold(record.target);
@@ -204,14 +230,12 @@ export function holdElementText(element: HTMLElement): void {
 export function releaseElementText(element: HTMLElement): void {
     watching.get(element)?.disconnect();
     watching.delete(element);
-    roots.get(element)?.forEach((shadow) => {
-        // A root inside another held element is that one's now; otherwise it is the host's again.
-        const next = heldAround(shadow.host);
-        if (!next) { unstyle(shadow); return; }
-        let held = roots.get(next);
-        if (!held) roots.set(next, (held = new Set()));
-        held.add(shadow);
-        watching.get(next)?.observe(shadow, WATCH);
-    });
+    // A root inside another held element is that one's now; otherwise it is the host's again.
+    const held = roots.get(element);
     roots.delete(element);
+    held?.forEach((shadow) => {
+        ownerOf.delete(shadow);
+        hold(shadow);
+        if (!ownerOf.has(shadow)) unstyle(shadow);
+    });
 }

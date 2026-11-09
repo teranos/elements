@@ -68,6 +68,7 @@ function onViewport(): void {
         if (el !== answering) backFromKeyboard(el);
     }
     if (answering) answer(answering);
+    else if (keyboardTakes() <= ROUNDING) before = null;
 }
 
 /** Keep a window whose field has focus where the keyboard leaves it seen. */
@@ -134,21 +135,27 @@ function pinched(): boolean {
 const ROUNDING = 2;
 
 /**
- * How much of the layout the visual viewport showed when the field took focus, before any keyboard:
- * its height over its scale. A pinch leaves it as it was (height = layout / scale); a keyboard
- * lowers it. window.innerHeight is no baseline: Safari shrinks it with the keyboard (safe-area.ts).
+ * How much of the layout the visual viewport showed before any keyboard: its height over its scale, and
+ * its width over it. A pinch leaves both as they were (size = layout / scale); a keyboard lowers the
+ * height. window.innerHeight is no baseline: Safari shrinks it with the keyboard (safe-area.ts).
+ * It only ever rises while fields take focus (a keyboard already up cannot lower it, as focus moves
+ * between windows), and goes when no keyboard is up. A field focused with a keyboard already up that
+ * this page did not raise has no before to compare with: on a pinched page it is answered as no keyboard.
  */
-let shownBefore: number | null = null;
+let before: { height: number; width: number } | null = null;
 
-function shown(): number | null {
+function shown(): { height: number; width: number } | null {
     const vv = (window as { visualViewport?: VisualViewport | null }).visualViewport;
-    return vv ? vv.height * vv.scale : null;
+    return vv ? { height: vv.height * vv.scale, width: vv.width * vv.scale } : null;
 }
 
 /** What the keyboard takes, in px: what the visual viewport shows now, short of what it showed before. */
 function keyboardTakes(): number {
     const now = shown();
-    return shownBefore === null || now === null ? 0 : shownBefore - now;
+    if (before === null || now === null) return 0;
+    // Another shape of screen (a rotation): what was seen before says nothing of this one.
+    if (Math.abs(now.width - before.width) > ROUNDING) { before = null; return 0; }
+    return before.height - now.height;
 }
 
 /** What the keyboard leaves of the screen: the visual viewport, edges and all. */
@@ -202,7 +209,8 @@ export function keepClearOfKeyboard(element: HTMLElement): void {
             if (el !== element) backFromKeyboard(el);
         }
         // The keyboard has not come yet when a field first takes focus: what the page shows is the baseline.
-        if (answering === null) shownBefore = shown();
+        const now = shown();
+        if (now && (before === null || now.height > before.height)) before = now;
         answering = element;
         hear();
         answer(element);
@@ -210,6 +218,10 @@ export function keepClearOfKeyboard(element: HTMLElement): void {
 
     element.addEventListener('focusout', (e) => {
         const next = (e as FocusEvent).relatedTarget as Node | null;
-        if (answering === element && !(next && element.contains(next))) { answering = null; shownBefore = null; }
+        if (answering === element && !(next && element.contains(next))) {
+            answering = null;
+            // Focus moving to a field in another window keeps the keyboard up; one that leaves for good does not.
+            if (keyboardTakes() <= ROUNDING) before = null;
+        }
     });
 }
