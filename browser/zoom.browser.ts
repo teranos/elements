@@ -14,7 +14,7 @@
  * Personas:
  * - Tim: Happy path — a pinch zooms the page; the page's own viewport line is left as the host wrote it
  * - Spike: Edge cases — a host that says maximum-scale itself keeps what it said
- * - Jenny: Complex scenarios — a field a host dresses small is still at 16 in an element
+ * - Jenny: Complex scenarios — a field, or an editor, a host dresses small is still at 16 in an element
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -69,5 +69,34 @@ test.describe('Jenny: a field, small by a host, in an element', () => {
         const sizes = await krypton.locator('input').evaluateAll((fields) => fields.map((el) => getComputedStyle(el).fontSize));
         expect(sizes.length).toBeGreaterThan(0);
         expect(sizes.every((size) => size === '16px')).toBe(true);
+    });
+
+    test('an editor (contenteditable), and the text in it, is at 16 too', async ({ page }) => {
+        await page.addStyleTag({ content: '.host-editor, .host-editor * { font-size: 11px; }' });
+        const krypton = page.locator(KRYPTON);
+        await krypton.click();
+        await expect(krypton).toHaveAttribute('data-form', 'panel');
+        await expect.poll(() => krypton.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
+        // The shape CodeMirror gives a page: a div that takes typing, with a line in it.
+        await krypton.evaluate((el) => {
+            const editor = document.createElement('div');
+            editor.className = 'host-editor';
+            editor.contentEditable = 'true';
+            const line = document.createElement('div');
+            line.textContent = 'x = 1';
+            editor.appendChild(line);
+            const plain = document.createElement('div');
+            plain.className = 'host-editor';
+            plain.contentEditable = 'false';
+            plain.textContent = 'not for typing';
+            el.append(editor, plain);
+        });
+
+        const sizes = await krypton.evaluate((el) => ({
+            editor: getComputedStyle(el.querySelector('.host-editor[contenteditable="true"]')!).fontSize,
+            line: getComputedStyle(el.querySelector('.host-editor[contenteditable="true"] > div')!).fontSize,
+            plain: getComputedStyle(el.querySelector('.host-editor[contenteditable="false"]')!).fontSize,
+        }));
+        expect(sizes).toEqual({ editor: '16px', line: '16px', plain: '11px' });
     });
 });

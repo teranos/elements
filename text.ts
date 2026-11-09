@@ -10,7 +10,7 @@ export const TEXT_SIZES: Readonly<{ xs: 10; sm: 11; md: 13; lg: 14 }> = Object.f
 /** A size from the set. Any other size does not compile. */
 export type TextSize = keyof typeof TEXT_SIZES;
 
-/** px: a field's text, not a size a host picks: under 16, iOS zooms the page when the field is tapped. */
+/** px: a field's or editor's text, not a size a host picks: under 16, iOS zooms the page when it is tapped. */
 export const FIELD_TEXT_SIZE = 16;
 
 /** What text inside an element is at until sizeText() says otherwise. */
@@ -30,6 +30,9 @@ const ELEMENT = '[data-element-id]:not(.dot)';
 // A field outranks a size from the set around it or on it: :is() counts its most specific name.
 // Layered and important: an important rule in a layer outranks every important rule outside
 // one, and every rule of any kind in a stylesheet or a style attribute that is not important.
+// An editor is a field that is not a tag (CodeMirror's surface is a div): the same 16, and what is written in it.
+const EDITOR = '[contenteditable]:not([contenteditable="false"])';
+
 const RULE = `@layer elements {
 ${ELEMENT} { font-size: ${TEXT_SIZES[DEFAULT]}px !important; }
 ${ELEMENT} * { font-size: inherit !important; }
@@ -38,6 +41,7 @@ ${fitRule(ELEMENT)}
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
     `${ELEMENT} [data-text-size="${name}"], ${ELEMENT}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
 ${ELEMENT} :is(input, textarea, select):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
+${ELEMENT} :is(${EDITOR}, ${EDITOR} *):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
     `${SURFACE} [data-text-size="${name}"], ${SURFACE}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
 }`;

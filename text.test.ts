@@ -54,6 +54,14 @@ describe('Tim: the set, and a node sized from it', () => {
         expect(css).toContain(`font-size: ${FIELD_TEXT_SIZE}px !important`);
     });
 
+    test('an editor (contenteditable) is at 16 too, and what is written in it', () => {
+        sizeText(document.createElement('span'), 'sm');
+        const css = rule()!.textContent!;
+
+        expect(css).toContain('[contenteditable]:not([contenteditable="false"])');
+        expect(css).toMatch(/\[contenteditable\]:not\(\[contenteditable="false"\]\)[^{]*\{ font-size: 16px !important; \}/);
+    });
+
     test('text breaks to the width it has, a word too long anywhere in it', () => {
         sizeText(document.createElement('span'), 'sm');
         const css = rule()!.textContent!;
