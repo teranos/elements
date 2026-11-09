@@ -46,6 +46,13 @@ ${Object.entries(TEXT_SIZES).map(([name, px]) =>
     `${SURFACE} [data-text-size="${name}"], ${SURFACE}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
 }`;
 
+// A document stylesheet does not reach into a shadow root: the field rule is put into each open one
+// inside an element (reachShadows). Layered and important, as the page's is. A closed root is the host's.
+const SHADOW_ID = 'data-elements-text';
+const SHADOW_RULE = `@layer elements {
+:is(input, textarea, select, ${EDITOR}, ${EDITOR} *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
+}`;
+
 /** The package's rule, in the page once. */
 export function holdTextSize(): void {
     if (document.getElementById(RULE_ID)) return;
@@ -74,23 +81,40 @@ function takeOffSize(node: Element): void {
     takeOffFit(node);
 }
 
-function takeOffSizes(root: Element): void {
-    takeOffSize(root);
-    root.querySelectorAll('[style]').forEach(takeOffSize);
-}
-
 /** This element's text is at the package's sizes, whatever is written on it or in it. */
 export function holdElementText(element: HTMLElement): void {
     holdTextSize();
     if (watching.has(element) || typeof MutationObserver === 'undefined') return;
-    takeOffSizes(element);
-    const observer = new MutationObserver((records) => {
+    const options = { attributes: true, attributeFilter: ['style'], childList: true, subtree: true };
+    const observer: MutationObserver = new MutationObserver((records) => {
         records.forEach((record) => {
             if (record.type === 'attributes') takeOffSize(record.target as Element);
-            else record.addedNodes.forEach((added) => { if (added instanceof Element) takeOffSizes(added); });
+            else record.addedNodes.forEach((added) => { if (added instanceof Element) reach(added); });
         });
     });
-    observer.observe(element, { attributes: true, attributeFilter: ['style'], childList: true, subtree: true });
+
+    // Sizes off a node and what it holds, and the field rule into every open shadow root in it (and
+    // each root watched, since the element's own watch stops at a root's edge).
+    function reach(root: Element | ShadowRoot): void {
+        if (root instanceof Element) takeOffSize(root);
+        root.querySelectorAll('[style]').forEach(takeOffSize);
+        const hosts = Array.from(root.querySelectorAll('*'));
+        if (root instanceof Element) hosts.unshift(root);
+        hosts.forEach((host) => { if (host.shadowRoot) reachRoot(host.shadowRoot); });
+    }
+
+    function reachRoot(shadow: ShadowRoot): void {
+        if (shadow.querySelector(`:scope > style[${SHADOW_ID}]`)) return;
+        const style = document.createElement('style');
+        style.setAttribute(SHADOW_ID, '');
+        style.textContent = SHADOW_RULE;
+        shadow.prepend(style);
+        observer.observe(shadow, options);
+        reach(shadow);
+    }
+
+    reach(element);
+    observer.observe(element, options);
     watching.set(element, observer);
 }
 

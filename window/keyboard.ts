@@ -96,9 +96,10 @@ function answer(element: HTMLElement): void {
         height: rect.height,
     };
 
-    // A page a person has pinched in shows less of itself, and no keyboard says how much of that
-    // is the keyboard's: a window answers none of it. Cut to it, a panel stopped three quarters down.
-    if (pinched()) {
+    // A page a person has pinched in shows less of itself (height = screen / scale), and that is the
+    // pinch's, not the keyboard's: a window answers none of it. Cut to it, a panel stopped three
+    // quarters down. What the visual viewport is short of that, a keyboard took (keyboardTakes()).
+    if (pinched() && keyboardTakes() <= ROUNDING) {
         if (before) backFromKeyboard(element);
         return;
     }
@@ -127,6 +128,18 @@ function answer(element: HTMLElement): void {
 function pinched(): boolean {
     const vv = (window as { visualViewport?: VisualViewport | null }).visualViewport;
     return !!vv && vv.scale > 1.01;
+}
+
+// px: a visual viewport reports fractions; less than this is not a keyboard.
+const ROUNDING = 2;
+
+/**
+ * What the keyboard takes of the screen, pinched or not: the layout viewport is the screen, and the
+ * visual viewport is the screen over the scale, less whatever the keyboard covers.
+ */
+function keyboardTakes(): number {
+    const vv = (window as { visualViewport?: VisualViewport | null }).visualViewport;
+    return vv ? window.innerHeight - vv.height * vv.scale : 0;
 }
 
 /** What the keyboard leaves of the screen: the visual viewport, edges and all. */

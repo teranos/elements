@@ -226,6 +226,50 @@ describe('Spike: when nothing should move', () => {
         expect(bottom(el)).toBe(reached);
     });
 
+    // What a pinch takes of the visual viewport is the scale's (height = screen / scale); what is
+    // left over is the keyboard's. A pinched page with a keyboard up is answered like any other.
+    test('a page pinched in, with a keyboard up: a window with a field pressed rises above the keyboard', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(500);
+
+        vv.scale = 1.3;
+        vv.height = (SCREEN.height - KEYBOARD) / 1.3;
+        field.focus();
+        vv.dispatchEvent(new (window as any).Event('resize'));
+
+        expect(bottom(el)).toBeLessThanOrEqual(vv.offsetTop + vv.height);
+        expect(top(el)).toBeGreaterThanOrEqual(vv.offsetTop);
+    });
+
+    test('a page pinched in, with a keyboard up: a panel is cut to what is seen, and its field with it', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(0, SCREEN.height, 'krypton');
+        setForm(el, 'panel');
+
+        vv.scale = 1.3;
+        field.focus();
+        vv.height = (SCREEN.height - KEYBOARD) / 1.3;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+
+        expect(bottom(el)).toBeLessThanOrEqual(vv.offsetTop + vv.height);
+    });
+
+    test('a page pinched in, keyboard up then down: the window goes back to where it stood', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(500);
+        const cap = el.style.maxHeight;
+
+        vv.scale = 1.3;
+        field.focus();
+        vv.height = (SCREEN.height - KEYBOARD) / 1.3;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+        vv.height = SCREEN.height / 1.3;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+
+        expect(top(el)).toBe(500);
+        expect(el.style.maxHeight).toBe(cap);
+    });
+
     test('a visual viewport scrolled down the page: the window rises into what is seen', () => {
         const vv = giveVisualViewport();
         const { el, field } = windowWithField(500);

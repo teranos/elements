@@ -14,7 +14,8 @@
  * Personas:
  * - Tim: Happy path — a pinch zooms the page; the page's own viewport line is left as the host wrote it
  * - Spike: Edge cases — a host that says maximum-scale itself keeps what it said
- * - Jenny: Complex scenarios — a field, or an editor, a host dresses small is still at 16 in an element
+ * - Jenny: Complex scenarios — a field, an editor, or a field in a shadow root, a host dresses small is still at 16 in an element;
+ *   a keyboard over a page that is pinched is answered, a pinch alone is not
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -98,5 +99,62 @@ test.describe('Jenny: a field, small by a host, in an element', () => {
             plain: getComputedStyle(el.querySelector('.host-editor[contenteditable="false"]')!).fontSize,
         }));
         expect(sizes).toEqual({ editor: '16px', line: '16px', plain: '11px' });
+    });
+
+    test('a field in a shadow root is at 16 too, the root attached before or after', async ({ page }) => {
+        const krypton = page.locator(KRYPTON);
+        await krypton.click();
+        await expect(krypton).toHaveAttribute('data-form', 'panel');
+        await expect.poll(() => krypton.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
+
+        const sizes = await krypton.evaluate(async (el) => {
+            const make = () => {
+                const host = document.createElement('div');
+                const root = host.attachShadow({ mode: 'open' });
+                root.innerHTML = '<style>input { font-size: 11px; }</style><input type="text">';
+                return { host, root };
+            };
+            const early = make();
+            el.appendChild(early.host);
+            const late = make();
+            await new Promise((done) => setTimeout(done, 100));
+            el.appendChild(late.host);
+            await new Promise((done) => setTimeout(done, 100));
+            const size = (r: ShadowRoot) => getComputedStyle(r.querySelector('input')!).fontSize;
+            return { early: size(early.root), late: size(late.root) };
+        });
+        expect(sizes).toEqual({ early: '16px', late: '16px' });
+    });
+
+    test('a pinched page with a keyboard over it: the panel ends above the keyboard; a pinch alone moves nothing', async ({ page, browserName, isMobile }) => {
+        test.skip(browserName !== 'chromium' || !isMobile, 'a pinch gesture is synthesised in Chromium on a phone');
+        const krypton = page.locator(KRYPTON);
+        await krypton.click();
+        await expect(krypton).toHaveAttribute('data-form', 'panel');
+        await expect.poll(() => krypton.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Input.synthesizePinchGesture', { x: 195, y: 400, scaleFactor: 2, relativeSpeed: 300 });
+        await expect.poll(() => page.evaluate(() => visualViewport!.scale)).toBeGreaterThan(1.5);
+        const cap = await krypton.evaluate((el) => el.style.maxHeight);
+
+        // A pinch alone: the panel is not cut to what the zoom shows.
+        await krypton.locator('input').last().focus();
+        await page.waitForTimeout(200);
+        expect(await krypton.evaluate((el) => el.style.maxHeight)).toBe(cap);
+
+        // The keyboard comes up over the pinched page: height = (screen - keyboard) / scale.
+        await page.evaluate((keyboard) => {
+            const vv = visualViewport!;
+            const shown = (window.innerHeight - keyboard) / vv.scale;
+            Object.defineProperty(vv, 'height', { configurable: true, get: () => shown });
+            vv.dispatchEvent(new Event('resize'));
+        }, 336);
+        await expect.poll(() => krypton.evaluate((el) => el.style.maxHeight)).not.toBe(cap);
+        const seen = await page.evaluate(() => ({ top: visualViewport!.offsetTop, height: visualViewport!.height }));
+        const panel = await krypton.evaluate((el) => {
+            const r = el.getBoundingClientRect();
+            return { top: r.top, bottom: r.bottom, vvTop: visualViewport!.offsetTop };
+        });
+        expect(panel.bottom - panel.vvTop).toBeLessThanOrEqual(seen.height + 2);
     });
 });
