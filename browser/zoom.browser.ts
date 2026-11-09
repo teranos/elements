@@ -126,6 +126,59 @@ test.describe('Jenny: a field, small by a host, in an element', () => {
         expect(sizes).toEqual({ early: '16px', late: '16px' });
     });
 
+    test('a root attached to a host already in the element is found by a click in it; a root wiped is dressed again', async ({ page }) => {
+        const krypton = page.locator(KRYPTON);
+        await krypton.click();
+        await expect(krypton).toHaveAttribute('data-form', 'panel');
+        await expect.poll(() => krypton.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
+
+        // The host is in the element first; its root comes later, with nothing in the light DOM to say so.
+        await krypton.evaluate(async (el) => {
+            const host = document.createElement('div');
+            host.id = 'late-host';
+            el.appendChild(host);
+            await new Promise((done) => setTimeout(done, 100));
+            const root = host.attachShadow({ mode: 'open' });
+            root.innerHTML = '<style>input { font-size: 11px; display: block; width: 120px; height: 30px; }</style><input type="text">';
+        });
+        const size = () => page.evaluate(() => getComputedStyle(document.querySelector('#late-host')!.shadowRoot!.querySelector('input')!).fontSize);
+        expect(await size()).toBe('11px');
+
+        await page.locator('#late-host input').click();
+        expect(await size()).toBe('16px');
+
+        // The host draws it again: the rule is the package's, not part of what was drawn.
+        await page.evaluate(() => {
+            document.querySelector('#late-host')!.shadowRoot!.innerHTML = '<style>input { font-size: 11px; display: block; width: 120px; height: 30px; }</style><input type="text">';
+        });
+        await page.waitForTimeout(100);
+        expect(await size()).toBe('16px');
+    });
+
+    test('an element that rests as a dot gives the root back to the host', async ({ page }) => {
+        const krypton = page.locator(KRYPTON);
+        await krypton.click();
+        await expect(krypton).toHaveAttribute('data-form', 'panel');
+        await expect.poll(() => krypton.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
+        await krypton.evaluate((el) => {
+            const host = document.createElement('div');
+            host.id = 'given-host';
+            el.appendChild(host);
+            const root = host.attachShadow({ mode: 'open' });
+            root.innerHTML = '<style>input { font-size: 11px; }</style><input type="text">';
+            (window as unknown as { __given: ShadowRoot }).__given = root;
+        });
+        // A dot's content is out of the page: the root is held by name, and asked what it has adopted.
+        const adopted = () => page.evaluate(() => (window as unknown as { __given: ShadowRoot }).__given.adoptedStyleSheets.length);
+        await page.locator('#given-host input').click({ force: true });
+        expect(await adopted()).toBe(1);
+
+        // Minimized: its form is a dot, and the package lets go of its text (dataset.ts).
+        await krypton.locator('[aria-label="Minimize"]').evaluate((button: HTMLElement) => button.click());
+        await expect(krypton).toHaveAttribute('data-form', 'dot');
+        await expect.poll(adopted).toBe(0);
+    });
+
     test('a pinched page with a keyboard over it: the panel ends above the keyboard; a pinch alone moves nothing', async ({ page, browserName, isMobile }) => {
         test.skip(browserName !== 'chromium' || !isMobile, 'a pinch gesture is synthesised in Chromium on a phone');
         const krypton = page.locator(KRYPTON);

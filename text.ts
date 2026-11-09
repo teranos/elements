@@ -47,11 +47,56 @@ ${Object.entries(TEXT_SIZES).map(([name, px]) =>
 }`;
 
 // A document stylesheet does not reach into a shadow root: the field rule is put into each open one
-// inside an element (reachShadows). Layered and important, as the page's is. A closed root is the host's.
+// inside an element. Layered and important, as the page's is. A closed root is the host's.
+// Adopted where the browser has adoptedStyleSheets: nothing a host writes into the root's contents
+// (innerHTML) takes it away, and it comes off cleanly. Elsewhere, a style element in the root.
 const SHADOW_ID = 'data-elements-text';
 const SHADOW_RULE = `@layer elements {
 :is(input, textarea, select, ${EDITOR}, ${EDITOR} *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
 }`;
+
+let adopted: CSSStyleSheet | null | undefined;
+
+/** The one stylesheet roots adopt; null where a browser cannot (a test DOM, an old browser). */
+function adoptable(): CSSStyleSheet | null {
+    if (adopted !== undefined) return adopted;
+    adopted = null;
+    if (typeof CSSStyleSheet === 'function' && typeof ShadowRoot !== 'undefined'
+        && 'replaceSync' in CSSStyleSheet.prototype && 'adoptedStyleSheets' in ShadowRoot.prototype) {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(SHADOW_RULE);
+        adopted = sheet;
+    }
+    return adopted;
+}
+
+/** The package's style element in a root, where there is no adopted sheet. */
+function tagIn(shadow: ShadowRoot): Element | undefined {
+    return Array.from(shadow.children).find((child) => child.tagName === 'STYLE' && child.hasAttribute(SHADOW_ID));
+}
+
+function styled(shadow: ShadowRoot): boolean {
+    const sheet = adoptable();
+    return sheet ? shadow.adoptedStyleSheets.includes(sheet) : !!tagIn(shadow);
+}
+
+function style(shadow: ShadowRoot): void {
+    const sheet = adoptable();
+    if (sheet) {
+        shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, sheet];
+        return;
+    }
+    const tag = document.createElement('style');
+    tag.setAttribute(SHADOW_ID, '');
+    tag.textContent = SHADOW_RULE;
+    shadow.prepend(tag);
+}
+
+function unstyle(shadow: ShadowRoot): void {
+    const sheet = adoptable();
+    if (sheet) shadow.adoptedStyleSheets = shadow.adoptedStyleSheets.filter((s) => s !== sheet);
+    else tagIn(shadow)?.remove();
+}
 
 /** The package's rule, in the page once. */
 export function holdTextSize(): void {
@@ -76,50 +121,97 @@ export function sizeText(node: HTMLElement, size: TextSize): void {
 // inside an element it is taken off as it is written, and off whatever is added with one.
 const watching = new WeakMap<HTMLElement, MutationObserver>();
 
+// The roots each held element has put the field rule into: given back when it is released.
+const roots = new WeakMap<HTMLElement, Set<ShadowRoot>>();
+
+/** A shadow root, by shape: a fragment with a host (a DOM may not name the class). */
+function isRoot(node: unknown): node is ShadowRoot {
+    return !!node && (node as Node).nodeType === 11 && !!(node as ShadowRoot).host;
+}
+
+const WATCH = { attributes: true, attributeFilter: ['style'], childList: true, subtree: true };
+
 function takeOffSize(node: Element): void {
     if (node instanceof HTMLElement && node.style.fontSize) node.style.removeProperty('font-size');
-    takeOffFit(node);
+    // A root has no fit rule (fit.ts) to take the place of a layout property taken off: it stays there.
+    if (!isRoot(node.getRootNode())) takeOffFit(node);
+}
+
+/** The nearest held element around a node, however many shadow roots lie between. */
+function heldAround(node: Node | null): HTMLElement | null {
+    for (let at: Node | null = node; at; at = at.parentNode ?? (at as ShadowRoot).host ?? null) {
+        if (at instanceof HTMLElement && watching.has(at)) return at;
+    }
+    return null;
+}
+
+/** Sizes off a node and what it holds, and the field rule into every open shadow root in it. */
+function reach(root: Element | ShadowRoot): void {
+    if (!isRoot(root)) takeOffSize(root);
+    root.querySelectorAll('[style]').forEach(takeOffSize);
+    const hosts = Array.from(root.querySelectorAll('*'));
+    if (!isRoot(root)) hosts.unshift(root);
+    hosts.forEach((host) => { if (host.shadowRoot) hold(host.shadowRoot); });
+}
+
+/** The rule into this root, if a held element is around it and it has none; the root watched, since an element's watch stops at a root's edge. */
+function hold(shadow: ShadowRoot): void {
+    const owner = heldAround(shadow.host);
+    if (!owner || styled(shadow)) return;
+    style(shadow);
+    let held = roots.get(owner);
+    if (!held) roots.set(owner, (held = new Set()));
+    held.add(shadow);
+    watching.get(owner)?.observe(shadow, WATCH);
+    reach(shadow);
+}
+
+// A shadow root attached to a host already in an element gives the page no signal. Whatever a person
+// touches or focuses inside one names it (composedPath, an open root only) before a keyboard or a zoom.
+let listening = false;
+
+function listen(): void {
+    if (listening || typeof document === 'undefined') return;
+    listening = true;
+    const found = (e: Event) => {
+        for (const node of e.composedPath()) if (isRoot(node)) hold(node);
+    };
+    document.addEventListener('pointerdown', found, true);
+    document.addEventListener('focusin', found, true);
 }
 
 /** This element's text is at the package's sizes, whatever is written on it or in it. */
 export function holdElementText(element: HTMLElement): void {
     holdTextSize();
     if (watching.has(element) || typeof MutationObserver === 'undefined') return;
-    const options = { attributes: true, attributeFilter: ['style'], childList: true, subtree: true };
-    const observer: MutationObserver = new MutationObserver((records) => {
+    listen();
+    const observer = new MutationObserver((records) => {
         records.forEach((record) => {
             if (record.type === 'attributes') takeOffSize(record.target as Element);
-            else record.addedNodes.forEach((added) => { if (added instanceof Element) reach(added); });
+            else {
+                record.addedNodes.forEach((added) => { if (added instanceof Element) reach(added); });
+                // A root whose contents were replaced.
+                if (isRoot(record.target)) hold(record.target);
+            }
         });
     });
-
-    // Sizes off a node and what it holds, and the field rule into every open shadow root in it (and
-    // each root watched, since the element's own watch stops at a root's edge).
-    function reach(root: Element | ShadowRoot): void {
-        if (root instanceof Element) takeOffSize(root);
-        root.querySelectorAll('[style]').forEach(takeOffSize);
-        const hosts = Array.from(root.querySelectorAll('*'));
-        if (root instanceof Element) hosts.unshift(root);
-        hosts.forEach((host) => { if (host.shadowRoot) reachRoot(host.shadowRoot); });
-    }
-
-    function reachRoot(shadow: ShadowRoot): void {
-        if (shadow.querySelector(`:scope > style[${SHADOW_ID}]`)) return;
-        const style = document.createElement('style');
-        style.setAttribute(SHADOW_ID, '');
-        style.textContent = SHADOW_RULE;
-        shadow.prepend(style);
-        observer.observe(shadow, options);
-        reach(shadow);
-    }
-
-    reach(element);
-    observer.observe(element, options);
     watching.set(element, observer);
+    reach(element);
+    observer.observe(element, WATCH);
 }
 
 /** A dot: its symbol is the tray's, and what is written on it every frame is not watched. */
 export function releaseElementText(element: HTMLElement): void {
     watching.get(element)?.disconnect();
     watching.delete(element);
+    roots.get(element)?.forEach((shadow) => {
+        // A root inside another held element is that one's now; otherwise it is the host's again.
+        const next = heldAround(shadow.host);
+        if (!next) { unstyle(shadow); return; }
+        let held = roots.get(next);
+        if (!held) roots.set(next, (held = new Set()));
+        held.add(shadow);
+        watching.get(next)?.observe(shadow, WATCH);
+    });
+    roots.delete(element);
 }

@@ -9,11 +9,14 @@
  * Personas:
  * - Tim: Happy path — an open shadow root inside an element has the rule, once
  * - Spike: Edge cases — a closed root, a root outside any element, an element with none
- * - Jenny: Complex scenarios — a root added later; a root inside a root; a style attribute written in one
+ * - Jenny: Complex scenarios — a root added later, or attached to a host already in the element (found when a
+ *   finger or a focus comes from inside it); a root inside a root; a root's contents replaced; the element
+ *   released (the root is the host's again, unless an element around it still holds it); a style attribute
+ *   written in one: a size comes off, a layout property stays, the root having no fit rule to take its place
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { holdElementText, FIELD_TEXT_SIZE } from './text';
+import { holdElementText, releaseElementText, FIELD_TEXT_SIZE } from './text';
 
 const tick = () => new Promise<void>((done) => setTimeout(done, 0));
 
@@ -133,5 +136,98 @@ describe('Jenny: roots that come later, or inside roots', () => {
         await tick();
 
         expect(input.style.fontSize).toBe('');
+    });
+
+    test('a root attached to a host already in the element is found when a finger lands in it', async () => {
+        const el = element();
+        holdElementText(el);
+        const host = document.createElement('div');
+        el.appendChild(host);
+        await tick();
+        const root = host.attachShadow({ mode: 'open' });
+        root.innerHTML = '<input type="text">';
+        expect(rules(root)).toHaveLength(0);
+
+        root.querySelector('input')!.dispatchEvent(new (window as any).Event('pointerdown', { bubbles: true, composed: true }));
+
+        expect(rules(root)).toHaveLength(1);
+    });
+
+    test('a root attached to a host already in the element is found when a field takes focus', async () => {
+        const el = element();
+        holdElementText(el);
+        const host = document.createElement('div');
+        el.appendChild(host);
+        await tick();
+        const root = host.attachShadow({ mode: 'open' });
+        root.innerHTML = '<input type="text">';
+
+        root.querySelector('input')!.dispatchEvent(new (window as any).Event('focusin', { bubbles: true, composed: true }));
+
+        expect(rules(root)).toHaveLength(1);
+    });
+
+    test('a root whose contents are replaced has the rule again', async () => {
+        const el = element();
+        const { root } = hostWithRoot(el);
+        holdElementText(el);
+        expect(rules(root)).toHaveLength(1);
+
+        root.innerHTML = '<input type="text">';
+        await tick();
+
+        expect(rules(root)).toHaveLength(1);
+    });
+
+    test('a layout property written important in a root stays: the root has no fit rule to take its place', async () => {
+        const el = element();
+        const { root } = hostWithRoot(el);
+        const input = root.querySelector('input')!;
+        input.style.setProperty('max-width', '5px', 'important');
+        input.style.setProperty('font-size', '11px', 'important');
+
+        holdElementText(el);
+
+        expect(input.style.fontSize).toBe('');
+        expect(input.style.getPropertyValue('max-width')).toBe('5px');
+    });
+});
+
+describe('Jenny: an element released', () => {
+    test('the root is the host\'s again: the rule is gone from it', () => {
+        const el = element();
+        const { root } = hostWithRoot(el);
+        holdElementText(el);
+
+        releaseElementText(el);
+
+        expect(rules(root)).toHaveLength(0);
+    });
+
+    test('and the element held again has it again', () => {
+        const el = element();
+        const { root } = hostWithRoot(el);
+        holdElementText(el);
+        releaseElementText(el);
+
+        holdElementText(el);
+
+        expect(rules(root)).toHaveLength(1);
+    });
+
+    test('an element around it still holds it: the rule stays until that one is released', () => {
+        const outer = element();
+        const inner = document.createElement('div');
+        inner.dataset.elementId = 'inner';
+        outer.appendChild(inner);
+        const { root } = hostWithRoot(inner);
+        holdElementText(outer);
+        holdElementText(inner);
+
+        releaseElementText(inner);
+        expect(rules(root)).toHaveLength(1);
+
+        releaseElementText(outer);
+        expect(rules(root)).toHaveLength(0);
     });
 });

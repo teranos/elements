@@ -134,12 +134,21 @@ function pinched(): boolean {
 const ROUNDING = 2;
 
 /**
- * What the keyboard takes of the screen, pinched or not: the layout viewport is the screen, and the
- * visual viewport is the screen over the scale, less whatever the keyboard covers.
+ * How much of the layout the visual viewport showed when the field took focus, before any keyboard:
+ * its height over its scale. A pinch leaves it as it was (height = layout / scale); a keyboard
+ * lowers it. window.innerHeight is no baseline: Safari shrinks it with the keyboard (safe-area.ts).
  */
-function keyboardTakes(): number {
+let shownBefore: number | null = null;
+
+function shown(): number | null {
     const vv = (window as { visualViewport?: VisualViewport | null }).visualViewport;
-    return vv ? window.innerHeight - vv.height * vv.scale : 0;
+    return vv ? vv.height * vv.scale : null;
+}
+
+/** What the keyboard takes, in px: what the visual viewport shows now, short of what it showed before. */
+function keyboardTakes(): number {
+    const now = shown();
+    return shownBefore === null || now === null ? 0 : shownBefore - now;
 }
 
 /** What the keyboard leaves of the screen: the visual viewport, edges and all. */
@@ -192,6 +201,8 @@ export function keepClearOfKeyboard(element: HTMLElement): void {
         for (const el of [...stood.keys()]) {
             if (el !== element) backFromKeyboard(el);
         }
+        // The keyboard has not come yet when a field first takes focus: what the page shows is the baseline.
+        if (answering === null) shownBefore = shown();
         answering = element;
         hear();
         answer(element);
@@ -199,6 +210,6 @@ export function keepClearOfKeyboard(element: HTMLElement): void {
 
     element.addEventListener('focusout', (e) => {
         const next = (e as FocusEvent).relatedTarget as Node | null;
-        if (answering === element && !(next && element.contains(next))) answering = null;
+        if (answering === element && !(next && element.contains(next))) { answering = null; shownBefore = null; }
     });
 }
