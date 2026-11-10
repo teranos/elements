@@ -84,7 +84,8 @@ test.describe('Spike: tables that are not too wide', () => {
     test('a table that fits does not scroll, and is not a tab stop', async ({ page }) => {
         await page.locator(YTTRIUM).evaluate((el) => { (el as HTMLElement).style.width = '1400px'; });
         await expect.poll(() => measure(page).then((m) => m.boxScroll <= m.boxClient + 1)).toBe(true);
-        expect(await page.locator(TABLE).evaluate((t) => t.hasAttribute('tabindex'))).toBe(false);
+        // The stop goes when the table's size has been looked at again: the next frame, not this one.
+        await expect.poll(() => page.locator(TABLE).evaluate((t) => t.hasAttribute('tabindex'))).toBe(false);
     });
 
     test('a host\'s own table, not the package\'s, is still fitted to the element', async ({ page }) => {
