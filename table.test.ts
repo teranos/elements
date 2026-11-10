@@ -153,6 +153,54 @@ describe('Spike: no say about columns', () => {
     });
 });
 
+describe('Jenny: a stop the package made, and a host that has its own say', () => {
+    /** A table that measures as the test says, and the callback the package gave its observer. */
+    function watched(): { t: HTMLTableElement; measure: (scrollWidth: number, clientWidth: number) => void; look: () => void; restore: () => void } {
+        const had = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
+        let look: () => void = () => {};
+        (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
+            constructor(callback: () => void) { look = callback; }
+            observe(): void {}
+            disconnect(): void {}
+        };
+        const t = createTable('users', ['User'], [{ cells: ['Tim'] }]);
+        const measure = (scrollWidth: number, clientWidth: number): void => {
+            Object.defineProperty(t, 'scrollWidth', { configurable: true, value: scrollWidth });
+            Object.defineProperty(t, 'clientWidth', { configurable: true, value: clientWidth });
+        };
+        const restore = (): void => { (globalThis as { ResizeObserver?: unknown }).ResizeObserver = had; };
+        return { t, measure, look: () => look(), restore };
+    }
+
+    test('a table that scrolls is a stop, and one that fits again is not', () => {
+        const { t, measure, look, restore } = watched();
+        try {
+            measure(600, 300);
+            look();
+            expect(t.getAttribute('tabindex')).toBe('0');
+            measure(300, 300);
+            look();
+            expect(t.hasAttribute('tabindex')).toBe(false);
+        } finally { restore(); }
+    });
+
+    test('a tabindex the host set after the package made its own is the host\'s: it stays when the table fits', () => {
+        const { t, measure, look, restore } = watched();
+        try {
+            measure(600, 300);
+            look();
+            t.setAttribute('tabindex', '-1');
+            measure(300, 300);
+            look();
+            expect(t.getAttribute('tabindex')).toBe('-1');
+            // And it is the host's from then on: scrolling again does not take it back.
+            measure(600, 300);
+            look();
+            expect(t.getAttribute('tabindex')).toBe('-1');
+        } finally { restore(); }
+    });
+});
+
 describe('Spike: what is not a scroll box', () => {
     test('it is a table still: rows and cells are what the host reads', () => {
         const t = createTable('users', ['User', 'DID'], [{ cells: ['Tim', 'did:key:z6Mk'] }]);

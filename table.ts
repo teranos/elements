@@ -160,7 +160,8 @@ function keepReachable(table: HTMLTableElement, ...parts: HTMLElement[]): void {
             table.tabIndex = 0;
             given = true;
         } else if (!scrolls && given) {
-            table.removeAttribute('tabindex');
+            // What the package wrote it takes back; a value the host has put there since is the host's.
+            if (table.getAttribute('tabindex') === '0') table.removeAttribute('tabindex');
             given = false;
         }
     };
