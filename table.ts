@@ -94,9 +94,9 @@ export type TableShow = 'always' | 'regular';
 export type TableShows<H extends TableHeads = TableHeads> = { readonly [K in keyof H]: TableShow };
 
 /**
- * One table, named: the heads in one row, a row each below, as wide as the heads. `shows` says, a column
- * each, which a Compact screen has no room for: a `regular` column is not shown there (fit.ts), the rows
- * a host adds later with it.
+ * 「[Sonnet 5.5] One table, named: the heads in one row, a row each below, as wide as the heads. `shows` says, a column」
+ * 「[Sonnet 5.5] each, which a Compact screen has no room for: a `regular` column is not shown there (fit.ts), the rows」
+ * 「[Sonnet 5.5] a host adds later with it.」
  */
 export function createTable<const H extends TableHeads>(name: string, heads: H, rows: readonly TableRow<NoInfer<H>>[], shows?: TableShows<NoInfer<H>>): HTMLTableElement {
     // A caller with no types reaches here with any width; it is stopped the same.
@@ -114,13 +114,13 @@ export function createTable<const H extends TableHeads>(name: string, heads: H, 
     ensureStyle();
     const table = document.createElement('table');
     table.className = `element-table ${name}-table`;
-    // A block no longer says it is a table to every screen reader: it says so, and what it is called.
+    // 「[Sonnet 5.5] A block no longer says it is a table to every screen reader: it says so, and what it is called.」
     table.setAttribute('role', 'table');
-    // It scrolls sideways; a browser resolves its other axis to auto too, which is no second scroller (content/scroll.ts).
+    // 「[Sonnet 5.5] It scrolls sideways; a browser resolves its other axis to auto too, which is no second scroller (content/scroll.ts).」
     table.dataset.scroller = 'sideways';
     table.setAttribute('aria-label', name);
 
-    // Said by place, for the package's rule in fit.ts to find (a table has four places at most).
+    // 「[Sonnet 5.5] Said by place, for the package's rule in fit.ts to find (a table has four places at most).」
     const regular = shows === undefined ? [] : shows.flatMap((show, at) => (show === 'regular' ? [at + 1] : []));
     if (regular.length > 0) table.dataset.regular = regular.join(' ');
 
@@ -148,8 +148,8 @@ export function createTable<const H extends TableHeads>(name: string, heads: H, 
 }
 
 /**
- * A box that scrolls is a stop a keyboard can reach, and one that does not scroll is not a stop
- * (W3C design system, Tables). Chrome makes the stop itself; Safari does not. A tabindex the host set is the host's.
+ * 「[Sonnet 5.5] A box that scrolls is a stop a keyboard can reach, and one that does not scroll is not a stop」
+ * 「[Sonnet 5.5] (W3C design system, Tables). Chrome makes the stop itself; Safari does not. A tabindex the host set is the host's.」
  */
 function keepReachable(table: HTMLTableElement, ...parts: HTMLElement[]): void {
     if (typeof ResizeObserver === 'undefined') return;
@@ -160,12 +160,12 @@ function keepReachable(table: HTMLTableElement, ...parts: HTMLElement[]): void {
             table.tabIndex = 0;
             given = true;
         } else if (!scrolls && given) {
-            // What the package wrote it takes back; a value the host has put there since is the host's.
+            // 「[Sonnet 5.5] What the package wrote it takes back; a value the host has put there since is the host's.」
             if (table.getAttribute('tabindex') === '0') table.removeAttribute('tabindex');
             given = false;
         }
     };
-    // The box's own size, and what is in it: a row added or a text changed moves the heads and the body.
+    // 「[Sonnet 5.5] The box's own size, and what is in it: a row added or a text changed moves the heads and the body.」
     const watch = new ResizeObserver(look);
     for (const node of [table, ...parts]) watch.observe(node);
 }
