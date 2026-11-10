@@ -1,8 +1,8 @@
-// Users specimens — Yttrium and Zirconium, the next elements after the table's Strontium.
-// A table wider than the screen it is read on: a DID and a time that never break, a status, a name.
-// Seen on a phone as TOO WIDE: its content 417px wide in 393px, and the element dropped dead.
-// Yttrium shows every column and scrolls sideways in its own box. Zirconium says its DID is for Regular
-// screens only: on a Compact one that column is not shown, and the rest fits.
+// 「[Sonnet 5.5] Users specimens — Yttrium and Zirconium, the next elements after the table's Strontium.」
+// 「[Sonnet 5.5] A table wider than the screen it is read on: a DID and a time that never break, a status, a name.」
+// 「[Sonnet 5.5] Seen on a phone as TOO WIDE: its content 417px wide in 393px, and the element dropped dead.」
+// 「[Sonnet 5.5] Yttrium shows every column and scrolls sideways in its own box. Zirconium says its DID is for Regular」
+// 「[Sonnet 5.5] screens only: on a Compact one that column is not shown, and the rest fits.」
 
 import { canvasPlaced } from '../canvas/placed';
 import { declareScroller } from '../content/scroll';
