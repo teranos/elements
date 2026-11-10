@@ -28,8 +28,12 @@ const STYLE_ID = 'elements-table-style';
 
 // One class and the design tokens; a time, a DID, a status on one line, never broken.
 const STYLE = `
+/* The table is its own box: wider than its element, it scrolls sideways here and nothing around it does
+   (WCAG 2.2, Understanding 1.4.10 Reflow). A time, a DID, a status and a head keep to one line (fit.ts). */
 .element-table {
-    width: 100%;
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
     border-collapse: collapse;
     font-family: var(--font-mono);
     color: var(--text-on-dark);
@@ -97,6 +101,9 @@ export function createTable<const H extends TableHeads>(name: string, heads: H, 
     ensureStyle();
     const table = document.createElement('table');
     table.className = `element-table ${name}-table`;
+    // A block no longer says it is a table to every screen reader: it says so, and what it is called.
+    table.setAttribute('role', 'table');
+    table.setAttribute('aria-label', name);
 
     const thead = document.createElement('thead');
     const headings = document.createElement('tr');
@@ -117,5 +124,28 @@ export function createTable<const H extends TableHeads>(name: string, heads: H, 
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
+    keepReachable(table, thead, tbody);
     return table;
+}
+
+/**
+ * A box that scrolls is a stop a keyboard can reach, and one that does not scroll is not a stop
+ * (W3C design system, Tables). Chrome makes the stop itself; Safari does not. A tabindex the host set is the host's.
+ */
+function keepReachable(table: HTMLTableElement, ...parts: HTMLElement[]): void {
+    if (typeof ResizeObserver === 'undefined') return;
+    let given = false;
+    const look = (): void => {
+        const scrolls = table.scrollWidth > table.clientWidth + 1;
+        if (scrolls && !given && !table.hasAttribute('tabindex')) {
+            table.tabIndex = 0;
+            given = true;
+        } else if (!scrolls && given) {
+            table.removeAttribute('tabindex');
+            given = false;
+        }
+    };
+    // The box's own size, and what is in it: a row added or a text changed moves the heads and the body.
+    const watch = new ResizeObserver(look);
+    for (const node of [table, ...parts]) watch.observe(node);
 }

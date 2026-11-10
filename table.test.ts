@@ -9,6 +9,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, resolve } from 'path';
 import { createTable, tableCell } from './table';
+import { fitRule } from './fit';
 
 const STYLE_ID = 'elements-table-style';
 
@@ -68,6 +69,40 @@ describe('Tim: a table of heads and rows', () => {
         expect(css).toContain('.element-table th {');
         expect(css).toContain('.element-table td {');
         expect(css).toContain('.element-table .element-time');
+    });
+});
+
+describe('Tim: a table wider than its element scrolls in its own box', () => {
+    test('the table is the box: a block that scrolls sideways, the screen\'s width at most', () => {
+        createTable('users', ['User'], []);
+        const css = document.getElementById(STYLE_ID)!.textContent ?? '';
+        const rule = css.slice(css.indexOf('.element-table {'), css.indexOf('}', css.indexOf('.element-table {')));
+        expect(rule).toContain('display: block');
+        expect(rule).toContain('overflow-x: auto');
+        expect(rule).toContain('max-width: 100%');
+    });
+
+    test('it is named, for a screen reader and for the stop a keyboard makes of it', () => {
+        const t = createTable('users', ['User'], []);
+        expect(t.getAttribute('aria-label')).toBe('users');
+        expect(t.getAttribute('role')).toBe('table');
+    });
+
+    test('inside an element the fit keeps its hands off the package\'s table, and off what must not break', () => {
+        const css = fitRule('[data-element-id]');
+        // A host's table is fitted, equal columns at the element's width; the package's is its own box.
+        expect(css).toContain('[data-element-id] table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }');
+        // A DID, a time, a pill and a head hold their line, wherever they stand in a package table.
+        expect(css).toMatch(/\.element-table :is\(\.element-did, \.element-time, \.element-pill, th\)[^{]*\{[^}]*text-wrap-mode: nowrap !important/);
+        expect(css).toMatch(/\.element-table :is\(\.element-did, \.element-time, \.element-pill, th\)[^{]*\{[^}]*overflow-wrap: normal !important/);
+    });
+});
+
+describe('Spike: what is not a scroll box', () => {
+    test('it is a table still: rows and cells are what the host reads', () => {
+        const t = createTable('users', ['User', 'DID'], [{ cells: ['Tim', 'did:key:z6Mk'] }]);
+        expect(t.rows).toHaveLength(2);
+        expect(t.rows[1]!.cells[1]!.textContent).toBe('did:key:z6Mk');
     });
 });
 
