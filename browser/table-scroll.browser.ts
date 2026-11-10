@@ -1,19 +1,19 @@
 /**
- * A table wider than the element holding it scrolls sideways in its own box, and nothing else does.
+ * 「[Sonnet 5.5] A table wider than the element holding it scrolls sideways in its own box, and nothing else does.」
  *
- * "Be prepared for text-size changes" and a DID that never breaks: a table has columns that cannot give
- * way. WCAG 2.2, Understanding 1.4.10 Reflow: data tables are exempt from not scrolling in two
- * directions, and "presenting the table in its own scrollable container" lets what is around it reflow.
- * W3C design system, Tables: the container is focusable and labelled, so a keyboard can scroll it.
+ * 「[Sonnet 5.5] "Be prepared for text-size changes" and a DID that never breaks: a table has columns that cannot give」
+ * 「[Sonnet 5.5] way. WCAG 2.2, Understanding 1.4.10 Reflow: data tables are exempt from not scrolling in two」
+ * 「[Sonnet 5.5] directions, and "presenting the table in its own scrollable container" lets what is around it reflow.」
+ * 「[Sonnet 5.5] W3C design system, Tables: the container is focusable and labelled, so a keyboard can scroll it.」
  *
- * Seen on a phone as "TOO WIDE: users-element: its content is 417px wide in 393px": the element dropped
- * dead, and before that its columns were squeezed equal whatever they held.
+ * 「[Sonnet 5.5] Seen on a phone as "TOO WIDE: users-element: its content is 417px wide in 393px": the element dropped」
+ * 「[Sonnet 5.5] dead, and before that its columns were squeezed equal whatever they held.」
  *
- * Personas:
- * - Tim: Happy path — Yttrium is alive; its table is a box that scrolls, and the last column is reached
- * - Spike: Edge cases — a table that fits does not scroll and is not a stop; a host's raw table is still fitted
- * - Jenny: Complex scenarios — a keyboard scrolls it, a finger scrolls it, and the element's body never moves sideways
- *   A column said to be for Regular screens only is not shown on a Compact one, and the rest fits (Zirconium)
+ * 「[Sonnet 5.5] Personas:」
+ * 「[Sonnet 5.5] - Tim: Happy path — Yttrium is alive; its table is a box that scrolls, and the last column is reached」
+ * 「[Sonnet 5.5] - Spike: Edge cases — a table that fits does not scroll and is not a stop; a host's raw table is still fitted」
+ * 「[Sonnet 5.5] - Jenny: Complex scenarios — a keyboard scrolls it, a finger scrolls it, and the element's body never moves sideways」
+ *   「[Sonnet 5.5] A column said to be for Regular screens only is not shown on a Compact one, and the rest fits (Zirconium)」
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -84,7 +84,7 @@ test.describe('Spike: tables that are not too wide', () => {
     test('a table that fits does not scroll, and is not a tab stop', async ({ page }) => {
         await page.locator(YTTRIUM).evaluate((el) => { (el as HTMLElement).style.width = '1400px'; });
         await expect.poll(() => measure(page).then((m) => m.boxScroll <= m.boxClient + 1)).toBe(true);
-        // The stop goes when the table's size has been looked at again: the next frame, not this one.
+        // 「[Sonnet 5.5] The stop goes when the table's size has been looked at again: the next frame, not this one.」
         await expect.poll(() => page.locator(TABLE).evaluate((t) => t.hasAttribute('tabindex'))).toBe(false);
     });
 
@@ -112,7 +112,7 @@ test.describe('Jenny: reached by a keyboard, and by a finger', () => {
 
     test('a finger dragged sideways across the table scrolls it, and the body stays', async ({ page, browserName, isMobile }) => {
         test.skip(browserName !== 'chromium' || !isMobile, 'a real finger is driven through Chrome on a phone');
-        // A finger lands on the screen: the specimen is further down a long page.
+        // 「[Sonnet 5.5] A finger lands on the screen: the specimen is further down a long page.」
         await page.locator(TABLE).scrollIntoViewIfNeeded();
         const box = (await page.locator(TABLE).boundingBox())!;
         const x = box.x + box.width - 20;
