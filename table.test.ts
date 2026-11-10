@@ -82,6 +82,11 @@ describe('Tim: a table wider than its element scrolls in its own box', () => {
         expect(rule).toContain('max-width: 100%');
     });
 
+    test('it says it scrolls sideways, so the host is not told it is a second scroller', () => {
+        const t = createTable('users', ['User'], []);
+        expect(t.dataset.scroller).toBe('sideways');
+    });
+
     test('it is named, for a screen reader and for the stop a keyboard makes of it', () => {
         const t = createTable('users', ['User'], []);
         expect(t.getAttribute('aria-label')).toBe('users');
@@ -98,6 +103,49 @@ describe('Tim: a table wider than its element scrolls in its own box', () => {
         // A DID, a time, a pill and a head hold their line, wherever they stand in a package table.
         expect(css).toMatch(/\.element-table :is\(\.element-did, \.element-time, \.element-pill, th\)[^{]*\{[^}]*text-wrap-mode: nowrap !important/);
         expect(css).toMatch(/\.element-table :is\(\.element-did, \.element-time, \.element-pill, th\)[^{]*\{[^}]*overflow-wrap: normal !important/);
+    });
+});
+
+describe('Tim: a column a compact screen has no room for', () => {
+    // "Some kinds of col, I just don't want to display depending on how much width the screen gives us"
+    const rows = [{ cells: ['Tim', 'did:key:z6Mk', 'on'] as const }];
+
+    test('a column said to be regular only is a col of its own, said so', () => {
+        const t = createTable('users', ['User', 'DID', 'Status'], rows, ['always', 'regular', 'always']);
+        const cols = Array.from(t.querySelectorAll<HTMLElement>('colgroup > col'));
+        expect(cols).toHaveLength(3);
+        expect(cols.map((col) => col.dataset.shows)).toEqual(['always', 'regular', 'always']);
+        // The colgroup stands first, before the heads: where a table keeps what it says of its columns.
+        expect(t.firstElementChild!.tagName).toBe('COLGROUP');
+    });
+
+    test('inside an element a compact screen collapses it, by the package\'s own rule, whatever a host writes', () => {
+        const css = fitRule('[data-element-id]');
+        expect(css).toContain('@media (max-width: 768px)');
+        expect(css).toMatch(/\.element-table col\[data-shows="regular"\][^{]*\{[^}]*visibility: collapse !important/);
+    });
+
+    test('the heads and rows are the ones that were given: nothing is taken out of them', () => {
+        const t = createTable('users', ['User', 'DID', 'Status'], rows, ['always', 'regular', 'always']);
+        expect(t.rows).toHaveLength(2);
+        expect(t.rows[1]!.cells).toHaveLength(3);
+    });
+});
+
+describe('Spike: no say about columns', () => {
+    test('a table that says nothing has no colgroup, as before', () => {
+        const t = createTable('users', ['User'], [{ cells: ['Tim'] }]);
+        expect(t.querySelector('colgroup')).toBeNull();
+    });
+
+    test('a say as long as the heads compiles; another length, or another word, does not', () => {
+        expect(compile(`createTable('u', ['A', 'B'], [], ['always', 'regular']);`)).toBe('');
+        expect(compile(`createTable('u', ['A', 'B'], [], ['always']);`)).toContain('error TS');
+        expect(compile(`createTable('u', ['A', 'B'], [], ['always', 'sometimes']);`)).toContain('error TS');
+    }, 30000);
+
+    test('a caller with no types and a say of another length is stopped the same', () => {
+        expect(() => createTable('u', ['A', 'B'], [], ['always'] as never)).toThrow(TypeError);
     });
 });
 

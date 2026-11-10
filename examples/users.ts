@@ -1,10 +1,12 @@
-// Users specimen — Yttrium, the next element after the table's Strontium.
+// Users specimens — Yttrium and Zirconium, the next elements after the table's Strontium.
 // A table wider than the screen it is read on: a DID and a time that never break, a status, a name.
 // Seen on a phone as TOO WIDE: its content 417px wide in 393px, and the element dropped dead.
+// Yttrium shows every column and scrolls sideways in its own box. Zirconium says its DID is for Regular
+// screens only: on a Compact one that column is not shown, and the rest fits.
 
 import { canvasPlaced } from '../canvas/placed';
 import { declareScroller } from '../content/scroll';
-import { createTable, tableCell } from '../table';
+import { createTable, tableCell, type TableShows, type TableHeads } from '../table';
 import type { Element } from '../element';
 
 const USERS: [name: string, did: string, on: boolean, seen: string][] = [
@@ -22,28 +24,28 @@ function status(on: boolean): HTMLTableCellElement {
     return td;
 }
 
-export function renderUsersSpecimen(): void {
+function renderUsers(id: string, title: string, symbol: string, canvasId: string, shows?: TableShows<['User', 'DID', 'Status', 'Last seen'] & TableHeads>): void {
     const root = document.getElementById('root');
     if (!root) return;
 
     const area = document.createElement('div');
     area.style.position = 'relative';
     area.style.height = '300px';
-    area.dataset.canvasId = 'users-canvas';
+    area.dataset.canvasId = canvasId;
     root.appendChild(area);
 
     const item: Element = {
-        id: 'users-specimen',
-        title: 'Yttrium',
-        symbol: 'Y',
+        id,
+        title,
+        symbol,
         renderContent: () => document.createElement('div'),
     };
 
     const { element } = canvasPlaced({
         item,
-        className: 'canvas-users-specimen',
+        className: `canvas-${id}`,
         defaults: { x: 16, y: 16, width: 360, height: 260 },
-        titleBar: { label: 'Yttrium' },
+        titleBar: { label: title },
         logLabel: 'UsersSpecimen',
     });
 
@@ -56,7 +58,15 @@ export function renderUsersSpecimen(): void {
     body.appendChild(invite);
     body.appendChild(createTable('users', ['User', 'DID', 'Status', 'Last seen'], USERS.map(([name, did, on, seen]) => ({
         cells: [name, tableCell(did, 'element-did', did), status(on), tableCell(seen, 'element-time', `seen ${seen} UTC`)],
-    }))));
+    })), shows));
     element.appendChild(body);
     area.appendChild(element);
+}
+
+export function renderUsersSpecimen(): void {
+    renderUsers('users-specimen', 'Yttrium', 'Y', 'users-canvas');
+}
+
+export function renderUsersCompactSpecimen(): void {
+    renderUsers('users-compact-specimen', 'Zirconium', 'Zr', 'users-compact-canvas', ['always', 'regular', 'always', 'always']);
 }

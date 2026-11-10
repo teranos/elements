@@ -13,6 +13,7 @@
  * - Tim: Happy path — Yttrium is alive; its table is a box that scrolls, and the last column is reached
  * - Spike: Edge cases — a table that fits does not scroll and is not a stop; a host's raw table is still fitted
  * - Jenny: Complex scenarios — a keyboard scrolls it, a finger scrolls it, and the element's body never moves sideways
+ *   A column said to be for Regular screens only is not shown on a Compact one, and the rest fits (Zirconium)
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -124,5 +125,48 @@ test.describe('Jenny: reached by a keyboard, and by a finger', () => {
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
         await expect.poll(() => page.locator(TABLE).evaluate((t) => t.scrollLeft)).toBeGreaterThan(0);
         expect((await measure(page)).bodyScrolls).toBe(false);
+    });
+});
+
+const ZIRCONIUM = '[data-element-id="users-compact-specimen"]';
+const COMPACT_EDGE = 768;
+
+const compactScreen = (page: Page): boolean => page.viewportSize()!.width <= COMPACT_EDGE;
+
+test.describe('Jenny: a column a Compact screen has no room for (Zirconium)', () => {
+    // "Some kinds of col, I just don't want to display depending on how much width the screen gives us"
+    const widthOf = (page: Page, head: string) => page.locator(`${ZIRCONIUM} th`, { hasText: head }).evaluate((th) => th.getBoundingClientRect().width);
+
+    test('on a Compact screen the DID is not shown, the rest fits, and nothing scrolls or is a stop', async ({ page }) => {
+        test.skip(!compactScreen(page), 'this is the Compact screen');
+        await page.locator(ZIRCONIUM).waitFor();
+        expect(await widthOf(page, 'DID')).toBe(0);
+        const m = await page.locator(`${ZIRCONIUM} table`).evaluate((t) => ({
+            fits: t.scrollWidth <= t.clientWidth + 1,
+            stop: t.hasAttribute('tabindex'),
+            dead: !!t.closest('[data-element-id]')!.querySelector('[data-too-wide-notice]'),
+        }));
+        expect(m).toEqual({ fits: true, stop: false, dead: false });
+    });
+
+    test('on a Regular screen the DID is shown whole', async ({ page }) => {
+        test.skip(compactScreen(page), 'this is the Regular screen');
+        await page.locator(ZIRCONIUM).waitFor();
+        expect(await widthOf(page, 'DID')).toBeGreaterThan(100);
+    });
+
+    test('a row added later is collapsed with the column, nothing written on it', async ({ page }) => {
+        test.skip(!compactScreen(page), 'this is the Compact screen');
+        const width = await page.locator(`${ZIRCONIUM} table tbody`).evaluate((tbody) => {
+            const tr = document.createElement('tr');
+            for (const text of ['Late', 'did:key:z6MkLate', 'on', '2026-09-21 10:00:00']) {
+                const td = document.createElement('td');
+                td.textContent = text;
+                tr.appendChild(td);
+            }
+            tbody.appendChild(tr);
+            return tr.cells[1]!.getBoundingClientRect().width;
+        });
+        expect(width).toBe(0);
     });
 });

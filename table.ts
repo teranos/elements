@@ -87,8 +87,18 @@ function headCell(head: TableCell): HTMLTableCellElement {
     return th;
 }
 
-/** One table, named: the heads in one row, a row each below, as wide as the heads. */
-export function createTable<const H extends TableHeads>(name: string, heads: H, rows: readonly TableRow<NoInfer<H>>[]): HTMLTableElement {
+/** What a column is shown at: always, or only where the screen is Regular (not Compact, compact.ts). */
+export type TableShow = 'always' | 'regular';
+
+/** One say a column, as many as the heads: one more or one fewer does not compile. */
+export type TableShows<H extends TableHeads = TableHeads> = { readonly [K in keyof H]: TableShow };
+
+/**
+ * One table, named: the heads in one row, a row each below, as wide as the heads. `shows` says, a column
+ * each, which a Compact screen has no room for: a `regular` column is collapsed there (fit.ts), the rows
+ * a host adds later with it.
+ */
+export function createTable<const H extends TableHeads>(name: string, heads: H, rows: readonly TableRow<NoInfer<H>>[], shows?: TableShows<NoInfer<H>>): HTMLTableElement {
     // A caller with no types reaches here with any width; it is stopped the same.
     if (heads.length < 1 || heads.length > MAX_TABLE_COLUMNS) {
         throw new TypeError(`table "${name}" has ${heads.length} columns; a table has 1 to ${MAX_TABLE_COLUMNS}`);
@@ -98,12 +108,27 @@ export function createTable<const H extends TableHeads>(name: string, heads: H, 
             throw new TypeError(`a row of table "${name}" has ${row.cells.length} cells; its heads are ${heads.length}`);
         }
     }
+    if (shows !== undefined && shows.length !== heads.length) {
+        throw new TypeError(`table "${name}" says ${shows.length} columns of ${heads.length}; a say each`);
+    }
     ensureStyle();
     const table = document.createElement('table');
     table.className = `element-table ${name}-table`;
     // A block no longer says it is a table to every screen reader: it says so, and what it is called.
     table.setAttribute('role', 'table');
+    // It scrolls sideways; a browser resolves its other axis to auto too, which is no second scroller (content/scroll.ts).
+    table.dataset.scroller = 'sideways';
     table.setAttribute('aria-label', name);
+
+    if (shows !== undefined) {
+        const columns = document.createElement('colgroup');
+        for (const show of shows) {
+            const col = document.createElement('col');
+            col.dataset.shows = show;
+            columns.appendChild(col);
+        }
+        table.appendChild(columns);
+    }
 
     const thead = document.createElement('thead');
     const headings = document.createElement('tr');

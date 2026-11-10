@@ -175,7 +175,7 @@ function review(element: HTMLElement, watch: Watch, candidates: HTMLElement[]): 
     for (const node of new Set([...candidates, ...named])) {
         if (!element.contains(node) || node === element) continue;
         const kind = node.dataset.scroller;
-        if (kind === 'body' || kind === 'declared') continue;
+        if (kind === 'body' || kind === 'declared' || kind === 'sideways') continue;
         if (isSecondScroller(element, node)) {
             if (kind !== 'undeclared') node.dataset.scroller = 'undeclared';
             if (!watch.told.has(node)) {
@@ -388,7 +388,7 @@ function tell(element: HTMLElement, node: HTMLElement): void {
 function isSecondScroller(element: HTMLElement, node: HTMLElement): boolean {
     if (node === element || SCROLLS_ITSELF.has(node.tagName)) return false;
     const kind = node.dataset.scroller;
-    if (kind === 'body' || kind === 'declared') return false;
+    if (kind === 'body' || kind === 'declared' || kind === 'sideways') return false;
     return scrollsVertically(node);
 }
 
