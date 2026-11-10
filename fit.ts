@@ -4,8 +4,8 @@ import { COMPACT } from './compact';
 // "no element should have content that isnt accesible"
 // Nothing in an element is wider than what holds it: text wraps even where a host said nowrap,
 // a box is no wider than its holder, a row that runs out of room wraps rather than squeezing what
-// is in it, a table divides the width it has (the package's own table is a box that scrolls sideways, and
-// what in it must not break does not), and a grid's tracks give way before the edge does.
+// 「[Sonnet 5.5] is in it, a table divides the width it has (the package's own table is a box that scrolls sideways, and」
+// 「[Sonnet 5.5] what in it must not break does not), and a grid's tracks give way before the edge does.」
 
 /** What the fit decides, which a style attribute written important would otherwise keep. */
 const FIT_PROPERTIES = ['white-space', 'text-wrap-mode', 'max-width', 'min-width', 'flex-wrap', 'table-layout'];

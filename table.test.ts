@@ -95,12 +95,12 @@ describe('Tim: a table wider than its element scrolls in its own box', () => {
 
     test('inside an element the fit keeps its hands off the package\'s table, and off what must not break', () => {
         const css = fitRule('[data-element-id]');
-        // A host's table is fitted, equal columns at the element's width; the package's is its own box.
+        // 「[Sonnet 5.5] A host's table is fitted, equal columns at the element's width; the package's is its own box.」
         expect(css).toContain('[data-element-id] table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }');
-        // Text in it breaks between words, not inside them: a column is never narrower than its longest word,
-        // and what does not fit scrolls ('anywhere' would let a name be cut to a letter a line).
+        // 「[Sonnet 5.5] Text in it breaks between words, not inside them: a column is never narrower than its longest word,」
+        // 「[Sonnet 5.5] and what does not fit scrolls ('anywhere' would let a name be cut to a letter a line).」
         expect(css).toMatch(/\.element-table, \[data-element-id\] \.element-table \*[^{]*\{[^}]*overflow-wrap: break-word !important/);
-        // A DID, a time, a pill and a head hold their line, wherever they stand in a package table.
+        // 「[Sonnet 5.5] A DID, a time, a pill and a head hold their line, wherever they stand in a package table.」
         expect(css).toMatch(/\.element-table :is\(\.element-did, \.element-time, \.element-pill, th\)[^{]*\{[^}]*text-wrap-mode: nowrap !important/);
         expect(css).toMatch(/\.element-table :is\(\.element-did, \.element-time, \.element-pill, th\)[^{]*\{[^}]*overflow-wrap: normal !important/);
     });
@@ -120,8 +120,8 @@ describe('Tim: a column a compact screen has no room for', () => {
     test('inside an element a compact screen hides those cells, by the package\'s own rule, whatever a host writes', () => {
         const css = fitRule('[data-element-id]');
         expect(css).toContain('@media (max-width: 768px)');
-        // A rule for each place a table can have (four): a head and every row of it, later rows too, in every engine
-        // (WebKit does not collapse a col).
+        // 「[Sonnet 5.5] A rule for each place a table can have (four): a head and every row of it, later rows too, in every engine」
+        // 「[Sonnet 5.5] (WebKit does not collapse a col).」
         for (const place of [1, 2, 3, 4]) {
             expect(css).toContain(`[data-element-id] .element-table[data-regular~="${place}"] > :is(thead, tbody, tfoot) > tr > :nth-child(${place})`);
         }
@@ -193,7 +193,7 @@ describe('Jenny: a stop the package made, and a host that has its own say', () =
             measure(300, 300);
             look();
             expect(t.getAttribute('tabindex')).toBe('-1');
-            // And it is the host's from then on: scrolling again does not take it back.
+            // 「[Sonnet 5.5] And it is the host's from then on: scrolling again does not take it back.」
             measure(600, 300);
             look();
             expect(t.getAttribute('tabindex')).toBe('-1');

@@ -164,8 +164,8 @@ describe('Spike: what is a second scroller, and what is not', () => {
         expect(warnings).toEqual([]);
     });
 
-    // A browser resolves the other overflow axis to auto when one is written (CSS Overflow 3), so a sideways
-    // scroller measures as one that scrolls down too: what the package makes one of says so (table.ts).
+    // 「[Sonnet 5.5] A browser resolves the other overflow axis to auto when one is written (CSS Overflow 3), so a sideways」
+    // 「[Sonnet 5.5] scroller measures as one that scrolls down too: what the package makes one of says so (table.ts).」
     test('a box the package says scrolls sideways is not a second scroller, however the browser resolved it', () => {
         const table = document.createElement('table');
         table.dataset.scroller = 'sideways';
