@@ -9,6 +9,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, resolve } from 'path';
 import { createTable, tableCell } from './table';
+import { fitRule } from './fit';
 
 const STYLE_ID = 'elements-table-style';
 
@@ -68,6 +69,143 @@ describe('Tim: a table of heads and rows', () => {
         expect(css).toContain('.element-table th {');
         expect(css).toContain('.element-table td {');
         expect(css).toContain('.element-table .element-time');
+    });
+});
+
+describe('Tim: a table wider than its element scrolls in its own box', () => {
+    test('the table is the box: a block that scrolls sideways, the screen\'s width at most', () => {
+        createTable('users', ['User'], []);
+        const css = document.getElementById(STYLE_ID)!.textContent ?? '';
+        const rule = css.slice(css.indexOf('.element-table {'), css.indexOf('}', css.indexOf('.element-table {')));
+        expect(rule).toContain('display: block');
+        expect(rule).toContain('overflow-x: auto');
+        expect(rule).toContain('max-width: 100%');
+    });
+
+    test('it says it scrolls sideways, so the host is not told it is a second scroller', () => {
+        const t = createTable('users', ['User'], []);
+        expect(t.dataset.scroller).toBe('sideways');
+    });
+
+    test('it is named, for a screen reader and for the stop a keyboard makes of it', () => {
+        const t = createTable('users', ['User'], []);
+        expect(t.getAttribute('aria-label')).toBe('users');
+        expect(t.getAttribute('role')).toBe('table');
+    });
+
+    test('inside an element the fit keeps its hands off the package\'s table, and off what must not break', () => {
+        const css = fitRule('[data-element-id]');
+        // A host's table is fitted, equal columns at the element's width; the package's is its own box.
+        expect(css).toContain('[data-element-id] table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }');
+        // Text in it breaks between words, not inside them: a column is never narrower than its longest word,
+        // and what does not fit scrolls ('anywhere' would let a name be cut to a letter a line).
+        expect(css).toMatch(/\.element-table, \[data-element-id\] \.element-table \*[^{]*\{[^}]*overflow-wrap: break-word !important/);
+        // A DID, a time, a pill and a head hold their line, wherever they stand in a package table.
+        expect(css).toMatch(/\.element-table :is\(\.element-did, \.element-time, \.element-pill, th\)[^{]*\{[^}]*text-wrap-mode: nowrap !important/);
+        expect(css).toMatch(/\.element-table :is\(\.element-did, \.element-time, \.element-pill, th\)[^{]*\{[^}]*overflow-wrap: normal !important/);
+    });
+});
+
+describe('Tim: a column a compact screen has no room for', () => {
+    // "Some kinds of col, I just don't want to display depending on how much width the screen gives us"
+    const rows = [{ cells: ['Tim', 'did:key:z6Mk', 'on'] as const }];
+
+    test('the table says which of its columns are for Regular screens only, by place', () => {
+        const t = createTable('users', ['User', 'DID', 'Status'], rows, ['always', 'regular', 'always']);
+        expect(t.dataset.regular).toBe('2');
+        const two = createTable('users', ['A', 'B', 'C', 'D'], [], ['regular', 'always', 'regular', 'always']);
+        expect(two.dataset.regular).toBe('1 3');
+    });
+
+    test('inside an element a compact screen hides those cells, by the package\'s own rule, whatever a host writes', () => {
+        const css = fitRule('[data-element-id]');
+        expect(css).toContain('@media (max-width: 768px)');
+        // A rule for each place a table can have (four): a head and every row of it, later rows too, in every engine
+        // (WebKit does not collapse a col).
+        for (const place of [1, 2, 3, 4]) {
+            expect(css).toContain(`[data-element-id] .element-table[data-regular~="${place}"] > :is(thead, tbody, tfoot) > tr > :nth-child(${place})`);
+        }
+        expect(css).toMatch(/:nth-child\(2\)[^{]*\{[^}]*display: none !important/);
+    });
+
+    test('the heads and rows are the ones that were given: nothing is taken out of them', () => {
+        const t = createTable('users', ['User', 'DID', 'Status'], rows, ['always', 'regular', 'always']);
+        expect(t.rows).toHaveLength(2);
+        expect(t.rows[1]!.cells).toHaveLength(3);
+    });
+});
+
+describe('Spike: no say about columns', () => {
+    test('a table that says nothing says nothing, as before', () => {
+        const t = createTable('users', ['User'], [{ cells: ['Tim'] }]);
+        expect(t.hasAttribute('data-regular')).toBe(false);
+        expect(createTable('users', ['User'], [{ cells: ['Tim'] }], ['always']).hasAttribute('data-regular')).toBe(false);
+    });
+
+    test('a say as long as the heads compiles; another length, or another word, does not', () => {
+        expect(compile(`createTable('u', ['A', 'B'], [], ['always', 'regular']);`)).toBe('');
+        expect(compile(`createTable('u', ['A', 'B'], [], ['always']);`)).toContain('error TS');
+        expect(compile(`createTable('u', ['A', 'B'], [], ['always', 'sometimes']);`)).toContain('error TS');
+    }, 30000);
+
+    test('a caller with no types and a say of another length is stopped the same', () => {
+        expect(() => createTable('u', ['A', 'B'], [], ['always'] as never)).toThrow(TypeError);
+    });
+});
+
+describe('Jenny: a stop the package made, and a host that has its own say', () => {
+    /** A table that measures as the test says, and the callback the package gave its observer. */
+    function watched(): { t: HTMLTableElement; measure: (scrollWidth: number, clientWidth: number) => void; look: () => void; restore: () => void } {
+        const had = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
+        let look: () => void = () => {};
+        (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
+            constructor(callback: () => void) { look = callback; }
+            observe(): void {}
+            disconnect(): void {}
+        };
+        const t = createTable('users', ['User'], [{ cells: ['Tim'] }]);
+        const measure = (scrollWidth: number, clientWidth: number): void => {
+            Object.defineProperty(t, 'scrollWidth', { configurable: true, value: scrollWidth });
+            Object.defineProperty(t, 'clientWidth', { configurable: true, value: clientWidth });
+        };
+        const restore = (): void => { (globalThis as { ResizeObserver?: unknown }).ResizeObserver = had; };
+        return { t, measure, look: () => look(), restore };
+    }
+
+    test('a table that scrolls is a stop, and one that fits again is not', () => {
+        const { t, measure, look, restore } = watched();
+        try {
+            measure(600, 300);
+            look();
+            expect(t.getAttribute('tabindex')).toBe('0');
+            measure(300, 300);
+            look();
+            expect(t.hasAttribute('tabindex')).toBe(false);
+        } finally { restore(); }
+    });
+
+    test('a tabindex the host set after the package made its own is the host\'s: it stays when the table fits', () => {
+        const { t, measure, look, restore } = watched();
+        try {
+            measure(600, 300);
+            look();
+            t.setAttribute('tabindex', '-1');
+            measure(300, 300);
+            look();
+            expect(t.getAttribute('tabindex')).toBe('-1');
+            // And it is the host's from then on: scrolling again does not take it back.
+            measure(600, 300);
+            look();
+            expect(t.getAttribute('tabindex')).toBe('-1');
+        } finally { restore(); }
+    });
+});
+
+describe('Spike: what is not a scroll box', () => {
+    test('it is a table still: rows and cells are what the host reads', () => {
+        const t = createTable('users', ['User', 'DID'], [{ cells: ['Tim', 'did:key:z6Mk'] }]);
+        expect(t.rows).toHaveLength(2);
+        expect(t.rows[1]!.cells[1]!.textContent).toBe('did:key:z6Mk');
     });
 });
 

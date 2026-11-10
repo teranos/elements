@@ -1,9 +1,11 @@
 import { AX } from './forms/ax';
+import { COMPACT } from './compact';
 
 // "no element should have content that isnt accesible"
 // Nothing in an element is wider than what holds it: text wraps even where a host said nowrap,
 // a box is no wider than its holder, a row that runs out of room wraps rather than squeezing what
-// is in it, a table divides the width it has, and a grid's tracks give way before the edge does.
+// is in it, a table divides the width it has (the package's own table is a box that scrolls sideways, and
+// what in it must not break does not), and a grid's tracks give way before the edge does.
 
 /** What the fit decides, which a style attribute written important would otherwise keep. */
 const FIT_PROPERTIES = ['white-space', 'text-wrap-mode', 'max-width', 'min-width', 'flex-wrap', 'table-layout'];
@@ -36,7 +38,12 @@ export function fitRule(element: string): string {
 ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
 ${element} button:not([data-element-id]):not([data-press]) { width: fit-content !important; flex: 0 0 auto !important; }
 ${element} button[data-fit-even]:not([data-element-id]):not([data-press]) { min-width: var(--fit-even) !important; }
-${element} table { table-layout: fixed !important; width: 100% !important; }
+${element} table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }
+${element} .element-table, ${element} .element-table * { overflow-wrap: break-word !important; }
+@media ${COMPACT} {
+${[1, 2, 3, 4].map((place) => `${element} .element-table[data-regular~="${place}"] > :is(thead, tbody, tfoot) > tr > :nth-child(${place}) { display: none !important; }`).join('\n')}
+}
+${element} .element-table :is(.element-did, .element-time, .element-pill, th) { text-wrap-mode: nowrap !important; overflow-wrap: normal !important; }
 ${element} input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]), ${element} textarea:not([data-say]), ${element} select { background-color: ${AX.ground} !important; color: ${AX.ink} !important; border: 2px solid ${AX.frame} !important; border-radius: 2px !important; }`;
 }
 

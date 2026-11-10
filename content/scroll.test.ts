@@ -164,6 +164,18 @@ describe('Spike: what is a second scroller, and what is not', () => {
         expect(warnings).toEqual([]);
     });
 
+    // A browser resolves the other overflow axis to auto when one is written (CSS Overflow 3), so a sideways
+    // scroller measures as one that scrolls down too: what the package makes one of says so (table.ts).
+    test('a box the package says scrolls sideways is not a second scroller, however the browser resolved it', () => {
+        const table = document.createElement('table');
+        table.dataset.scroller = 'sideways';
+        table.style.overflowY = 'auto';
+        opened(table);
+
+        expect(table.dataset.scroller).toBe('sideways');
+        expect(warnings).toEqual([]);
+    });
+
     test('a field\'s own scrolling is the platform\'s, not a second scroller', () => {
         const box = div();
         const area = document.createElement('textarea');

@@ -28,8 +28,12 @@ const STYLE_ID = 'elements-table-style';
 
 // One class and the design tokens; a time, a DID, a status on one line, never broken.
 const STYLE = `
+/* The table is its own box: wider than its element, it scrolls sideways here and nothing around it does
+   (WCAG 2.2, Understanding 1.4.10 Reflow). A time, a DID, a status and a head keep to one line (fit.ts). */
 .element-table {
-    width: 100%;
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
     border-collapse: collapse;
     font-family: var(--font-mono);
     color: var(--text-on-dark);
@@ -83,8 +87,18 @@ function headCell(head: TableCell): HTMLTableCellElement {
     return th;
 }
 
-/** One table, named: the heads in one row, a row each below, as wide as the heads. */
-export function createTable<const H extends TableHeads>(name: string, heads: H, rows: readonly TableRow<NoInfer<H>>[]): HTMLTableElement {
+/** What a column is shown at: always, or only where the screen is Regular (not Compact, compact.ts). */
+export type TableShow = 'always' | 'regular';
+
+/** One say a column, as many as the heads: one more or one fewer does not compile. */
+export type TableShows<H extends TableHeads = TableHeads> = { readonly [K in keyof H]: TableShow };
+
+/**
+ * One table, named: the heads in one row, a row each below, as wide as the heads. `shows` says, a column
+ * each, which a Compact screen has no room for: a `regular` column is not shown there (fit.ts), the rows
+ * a host adds later with it.
+ */
+export function createTable<const H extends TableHeads>(name: string, heads: H, rows: readonly TableRow<NoInfer<H>>[], shows?: TableShows<NoInfer<H>>): HTMLTableElement {
     // A caller with no types reaches here with any width; it is stopped the same.
     if (heads.length < 1 || heads.length > MAX_TABLE_COLUMNS) {
         throw new TypeError(`table "${name}" has ${heads.length} columns; a table has 1 to ${MAX_TABLE_COLUMNS}`);
@@ -94,9 +108,21 @@ export function createTable<const H extends TableHeads>(name: string, heads: H, 
             throw new TypeError(`a row of table "${name}" has ${row.cells.length} cells; its heads are ${heads.length}`);
         }
     }
+    if (shows !== undefined && shows.length !== heads.length) {
+        throw new TypeError(`table "${name}" says ${shows.length} columns of ${heads.length}; a say each`);
+    }
     ensureStyle();
     const table = document.createElement('table');
     table.className = `element-table ${name}-table`;
+    // A block no longer says it is a table to every screen reader: it says so, and what it is called.
+    table.setAttribute('role', 'table');
+    // It scrolls sideways; a browser resolves its other axis to auto too, which is no second scroller (content/scroll.ts).
+    table.dataset.scroller = 'sideways';
+    table.setAttribute('aria-label', name);
+
+    // Said by place, for the package's rule in fit.ts to find (a table has four places at most).
+    const regular = shows === undefined ? [] : shows.flatMap((show, at) => (show === 'regular' ? [at + 1] : []));
+    if (regular.length > 0) table.dataset.regular = regular.join(' ');
 
     const thead = document.createElement('thead');
     const headings = document.createElement('tr');
@@ -117,5 +143,29 @@ export function createTable<const H extends TableHeads>(name: string, heads: H, 
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
+    keepReachable(table, thead, tbody);
     return table;
+}
+
+/**
+ * A box that scrolls is a stop a keyboard can reach, and one that does not scroll is not a stop
+ * (W3C design system, Tables). Chrome makes the stop itself; Safari does not. A tabindex the host set is the host's.
+ */
+function keepReachable(table: HTMLTableElement, ...parts: HTMLElement[]): void {
+    if (typeof ResizeObserver === 'undefined') return;
+    let given = false;
+    const look = (): void => {
+        const scrolls = table.scrollWidth > table.clientWidth + 1;
+        if (scrolls && !given && !table.hasAttribute('tabindex')) {
+            table.tabIndex = 0;
+            given = true;
+        } else if (!scrolls && given) {
+            // What the package wrote it takes back; a value the host has put there since is the host's.
+            if (table.getAttribute('tabindex') === '0') table.removeAttribute('tabindex');
+            given = false;
+        }
+    };
+    // The box's own size, and what is in it: a row added or a text changed moves the heads and the body.
+    const watch = new ResizeObserver(look);
+    for (const node of [table, ...parts]) watch.observe(node);
 }
