@@ -95,7 +95,7 @@ export type TableShows<H extends TableHeads = TableHeads> = { readonly [K in key
 
 /**
  * One table, named: the heads in one row, a row each below, as wide as the heads. `shows` says, a column
- * each, which a Compact screen has no room for: a `regular` column is collapsed there (fit.ts), the rows
+ * each, which a Compact screen has no room for: a `regular` column is not shown there (fit.ts), the rows
  * a host adds later with it.
  */
 export function createTable<const H extends TableHeads>(name: string, heads: H, rows: readonly TableRow<NoInfer<H>>[], shows?: TableShows<NoInfer<H>>): HTMLTableElement {
@@ -120,15 +120,9 @@ export function createTable<const H extends TableHeads>(name: string, heads: H, 
     table.dataset.scroller = 'sideways';
     table.setAttribute('aria-label', name);
 
-    if (shows !== undefined) {
-        const columns = document.createElement('colgroup');
-        for (const show of shows) {
-            const col = document.createElement('col');
-            col.dataset.shows = show;
-            columns.appendChild(col);
-        }
-        table.appendChild(columns);
-    }
+    // Said by place, for the package's rule in fit.ts to find (a table has four places at most).
+    const regular = shows === undefined ? [] : shows.flatMap((show, at) => (show === 'regular' ? [at + 1] : []));
+    if (regular.length > 0) table.dataset.regular = regular.join(' ');
 
     const thead = document.createElement('thead');
     const headings = document.createElement('tr');

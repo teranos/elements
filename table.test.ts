@@ -110,19 +110,22 @@ describe('Tim: a column a compact screen has no room for', () => {
     // "Some kinds of col, I just don't want to display depending on how much width the screen gives us"
     const rows = [{ cells: ['Tim', 'did:key:z6Mk', 'on'] as const }];
 
-    test('a column said to be regular only is a col of its own, said so', () => {
+    test('the table says which of its columns are for Regular screens only, by place', () => {
         const t = createTable('users', ['User', 'DID', 'Status'], rows, ['always', 'regular', 'always']);
-        const cols = Array.from(t.querySelectorAll<HTMLElement>('colgroup > col'));
-        expect(cols).toHaveLength(3);
-        expect(cols.map((col) => col.dataset.shows)).toEqual(['always', 'regular', 'always']);
-        // The colgroup stands first, before the heads: where a table keeps what it says of its columns.
-        expect(t.firstElementChild!.tagName).toBe('COLGROUP');
+        expect(t.dataset.regular).toBe('2');
+        const two = createTable('users', ['A', 'B', 'C', 'D'], [], ['regular', 'always', 'regular', 'always']);
+        expect(two.dataset.regular).toBe('1 3');
     });
 
-    test('inside an element a compact screen collapses it, by the package\'s own rule, whatever a host writes', () => {
+    test('inside an element a compact screen hides those cells, by the package\'s own rule, whatever a host writes', () => {
         const css = fitRule('[data-element-id]');
         expect(css).toContain('@media (max-width: 768px)');
-        expect(css).toMatch(/\.element-table col\[data-shows="regular"\][^{]*\{[^}]*visibility: collapse !important/);
+        // A rule for each place a table can have (four): a head and every row of it, later rows too, in every engine
+        // (WebKit does not collapse a col).
+        for (const place of [1, 2, 3, 4]) {
+            expect(css).toContain(`[data-element-id] .element-table[data-regular~="${place}"] > :is(thead, tbody, tfoot) > tr > :nth-child(${place})`);
+        }
+        expect(css).toMatch(/:nth-child\(2\)[^{]*\{[^}]*display: none !important/);
     });
 
     test('the heads and rows are the ones that were given: nothing is taken out of them', () => {
@@ -133,9 +136,10 @@ describe('Tim: a column a compact screen has no room for', () => {
 });
 
 describe('Spike: no say about columns', () => {
-    test('a table that says nothing has no colgroup, as before', () => {
+    test('a table that says nothing says nothing, as before', () => {
         const t = createTable('users', ['User'], [{ cells: ['Tim'] }]);
-        expect(t.querySelector('colgroup')).toBeNull();
+        expect(t.hasAttribute('data-regular')).toBe(false);
+        expect(createTable('users', ['User'], [{ cells: ['Tim'] }], ['always']).hasAttribute('data-regular')).toBe(false);
     });
 
     test('a say as long as the heads compiles; another length, or another word, does not', () => {
