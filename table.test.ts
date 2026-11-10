@@ -92,6 +92,9 @@ describe('Tim: a table wider than its element scrolls in its own box', () => {
         const css = fitRule('[data-element-id]');
         // A host's table is fitted, equal columns at the element's width; the package's is its own box.
         expect(css).toContain('[data-element-id] table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }');
+        // Text in it breaks between words, not inside them: a column is never narrower than its longest word,
+        // and what does not fit scrolls ('anywhere' would let a name be cut to a letter a line).
+        expect(css).toMatch(/\.element-table, \[data-element-id\] \.element-table \*[^{]*\{[^}]*overflow-wrap: break-word !important/);
         // A DID, a time, a pill and a head hold their line, wherever they stand in a package table.
         expect(css).toMatch(/\.element-table :is\(\.element-did, \.element-time, \.element-pill, th\)[^{]*\{[^}]*text-wrap-mode: nowrap !important/);
         expect(css).toMatch(/\.element-table :is\(\.element-did, \.element-time, \.element-pill, th\)[^{]*\{[^}]*overflow-wrap: normal !important/);

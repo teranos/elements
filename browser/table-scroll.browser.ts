@@ -110,6 +110,8 @@ test.describe('Jenny: reached by a keyboard, and by a finger', () => {
 
     test('a finger dragged sideways across the table scrolls it, and the body stays', async ({ page, browserName, isMobile }) => {
         test.skip(browserName !== 'chromium' || !isMobile, 'a real finger is driven through Chrome on a phone');
+        // A finger lands on the screen: the specimen is further down a long page.
+        await page.locator(TABLE).scrollIntoViewIfNeeded();
         const box = (await page.locator(TABLE).boundingBox())!;
         const x = box.x + box.width - 20;
         const y = box.y + box.height / 2;

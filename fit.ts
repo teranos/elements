@@ -38,6 +38,7 @@ ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
 ${element} button:not([data-element-id]):not([data-press]) { width: fit-content !important; flex: 0 0 auto !important; }
 ${element} button[data-fit-even]:not([data-element-id]):not([data-press]) { min-width: var(--fit-even) !important; }
 ${element} table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }
+${element} .element-table, ${element} .element-table * { overflow-wrap: break-word !important; }
 ${element} .element-table :is(.element-did, .element-time, .element-pill, th) { text-wrap-mode: nowrap !important; overflow-wrap: normal !important; }
 ${element} input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]), ${element} textarea:not([data-say]), ${element} select { background-color: ${AX.ground} !important; color: ${AX.ink} !important; border: 2px solid ${AX.frame} !important; border-radius: 2px !important; }`;
 }
