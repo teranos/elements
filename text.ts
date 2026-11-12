@@ -13,6 +13,16 @@ export type TextSize = keyof typeof TEXT_SIZES;
 /** px: a field's or editor's text, not a size a host picks: under 16, iOS zooms the page when it is tapped. */
 export const FIELD_TEXT_SIZE = 16;
 
+/**
+ * A size as written: the person's text size, never under the package's number. "Be prepared for text-size changes"
+ * (Apple HIG, Accessibility): rem follows the browser's own text size, which the person sets; max() keeps a host's
+ * root font-size from making it smaller, so the number stays the least a size can be, and a field stays at 16 or more.
+ * The numbers are px at the browser's default text size, 16.
+ */
+function written(px: number): string {
+    return `max(${px / 16}rem, ${px}px)`;
+}
+
 /** What text inside an element is at until sizeText() says otherwise. */
 const DEFAULT: TextSize = 'sm';
 
@@ -34,16 +44,16 @@ const ELEMENT = '[data-element-id]:not(.dot)';
 const EDITOR = '[contenteditable]:not([contenteditable="false"])';
 
 const RULE = `@layer elements {
-${ELEMENT} { font-size: ${TEXT_SIZES[DEFAULT]}px !important; }
+${ELEMENT} { font-size: ${written(TEXT_SIZES[DEFAULT])} !important; }
 ${ELEMENT} * { font-size: inherit !important; }
 ${ELEMENT}, ${ELEMENT} * { overflow-wrap: anywhere !important; word-break: normal !important; }
 ${fitRule(ELEMENT)}
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
-    `${ELEMENT} [data-text-size="${name}"], ${ELEMENT}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
-${ELEMENT} :is(input, textarea, select):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
-${ELEMENT} :is(${EDITOR}, ${EDITOR} *):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
+    `${ELEMENT} [data-text-size="${name}"], ${ELEMENT}[data-text-size="${name}"] { font-size: ${written(px)} !important; }`).join('\n')}
+${ELEMENT} :is(input, textarea, select):is([data-text-size], *) { font-size: ${written(FIELD_TEXT_SIZE)} !important; }
+${ELEMENT} :is(${EDITOR}, ${EDITOR} *):is([data-text-size], *) { font-size: ${written(FIELD_TEXT_SIZE)} !important; }
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
-    `${SURFACE} [data-text-size="${name}"], ${SURFACE}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
+    `${SURFACE} [data-text-size="${name}"], ${SURFACE}[data-text-size="${name}"] { font-size: ${written(px)} !important; }`).join('\n')}
 }`;
 
 // A document stylesheet does not reach into a shadow root: the field rule is put into each open one
@@ -52,7 +62,7 @@ ${Object.entries(TEXT_SIZES).map(([name, px]) =>
 // (innerHTML) takes it away, and it comes off cleanly. Elsewhere, a style element in the root.
 const SHADOW_ID = 'data-elements-text';
 const SHADOW_RULE = `@layer elements {
-:is(input, textarea, select, ${EDITOR}, ${EDITOR} *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
+:is(input, textarea, select, ${EDITOR}, ${EDITOR} *) { font-size: ${written(FIELD_TEXT_SIZE)} !important; }
 }`;
 
 let adopted: CSSStyleSheet | null | undefined;

@@ -9,7 +9,8 @@
  * Personas:
  * - Tim: Happy path — a panel's text is at the package's 11, whatever the page's own rules say
  * - Spike: Edge cases — a host's important rule and a style attribute, even important, change nothing
- * - Jenny: Complex scenarios — a node sized lg is at 14, and a dot's symbol is not the rule's
+ * - Jenny: Complex scenarios — a node sized lg is at 14, and a dot's symbol is not the rule's;
+ *   the person's larger text size makes it larger, and a host's smaller root makes nothing smaller
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -102,5 +103,27 @@ test.describe('Jenny: sized from the set, and a dot', () => {
 
         expect((await symbols()).length).toBeGreaterThan(0);
         expect(new Set(await symbols())).toEqual(new Set(['9px']));
+    });
+});
+
+// "Be prepared for text-size changes" (Apple HIG, Accessibility). A browser's text-size setting is the root's
+// font-size, which rem follows; setting the root here stands for that setting.
+test.describe('Jenny: the person\'s text size, and a host\'s root', () => {
+    const root = (page: Page, px: number) => page.evaluate((size) => { document.documentElement.style.fontSize = `${size}px`; }, px);
+
+    test('a larger text size makes the panel\'s text larger, and its fields with it', async ({ page }) => {
+        await root(page, 24);
+        await openKrypton(page);
+
+        expect(await sizeOf(page, `${KRYPTON} [data-scroller="body"] div`)).toBe('16.5px');
+        expect(await page.locator(`${KRYPTON} input`).first().evaluate((el) => getComputedStyle(el).fontSize)).toBe('24px');
+    });
+
+    test('a smaller root makes nothing smaller: the package\'s number is the least, a field 16 still', async ({ page }) => {
+        await root(page, 10);
+        await openKrypton(page);
+
+        expect(await sizeOf(page, `${KRYPTON} [data-scroller="body"] div`)).toBe('11px');
+        expect(await page.locator(`${KRYPTON} input`).first().evaluate((el) => getComputedStyle(el).fontSize)).toBe('16px');
     });
 });

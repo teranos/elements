@@ -51,7 +51,7 @@ describe('Tim: the set, and a node sized from it', () => {
 
         expect(FIELD_TEXT_SIZE).toBe(16);
         expect(css).toContain(':is(input, textarea, select)');
-        expect(css).toContain(`font-size: ${FIELD_TEXT_SIZE}px !important`);
+        expect(css).toContain(`font-size: max(${FIELD_TEXT_SIZE / 16}rem, ${FIELD_TEXT_SIZE}px) !important`);
     });
 
     test('an editor (contenteditable) is at 16 too, and what is written in it', () => {
@@ -59,7 +59,23 @@ describe('Tim: the set, and a node sized from it', () => {
         const css = rule()!.textContent!;
 
         expect(css).toContain('[contenteditable]:not([contenteditable="false"])');
-        expect(css).toMatch(/\[contenteditable\]:not\(\[contenteditable="false"\]\)[^{]*\{ font-size: 16px !important; \}/);
+        expect(css).toMatch(/\[contenteditable\]:not\(\[contenteditable="false"\]\)[^{]*\{ font-size: max\(1rem, 16px\) !important; \}/);
+    });
+
+    // "Be prepared for text-size changes" (Apple HIG, Accessibility): a size follows the person's text size (rem,
+    // the browser's own) and is never smaller than the package's number, whatever a host writes on its root.
+    test('a size follows the person\'s text size, and is never smaller than the package\'s', () => {
+        sizeText(document.createElement('span'), 'sm');
+        const css = rule()!.textContent!;
+
+        expect(css).toContain('font-size: max(0.6875rem, 11px) !important');
+        expect(css).toContain('font-size: max(0.625rem, 10px) !important');
+        expect(css).toContain('font-size: max(0.8125rem, 13px) !important');
+        expect(css).toContain('font-size: max(0.875rem, 14px) !important');
+        // A field never under 16, the size iOS Safari zooms the page for, whatever the root is.
+        expect(css).toContain('font-size: max(1rem, 16px) !important');
+        // No size is written in px alone any more.
+        expect(css).not.toMatch(/font-size: \d+px !important/);
     });
 
     test('text breaks to the width it has, a word too long anywhere in it', () => {
@@ -84,7 +100,7 @@ describe('Tim: the set, and a node sized from it', () => {
         expect(css).toContain('@layer');
         for (const [name, px] of Object.entries(TEXT_SIZES)) {
             expect(css).toContain(`[data-text-size="${name}"]`);
-            expect(css).toContain(`font-size: ${px}px !important`);
+            expect(css).toContain(`font-size: max(${px / 16}rem, ${px}px) !important`);
         }
     });
 });
@@ -125,7 +141,7 @@ describe('Tim: a surface the package draws itself', () => {
 
         expect(css).toContain('[data-text-surface] [data-text-size="lg"]');
         expect(css).toContain('[data-text-surface][data-text-size="lg"]');
-        expect(css).toContain(`font-size: ${TEXT_SIZES.lg}px !important`);
+        expect(css).toContain(`font-size: max(${TEXT_SIZES.lg / 16}rem, ${TEXT_SIZES.lg}px) !important`);
     });
 });
 
