@@ -6,7 +6,6 @@
  * host's theme and stay in its stylesheet.
  */
 
-import { COMPACT } from '../compact';
 
 const DOT_LOOK: Record<string, string> = {
     transition: 'all 0.2s ease-out',
@@ -38,8 +37,8 @@ export function wearTrayLook(trayEl: HTMLElement, dots: HTMLElement): void {
         height: 'fit-content',
         transition: 'opacity 0.2s ease',
     });
-    // A phone (Compact): the dots further apart, for a finger.
-    const phone = typeof window.matchMedia === 'function' ? window.matchMedia(COMPACT) : null;
+    // A phone: the dots further apart, for a finger. Its own edge, as it always was: a finger's, not a size class's.
+    const phone = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 768px)') : null;
     const gap = () => { dots.style.gap = phone?.matches ? '6px' : '2px'; };
     gap();
     phone?.addEventListener?.('change', gap);

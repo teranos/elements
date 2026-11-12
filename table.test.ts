@@ -119,7 +119,7 @@ describe('Tim: a column a compact screen has no room for', () => {
 
     test('inside an element a compact screen hides those cells, by the package\'s own rule, whatever a host writes', () => {
         const css = fitRule('[data-element-id]');
-        expect(css).toContain('@media (max-width: 768px)');
+        expect(css).toContain('@media (max-width: 599.98px)');
         // A rule for each place a table can have (four): a head and every row of it, later rows too, in every engine
         // (WebKit does not collapse a col).
         for (const place of [1, 2, 3, 4]) {
