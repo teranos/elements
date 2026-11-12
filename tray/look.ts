@@ -37,7 +37,7 @@ export function wearTrayLook(trayEl: HTMLElement, dots: HTMLElement): void {
         height: 'fit-content',
         transition: 'opacity 0.2s ease',
     });
-    // A phone: the dots further apart, for a finger. Its own edge, as it always was: a finger's, not a size class's.
+    // 「[Opus 5.5] A phone: the dots further apart, for a finger. Its own edge, as it always was: a finger's, not a size class's.」
     const phone = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 768px)') : null;
     const gap = () => { dots.style.gap = phone?.matches ? '6px' : '2px'; };
     gap();

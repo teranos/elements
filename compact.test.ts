@@ -1,14 +1,14 @@
 /**
- * Compact and Regular: a screen's size classes, by its width and by its height.
+ * 「[Opus 5.5] Compact and Regular: a screen's size classes, by its width and by its height.」
  *
- * "Let's support Compact and Regular" (Apple Human Interface Guidelines, Layout: size classes), at the edges
- * agreed: 600 wide and 480 high, which are Material's window size classes' compact edges (width under 600dp,
- * height under 480dp).
+ * 「[Opus 5.5] "Let's support Compact and Regular" (Apple Human Interface Guidelines, Layout: size classes), at the edges」
+ * 「[Opus 5.5] agreed: 600 wide and 480 high, which are Material's window size classes' compact edges (width under 600dp,」
+ * 「[Opus 5.5] height under 480dp).」
  *
- * Personas:
- * - Tim: Happy path — a phone held upright, a desktop, a phone held sideways
- * - Spike: Edge cases — a pixel either side of each edge; no matchMedia at all
- * - Jenny: Complex scenarios — the package's own table columns follow the width class, the tray keeps its own edge
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — a phone held upright, a desktop, a phone held sideways」
+ * 「[Opus 5.5] - Spike: Edge cases — a pixel either side of each edge; no matchMedia at all」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — the package's own table columns follow the width class, the tray keeps its own edge」
  */
 
 import { describe, test, expect, afterEach } from 'bun:test';
@@ -66,7 +66,7 @@ describe('Spike: the edges, 600 wide and 480 high', () => {
         expect(sizeClasses().height).toBe('regular');
     });
 
-    // A browser zoomed in can give a viewport a fractional width: under 600 is Compact, to the last fraction.
+    // 「[Opus 5.5] A browser zoomed in can give a viewport a fractional width: under 600 is Compact, to the last fraction.」
     test('599.99 wide is Compact, 479.99 high is Compact', () => {
         screenOf(599.99, 900);
         expect(sizeClasses().width).toBe('compact');
@@ -83,8 +83,8 @@ describe('Spike: the edges, 600 wide and 480 high', () => {
 describe('Jenny: what follows the classes, and what does not', () => {
     test('the package\'s table hides a column said to be regular under the Compact width', () => {
         expect(fitRule('[data-element-id]')).toContain(`@media ${COMPACT_WIDTH} {`);
-        // The range form is exact; the max- form is for a browser that cannot read it (Safari before 16.4),
-        // where the list still matches by its other alternative.
+        // 「[Opus 5.5] The range form is exact; the max- form is for a browser that cannot read it (Safari before 16.4),」
+        // 「[Opus 5.5] where the list still matches by its other alternative.」
         expect(COMPACT_WIDTH).toBe('(max-width: 599.98px), (width < 600px)');
         expect(COMPACT_HEIGHT).toBe('(max-height: 479.98px), (height < 480px)');
     });

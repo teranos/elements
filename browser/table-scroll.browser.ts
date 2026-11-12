@@ -130,7 +130,7 @@ test.describe('Jenny: reached by a keyboard, and by a finger', () => {
 });
 
 const ZIRCONIUM = '[data-element-id="users-compact-specimen"]';
-// Compact is under 600 wide (compact.ts).
+// 「[Opus 5.5] Compact is under 600 wide (compact.ts).」
 const COMPACT_EDGE = 600;
 
 const compactScreen = (page: Page): boolean => page.viewportSize()!.width < COMPACT_EDGE;
