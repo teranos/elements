@@ -6,6 +6,7 @@ import { canvasPlaced } from '../canvas/placed';
 import { declareScroller } from '../content/scroll';
 import { renderSparkline, wireLineTooltips } from '../sparkline';
 import type { Element } from '../element';
+import { stage } from './stage';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => `2026-09-29 ${String(8 + i).padStart(2, '0')}`);
 
@@ -20,11 +21,7 @@ export function renderSparklineSpecimen(): void {
     const root = document.getElementById('root');
     if (!root) return;
 
-    const area = document.createElement('div');
-    area.style.position = 'relative';
-    area.style.height = '200px';
-    area.dataset.canvasId = 'sparkline-canvas';
-    root.appendChild(area);
+    const area = stage(root, 'sparkline-canvas', 200);
 
     const item: Element = {
         id: 'sparkline-specimen',

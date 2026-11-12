@@ -11,6 +11,7 @@ import { canvasPlaced } from '../canvas/placed';
 import { declareScroller } from '../content/scroll';
 import { tooltipFrom } from '../forms/tooltip';
 import type { Element } from '../element';
+import { stage } from './stage';
 
 let said = 0;
 
@@ -34,11 +35,7 @@ export function renderTooltipSpecimen(): void {
     const root = document.getElementById('root');
     if (!root) return;
 
-    const area = document.createElement('div');
-    area.style.position = 'relative';
-    area.style.height = '160px';
-    area.dataset.canvasId = 'tooltip-canvas';
-    root.appendChild(area);
+    const area = stage(root, 'tooltip-canvas', 160);
 
     const item: Element = {
         id: 'tooltip-specimen',

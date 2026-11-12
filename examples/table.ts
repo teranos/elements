@@ -5,6 +5,7 @@ import { canvasPlaced } from '../canvas/placed';
 import { declareScroller } from '../content/scroll';
 import { createTable, tableCell } from '../table';
 import type { Element } from '../element';
+import { stage } from './stage';
 
 const MAILS: [when: string, to: string, subject: string, sent: boolean][] = [
     ['2026-09-24 14:03:11', 'tim@defacile.nl', 'Welkom', true],
@@ -25,11 +26,7 @@ export function renderTableSpecimen(): void {
     const root = document.getElementById('root');
     if (!root) return;
 
-    const area = document.createElement('div');
-    area.style.position = 'relative';
-    area.style.height = '240px';
-    area.dataset.canvasId = 'table-canvas';
-    root.appendChild(area);
+    const area = stage(root, 'table-canvas', 240);
 
     const item: Element = {
         id: 'table-specimen',

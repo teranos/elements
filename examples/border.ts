@@ -12,6 +12,7 @@ import { declareScroller } from '../content/scroll';
 import { morphCanvasPlacedToWindow } from '../canvas/window';
 import { getForm } from '../dataset';
 import type { Element } from '../element';
+import { stage } from './stage';
 
 const OWNED_BORDER = '2px dashed #ffd43b';
 
@@ -19,11 +20,7 @@ export function renderBorderSpecimen(): void {
     const root = document.getElementById('root');
     if (!root) return;
 
-    const area = document.createElement('div');
-    area.style.position = 'relative';
-    area.style.height = '240px';
-    area.dataset.canvasId = 'border-canvas';
-    root.appendChild(area);
+    const area = stage(root, 'border-canvas', 240);
 
     const item: Element = {
         id: 'border-specimen',

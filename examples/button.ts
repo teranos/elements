@@ -14,16 +14,13 @@ import { declareScroller } from '../content/scroll';
 import { buttonFrom } from '../forms/button';
 import { pressFrom } from '../forms/press';
 import type { Element } from '../element';
+import { stage } from './stage';
 
 export function renderButtonSpecimen(): void {
     const root = document.getElementById('root');
     if (!root) return;
 
-    const area = document.createElement('div');
-    area.style.position = 'relative';
-    area.style.height = '380px';
-    area.dataset.canvasId = 'button-canvas';
-    root.appendChild(area);
+    const area = stage(root, 'button-canvas', 380);
 
     const holder: Element = {
         id: 'button-specimen',
