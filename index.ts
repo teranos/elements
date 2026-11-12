@@ -270,7 +270,8 @@ export type { TextSize } from './text';
 
 // Table — heads and rows in the package's shape and look; what a cell says and a press opens is the host's
 export { createTable, tableCell, MAX_TABLE_COLUMNS } from './table';
-export { COMPACT } from './compact';
+export { COMPACT, COMPACT_WIDTH, COMPACT_HEIGHT, sizeClasses } from './compact';
+export type { SizeClass } from './compact';
 export type { TableCell, TableRow, TableHeads, TableCells, TableShow, TableShows } from './table';
 
 // Approvals — a list of what waits on a human; every press is handed to the host

@@ -130,9 +130,10 @@ test.describe('Jenny: reached by a keyboard, and by a finger', () => {
 });
 
 const ZIRCONIUM = '[data-element-id="users-compact-specimen"]';
-const COMPACT_EDGE = 768;
+// Compact is under 600 wide (compact.ts).
+const COMPACT_EDGE = 600;
 
-const compactScreen = (page: Page): boolean => page.viewportSize()!.width <= COMPACT_EDGE;
+const compactScreen = (page: Page): boolean => page.viewportSize()!.width < COMPACT_EDGE;
 
 test.describe('Jenny: a column a Compact screen has no room for (Zirconium)', () => {
     // "Some kinds of col, I just don't want to display depending on how much width the screen gives us"
@@ -152,6 +153,14 @@ test.describe('Jenny: a column a Compact screen has no room for (Zirconium)', ()
 
     test('on a Regular screen the DID is shown whole', async ({ page }) => {
         test.skip(compactScreen(page), 'this is the Regular screen');
+        await page.locator(ZIRCONIUM).waitFor();
+        expect(await widthOf(page, 'DID')).toBeGreaterThan(100);
+    });
+
+    test('a screen between 600 and 768 wide is Regular: the DID is shown there', async ({ page, isMobile }) => {
+        test.skip(isMobile, 'the window is resized on a desktop');
+        await page.setViewportSize({ width: 700, height: 900 });
+        await page.reload();
         await page.locator(ZIRCONIUM).waitFor();
         expect(await widthOf(page, 'DID')).toBeGreaterThan(100);
     });
