@@ -1,18 +1,18 @@
 /**
- * A field in a shadow root, inside an element, is at 16 too.
+ * 「[Sonnet 5.5] A field in a shadow root, inside an element, is at 16 too.」
  *
- * A document stylesheet does not reach into a shadow root, so a host's web component drawing an
- * input in one was outside the package's 16 (text.ts), the size iOS Safari does not zoom the page
- * for. The package puts its own rule into every open shadow root inside an element, as it is
- * attached or added, and keeps watching it. A closed root is not reachable by anyone; the host owns it.
+ * 「[Sonnet 5.5] A document stylesheet does not reach into a shadow root, so a host's web component drawing an」
+ * 「[Sonnet 5.5] input in one was outside the package's 16 (text.ts), the size iOS Safari does not zoom the page」
+ * 「[Sonnet 5.5] for. The package puts its own rule into every open shadow root inside an element, as it is」
+ * 「[Sonnet 5.5] attached or added, and keeps watching it. A closed root is not reachable by anyone; the host owns it.」
  *
- * Personas:
- * - Tim: Happy path — an open shadow root inside an element has the rule, once
- * - Spike: Edge cases — a closed root, a root outside any element, an element with none
- * - Jenny: Complex scenarios — a root added later, or attached to a host already in the element (found when a
- *   finger or a focus comes from inside it); a root inside a root; a root's contents replaced; the element
- *   released (the root is the host's again, unless an element around it still holds it); a style attribute
- *   written in one: a size comes off, a layout property stays, the root having no fit rule to take its place
+ * 「[Sonnet 5.5] Personas:」
+ * 「[Sonnet 5.5] - Tim: Happy path — an open shadow root inside an element has the rule, once」
+ * 「[Sonnet 5.5] - Spike: Edge cases — a closed root, a root outside any element, an element with none」
+ * 「[Sonnet 5.5] - Jenny: Complex scenarios — a root added later, or attached to a host already in the element (found when a」
+ *   「[Sonnet 5.5] finger or a focus comes from inside it); a root inside a root; a root's contents replaced; the element」
+ *   「[Sonnet 5.5] released (the root is the host's again, unless an element around it still holds it); a style attribute」
+ *   「[Sonnet 5.5] written in one: a size comes off, a layout property stays, the root having no fit rule to take its place」
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
