@@ -30,7 +30,7 @@ const ELEMENT = '[data-element-id]:not(.dot)';
 // A field outranks a size from the set around it or on it: :is() counts its most specific name.
 // Layered and important: an important rule in a layer outranks every important rule outside
 // one, and every rule of any kind in a stylesheet or a style attribute that is not important.
-// An editor is a field that is not a tag (CodeMirror's surface is a div): the same 16, and what is written in it.
+// 「[Sonnet 5.5] An editor is a field that is not a tag (CodeMirror's surface is a div): the same 16, and what is written in it.」
 const EDITOR = '[contenteditable]:not([contenteditable="false"])';
 
 const RULE = `@layer elements {
@@ -46,10 +46,10 @@ ${Object.entries(TEXT_SIZES).map(([name, px]) =>
     `${SURFACE} [data-text-size="${name}"], ${SURFACE}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
 }`;
 
-// A document stylesheet does not reach into a shadow root: the field rule is put into each open one
-// inside an element. Layered and important, as the page's is. A closed root is the host's.
-// Adopted where the browser has adoptedStyleSheets: nothing a host writes into the root's contents
-// (innerHTML) takes it away, and it comes off cleanly. Elsewhere, a style element in the root.
+// 「[Sonnet 5.5] A document stylesheet does not reach into a shadow root: the field rule is put into each open one」
+// 「[Sonnet 5.5] inside an element. Layered and important, as the page's is. A closed root is the host's.」
+// 「[Sonnet 5.5] Adopted where the browser has adoptedStyleSheets: nothing a host writes into the root's contents」
+// 「[Sonnet 5.5] (innerHTML) takes it away, and it comes off cleanly. Elsewhere, a style element in the root.」
 const SHADOW_ID = 'data-elements-text';
 const SHADOW_RULE = `@layer elements {
 :is(input, textarea, select, ${EDITOR}, ${EDITOR} *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
@@ -121,7 +121,7 @@ export function sizeText(node: HTMLElement, size: TextSize): void {
 // inside an element it is taken off as it is written, and off whatever is added with one.
 const watching = new WeakMap<HTMLElement, MutationObserver>();
 
-// The roots each held element has put the field rule into: given back when it is released.
+// 「[Sonnet 5.5] The roots each held element has put the field rule into: given back when it is released.」
 const roots = new WeakMap<HTMLElement, Set<ShadowRoot>>();
 
 /** A shadow root, by shape: a fragment with a host (a DOM may not name the class). */
@@ -133,7 +133,7 @@ const WATCH = { attributes: true, attributeFilter: ['style'], childList: true, s
 
 function takeOffSize(node: Element): void {
     if (node instanceof HTMLElement && node.style.fontSize) node.style.removeProperty('font-size');
-    // A root has no fit rule (fit.ts) to take the place of a layout property taken off: it stays there.
+    // 「[Sonnet 5.5] A root has no fit rule (fit.ts) to take the place of a layout property taken off: it stays there.」
     if (!isRoot(node.getRootNode())) takeOffFit(node);
 }
 
@@ -154,12 +154,12 @@ function reach(root: Element | ShadowRoot): void {
     hosts.forEach((host) => { if (host.shadowRoot) hold(host.shadowRoot); });
 }
 
-// The held element each styled root belongs to.
+// 「[Sonnet 5.5] The held element each styled root belongs to.」
 const ownerOf = new WeakMap<ShadowRoot, HTMLElement>();
 
 /**
- * A root put right with the held element nearest it now: styled and watched by it, moved to it from
- * another, or given back to its host when no held element is around it any more.
+ * 「[Sonnet 5.5] A root put right with the held element nearest it now: styled and watched by it, moved to it from」
+ * 「[Sonnet 5.5] another, or given back to its host when no held element is around it any more.」
  */
 function hold(shadow: ShadowRoot): void {
     const owner = heldAround(shadow.host);
@@ -179,7 +179,7 @@ function hold(shadow: ShadowRoot): void {
     let held = roots.get(owner);
     if (!held) roots.set(owner, (held = new Set()));
     held.add(shadow);
-    // An element's own watch stops at a root's edge.
+    // 「[Sonnet 5.5] An element's own watch stops at a root's edge.」
     watching.get(owner)?.observe(shadow, WATCH);
     reach(shadow);
 }
@@ -191,8 +191,8 @@ function settle(node: Element): void {
     hosts.forEach((host) => { if (host.shadowRoot) hold(host.shadowRoot); });
 }
 
-// A shadow root attached to a host already in an element gives the page no signal. Whatever a person
-// touches or focuses inside one names it (composedPath, an open root only) before a keyboard or a zoom.
+// 「[Sonnet 5.5] A shadow root attached to a host already in an element gives the page no signal. Whatever a person」
+// 「[Sonnet 5.5] touches or focuses inside one names it (composedPath, an open root only) before a keyboard or a zoom.」
 let listening = false;
 
 function listen(): void {
@@ -216,7 +216,7 @@ export function holdElementText(element: HTMLElement): void {
             else {
                 record.removedNodes.forEach((removed) => { if (removed instanceof Element) settle(removed); });
                 record.addedNodes.forEach((added) => { if (added instanceof Element) reach(added); });
-                // A root whose contents were replaced.
+                // 「[Sonnet 5.5] A root whose contents were replaced.」
                 if (isRoot(record.target)) hold(record.target);
             }
         });
@@ -230,7 +230,7 @@ export function holdElementText(element: HTMLElement): void {
 export function releaseElementText(element: HTMLElement): void {
     watching.get(element)?.disconnect();
     watching.delete(element);
-    // A root inside another held element is that one's now; otherwise it is the host's again.
+    // 「[Sonnet 5.5] A root inside another held element is that one's now; otherwise it is the host's again.」
     const held = roots.get(element);
     roots.delete(element);
     held?.forEach((shadow) => {
