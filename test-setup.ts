@@ -77,8 +77,28 @@ if (USE_JSDOM) {
     globalThis.HTMLElement = window.HTMLElement;
     // @ts-ignore
     globalThis.localStorage = window.localStorage;
+    // happy-dom 20.0.11 holds an observer's reporting function only through a WeakRef
+    // (MutationObserverListener: callback: new WeakRef((record) => this.report(record))): nothing else
+    // references it, so a garbage collection frees it and the observer is told nothing more, in silence.
+    // Each observer keeps the functions it observes with. (20.14 keeps them itself, but also brings the
+    // Web Animations API, a change of its own.)
+    const HappyMutationObserver = window.MutationObserver as unknown as typeof MutationObserver;
+    class KeptMutationObserver extends HappyMutationObserver {
+        #kept = new Set<unknown>();
+        observe(target: Node, options?: MutationObserverInit): void {
+            super.observe(target, options);
+            const key = Object.getOwnPropertySymbols(target).find((symbol) => symbol.description === 'mutationListeners');
+            const listeners = key ? (target as unknown as Record<symbol, { callback?: WeakRef<object> }[]>)[key] : undefined;
+            const reporting = listeners?.[listeners.length - 1]?.callback?.deref();
+            if (reporting) this.#kept.add(reporting);
+        }
+        disconnect(): void {
+            super.disconnect();
+            this.#kept.clear();
+        }
+    }
     // @ts-ignore
-    globalThis.MutationObserver = window.MutationObserver;
+    globalThis.MutationObserver = KeptMutationObserver;
     // What JSDOM's branch hands out bare, handed out here too: a bare
     // getComputedStyle was undefined, and a bare Event or MouseEvent was Bun's
     // own, which happy-dom's elements do not take. Either failed in silence.
