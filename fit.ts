@@ -1,5 +1,5 @@
 import { AX } from './forms/ax';
-import { COMPACT } from './compact';
+import { COMPACT_WIDTH } from './compact';
 
 // "no element should have content that isnt accesible"
 // Nothing in an element is wider than what holds it: text wraps even where a host said nowrap,
@@ -40,7 +40,7 @@ ${element} button:not([data-element-id]):not([data-press]) { width: fit-content 
 ${element} button[data-fit-even]:not([data-element-id]):not([data-press]) { min-width: var(--fit-even) !important; }
 ${element} table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }
 ${element} .element-table, ${element} .element-table * { overflow-wrap: break-word !important; }
-@media ${COMPACT} {
+@media ${COMPACT_WIDTH} {
 ${[1, 2, 3, 4].map((place) => `${element} .element-table[data-regular~="${place}"] > :is(thead, tbody, tfoot) > tr > :nth-child(${place}) { display: none !important; }`).join('\n')}
 }
 ${element} .element-table :is(.element-did, .element-time, .element-pill, th) { text-wrap-mode: nowrap !important; overflow-wrap: normal !important; }
