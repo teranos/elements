@@ -10,7 +10,7 @@ export const TEXT_SIZES: Readonly<{ xs: 10; sm: 11; md: 13; lg: 14 }> = Object.f
 /** A size from the set. Any other size does not compile. */
 export type TextSize = keyof typeof TEXT_SIZES;
 
-/** px: a field's text, not a size a host picks: under 16, iOS zooms the page when the field is tapped. */
+/** px: a field's or editor's text, not a size a host picks: under 16, iOS zooms the page when it is tapped. */
 export const FIELD_TEXT_SIZE = 16;
 
 /** What text inside an element is at until sizeText() says otherwise. */
@@ -30,6 +30,9 @@ const ELEMENT = '[data-element-id]:not(.dot)';
 // A field outranks a size from the set around it or on it: :is() counts its most specific name.
 // Layered and important: an important rule in a layer outranks every important rule outside
 // one, and every rule of any kind in a stylesheet or a style attribute that is not important.
+// An editor is a field that is not a tag (CodeMirror's surface is a div): the same 16, and what is written in it.
+const EDITOR = '[contenteditable]:not([contenteditable="false"])';
+
 const RULE = `@layer elements {
 ${ELEMENT} { font-size: ${TEXT_SIZES[DEFAULT]}px !important; }
 ${ELEMENT} * { font-size: inherit !important; }
@@ -38,9 +41,62 @@ ${fitRule(ELEMENT)}
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
     `${ELEMENT} [data-text-size="${name}"], ${ELEMENT}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
 ${ELEMENT} :is(input, textarea, select):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
+${ELEMENT} :is(${EDITOR}, ${EDITOR} *):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
     `${SURFACE} [data-text-size="${name}"], ${SURFACE}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
 }`;
+
+// A document stylesheet does not reach into a shadow root: the field rule is put into each open one
+// inside an element. Layered and important, as the page's is. A closed root is the host's.
+// Adopted where the browser has adoptedStyleSheets: nothing a host writes into the root's contents
+// (innerHTML) takes it away, and it comes off cleanly. Elsewhere, a style element in the root.
+const SHADOW_ID = 'data-elements-text';
+const SHADOW_RULE = `@layer elements {
+:is(input, textarea, select, ${EDITOR}, ${EDITOR} *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
+}`;
+
+let adopted: CSSStyleSheet | null | undefined;
+
+/** The one stylesheet roots adopt; null where a browser cannot (a test DOM, an old browser). */
+function adoptable(): CSSStyleSheet | null {
+    if (adopted !== undefined) return adopted;
+    adopted = null;
+    if (typeof CSSStyleSheet === 'function' && typeof ShadowRoot !== 'undefined'
+        && 'replaceSync' in CSSStyleSheet.prototype && 'adoptedStyleSheets' in ShadowRoot.prototype) {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(SHADOW_RULE);
+        adopted = sheet;
+    }
+    return adopted;
+}
+
+/** The package's style element in a root, where there is no adopted sheet. */
+function tagIn(shadow: ShadowRoot): Element | undefined {
+    return Array.from(shadow.children).find((child) => child.tagName === 'STYLE' && child.hasAttribute(SHADOW_ID));
+}
+
+function styled(shadow: ShadowRoot): boolean {
+    const sheet = adoptable();
+    return sheet ? shadow.adoptedStyleSheets.includes(sheet) : !!tagIn(shadow);
+}
+
+function style(shadow: ShadowRoot): void {
+    const sheet = adoptable();
+    if (sheet) {
+        shadow.adoptedStyleSheets = [...shadow.adoptedStyleSheets, sheet];
+        return;
+    }
+    const tag = document.createElement('style');
+    tag.setAttribute(SHADOW_ID, '');
+    tag.textContent = SHADOW_RULE;
+    shadow.prepend(tag);
+}
+
+function unstyle(shadow: ShadowRoot): void {
+    const sheet = adoptable();
+    if (sheet) shadow.adoptedStyleSheets = shadow.adoptedStyleSheets.filter((s) => s !== sheet);
+    else tagIn(shadow)?.remove();
+}
 
 /** The package's rule, in the page once. */
 export function holdTextSize(): void {
@@ -65,33 +121,121 @@ export function sizeText(node: HTMLElement, size: TextSize): void {
 // inside an element it is taken off as it is written, and off whatever is added with one.
 const watching = new WeakMap<HTMLElement, MutationObserver>();
 
-function takeOffSize(node: Element): void {
-    if (node instanceof HTMLElement && node.style.fontSize) node.style.removeProperty('font-size');
-    takeOffFit(node);
+// The roots each held element has put the field rule into: given back when it is released.
+const roots = new WeakMap<HTMLElement, Set<ShadowRoot>>();
+
+/** A shadow root, by shape: a fragment with a host (a DOM may not name the class). */
+function isRoot(node: unknown): node is ShadowRoot {
+    return !!node && (node as Node).nodeType === 11 && !!(node as ShadowRoot).host;
 }
 
-function takeOffSizes(root: Element): void {
-    takeOffSize(root);
+const WATCH = { attributes: true, attributeFilter: ['style'], childList: true, subtree: true };
+
+function takeOffSize(node: Element): void {
+    if (node instanceof HTMLElement && node.style.fontSize) node.style.removeProperty('font-size');
+    // A root has no fit rule (fit.ts) to take the place of a layout property taken off: it stays there.
+    if (!isRoot(node.getRootNode())) takeOffFit(node);
+}
+
+/** The nearest held element around a node, however many shadow roots lie between. */
+function heldAround(node: Node | null): HTMLElement | null {
+    for (let at: Node | null = node; at; at = at.parentNode ?? (at as ShadowRoot).host ?? null) {
+        if (at instanceof HTMLElement && watching.has(at)) return at;
+    }
+    return null;
+}
+
+/** Sizes off a node and what it holds, and the field rule into every open shadow root in it. */
+function reach(root: Element | ShadowRoot): void {
+    if (!isRoot(root)) takeOffSize(root);
     root.querySelectorAll('[style]').forEach(takeOffSize);
+    const hosts = Array.from(root.querySelectorAll('*'));
+    if (!isRoot(root)) hosts.unshift(root);
+    hosts.forEach((host) => { if (host.shadowRoot) hold(host.shadowRoot); });
+}
+
+// The held element each styled root belongs to.
+const ownerOf = new WeakMap<ShadowRoot, HTMLElement>();
+
+/**
+ * A root put right with the held element nearest it now: styled and watched by it, moved to it from
+ * another, or given back to its host when no held element is around it any more.
+ */
+function hold(shadow: ShadowRoot): void {
+    const owner = heldAround(shadow.host);
+    const was = ownerOf.get(shadow);
+    if (!owner) {
+        if (was) {
+            roots.get(was)?.delete(shadow);
+            ownerOf.delete(shadow);
+            unstyle(shadow);
+        }
+        return;
+    }
+    if (was === owner && styled(shadow)) return;
+    if (!styled(shadow)) style(shadow);
+    if (was && was !== owner) roots.get(was)?.delete(shadow);
+    ownerOf.set(shadow, owner);
+    let held = roots.get(owner);
+    if (!held) roots.set(owner, (held = new Set()));
+    held.add(shadow);
+    // An element's own watch stops at a root's edge.
+    watching.get(owner)?.observe(shadow, WATCH);
+    reach(shadow);
+}
+
+/** Every open root in a subtree that came or went, put right with whoever holds it now. */
+function settle(node: Element): void {
+    const hosts = Array.from(node.querySelectorAll('*'));
+    hosts.unshift(node);
+    hosts.forEach((host) => { if (host.shadowRoot) hold(host.shadowRoot); });
+}
+
+// A shadow root attached to a host already in an element gives the page no signal. Whatever a person
+// touches or focuses inside one names it (composedPath, an open root only) before a keyboard or a zoom.
+let listening = false;
+
+function listen(): void {
+    if (listening || typeof document === 'undefined') return;
+    listening = true;
+    const found = (e: Event) => {
+        for (const node of e.composedPath()) if (isRoot(node)) hold(node);
+    };
+    document.addEventListener('pointerdown', found, true);
+    document.addEventListener('focusin', found, true);
 }
 
 /** This element's text is at the package's sizes, whatever is written on it or in it. */
 export function holdElementText(element: HTMLElement): void {
     holdTextSize();
     if (watching.has(element) || typeof MutationObserver === 'undefined') return;
-    takeOffSizes(element);
+    listen();
     const observer = new MutationObserver((records) => {
         records.forEach((record) => {
             if (record.type === 'attributes') takeOffSize(record.target as Element);
-            else record.addedNodes.forEach((added) => { if (added instanceof Element) takeOffSizes(added); });
+            else {
+                record.removedNodes.forEach((removed) => { if (removed instanceof Element) settle(removed); });
+                record.addedNodes.forEach((added) => { if (added instanceof Element) reach(added); });
+                // A root whose contents were replaced.
+                if (isRoot(record.target)) hold(record.target);
+            }
         });
     });
-    observer.observe(element, { attributes: true, attributeFilter: ['style'], childList: true, subtree: true });
     watching.set(element, observer);
+    reach(element);
+    observer.observe(element, WATCH);
 }
 
 /** A dot: its symbol is the tray's, and what is written on it every frame is not watched. */
 export function releaseElementText(element: HTMLElement): void {
     watching.get(element)?.disconnect();
     watching.delete(element);
+    // A root inside another held element is that one's now; otherwise it is the host's again.
+    const held = roots.get(element);
+    roots.delete(element);
+    held?.forEach((shadow) => {
+        ownerOf.delete(shadow);
+        hold(shadow);
+        if (!ownerOf.has(shadow)) unstyle(shadow);
+    });
 }

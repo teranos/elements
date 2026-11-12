@@ -226,6 +226,123 @@ describe('Spike: when nothing should move', () => {
         expect(bottom(el)).toBe(reached);
     });
 
+    // What a pinch takes of the visual viewport is the scale's (height = screen / scale); what it is
+    // short of what it showed when the field took focus is the keyboard's. So a pinched page with a
+    // keyboard up is answered like any other, whatever window.innerHeight does (Safari shrinks it).
+    function pinched(vv: FakeViewport): void {
+        vv.scale = 1.3;
+        vv.height = SCREEN.height / 1.3;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+    }
+
+    function pinchedKeyboardUp(vv: FakeViewport): void {
+        vv.height = (SCREEN.height - KEYBOARD) / 1.3;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+    }
+
+    test('a page pinched in, with a keyboard up: a window with a field pressed rises above the keyboard', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(500);
+        pinched(vv);
+
+        field.focus();
+        pinchedKeyboardUp(vv);
+
+        expect(bottom(el)).toBeLessThanOrEqual(vv.offsetTop + vv.height);
+        expect(top(el)).toBeGreaterThanOrEqual(vv.offsetTop);
+    });
+
+    test('a page pinched in, with a keyboard up: a panel is cut to what is seen, and its field with it', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(0, SCREEN.height, 'krypton');
+        setForm(el, 'panel');
+        pinched(vv);
+
+        field.focus();
+        pinchedKeyboardUp(vv);
+
+        expect(bottom(el)).toBeLessThanOrEqual(vv.offsetTop + vv.height);
+    });
+
+    test('a page pinched in, keyboard up then down: the window goes back to where it stood', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(500);
+        const cap = el.style.maxHeight;
+        pinched(vv);
+
+        field.focus();
+        pinchedKeyboardUp(vv);
+        vv.height = SCREEN.height / 1.3;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+
+        expect(top(el)).toBe(500);
+        expect(el.style.maxHeight).toBe(cap);
+    });
+
+    test('a page pinched in, on a Safari whose innerHeight shrinks with the keyboard: still answered', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(500);
+        pinched(vv);
+
+        field.focus();
+        Object.defineProperty(window, 'innerHeight', { configurable: true, value: (SCREEN.height - KEYBOARD) / 1.3 });
+        try {
+            pinchedKeyboardUp(vv);
+            expect(bottom(el)).toBeLessThanOrEqual(vv.offsetTop + vv.height);
+        } finally {
+            Object.defineProperty(window, 'innerHeight', { configurable: true, value: SCREEN.height });
+        }
+    });
+
+    test('a page pinched in, focus moving from one window to another with the keyboard up: the second is answered', () => {
+        const vv = giveVisualViewport();
+        const a = windowWithField(500, 200, 'selenium');
+        const b = windowWithField(520, 200, 'cobalt');
+        pinched(vv);
+
+        a.field.focus();
+        pinchedKeyboardUp(vv);
+        // Focus leaves one window for a field in the next while the keyboard stays up.
+        b.field.focus();
+
+        expect(bottom(b.el)).toBeLessThanOrEqual(vv.offsetTop + vv.height);
+    });
+
+    test('a page pinched in, the keyboard gone and a field focused again: the baseline is taken afresh', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(500);
+        pinched(vv);
+
+        field.focus();
+        pinchedKeyboardUp(vv);
+        field.blur();
+        vv.height = SCREEN.height / 1.3;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+
+        // A rotation: the same page seen in a screen of another shape; nothing of it is a keyboard.
+        vv.width = SCREEN.height;
+        vv.height = SCREEN.width / 1.3;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+        field.focus();
+
+        expect(top(el)).toBe(500);
+    });
+
+    test('a page pinched in a little more with the field already focused is no keyboard', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(500);
+        const cap = el.style.maxHeight;
+        pinched(vv);
+
+        field.focus();
+        vv.scale = 2;
+        vv.height = SCREEN.height / 2;
+        vv.dispatchEvent(new (window as any).Event('resize'));
+
+        expect(top(el)).toBe(500);
+        expect(el.style.maxHeight).toBe(cap);
+    });
+
     test('a visual viewport scrolled down the page: the window rises into what is seen', () => {
         const vv = giveVisualViewport();
         const { el, field } = windowWithField(500);
