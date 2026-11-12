@@ -1,19 +1,19 @@
 /**
- * The page's scale is the person's.
+ * 「[Sonnet 5.5] The page's scale is the person's.」
  *
- * "Be prepared for text-size changes ... Apps that don't respond to this setting can be difficult
- * or impossible to use for people who rely on this feature." (Apple Human Interface Guidelines)
+ * 「[Sonnet 5.5] "Be prepared for text-size changes ... Apps that don't respond to this setting can be difficult」
+ * 「[Sonnet 5.5] or impossible to use for people who rely on this feature." (Apple Human Interface Guidelines)」
  *
- * The package once held maximum-scale=1 on every viewport line so iOS Safari would not zoom onto a
- * small field, and in a Chromium phone that took pinch zoom away (browser/zoom.browser.ts measures
- * it). A field inside an element is at 16 whatever a host writes (text.ts), so the package leaves
- * the page's viewport line as the host wrote it. The real keyboard run (browser/keyboard) is what
- * shows Safari not zooming a field.
+ * 「[Sonnet 5.5] The package once held maximum-scale=1 on every viewport line so iOS Safari would not zoom onto a」
+ * 「[Sonnet 5.5] small field, and in a Chromium phone that took pinch zoom away (browser/zoom.browser.ts measures」
+ * 「[Sonnet 5.5] it). A field inside an element is at 16 whatever a host writes (text.ts), so the package leaves」
+ * 「[Sonnet 5.5] the page's viewport line as the host wrote it. The real keyboard run (browser/keyboard) is what」
+ * 「[Sonnet 5.5] shows Safari not zooming a field.」
  *
  * Personas:
- * - Tim: Happy path — the host's viewport line, as written
- * - Spike: Edge cases — no viewport line, a host's own maximum-scale
- * - Jenny: Complex scenarios — the package taken after the host's line, and a line the host changes after
+ * 「[Sonnet 5.5] - Tim: Happy path — the host's viewport line, as written」
+ * 「[Sonnet 5.5] - Spike: Edge cases — no viewport line, a host's own maximum-scale」
+ * 「[Sonnet 5.5] - Jenny: Complex scenarios — the package taken after the host's line, and a line the host changes after」
  */
 
 import { describe, test, expect, beforeEach } from 'bun:test';
@@ -67,7 +67,7 @@ describe('Jenny: a line the host changes', () => {
     test('rewritten after the package is in, it stays as it was written', async () => {
         const meta = hostSays('width=device-width, initial-scale=1');
         meta.content = 'width=device-width, initial-scale=1, maximum-scale=1';
-        // A mutation observer answers in a microtask, if there is one.
+        // 「[Sonnet 5.5] A mutation observer answers in a microtask, if there is one.」
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(lines()).toEqual(['width=device-width, initial-scale=1, maximum-scale=1']);
