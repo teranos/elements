@@ -1,8 +1,8 @@
 // "Let's support Compact and Regular"
-// A screen is Compact or Regular by its width, and again by its height: Apple's size classes (Human Interface
-// Guidelines, Layout). The edges are Material's window size classes' compact edges, as agreed: under 600 wide,
-// under 480 high. A phone held upright is Compact wide; held sideways it is Compact high.
-// The tray's spacing for a finger keeps its own edge (tray/look.ts): it is about a finger, not a size class.
+// 「[Opus 5.5] A screen is Compact or Regular by its width, and again by its height: Apple's size classes (Human Interface」
+// 「[Opus 5.5] Guidelines, Layout). The edges are Material's window size classes' compact edges, as agreed: under 600 wide,」
+// 「[Opus 5.5] under 480 high. A phone held upright is Compact wide; held sideways it is Compact high.」
+// 「[Opus 5.5] The tray's spacing for a finger keeps its own edge (tray/look.ts): it is about a finger, not a size class.」
 
 /** The media query for a Compact width: under 600. */
 export const COMPACT_WIDTH = '(max-width: 599.98px), (width < 600px)';
