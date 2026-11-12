@@ -226,9 +226,9 @@ describe('Spike: when nothing should move', () => {
         expect(bottom(el)).toBe(reached);
     });
 
-    // What a pinch takes of the visual viewport is the scale's (height = screen / scale); what it is
-    // short of what it showed when the field took focus is the keyboard's. So a pinched page with a
-    // keyboard up is answered like any other, whatever window.innerHeight does (Safari shrinks it).
+    // 「[Sonnet 5.5] What a pinch takes of the visual viewport is the scale's (height = screen / scale); what it is」
+    // 「[Sonnet 5.5] short of what it showed when the field took focus is the keyboard's. So a pinched page with a」
+    // 「[Sonnet 5.5] keyboard up is answered like any other, whatever window.innerHeight does (Safari shrinks it).」
     function pinched(vv: FakeViewport): void {
         vv.scale = 1.3;
         vv.height = SCREEN.height / 1.3;
@@ -302,7 +302,7 @@ describe('Spike: when nothing should move', () => {
 
         a.field.focus();
         pinchedKeyboardUp(vv);
-        // Focus leaves one window for a field in the next while the keyboard stays up.
+        // 「[Sonnet 5.5] Focus leaves one window for a field in the next while the keyboard stays up.」
         b.field.focus();
 
         expect(bottom(b.el)).toBeLessThanOrEqual(vv.offsetTop + vv.height);
@@ -319,7 +319,7 @@ describe('Spike: when nothing should move', () => {
         vv.height = SCREEN.height / 1.3;
         vv.dispatchEvent(new (window as any).Event('resize'));
 
-        // A rotation: the same page seen in a screen of another shape; nothing of it is a keyboard.
+        // 「[Sonnet 5.5] A rotation: the same page seen in a screen of another shape; nothing of it is a keyboard.」
         vv.width = SCREEN.height;
         vv.height = SCREEN.width / 1.3;
         vv.dispatchEvent(new (window as any).Event('resize'));

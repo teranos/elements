@@ -18,8 +18,8 @@ import { visibleArea } from '../safe-area';
 import { getForm } from '../dataset';
 import { holdPosition } from '../position';
 
-// A field taking the keyboard zooms nothing: inside an element a field is at 16, whatever a host writes
-// (text.ts), and the page's scale is the person's. It is not held (browser/zoom.browser.ts).
+// 「[Sonnet 5.5] A field taking the keyboard zooms nothing: inside an element a field is at 16, whatever a host writes」
+// 「[Sonnet 5.5] (text.ts), and the page's scale is the person's. It is not held (browser/zoom.browser.ts).」
 // Nor does it move the page under it (position.ts).
 holdPosition();
 
@@ -97,9 +97,9 @@ function answer(element: HTMLElement): void {
         height: rect.height,
     };
 
-    // A page a person has pinched in shows less of itself (height = screen / scale), and that is the
-    // pinch's, not the keyboard's: a window answers none of it. Cut to it, a panel stopped three
-    // quarters down. What the visual viewport is short of that, a keyboard took (keyboardTakes()).
+    // 「[Sonnet 5.5] A page a person has pinched in shows less of itself (height = screen / scale), and that is the」
+    // 「[Sonnet 5.5] pinch's, not the keyboard's: a window answers none of it. Cut to it, a panel stopped three」
+    // 「[Sonnet 5.5] quarters down. What the visual viewport is short of that, a keyboard took (keyboardTakes()).」
     if (pinched() && keyboardTakes() <= ROUNDING) {
         if (before) backFromKeyboard(element);
         return;
@@ -131,16 +131,16 @@ function pinched(): boolean {
     return !!vv && vv.scale > 1.01;
 }
 
-// px: a visual viewport reports fractions; less than this is not a keyboard.
+// 「[Sonnet 5.5] px: a visual viewport reports fractions; less than this is not a keyboard.」
 const ROUNDING = 2;
 
 /**
- * How much of the layout the visual viewport showed before any keyboard: its height over its scale, and
- * its width over it. A pinch leaves both as they were (size = layout / scale); a keyboard lowers the
- * height. window.innerHeight is no baseline: Safari shrinks it with the keyboard (safe-area.ts).
- * It only ever rises while fields take focus (a keyboard already up cannot lower it, as focus moves
- * between windows), and goes when no keyboard is up. A field focused with a keyboard already up that
- * this page did not raise has no before to compare with: on a pinched page it is answered as no keyboard.
+ * 「[Sonnet 5.5] How much of the layout the visual viewport showed before any keyboard: its height over its scale, and」
+ * 「[Sonnet 5.5] its width over it. A pinch leaves both as they were (size = layout / scale); a keyboard lowers the」
+ * 「[Sonnet 5.5] height. window.innerHeight is no baseline: Safari shrinks it with the keyboard (safe-area.ts).」
+ * 「[Sonnet 5.5] It only ever rises while fields take focus (a keyboard already up cannot lower it, as focus moves」
+ * 「[Sonnet 5.5] between windows), and goes when no keyboard is up. A field focused with a keyboard already up that」
+ * 「[Sonnet 5.5] this page did not raise has no before to compare with: on a pinched page it is answered as no keyboard.」
  */
 let before: { height: number; width: number } | null = null;
 
@@ -153,7 +153,7 @@ function shown(): { height: number; width: number } | null {
 function keyboardTakes(): number {
     const now = shown();
     if (before === null || now === null) return 0;
-    // Another shape of screen (a rotation): what was seen before says nothing of this one.
+    // 「[Sonnet 5.5] Another shape of screen (a rotation): what was seen before says nothing of this one.」
     if (Math.abs(now.width - before.width) > ROUNDING) { before = null; return 0; }
     return before.height - now.height;
 }
@@ -208,7 +208,7 @@ export function keepClearOfKeyboard(element: HTMLElement): void {
         for (const el of [...stood.keys()]) {
             if (el !== element) backFromKeyboard(el);
         }
-        // The keyboard has not come yet when a field first takes focus: what the page shows is the baseline.
+        // 「[Sonnet 5.5] The keyboard has not come yet when a field first takes focus: what the page shows is the baseline.」
         const now = shown();
         if (now && (before === null || now.height > before.height)) before = now;
         answering = element;
@@ -220,7 +220,7 @@ export function keepClearOfKeyboard(element: HTMLElement): void {
         const next = (e as FocusEvent).relatedTarget as Node | null;
         if (answering === element && !(next && element.contains(next))) {
             answering = null;
-            // Focus moving to a field in another window keeps the keyboard up; one that leaves for good does not.
+            // 「[Sonnet 5.5] Focus moving to a field in another window keeps the keyboard up; one that leaves for good does not.」
             if (keyboardTakes() <= ROUNDING) before = null;
         }
     });

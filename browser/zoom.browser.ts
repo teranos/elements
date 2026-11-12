@@ -1,21 +1,21 @@
 /**
- * A person can zoom the page, and a field still zooms nothing.
+ * 「[Sonnet 5.5] A person can zoom the page, and a field still zooms nothing.」
  *
- * "Be prepared for text-size changes. People use Dynamic Type to increase text size to be more
- * readable ... Apps that don't respond to this setting can be difficult or impossible to use for
- * people who rely on this feature." (Apple Human Interface Guidelines, Accessibility)
+ * 「[Sonnet 5.5] "Be prepared for text-size changes. People use Dynamic Type to increase text size to be more」
+ * 「[Sonnet 5.5] readable ... Apps that don't respond to this setting can be difficult or impossible to use for」
+ * 「[Sonnet 5.5] people who rely on this feature." (Apple Human Interface Guidelines, Accessibility)」
  *
- * The package once held `maximum-scale=1` on every viewport line so iOS Safari would not zoom onto a
- * small field. Measured in a Chromium phone, that hold takes pinch zoom away entirely: a pinch of
- * 2.5 leaves the scale at 1, and without it the same pinch reaches 2.5. What keeps a field from
- * zooming iOS is its size: inside an element a field is at 16 whatever a host writes (text.ts), so
- * the hold was a second lock on a door that was already shut, and it locked people out of zoom.
+ * 「[Sonnet 5.5] The package once held `maximum-scale=1` on every viewport line so iOS Safari would not zoom onto a」
+ * 「[Sonnet 5.5] small field. Measured in a Chromium phone, that hold takes pinch zoom away entirely: a pinch of」
+ * 「[Sonnet 5.5] 2.5 leaves the scale at 1, and without it the same pinch reaches 2.5. What keeps a field from」
+ * 「[Sonnet 5.5] zooming iOS is its size: inside an element a field is at 16 whatever a host writes (text.ts), so」
+ * 「[Sonnet 5.5] the hold was a second lock on a door that was already shut, and it locked people out of zoom.」
  *
- * Personas:
- * - Tim: Happy path — a pinch zooms the page; the page's own viewport line is left as the host wrote it
- * - Spike: Edge cases — a host that says maximum-scale itself keeps what it said
- * - Jenny: Complex scenarios — a field, an editor, or a field in a shadow root, a host dresses small is still at 16 in an element;
- *   a keyboard over a page that is pinched is answered, a pinch alone is not
+ * 「[Sonnet 5.5] Personas:」
+ * 「[Sonnet 5.5] - Tim: Happy path — a pinch zooms the page; the page's own viewport line is left as the host wrote it」
+ * 「[Sonnet 5.5] - Spike: Edge cases — a host that says maximum-scale itself keeps what it said」
+ * 「[Sonnet 5.5] - Jenny: Complex scenarios — a field, an editor, or a field in a shadow root, a host dresses small is still at 16 in an element;」
+ *   「[Sonnet 5.5] a keyboard over a page that is pinched is answered, a pinch alone is not」
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -35,7 +35,7 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('Tim: the page is the person\'s to zoom', () => {
     test('a pinch zooms the page', async ({ page, browserName, isMobile }) => {
-        // A pinch is raised through the DevTools protocol, which only Chromium answers.
+        // 「[Sonnet 5.5] A pinch is raised through the DevTools protocol, which only Chromium answers.」
         test.skip(browserName !== 'chromium' || !isMobile, 'a pinch gesture is synthesised in Chromium on a phone');
         const cdp = await page.context().newCDPSession(page);
         expect(await page.evaluate(() => visualViewport!.scale)).toBe(1);
@@ -53,7 +53,7 @@ test.describe('Spike: what a host says about scale is the host\'s', () => {
         await page.evaluate(() => {
             document.querySelector<HTMLMetaElement>('meta[name="viewport"]')!.content = 'width=device-width, maximum-scale=3';
         });
-        // Long enough for an observer to have said anything.
+        // 「[Sonnet 5.5] Long enough for an observer to have said anything.」
         await page.waitForTimeout(300);
         expect(await lines(page)).toEqual(['width=device-width, maximum-scale=3']);
     });
@@ -78,7 +78,7 @@ test.describe('Jenny: a field, small by a host, in an element', () => {
         await krypton.click();
         await expect(krypton).toHaveAttribute('data-form', 'panel');
         await expect.poll(() => krypton.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
-        // The shape CodeMirror gives a page: a div that takes typing, with a line in it.
+        // 「[Sonnet 5.5] The shape CodeMirror gives a page: a div that takes typing, with a line in it.」
         await krypton.evaluate((el) => {
             const editor = document.createElement('div');
             editor.className = 'host-editor';
@@ -132,7 +132,7 @@ test.describe('Jenny: a field, small by a host, in an element', () => {
         await expect(krypton).toHaveAttribute('data-form', 'panel');
         await expect.poll(() => krypton.evaluate((el) => el.classList.contains('morphing'))).toBe(false);
 
-        // The host is in the element first; its root comes later, with nothing in the light DOM to say so.
+        // 「[Sonnet 5.5] The host is in the element first; its root comes later, with nothing in the light DOM to say so.」
         await krypton.evaluate(async (el) => {
             const host = document.createElement('div');
             host.id = 'late-host';
@@ -147,7 +147,7 @@ test.describe('Jenny: a field, small by a host, in an element', () => {
         await page.locator('#late-host input').click();
         expect(await size()).toBe('16px');
 
-        // The host draws it again: the rule is the package's, not part of what was drawn.
+        // 「[Sonnet 5.5] The host draws it again: the rule is the package's, not part of what was drawn.」
         await page.evaluate(() => {
             document.querySelector('#late-host')!.shadowRoot!.innerHTML = '<style>input { font-size: 11px; display: block; width: 120px; height: 30px; }</style><input type="text">';
         });
@@ -170,7 +170,7 @@ test.describe('Jenny: a field, small by a host, in an element', () => {
             own.replaceSync('input { font-size: 11px; display: block; width: 120px; height: 30px; }');
             root.adoptedStyleSheets = [own];
             await new Promise((done) => setTimeout(done, 100));
-            // No node changes in the root, and the package's sheet is gone from it.
+            // 「[Sonnet 5.5] No node changes in the root, and the package's sheet is gone from it.」
             root.adoptedStyleSheets = [own];
         });
         const size = () => page.evaluate(() => getComputedStyle(document.querySelector('#restyled-host')!.shadowRoot!.querySelector('input')!).fontSize);
@@ -193,12 +193,12 @@ test.describe('Jenny: a field, small by a host, in an element', () => {
             root.innerHTML = '<style>input { font-size: 11px; }</style><input type="text">';
             (window as unknown as { __given: ShadowRoot }).__given = root;
         });
-        // A dot's content is out of the page: the root is held by name, and asked what it has adopted.
+        // 「[Sonnet 5.5] A dot's content is out of the page: the root is held by name, and asked what it has adopted.」
         const adopted = () => page.evaluate(() => (window as unknown as { __given: ShadowRoot }).__given.adoptedStyleSheets.length);
         await page.locator('#given-host input').click({ force: true });
         expect(await adopted()).toBe(1);
 
-        // Minimized: its form is a dot, and the package lets go of its text (dataset.ts).
+        // 「[Sonnet 5.5] Minimized: its form is a dot, and the package lets go of its text (dataset.ts).」
         await krypton.locator('[aria-label="Minimize"]').evaluate((button: HTMLElement) => button.click());
         await expect(krypton).toHaveAttribute('data-form', 'dot');
         await expect.poll(adopted).toBe(0);
@@ -215,12 +215,12 @@ test.describe('Jenny: a field, small by a host, in an element', () => {
         await expect.poll(() => page.evaluate(() => visualViewport!.scale)).toBeGreaterThan(1.5);
         const cap = await krypton.evaluate((el) => el.style.maxHeight);
 
-        // A pinch alone: the panel is not cut to what the zoom shows.
+        // 「[Sonnet 5.5] A pinch alone: the panel is not cut to what the zoom shows.」
         await krypton.locator('input').last().focus();
         await page.waitForTimeout(200);
         expect(await krypton.evaluate((el) => el.style.maxHeight)).toBe(cap);
 
-        // The keyboard comes up over the pinched page: height = (screen - keyboard) / scale.
+        // 「[Sonnet 5.5] The keyboard comes up over the pinched page: height = (screen - keyboard) / scale.」
         await page.evaluate((keyboard) => {
             const vv = visualViewport!;
             const shown = (window.innerHeight - keyboard) / vv.scale;
