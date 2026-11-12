@@ -49,7 +49,7 @@ describe('Tim: an open shadow root inside an element', () => {
         holdElementText(el);
 
         expect(rules(root)).toHaveLength(1);
-        expect(rules(root)[0]).toContain(`font-size: max(${FIELD_TEXT_SIZE}px, calc(${FIELD_TEXT_SIZE}px * var(--elements-text-scale, 1))) !important`);
+        expect(rules(root)[0]).toContain(`font-size: ${FIELD_TEXT_SIZE}px !important`);
         expect(rules(root)[0]).toContain('input');
         expect(rules(root)[0]).toContain('[contenteditable]:not([contenteditable="false"])');
     });

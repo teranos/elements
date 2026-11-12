@@ -131,6 +131,29 @@ test.describe('Jenny: the person\'s text size, and a host\'s root', () => {
         expect(await field(page)).toBe('16px');
     });
 
+    test('a host\'s important rules on every span, there before the package measures, change nothing', async ({ page }) => {
+        // In the host's own page, in its head, before anything of the package's runs.
+        await page.route((url) => url.pathname === '/', async (route) => {
+            const response = await route.fetch();
+            const html = (await response.text()).replace('</head>', '<style>span { font-size: 24px !important; } * { font-family: monospace !important; }</style></head>');
+            await route.fulfill({ response, body: html });
+        });
+        await page.reload();
+        await page.locator(KRYPTON).waitFor();
+        await openKrypton(page);
+
+        expect(await sizeOf(page, `${KRYPTON} [data-scroller="body"] div`)).toBe('11px');
+        expect(await field(page)).toBe('16px');
+    });
+
+    test('a host that names a text scale on an element changes nothing', async ({ page }) => {
+        await openKrypton(page);
+        await page.locator(KRYPTON).evaluate((el) => { (el as HTMLElement).style.setProperty('--elements-text-scale', '3'); });
+
+        expect(await sizeOf(page, `${KRYPTON} [data-scroller="body"] div`)).toBe('11px');
+        expect(await field(page)).toBe('16px');
+    });
+
     test('a host\'s smaller root makes nothing smaller: the package\'s number is the least, a field 16 still', async ({ page }) => {
         await page.evaluate(() => { document.documentElement.style.fontSize = '10px'; });
         await openKrypton(page);
