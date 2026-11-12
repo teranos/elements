@@ -17,12 +17,17 @@ import { fitRule } from './fit';
 
 const had = (window as any).matchMedia;
 
-/** A screen of this size answers min/max width and height queries as a browser would. */
+/** A screen of this size answers a media query list as a browser does: any alternative that matches, max-width / max-height or the range form. */
 function screenOf(width: number, height: number): void {
     (window as any).matchMedia = (query: string) => {
-        const px = (name: string) => { const m = new RegExp(`${name}:\\s*([\\d.]+)px`).exec(query); return m ? parseFloat(m[1]!) : null; };
-        const maxW = px('max-width'), maxH = px('max-height');
-        const matches = (maxW === null || width <= maxW) && (maxH === null || height <= maxH);
+        const one = (q: string): boolean => {
+            const num = (re: RegExp) => { const m = re.exec(q); return m ? parseFloat(m[1]!) : null; };
+            const maxW = num(/max-width:\s*([\d.]+)px/), maxH = num(/max-height:\s*([\d.]+)px/);
+            const ltW = num(/width\s*<\s*([\d.]+)px/), ltH = num(/height\s*<\s*([\d.]+)px/);
+            return (maxW === null || width <= maxW) && (maxH === null || height <= maxH)
+                && (ltW === null || width < ltW) && (ltH === null || height < ltH);
+        };
+        const matches = query.split(',').some((q) => one(q.trim()));
         return { matches, media: query, addEventListener() {}, removeEventListener() {} };
     };
 }
@@ -61,6 +66,14 @@ describe('Spike: the edges, 600 wide and 480 high', () => {
         expect(sizeClasses().height).toBe('regular');
     });
 
+    // A browser zoomed in can give a viewport a fractional width: under 600 is Compact, to the last fraction.
+    test('599.99 wide is Compact, 479.99 high is Compact', () => {
+        screenOf(599.99, 900);
+        expect(sizeClasses().width).toBe('compact');
+        screenOf(900, 479.99);
+        expect(sizeClasses().height).toBe('compact');
+    });
+
     test('where nothing can be asked of the screen, it is Regular both ways', () => {
         (window as any).matchMedia = undefined;
         expect(sizeClasses()).toEqual({ width: 'regular', height: 'regular' });
@@ -70,7 +83,9 @@ describe('Spike: the edges, 600 wide and 480 high', () => {
 describe('Jenny: what follows the classes, and what does not', () => {
     test('the package\'s table hides a column said to be regular under the Compact width', () => {
         expect(fitRule('[data-element-id]')).toContain(`@media ${COMPACT_WIDTH} {`);
-        expect(COMPACT_WIDTH).toBe('(max-width: 599.98px)');
-        expect(COMPACT_HEIGHT).toBe('(max-height: 479.98px)');
+        // The range form is exact; the max- form is for a browser that cannot read it (Safari before 16.4),
+        // where the list still matches by its other alternative.
+        expect(COMPACT_WIDTH).toBe('(max-width: 599.98px), (width < 600px)');
+        expect(COMPACT_HEIGHT).toBe('(max-height: 479.98px), (height < 480px)');
     });
 });

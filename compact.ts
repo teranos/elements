@@ -5,13 +5,13 @@
 // The tray's spacing for a finger keeps its own edge (tray/look.ts): it is about a finger, not a size class.
 
 /** The media query for a Compact width: under 600. */
-export const COMPACT_WIDTH = '(max-width: 599.98px)';
+export const COMPACT_WIDTH = '(max-width: 599.98px), (width < 600px)';
 
 /** The media query for a Compact height: under 480. */
-export const COMPACT_HEIGHT = '(max-height: 479.98px)';
+export const COMPACT_HEIGHT = '(max-height: 479.98px), (height < 480px)';
 
 /** The Compact width, by its first name. (A literal: the bundler loses a const that names another.) */
-export const COMPACT = '(max-width: 599.98px)';
+export const COMPACT = '(max-width: 599.98px), (width < 600px)';
 
 /** One axis of a screen: Compact or Regular. */
 export type SizeClass = 'compact' | 'regular';
