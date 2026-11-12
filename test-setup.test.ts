@@ -3,7 +3,8 @@
  *
  * Personas:
  * - Tim: Happy path — what a test reaches for bare is the DOM's own
- * - Spike: Edge cases — an event made bare is one the DOM's elements take
+ * - Spike: Edge cases — an event made bare is one the DOM's elements take; an observer still told after a
+ *   garbage collection
  * - Jenny: Complex scenarios — a road played in a DOM without the Web Animations API
  */
 
@@ -32,6 +33,26 @@ describe('Spike: an event made bare is one the DOM takes', () => {
         el.addEventListener('click', (e) => { detail = (e as MouseEvent).detail; });
         el.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 2 }));
         expect(detail).toBe(2);
+    });
+});
+
+// happy-dom 20.0.11 held a MutationObserver's reporting function only through a WeakRef: after a garbage
+// collection the observer was told nothing more, silently. text-shadow.test.ts failed on it in CI.
+describe('Spike: an observer is still told after a garbage collection', () => {
+    test('a mutation after Bun.gc() reaches the observer', async () => {
+        const box = document.createElement('div');
+        document.body.appendChild(box);
+        let told = 0;
+        const observer = new MutationObserver((records) => { told += records.length; });
+        observer.observe(box, { childList: true, subtree: true });
+
+        Bun.gc(true);
+        box.appendChild(document.createElement('span'));
+        await new Promise<void>((done) => setTimeout(done, 20));
+
+        expect(told).toBe(1);
+        observer.disconnect();
+        box.remove();
     });
 });
 
