@@ -15,12 +15,30 @@ export const FIELD_TEXT_SIZE = 16;
 
 /**
  * A size as written: the person's text size, never under the package's number. "Be prepared for text-size changes"
- * (Apple HIG, Accessibility): rem follows the browser's own text size, which the person sets; max() keeps a host's
- * root font-size from making it smaller, so the number stays the least a size can be, and a field stays at 16 or more.
- * The numbers are px at the browser's default text size, 16.
+ * (Apple HIG, Accessibility). The person's text size is the browser's own default, what `font-size: medium` is; a host
+ * cannot set that, where it can set its root's font-size (so not rem). The package measures it once, as a scale over
+ * 16, and says it on the root (personScale); max() keeps the number the least a size can be, so a field stays at 16.
  */
 function written(px: number): string {
-    return `max(${px / 16}rem, ${px}px)`;
+    return `max(${px}px, calc(${px}px * var(--elements-text-scale, 1)))`;
+}
+
+/**
+ * The person's text size over the browser's default of 16: what `medium` measures. In serif, a family of no one's
+ * choosing here: `medium` in a monospace family is the browser's fixed-width size (13 in Chrome), not the person's.
+ * Where nothing can be measured (a test DOM), 1.
+ */
+function personScale(): number {
+    if (typeof document === 'undefined' || typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') return 1;
+    const probe = document.createElement('span');
+    probe.style.fontSize = 'medium';
+    probe.style.fontFamily = 'serif';
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    document.documentElement.appendChild(probe);
+    const px = parseFloat(window.getComputedStyle(probe).fontSize);
+    probe.remove();
+    return Number.isFinite(px) && px > 0 ? px / 16 : 1;
 }
 
 /** What text inside an element is at until sizeText() says otherwise. */
@@ -43,7 +61,8 @@ const ELEMENT = '[data-element-id]:not(.dot)';
 // An editor is a field that is not a tag (CodeMirror's surface is a div): the same 16, and what is written in it.
 const EDITOR = '[contenteditable]:not([contenteditable="false"])';
 
-const RULE = `@layer elements {
+const rule = (scale: number): string => `@layer elements {
+:root { --elements-text-scale: ${scale} !important; }
 ${ELEMENT} { font-size: ${written(TEXT_SIZES[DEFAULT])} !important; }
 ${ELEMENT} * { font-size: inherit !important; }
 ${ELEMENT}, ${ELEMENT} * { overflow-wrap: anywhere !important; word-break: normal !important; }
@@ -113,7 +132,7 @@ export function holdTextSize(): void {
     if (document.getElementById(RULE_ID)) return;
     const style = document.createElement('style');
     style.id = RULE_ID;
-    style.textContent = RULE;
+    style.textContent = rule(personScale());
     document.head.appendChild(style);
 }
 

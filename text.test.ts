@@ -51,7 +51,7 @@ describe('Tim: the set, and a node sized from it', () => {
 
         expect(FIELD_TEXT_SIZE).toBe(16);
         expect(css).toContain(':is(input, textarea, select)');
-        expect(css).toContain(`font-size: max(${FIELD_TEXT_SIZE / 16}rem, ${FIELD_TEXT_SIZE}px) !important`);
+        expect(css).toContain(`font-size: max(${FIELD_TEXT_SIZE}px, calc(${FIELD_TEXT_SIZE}px * var(--elements-text-scale, 1))) !important`);
     });
 
     test('an editor (contenteditable) is at 16 too, and what is written in it', () => {
@@ -59,23 +59,41 @@ describe('Tim: the set, and a node sized from it', () => {
         const css = rule()!.textContent!;
 
         expect(css).toContain('[contenteditable]:not([contenteditable="false"])');
-        expect(css).toMatch(/\[contenteditable\]:not\(\[contenteditable="false"\]\)[^{]*\{ font-size: max\(1rem, 16px\) !important; \}/);
+        expect(css).toMatch(/\[contenteditable\]:not\(\[contenteditable="false"\]\)[^{]*\{ font-size: max\(16px, calc\(16px \* var\(--elements-text-scale, 1\)\)\) !important; \}/);
     });
 
-    // "Be prepared for text-size changes" (Apple HIG, Accessibility): a size follows the person's text size (rem,
-    // the browser's own) and is never smaller than the package's number, whatever a host writes on its root.
+    // "Be prepared for text-size changes" (Apple HIG, Accessibility): a size follows the person's text size, which is
+    // what `font-size: medium` is (the browser's own default), and is never smaller than the package's number. A host's
+    // root font-size is not the person's: it moves neither way.
     test('a size follows the person\'s text size, and is never smaller than the package\'s', () => {
         sizeText(document.createElement('span'), 'sm');
         const css = rule()!.textContent!;
 
-        expect(css).toContain('font-size: max(0.6875rem, 11px) !important');
-        expect(css).toContain('font-size: max(0.625rem, 10px) !important');
-        expect(css).toContain('font-size: max(0.8125rem, 13px) !important');
-        expect(css).toContain('font-size: max(0.875rem, 14px) !important');
-        // A field never under 16, the size iOS Safari zooms the page for, whatever the root is.
-        expect(css).toContain('font-size: max(1rem, 16px) !important');
-        // No size is written in px alone any more.
+        for (const px of [10, 11, 13, 14, 16]) {
+            expect(css).toContain(`font-size: max(${px}px, calc(${px}px * var(--elements-text-scale, 1))) !important`);
+        }
+        // Nothing follows the root: no rem, and no size in px alone.
+        expect(css).not.toContain('rem');
         expect(css).not.toMatch(/font-size: \d+px !important/);
+    });
+
+    test('the person\'s scale is what `medium` measures, over 16, said once on the root', () => {
+        const had = window.getComputedStyle;
+        (window as any).getComputedStyle = (node: Element) => {
+            const real = had.call(window, node);
+            return (node as HTMLElement).style?.fontSize === 'medium' ? { ...real, fontSize: '24px' } : real;
+        };
+        try {
+            sizeText(document.createElement('span'), 'sm');
+            expect(rule()!.textContent!).toContain(':root { --elements-text-scale: 1.5 !important; }');
+        } finally {
+            (window as any).getComputedStyle = had;
+        }
+    });
+
+    test('where `medium` measures nothing (a test DOM), the scale is 1', () => {
+        sizeText(document.createElement('span'), 'sm');
+        expect(rule()!.textContent!).toContain(':root { --elements-text-scale: 1 !important; }');
     });
 
     test('text breaks to the width it has, a word too long anywhere in it', () => {
@@ -100,7 +118,7 @@ describe('Tim: the set, and a node sized from it', () => {
         expect(css).toContain('@layer');
         for (const [name, px] of Object.entries(TEXT_SIZES)) {
             expect(css).toContain(`[data-text-size="${name}"]`);
-            expect(css).toContain(`font-size: max(${px / 16}rem, ${px}px) !important`);
+            expect(css).toContain(`font-size: max(${px}px, calc(${px}px * var(--elements-text-scale, 1))) !important`);
         }
     });
 });
@@ -141,7 +159,7 @@ describe('Tim: a surface the package draws itself', () => {
 
         expect(css).toContain('[data-text-surface] [data-text-size="lg"]');
         expect(css).toContain('[data-text-surface][data-text-size="lg"]');
-        expect(css).toContain(`font-size: max(${TEXT_SIZES.lg / 16}rem, ${TEXT_SIZES.lg}px) !important`);
+        expect(css).toContain(`font-size: max(${TEXT_SIZES.lg}px, calc(${TEXT_SIZES.lg}px * var(--elements-text-scale, 1))) !important`);
     });
 });
 

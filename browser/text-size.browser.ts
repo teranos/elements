@@ -106,24 +106,36 @@ test.describe('Jenny: sized from the set, and a dot', () => {
     });
 });
 
-// "Be prepared for text-size changes" (Apple HIG, Accessibility). A browser's text-size setting is the root's
-// font-size, which rem follows; setting the root here stands for that setting.
+// "Be prepared for text-size changes" (Apple HIG, Accessibility). The person's text size is the browser's own
+// default (Chromium's font-size setting, set here through the DevTools protocol); a host's root font-size is not it.
 test.describe('Jenny: the person\'s text size, and a host\'s root', () => {
-    const root = (page: Page, px: number) => page.evaluate((size) => { document.documentElement.style.fontSize = `${size}px`; }, px);
+    const field = (page: Page) => page.locator(`${KRYPTON} input`).first().evaluate((el) => getComputedStyle(el).fontSize);
 
-    test('a larger text size makes the panel\'s text larger, and its fields with it', async ({ page }) => {
-        await root(page, 24);
+    test('a larger text size of the person\'s makes the panel\'s text larger, and its fields with it', async ({ page, browserName }) => {
+        test.skip(browserName !== 'chromium', 'the browser\'s own font size is set through Chromium\'s DevTools protocol');
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Page.setFontSizes', { fontSizes: { standard: 24, fixed: 20 } });
+        await page.reload();
+        await page.locator(KRYPTON).waitFor();
         await openKrypton(page);
 
         expect(await sizeOf(page, `${KRYPTON} [data-scroller="body"] div`)).toBe('16.5px');
-        expect(await page.locator(`${KRYPTON} input`).first().evaluate((el) => getComputedStyle(el).fontSize)).toBe('24px');
+        expect(await field(page)).toBe('24px');
     });
 
-    test('a smaller root makes nothing smaller: the package\'s number is the least, a field 16 still', async ({ page }) => {
-        await root(page, 10);
+    test('a host\'s larger root makes nothing larger: text size inside an element is the package\'s', async ({ page }) => {
+        await page.evaluate(() => { document.documentElement.style.fontSize = '24px'; });
         await openKrypton(page);
 
         expect(await sizeOf(page, `${KRYPTON} [data-scroller="body"] div`)).toBe('11px');
-        expect(await page.locator(`${KRYPTON} input`).first().evaluate((el) => getComputedStyle(el).fontSize)).toBe('16px');
+        expect(await field(page)).toBe('16px');
+    });
+
+    test('a host\'s smaller root makes nothing smaller: the package\'s number is the least, a field 16 still', async ({ page }) => {
+        await page.evaluate(() => { document.documentElement.style.fontSize = '10px'; });
+        await openKrypton(page);
+
+        expect(await sizeOf(page, `${KRYPTON} [data-scroller="body"] div`)).toBe('11px');
+        expect(await field(page)).toBe('16px');
     });
 });
