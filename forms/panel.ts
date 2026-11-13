@@ -441,6 +441,12 @@ export function morphDotToPanel(
             document.removeEventListener('keydown', handler);
             escapeHandlers.delete(element);
         }
+        // One that rests only at its place (forms/home.ts) is on its way there, or is put there: never a dot.
+        if (onlyHomeOf(element)) {
+            morph.rollbackClass();
+            onMinimize(element, item);
+            return;
+        }
         // Reattach to tray so the element isn't orphaned — with the classes it had
         setForm(element, 'dot');
         element.remove();

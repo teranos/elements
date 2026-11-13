@@ -13,7 +13,7 @@
  */
 
 import { getLogger, getLogSegment, getCanvasHost } from '../../config';
-import { getCanvas } from '../../dataset';
+import { getCanvas, MEMBERS } from '../../dataset';
 import type { Element } from '../../element';
 import type { CompositionEdge, EdgeDirection } from '../composition';
 import { computeGridPositions, isConnectedGraph } from '../edge-graph';
@@ -315,7 +315,7 @@ export function extendComposition(
     clearMeldFeedback(incomingElement);
 
     // Clear feedback on all existing elements in the composition (anchor element may still glow)
-    compositionElement.querySelectorAll('[data-element-id]').forEach(el => {
+    compositionElement.querySelectorAll(MEMBERS).forEach(el => {
         clearFeedbackShadow(el as HTMLElement);
     });
 
@@ -338,7 +338,7 @@ export function extendComposition(
 
     // Rebuild grid positions for all children
     const allChildren = Array.from(
-        compositionElement.querySelectorAll('[data-element-id]')
+        compositionElement.querySelectorAll(MEMBERS)
     ) as HTMLElement[];
     applyColumnLayout(compositionElement, allChildren, allEdges);
 
@@ -538,7 +538,7 @@ export function detachElement(elementId: string, composition: HTMLElement): {
 
     // Rebuild layout for remaining elements
     const remainingElements = Array.from(
-        composition.querySelectorAll('[data-element-id]')
+        composition.querySelectorAll(MEMBERS)
     ) as HTMLElement[];
     applyColumnLayout(composition, remainingElements, remainingEdges);
 
@@ -587,7 +587,7 @@ export function unmeldComposition(composition: HTMLElement): {
     const compositionId = composition.getAttribute('data-element-id') || '';
 
     // Find all child elements in composition
-    const members = Array.from(composition.querySelectorAll('[data-element-id]')) as HTMLElement[];
+    const members = Array.from(composition.querySelectorAll(MEMBERS)) as HTMLElement[];
 
     if (members.length === 0) {
         log.error(seg, '[MeldSystem] No elements found in composition - removing corrupted composition');

@@ -8,7 +8,7 @@
 
 import type { Element } from '../element';
 import type { MakeDraggableOptions } from './element-ui';
-import { getForm, getCanvas } from '../dataset';
+import { getForm, getCanvas, MEMBERS } from '../dataset';
 import { getLogger, getLogSegment, getCanvasHost } from '../config';
 import {
     canInitiateMeld,
@@ -63,7 +63,7 @@ function findBestAnchorInComposition(
     let bestRole: 'from' | 'to' = 'to';
     let bestDistance = Infinity;
 
-    const members = compositionElement.querySelectorAll('[data-element-id]');
+    const members = compositionElement.querySelectorAll(MEMBERS);
     for (const el of members) {
         const member = el as HTMLElement;
         const elementId = member.dataset.elementId;
@@ -369,7 +369,7 @@ export function makeDraggable(
             const x = Math.round(parseFloat(element.style.left) || 0);
             const y = Math.round(parseFloat(element.style.top) || 0);
             const compositionId = element.getAttribute('data-element-id') || '';
-            const firstChild = element.querySelector('[data-element-id]');
+            const firstChild = element.querySelector(MEMBERS);
             const childId = firstChild?.getAttribute('data-element-id') || '';
             const existingComp = canvasHost.findCompositionByElement(childId);
             if (existingComp) {

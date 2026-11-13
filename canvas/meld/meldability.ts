@@ -9,6 +9,7 @@
  * host's to say: configureElements({ meldability }).
  */
 
+import { MEMBERS } from '../../dataset';
 import type { EdgeDirection } from '../composition';
 import { isPortFree } from '../edge-graph';
 import { getMeldability } from '../../config';
@@ -106,7 +107,7 @@ export function areClassesCompatible(initiatorClass: string, targetClass: string
  * Extract element IDs from a composition element's children
  */
 export function getCompositionElementIds(composition: HTMLElement): string[] {
-    const members = composition.querySelectorAll('[data-element-id]');
+    const members = composition.querySelectorAll(MEMBERS);
     const elementIds: string[] = [];
 
     members.forEach(el => {

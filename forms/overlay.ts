@@ -58,8 +58,10 @@ export interface OverlayHandle {
     element: HTMLElement;
     /** Changes what it says, at rest and as its title. */
     says(text: string): void;
-    /** Takes it away for good, from wherever it is. */
+    /** Takes it away for good, from wherever it is. What its item does when closed is done then. */
     away(): void;
+    /** Brings it back inside its element, where that element changed size under it. */
+    fit(): void;
 }
 
 /** An element in overlay form, over the one element the host names. */
@@ -74,6 +76,9 @@ export function overlayFrom(item: Element, options: OverlayOptions): OverlayHand
 
     const element = document.createElement('div');
     setElementId(element, item.id);
+    // As a panel it has no close button: closed there, it would be gone with its place still held.
+    // Its host takes it away (away), and what the item does when closed is done then.
+    const shown: Element = { ...item, onClose: undefined };
 
     // What it says, one node for its whole life: at rest, then the panel's
     // title, then at rest again (Element Axioma).
@@ -92,6 +97,24 @@ export function overlayFrom(item: Element, options: OverlayOptions): OverlayHand
     const stand = () => {
         element.style.left = `${place.left}px`;
         element.style.bottom = `${place.bottom}px`;
+    };
+
+    /** How big its element is drawn for how big it is laid out: a canvas zoomed draws it another size. */
+    const scale = (): number => {
+        const drawn = over.getBoundingClientRect().width;
+        return over.offsetWidth > 0 && drawn > 0 ? drawn / over.offsetWidth : 1;
+    };
+
+    /** Held inside its element, once both can be measured: where a host put it, and after its element changed size. */
+    const fit = () => {
+        if (gone || getForm(element) !== 'overlay' || returning || element.parentElement !== over) return;
+        const held = over.getBoundingClientRect();
+        const mine = element.getBoundingClientRect();
+        if (held.width <= 0 || mine.width <= 0) return;
+        const by = scale();
+        place.left = Math.max(0, Math.min(place.left, (held.width - mine.width) / by));
+        place.bottom = Math.max(0, Math.min(place.bottom, (held.height - mine.height) / by));
+        stand();
     };
 
     /** What an overlay is at rest: what it says, over its element, slightly transparent. */
@@ -128,6 +151,7 @@ export function overlayFrom(item: Element, options: OverlayOptions): OverlayHand
         // It is measured from the element it is over.
         if (window.getComputedStyle(over).position === 'static') over.style.position = 'relative';
         if (element.parentElement !== over) over.appendChild(element);
+        fit();
     };
 
     const verify = (id: string, el: HTMLElement) => {
@@ -182,11 +206,18 @@ export function overlayFrom(item: Element, options: OverlayOptions): OverlayHand
         element.style.top = `${at.top}px`;
         element.style.width = `${at.width}px`;
         element.style.height = `${at.height}px`;
-        carry();
-        element.removeAttribute('role');
-        element.removeAttribute('tabindex');
-        // A road abandoned puts it back at rest: it has no dot to be.
-        morphDotToPanel(element, item, verify, () => {}, () => { if (!gone) rest(); });
+        try {
+            carry();
+            element.removeAttribute('role');
+            element.removeAttribute('tabindex');
+            // A road abandoned puts it back at rest, unless it is already on its way there: it has no dot to be.
+            morphDotToPanel(element, shown, verify, () => {}, () => { if (!gone && !returning) rest(); });
+        } catch (err: unknown) {
+            // What it holds did not draw, or the road did not begin: it is at rest, where a press finds it again.
+            log.error(seg, `[Overlay ${item.id}] It did not open: ${err instanceof Error ? err.message : String(err)}`);
+            cancelMorph(element);
+            rest();
+        }
     };
 
     const comeBack = () => {
@@ -214,8 +245,8 @@ export function overlayFrom(item: Element, options: OverlayOptions): OverlayHand
         returning = true;
         const held = over.getBoundingClientRect();
         const to: TooltipBox = {
-            x: held.left + place.left,
-            y: held.bottom - place.bottom - size.height,
+            x: held.left + place.left * scale(),
+            y: held.bottom - place.bottom * scale() - size.height,
             width: size.width,
             height: size.height,
         };
@@ -273,8 +304,10 @@ export function overlayFrom(item: Element, options: OverlayOptions): OverlayHand
         moved = true;
         const held = over.getBoundingClientRect();
         const mine = element.getBoundingClientRect();
-        place.left = Math.max(0, Math.min(pressedAt.left + dx, held.width - mine.width));
-        place.bottom = Math.max(0, Math.min(pressedAt.bottom - dy, held.height - mine.height));
+        // What the finger moved on screen, in its element's own measure.
+        const by = scale();
+        place.left = Math.max(0, Math.min(pressedAt.left + dx / by, (held.width - mine.width) / by));
+        place.bottom = Math.max(0, Math.min(pressedAt.bottom - dy / by, (held.height - mine.height) / by));
         stand();
     });
     const letGo = (e: Event) => {
@@ -302,6 +335,9 @@ export function overlayFrom(item: Element, options: OverlayOptions): OverlayHand
     // Its place is the only place it rests: minimized, swiped away or left by Escape, it comes back here.
     setHome(element, comeBack, true);
     rest();
+    // Its element made smaller under it, it is brought back inside.
+    const resized = typeof ResizeObserver === 'function' ? new ResizeObserver(() => fit()) : null;
+    resized?.observe(over);
 
     return {
         element,
@@ -316,7 +352,12 @@ export function overlayFrom(item: Element, options: OverlayOptions): OverlayHand
             if (tray.has(item.id)) tray.remove(item.id);
             disarmContentWatch(element);
             clearHome(element);
+            resized?.disconnect();
             element.remove();
+            try { item.onClose?.(); } catch (err: unknown) {
+                log.error(seg, `[Overlay ${item.id}] Error in onClose: ${err instanceof Error ? err.message : String(err)}`);
+            }
         },
+        fit,
     };
 }

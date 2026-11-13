@@ -13,6 +13,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { overlayFrom, OVERLAY_OPACITY, OVERLAY_INSET, type OverlayHandle } from './overlay';
 import { getForm, setElementId, setForm } from '../dataset';
+import { getCompositionElementIds } from '../canvas/meld/meldability';
 import type { Element } from '../element';
 import { tray } from '../tray/tray';
 import { playAnimations, type Played } from '../test-animations';
@@ -292,5 +293,80 @@ describe('Jenny: moved, opened, taken away', () => {
         expect(overlay.element.parentElement).toBe(over);
         expect(getForm(overlay.element)).toBe('overlay');
         // Out of the page for a moment, it is the one element still.
+    });
+});
+
+describe('Spike: what goes wrong around it', () => {
+    test('an overlay is no member of the composition its element is in', () => {
+        const composition = document.createElement('div');
+        setElementId(composition, 'melded-lead');
+        document.body.appendChild(composition);
+        composition.appendChild(over);
+        expect(getCompositionElementIds(composition)).toEqual(['lead']);
+        document.body.appendChild(over);
+        composition.remove();
+    });
+
+    test('where the host says it first rests is held inside its element', () => {
+        const far = overlayFrom({ ...item(), id: 'radon' }, { over, at: { left: 9000, bottom: -40 } });
+        follow(far.element);
+        far.fit();
+        // 300 wide and itself 120: no further right than 180, and no lower than the bottom.
+        expect(far.element.style.left).toBe('180px');
+        expect(far.element.style.bottom).toBe('0px');
+        far.away();
+    });
+
+    test('its element made smaller, it is brought back inside', () => {
+        drag(overlay.element, 0, -400);
+        expect(overlay.element.style.bottom).toBe(`${OVERLAY_INSET + 400}px`);
+        boxed(over, 100, 50, 300, 200);
+        overlay.fit();
+        // 200 tall now, itself 30.
+        expect(overlay.element.style.bottom).toBe('170px');
+    });
+
+    test('Escape while it is still opening brings it back once, whole', async () => {
+        click(overlay.element);
+        expect(getForm(overlay.element)).toBe('panel');
+        escape();
+        await wait(SETTLED);
+        expectAxiom('polonium', overlay.element);
+        expect(getForm(overlay.element)).toBe('overlay');
+        expect(overlay.element.parentElement).toBe(over);
+        expect(overlay.element.style.position).toBe('absolute');
+        expect(overlay.element.textContent).toBe('three wait');
+    });
+
+    test('a body that fails to draw leaves it at rest over its element', () => {
+        const failing = overlayFrom({ ...item(), id: 'radon', renderContent: () => { throw new Error('no body'); } }, { over });
+        follow(failing.element);
+        expect(() => click(failing.element)).not.toThrow();
+        expect(getForm(failing.element)).toBe('overlay');
+        expect(failing.element.parentElement).toBe(over);
+        expect(failing.element.getAttribute('role')).toBe('button');
+        failing.away();
+    });
+
+    test('its element drawn at half size, a drag moves it as far as the finger went', () => {
+        // Drawn 150 by 250 for a box laid out 300 by 500: a canvas zoomed to a half.
+        boxed(over, 100, 50, 150, 250);
+        Object.defineProperty(over, 'offsetWidth', { value: 300, configurable: true });
+        Object.defineProperty(over, 'offsetHeight', { value: 500, configurable: true });
+        drag(overlay.element, 0, -100);
+        // A hundred on screen is two hundred of its element's own.
+        expect(overlay.element.style.bottom).toBe(`${OVERLAY_INSET + 200}px`);
+    });
+
+    test('an item that closes gets no close button as a panel: its host takes it away', async () => {
+        let closed = 0;
+        const closing = overlayFrom({ ...item(), id: 'radon', onClose: () => { closed++; } }, { over });
+        follow(closing.element);
+        click(closing.element);
+        await wait(SETTLED);
+        expect(closing.element.querySelector('.window-controls [aria-label="Close"]')).toBeNull();
+        closing.away();
+        expect(closed).toBe(1);
+        expect(document.querySelector('[data-element-id="radon"]')).toBeNull();
     });
 });
