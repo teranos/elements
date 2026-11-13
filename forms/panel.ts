@@ -248,12 +248,19 @@ function giveStripToSay(panel: HTMLElement, strip: number): boolean {
     const body = panel.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
     if (!field || strip <= 0) {
         panel.style.removeProperty('--elements-say-strip');
-        if (field) body?.style.removeProperty('padding-bottom');
+        // The body has its own padding under it again, as it was before (render.ts writes it as a shorthand).
+        if (body?.dataset.sayOwnPadding !== undefined) {
+            body.style.paddingBottom = body.dataset.sayOwnPadding;
+            delete body.dataset.sayOwnPadding;
+        }
         return false;
     }
     // The field adds the strip to what it keeps under its words (content/say.ts), and its presses stand above it.
     panel.style.setProperty('--elements-say-strip', `${strip}px`);
-    body?.style.setProperty('padding-bottom', '0px');
+    if (body) {
+        body.dataset.sayOwnPadding ??= body.style.paddingBottom;
+        body.style.setProperty('padding-bottom', '0px');
+    }
     return true;
 }
 

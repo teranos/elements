@@ -172,10 +172,13 @@ test.describe('Jenny: the field changes while the panel is open', () => {
             const field = element.querySelector<HTMLElement>('[data-say]')!;
             (field.closest('[data-say-box]')?.parentElement ?? field.parentElement!).remove();
             await new Promise((resolve) => setTimeout(resolve, 100));
-            return parseFloat(getComputedStyle(element).paddingBottom);
+            const body = element.querySelector<HTMLElement>(':scope > [data-scroller="body"]')!;
+            return { panel: parseFloat(getComputedStyle(element).paddingBottom), body: parseFloat(getComputedStyle(body).paddingBottom) };
         });
 
-        expect(kept).toBeCloseTo(34, 0);
+        expect(kept.panel).toBeCloseTo(34, 0);
+        // And the body its own padding back (Qodo on #114: "Content loses spacing after chat removal").
+        expect(kept.body).toBeCloseTo(8, 0);
     });
 
     test('a press that grows keeps the words above it', async ({ page }, info) => {

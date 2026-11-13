@@ -154,3 +154,19 @@ describe('Jenny: the field changes while the element is open', () => {
         expect(told).toBe(1);
     });
 });
+
+// Qodo on #114: "Moved chat fields lose their bottom row". A host may move the field it has into another row.
+describe('Jenny: the same field, moved', () => {
+    test('into another row: that row is pinned', async () => {
+        const { element, body } = chatElement(true);
+        holdSay(element);
+        const field = element.querySelector<HTMLElement>('[data-say]')!;
+
+        const next = document.createElement('div');
+        next.appendChild(field);
+        body.replaceChildren(next);
+        await settled();
+
+        expect(next.style.getPropertyValue('position')).toBe('sticky');
+    });
+});

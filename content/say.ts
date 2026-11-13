@@ -63,7 +63,13 @@ export function sayFrom(say: { id: string; label: string } & SayPresses): HTMLTe
 export const SAY_HELD = 'elements:say-held';
 
 /** The field each element is held to now, whichever it is. */
-const holding = new WeakMap<HTMLElement, { field: HTMLElement | null }>();
+const holding = new WeakMap<HTMLElement, { field: HTMLElement | null; row: HTMLElement | null }>();
+
+/** The row a field stands in: its box's, when it has one. */
+function rowOf(field: HTMLElement): HTMLElement | null {
+    const box = field.parentElement?.dataset.sayBox === '' ? field.parentElement : field;
+    return box.parentElement;
+}
 
 /**
  * The declared field's row, at the bottom of this element, worn in the element's own colour.
@@ -74,14 +80,18 @@ const holding = new WeakMap<HTMLElement, { field: HTMLElement | null }>();
  */
 export function holdSay(element: HTMLElement): void {
     if (holding.has(element)) return;
-    const hold: { field: HTMLElement | null } = { field: null };
+    const hold: { field: HTMLElement | null; row: HTMLElement | null } = { field: null, row: null };
     holding.set(element, hold);
     const look = () => {
         const field = element.querySelector<HTMLElement>('[data-say]');
-        if (field === hold.field) return;
+        const row = field ? rowOf(field) : null;
+        if (field === hold.field && row === hold.row) return;
+        const changed = field !== hold.field;
         hold.field = field;
         if (field) pinSay(element, field);
-        tell(element);
+        // Its row, once pinned: the same field moved into another row is pinned there too.
+        hold.row = field ? rowOf(field) : null;
+        if (changed) tell(element);
     };
     look();
     if (typeof MutationObserver === 'function') new MutationObserver(look).observe(element, { childList: true, subtree: true });

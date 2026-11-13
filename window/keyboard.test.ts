@@ -25,6 +25,7 @@ import { leaveWindow } from './window';
 import { resetZOrder } from './z-order';
 import { visibleArea } from '../safe-area';
 import { setForm, getLastPosition } from '../dataset';
+import { SAY_HELD } from '../content/say';
 
 const SCREEN = { width: window.innerWidth, height: window.innerHeight };
 const KEYBOARD = 300;
@@ -474,5 +475,28 @@ describe('Jenny: a panel whose chat field holds the home bar\'s strip', () => {
 
         keyboardDown(vv);
         expect(el.style.getPropertyValue('--elements-say-strip')).toBe('34px');
+    });
+});
+
+// Qodo on #114: "Late chat fields stop short of the edge". A panel's bottom is put back as it stood before the
+// keyboard; a chat field drawn while the keyboard was up changed what that should be. The panel is told when the
+// keyboard goes, and gives the strip again to the field it has now (forms/panel.ts).
+describe('Jenny: a chat field drawn while the keyboard is up', () => {
+    test('when the keyboard goes, the panel is told, to give its strip to the field it has now', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(0, SCREEN.height, 'xenon');
+        setForm(el, 'panel');
+        el.style.paddingBottom = '34px';
+        let told = 0;
+        el.addEventListener(SAY_HELD, () => told++);
+
+        field.focus();
+        keyboardUp(vv);
+        const say = document.createElement('textarea');
+        say.dataset.say = '';
+        el.appendChild(say);
+        keyboardDown(vv);
+
+        expect(told).toBe(1);
     });
 });

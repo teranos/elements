@@ -16,6 +16,7 @@
 
 import { visibleArea } from '../safe-area';
 import { getForm } from '../dataset';
+import { SAY_HELD } from '../content/say';
 import { holdPosition } from '../position';
 
 // A field taking the keyboard zooms nothing: inside an element a field is at 16, whatever a host writes
@@ -204,6 +205,12 @@ export function backFromKeyboard(element: HTMLElement): void {
     element.style.maxHeight = s.maxHeight;
     element.style.paddingBottom = s.paddingBottom;
     if (s.strip) element.style.setProperty('--elements-say-strip', s.strip);
+    // A chat field drawn while the keyboard was up changed what the panel's bottom should be: what stood before is
+    // not it. The panel is told, and gives its strip to the field it has now (forms/panel.ts).
+    if (getForm(element) === 'panel' && element.querySelector('[data-say]')) {
+        const view = element.ownerDocument.defaultView ?? window;
+        element.dispatchEvent(new view.Event(SAY_HELD));
+    }
 }
 
 /** A field pressed in this window brings the keyboard; wired once per element (Element Axioma). */
