@@ -17,7 +17,8 @@
 
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { morphDotToPanel } from './panel';
-import { getForm } from '../dataset';
+import { getForm, setForm } from '../dataset';
+import { SAY_HELD } from '../content/say';
 import type { Element } from '../element';
 import { playAnimations, type Played } from '../test-animations';
 import { expectAxiom } from '../test-axiom';
@@ -325,5 +326,21 @@ describe('Jenny: opened after a window, in front of it', () => {
 
         element.dispatchEvent(new Ev('mousedown', { bubbles: true }));
         expect(Number(element.style.zIndex)).toBeGreaterThan(Number(before.style.zIndex));
+    });
+});
+
+// Qodo on #114: "Panel padding logic runs after the element leaves panel form". The element is one DOM element in
+// every form (Element Axioma): what it is told about its chat field once it is a window or a dot is not a panel's.
+describe('Spike: told about its chat field once it is no longer a panel', () => {
+    test('nothing of a panel\'s is written on it', async () => {
+        await open(element);
+        setForm(element, 'window');
+        element.style.paddingBottom = '';
+        element.style.removeProperty('--elements-say-strip');
+
+        element.dispatchEvent(new (window as any).Event(SAY_HELD));
+
+        expect(element.style.paddingBottom).toBe('');
+        expect(element.style.getPropertyValue('--elements-say-strip')).toBe('');
     });
 });
