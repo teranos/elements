@@ -94,7 +94,10 @@ export function holdSay(element: HTMLElement): void {
         if (changed) tell(element);
     };
     look();
-    if (typeof MutationObserver === 'function') new MutationObserver(look).observe(element, { childList: true, subtree: true });
+    // A field put in first and declared after is found when it is declared.
+    if (typeof MutationObserver === 'function') {
+        new MutationObserver(look).observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-say'] });
+    }
 }
 
 /** Tells the element its field changed: a panel gives it the home bar's strip, or takes it back (forms/panel.ts). */

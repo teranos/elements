@@ -170,3 +170,24 @@ describe('Jenny: the same field, moved', () => {
         expect(next.style.getPropertyValue('position')).toBe('sticky');
     });
 });
+
+// Qodo on #114: "Late-declared chat fields stay unpinned". A host may put its field in first and declare it after.
+describe('Jenny: a field declared after it was put in', () => {
+    test('is pinned when it is declared, and the element told', async () => {
+        const { element, body } = chatElement(false);
+        let told = 0;
+        element.addEventListener(SAY_HELD, () => told++);
+        holdSay(element);
+        const row = document.createElement('div');
+        const field = document.createElement('textarea');
+        row.appendChild(field);
+        body.appendChild(row);
+        await settled();
+
+        declareSay(field);
+        await settled();
+
+        expect(row.style.getPropertyValue('position')).toBe('sticky');
+        expect(told).toBe(1);
+    });
+});

@@ -30,7 +30,8 @@ import { keepClearOfKeyboard, backFromKeyboard } from '../window/keyboard';
 import { raise, raiseOnInteract } from '../window/z-order';
 import {
     setForm,
-    setElementId
+    setElementId,
+    getForm
 } from '../dataset';
 import { prepareMorphTo, calculateTrayTarget, resetElement } from './morphology';
 import { SAY_HELD } from '../content/say';
@@ -461,7 +462,10 @@ export function morphDotToPanel(
         // A field the host draws later is given the strip when it arrives (content/say.ts).
         if (!heldSays.has(element)) {
             heldSays.add(element);
-            element.addEventListener(SAY_HELD, () => keepInsideSafeArea(element));
+            // Only while it is a panel: the same element told about its field as a window or a dot is not a panel's.
+            element.addEventListener(SAY_HELD, () => {
+                if (element.isConnected && getForm(element) === 'panel') keepInsideSafeArea(element);
+            });
         }
 
         // On a touch screen, the title bar is the grabber's strip, and the grabber shows it can be
