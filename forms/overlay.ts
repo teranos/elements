@@ -46,6 +46,11 @@ export interface OverlayOptions {
     over: HTMLElement;
     /** The host's class, so it looks as the host draws it. */
     className?: string;
+    /**
+     * Where it first rests, in px from its element's bottom left: above a chat's
+     * field, say. Left out, it is OVERLAY_INSET from each. A person moves it from there.
+     */
+    at?: { left?: number; bottom?: number };
 }
 
 export interface OverlayHandle {
@@ -77,7 +82,7 @@ export function overlayFrom(item: Element, options: OverlayOptions): OverlayHand
     label.textContent = item.title;
 
     // Where it rests in its element, from that element's bottom left.
-    const place = { left: OVERLAY_INSET, bottom: OVERLAY_INSET };
+    const place = { left: options.at?.left ?? OVERLAY_INSET, bottom: options.at?.bottom ?? OVERLAY_INSET };
     // The size it rests at, as it was last drawn there.
     let size = { width: 0, height: 0 };
     // On its way back: not yet at rest, no longer anything else.

@@ -199,6 +199,13 @@ describe('Spike: what an overlay is not', () => {
         expect(getForm(overlay.element)).toBe('panel');
     });
 
+    test('where it first rests is the host\'s to say: above a chat\'s field', () => {
+        const above = overlayFrom({ ...item(), id: 'radon' }, { over, at: { bottom: 96 } });
+        expect(above.element.style.bottom).toBe('96px');
+        expect(above.element.style.left).toBe(`${OVERLAY_INSET}px`);
+        above.away();
+    });
+
     test('it is moved no further than the element it is over', () => {
         drag(overlay.element, -500, -5000);
         expect(overlay.element.style.left).toBe('0px');
