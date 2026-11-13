@@ -102,6 +102,15 @@ export interface FormTable {
      * forms/press.ts too: the same form, a press that does rather than opens, part of its element.
      */
     readonly button: { readonly opensFromTray: false };
+
+    /**
+     * Resting over one other element, bottom left, slightly transparent, moved
+     * by a drag and no further than that element. forms/overlay.ts: a press
+     * opens it fullscreen, a panel, the same element, and every way out of that
+     * brings it back over its element. Never in the tray, and never without the
+     * element it is over.
+     */
+    readonly overlay: { readonly opensFromTray: false };
 }
 
 // Annotated here rather than only on FORMS: a literal assigned straight
@@ -118,6 +127,7 @@ const TABLE: FormTable = {
     cursor: { opensFromTray: false },
     tooltip: { opensFromTray: false },
     button: { opensFromTray: false },
+    overlay: { opensFromTray: false },
 };
 
 export const FORMS: FormTable = Object.freeze(TABLE);

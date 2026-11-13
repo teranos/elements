@@ -4,6 +4,7 @@ import { renderPlacementSpecimen } from './placement';
 import { renderBorderSpecimen } from './border';
 import { renderTooltipSpecimen } from './tooltip';
 import { renderButtonSpecimen } from './button';
+import { renderOverlaySpecimen } from './overlay';
 import { renderPanelSpecimen } from './panel';
 import { renderSparklineSpecimen } from './sparkline';
 import { renderFieldSpecimen } from './field';
@@ -24,6 +25,7 @@ renderPlacementSpecimen();
 renderBorderSpecimen();
 renderTooltipSpecimen();
 renderButtonSpecimen();
+renderOverlaySpecimen();
 // Selenium rests between the tray's Zinc and Krypton, as it does in the table.
 renderFieldSpecimen();
 renderPanelSpecimen();
