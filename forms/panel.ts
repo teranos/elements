@@ -245,18 +245,14 @@ function keepInsideSafeArea(panel: HTMLElement): void {
  */
 function giveStripToSay(panel: HTMLElement, strip: number): boolean {
     const field = panel.querySelector<HTMLElement>('[data-say]');
-    if (!field) return false;
     const body = panel.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
-    // Its own padding, read once: the strip is added to it, and taken off it again.
-    field.style.removeProperty('padding-bottom');
-    const own = field.dataset.sayOwnPadding ?? window.getComputedStyle(field).paddingBottom;
-    field.dataset.sayOwnPadding = own;
-    if (strip <= 0) {
-        body?.style.removeProperty('padding-bottom');
-        delete field.dataset.sayOwnPadding;
+    if (!field || strip <= 0) {
+        panel.style.removeProperty('--elements-say-strip');
+        if (field) body?.style.removeProperty('padding-bottom');
         return false;
     }
-    field.style.setProperty('padding-bottom', `calc(${own} + ${strip}px)`, 'important');
+    // The field adds the strip to what it keeps under its words (content/say.ts), and its presses stand above it.
+    panel.style.setProperty('--elements-say-strip', `${strip}px`);
     body?.style.setProperty('padding-bottom', '0px');
     return true;
 }

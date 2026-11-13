@@ -74,3 +74,38 @@ describe('Jenny: a field drawn after the element opened', () => {
         expect(told).toBe(1);
     });
 });
+
+// Purple arrows on a screenshot: the + into the field's bottom-left corner, the → into its bottom-right. "And how
+// often do you want me to complain about the positions of these buttons". A field's presses are in its box, not on
+// the line above it.
+describe('Tim: a field with its presses', () => {
+    test('the + and the → are in the field\'s box, at its bottom corners, and the words leave them room', () => {
+        const element = document.createElement('div');
+        const body = document.createElement('div');
+        body.dataset.scroller = 'body';
+        const row = document.createElement('div');
+        const choice = document.createElement('select');
+        const field = document.createElement('textarea');
+        const attach = document.createElement('button');
+        const send = document.createElement('button');
+        declareSay(field, { start: attach, end: send });
+        row.append(choice, attach, send, field);
+        body.appendChild(row);
+        element.appendChild(body);
+        document.body.appendChild(element);
+
+        holdSay(element);
+
+        const box = field.parentElement!;
+        expect(box.dataset.sayBox).toBe('');
+        expect(attach.parentElement).toBe(box);
+        expect(send.parentElement).toBe(box);
+        expect(choice.parentElement).toBe(row);
+        expect(attach.style.getPropertyValue('position')).toBe('absolute');
+        expect(attach.style.getPropertyValue('left')).not.toBe('');
+        expect(send.style.getPropertyValue('right')).not.toBe('');
+        // The line the presses stand on is kept under the words (happy-dom drops a calc() with a var() in it; a
+        // browser holds it, browser/say-field.browser.ts).
+        expect(field.style.getPropertyValue('--elements-say-room')).not.toBe('');
+    });
+});

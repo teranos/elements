@@ -62,10 +62,9 @@ test.describe('Spike: what the host put beside it', () => {
         await open(page);
         const field = await boxOf(page, `${XENON} [data-say]`);
         const choice = await boxOf(page, `${XENON} select`);
-        const button = await boxOf(page, `${XENON} [data-say] ~ button, ${XENON} button:not(.title-bar button)`);
 
+        // Its own presses are in it (Tim: the field's presses); what else the host put beside it is above it.
         expect(choice.bottom).toBeLessThanOrEqual(field.top);
-        expect(button.bottom).toBeLessThanOrEqual(field.top);
     });
 });
 
@@ -98,5 +97,39 @@ test.describe('Jenny: over the home bar', () => {
 
         expect(at.bottom).toBeCloseTo(at.screen, 0);
         expect(at.words).toBeLessThanOrEqual(at.screen - 34);
+    });
+});
+
+// Purple arrows: the + into the field's bottom-left corner, the → into its bottom-right.
+test.describe('Tim: the field\'s presses', () => {
+    test('the + and the → are in the field, at its bottom corners, above the home bar, under its words', async ({ page }, info) => {
+        test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
+        await page.evaluate(() => document.documentElement.style.setProperty('--elements-safe-area-bottom', '34px'));
+        await open(page);
+        const at = await page.locator(XENON).evaluate((element) => {
+            const field = element.querySelector<HTMLElement>('[data-say]')!;
+            const box = (b: Element) => b.getBoundingClientRect();
+            const [attach, send] = Array.from(field.parentElement!.querySelectorAll('button'));
+            const s = getComputedStyle(field);
+            return {
+                field: box(field), attach: box(attach), send: box(send),
+                words: box(field).bottom - parseFloat(s.paddingBottom),
+                screen: window.innerHeight,
+            };
+        });
+
+        // Inside the field's box.
+        expect(at.attach.left).toBeGreaterThanOrEqual(at.field.left);
+        expect(at.send.right).toBeLessThanOrEqual(at.field.right);
+        expect(at.attach.bottom).toBeLessThanOrEqual(at.field.bottom);
+        // At its corners: the + to the left, the → to the right, on one line.
+        expect(at.attach.left - at.field.left).toBeLessThan(16);
+        expect(at.field.right - at.send.right).toBeLessThan(16);
+        expect(at.attach.top).toBeCloseTo(at.send.top, 0);
+        // Above the home bar, and under the words.
+        expect(at.attach.bottom).toBeLessThanOrEqual(at.screen - 34);
+        expect(at.attach.top).toBeGreaterThanOrEqual(at.words - 1);
+        // The field still reaches the bottom of the screen.
+        expect(at.field.bottom).toBeCloseTo(at.screen, 0);
     });
 });
