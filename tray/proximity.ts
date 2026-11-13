@@ -100,11 +100,18 @@ export class Proximity {
             // edge, it covered the window's Minimize, and the press opened a dot.
             // Looked for beneath the dots, not only at the top: a dot already grown over a window's control is
             // what the pointer lands on, and it stayed grown, the control under it unpressable.
-            const under = typeof document.elementsFromPoint === 'function'
-                ? document.elementsFromPoint(e.clientX, e.clientY)
-                : [e.target];
-            this.onElement = under.some((node) => {
-                const on = node instanceof globalThis.Element ? node.closest('[data-element-id]') : null;
+            // Mousemove fires at display rate and a hit-test flushes layout, so the stack is asked for
+            // only on a dot, the one place the top alone cannot answer.
+            const elementOf = (node: unknown) =>
+                node instanceof globalThis.Element ? node.closest('[data-element-id]') : null;
+            const top = elementOf(e.target);
+            const onDot = top !== null && top.classList.contains('dot');
+            if (!onDot || typeof document.elementsFromPoint !== 'function') {
+                this.onElement = top !== null && !onDot;
+                return;
+            }
+            this.onElement = document.elementsFromPoint(e.clientX, e.clientY).some((node) => {
+                const on = elementOf(node);
                 return on !== null && !on.classList.contains('dot');
             });
         });

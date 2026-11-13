@@ -138,4 +138,18 @@ describe('Jenny: a dot already grown over a window\'s control', () => {
 
         expect(dot.style.width).toBe('220px');
     });
+
+    // Mousemove fires at display rate: the stack is asked for only when a dot is what the pointer is on,
+    // the one case the top alone cannot answer.
+    test('off the dots, what the pointer is on answers alone: nothing under it is asked for', () => {
+        new Proximity();
+        const { win } = trayAndWindow();
+        let asked = 0;
+        (document as unknown as { elementsFromPoint: () => globalThis.Element[] }).elementsFromPoint = () => { asked++; return []; };
+
+        moveOn(win.querySelector('button')!);
+        moveOn(document.body);
+
+        expect(asked).toBe(0);
+    });
 });
