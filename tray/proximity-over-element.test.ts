@@ -90,6 +90,54 @@ describe('Spike: what is not an open element', () => {
     });
 });
 
+// QNTX opens its canvas as the workspace at start: the whole viewport is an element under the tray.
+// It is what everything stands on, not a window the dots could cover.
+describe('Spike: the ground is not an open element', () => {
+    const had = (document as unknown as { elementsFromPoint?: unknown }).elementsFromPoint;
+    afterEach(() => { (document as unknown as { elementsFromPoint?: unknown }).elementsFromPoint = had; });
+
+    for (const form of ['workspace', 'canvasExpanded']) {
+        test(`on the ${form}, near the tray, the dots grow`, () => {
+            const proximity = new Proximity();
+            const { container, dot, win } = trayAndWindow();
+            win.dataset.form = form;
+
+            moveOn(win);
+            proximity.updateProximity(container, NO_ITEMS, false);
+
+            expect(dot.style.width).toBe('220px');
+        });
+
+        test(`a dot over the ${form} grows`, () => {
+            const proximity = new Proximity();
+            const { container, dot, win } = trayAndWindow();
+            win.dataset.form = form;
+            (document as unknown as { elementsFromPoint: () => globalThis.Element[] }).elementsFromPoint =
+                () => [dot, container, win, document.body];
+
+            moveOn(dot);
+            proximity.updateProximity(container, NO_ITEMS, false);
+
+            expect(dot.style.width).toBe('220px');
+        });
+    }
+
+    test('an element placed on the canvas is open: on it, the dots stay at rest', () => {
+        const proximity = new Proximity();
+        const { container, dot, win } = trayAndWindow();
+        win.dataset.form = 'workspace';
+        const placed = document.createElement('div');
+        placed.dataset.elementId = 'beryllium';
+        placed.dataset.form = 'canvasPlaced';
+        win.appendChild(placed);
+
+        moveOn(placed);
+        proximity.updateProximity(container, NO_ITEMS, false);
+
+        expect(dot.style.width).toBe('10px');
+    });
+});
+
 describe('Jenny: leaving the window for the tray', () => {
     test('the dots grow again', () => {
         const proximity = new Proximity();
