@@ -1,6 +1,6 @@
 {
   "name": "@teranos/elements",
-  "version": "1.33.7",
+  "version": "1.34.0",
   "license": "MIT",
   "exports": "./index.ts",
   "publish": {

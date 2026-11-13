@@ -157,6 +157,9 @@ export { morphDotToPanel, morphPanelToDot } from './forms/panel';
 export { tooltipFrom } from './forms/tooltip';
 export { buttonFrom } from './forms/button';
 export type { ButtonOptions } from './forms/button';
+// An overlay: over one other element, pressed open fullscreen, back over it again
+export { overlayFrom, OVERLAY_OPACITY, OVERLAY_INSET } from './forms/overlay';
+export type { OverlayOptions, OverlayHandle } from './forms/overlay';
 // A press: button form that does what it says, once or in two stages; the same size at every stage
 export { pressFrom, pressSizeFor, AtField, MEANS, CREATES, ARMED_FOR_MS, PRESS_SIZES } from './forms/press';
 // A field: one line of text with its label, the package's only field but the chat's
