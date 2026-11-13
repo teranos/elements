@@ -62,32 +62,44 @@ export function sayFrom(say: { id: string; label: string } & SayPresses): HTMLTe
 /** What an element is told when the field it says from is held: a panel gives it the home bar's strip (forms/panel.ts). */
 export const SAY_HELD = 'elements:say-held';
 
-const waiting = new WeakMap<HTMLElement, MutationObserver>();
+/** The field each element is held to now, whichever it is. */
+const holding = new WeakMap<HTMLElement, { field: HTMLElement | null }>();
 
 /**
  * The declared field's row, at the bottom of this element, worn in the element's own colour.
  *
  * A host may draw its field after the element opened: QNTX-Web's Node Agent asks the node which harnesses it offers
- * first. A field not there yet is held when it arrives.
+ * first. It may draw another in its place: a harness tab pressed draws that harness's chat, its own field. It may take
+ * it away. The element is held to the field it has now, and told each time that changes (SAY_HELD).
  */
 export function holdSay(element: HTMLElement): void {
-    if (pinSay(element) || waiting.has(element) || typeof MutationObserver !== 'function') return;
-    const observer = new MutationObserver(() => {
-        if (!pinSay(element)) return;
-        observer.disconnect();
-        waiting.delete(element);
-    });
-    waiting.set(element, observer);
-    observer.observe(element, { childList: true, subtree: true });
+    if (holding.has(element)) return;
+    const hold: { field: HTMLElement | null } = { field: null };
+    holding.set(element, hold);
+    const look = () => {
+        const field = element.querySelector<HTMLElement>('[data-say]');
+        if (field === hold.field) return;
+        hold.field = field;
+        if (field) pinSay(element, field);
+        tell(element);
+    };
+    look();
+    if (typeof MutationObserver === 'function') new MutationObserver(look).observe(element, { childList: true, subtree: true });
 }
 
-/** Pins the declared field's row, if there is one yet, and tells the element. */
-function pinSay(element: HTMLElement): boolean {
-    const field = element.querySelector<HTMLElement>('[data-say]');
-    if (!field?.parentElement) return false;
+/** Tells the element its field changed: a panel gives it the home bar's strip, or takes it back (forms/panel.ts). */
+function tell(element: HTMLElement): void {
+    // The element's own window makes the event: a document's events are its window's.
+    const view = element.ownerDocument.defaultView ?? window;
+    element.dispatchEvent(new view.Event(SAY_HELD));
+}
+
+/** Pins the declared field's row at the bottom of the element. */
+function pinSay(element: HTMLElement, field: HTMLElement): void {
+    if (!field.parentElement) return;
     const box = boxOf(field);
     const row = box.parentElement;
-    if (!row) return false;
+    if (!row) return;
     const body = element.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
     // Its own row only: the body or the element is not a row to pin.
     const pinned = row === body || row === element ? box : row;
@@ -96,10 +108,6 @@ function pinSay(element: HTMLElement): boolean {
     // What scrolls under it is not seen through it.
     pinned.style.setProperty('background-color', element.style.backgroundColor || getComputedStyle(element).backgroundColor, 'important');
     leaveRoom(field);
-    // The element's own window makes the event: a document's events are its window's.
-    const view = element.ownerDocument.defaultView ?? window;
-    element.dispatchEvent(new view.Event(SAY_HELD));
-    return true;
 }
 
 /** The field's box: the field itself, or, with presses, a box holding it and them, where the field stood. */
@@ -127,6 +135,9 @@ function boxOf(field: HTMLElement): HTMLElement {
     return box;
 }
 
+/** Fields whose presses are measured as they change. */
+const measured = new WeakSet<HTMLElement>();
+
 /**
  * What is typed stays above the presses and above the home bar's strip: the field's own padding under it, the
  * presses' line, and the strip a panel gives it (forms/panel.ts).
@@ -138,8 +149,17 @@ function leaveRoom(field: HTMLElement): void {
     }
     const own = presses.get(field);
     if (own) {
-        const tallest = Math.max(...[own.start, own.end].map((press) => press?.getBoundingClientRect().height ?? 0));
-        field.style.setProperty('--elements-say-room', `${(tallest > 0 ? tallest : 32) + 6}px`);
+        const roomFor = () => {
+            const tallest = Math.max(...[own.start, own.end].map((press) => press?.getBoundingClientRect().height ?? 0));
+            field.style.setProperty('--elements-say-room', `${(tallest > 0 ? tallest : 32) + 6}px`);
+        };
+        roomFor();
+        // A press that grows (its label changed) takes more of the line: the words keep above it.
+        if (typeof ResizeObserver === 'function' && !measured.has(field)) {
+            measured.add(field);
+            const watch = new ResizeObserver(roomFor);
+            for (const press of [own.start, own.end]) if (press) watch.observe(press);
+        }
     }
     field.style.setProperty('padding-bottom', `calc(${field.dataset.sayOwnPadding} + var(--elements-say-room, 0px) + var(--elements-say-strip, 0px))`, 'important');
 }

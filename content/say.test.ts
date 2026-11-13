@@ -109,3 +109,48 @@ describe('Tim: a field with its presses', () => {
         expect(field.style.getPropertyValue('--elements-say-room')).not.toBe('');
     });
 });
+
+// Qodo on #114: "Switched chats obscure typed text", "Removing a chat field exposes bottom controls". QNTX-Web draws a
+// new chat, its own field, when a harness tab is pressed; a host may take its chat away. The element is held to the
+// field it has now, whichever that is, and told each time it changes.
+describe('Jenny: the field changes while the element is open', () => {
+    test('a field drawn in place of the first is pinned, and the element told again', async () => {
+        const { element, body } = chatElement(true);
+        let told = 0;
+        element.addEventListener(SAY_HELD, () => told++);
+        holdSay(element);
+        expect(told).toBe(1);
+
+        const next = rowWithField();
+        body.replaceChildren(next);
+        await settled();
+
+        expect(next.style.getPropertyValue('position')).toBe('sticky');
+        expect((next.firstElementChild as HTMLElement).dataset.sayOwnPadding).not.toBeUndefined();
+        expect(told).toBe(2);
+    });
+
+    test('a field taken away tells the element, so it gives back what it gave the field', async () => {
+        const { element, body } = chatElement(true);
+        let told = 0;
+        element.addEventListener(SAY_HELD, () => told++);
+        holdSay(element);
+
+        body.replaceChildren(document.createElement('p'));
+        await settled();
+
+        expect(told).toBe(2);
+    });
+
+    test('what changes around the same field tells nothing', async () => {
+        const { element, body } = chatElement(true);
+        let told = 0;
+        element.addEventListener(SAY_HELD, () => told++);
+        holdSay(element);
+
+        body.appendChild(document.createElement('p'));
+        await settled();
+
+        expect(told).toBe(1);
+    });
+});

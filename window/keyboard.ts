@@ -28,6 +28,8 @@ interface Stood {
     top: string;
     maxHeight: string;
     paddingBottom: string;
+    /** The home bar's strip a panel gave its chat field (forms/panel.ts), held back while the keyboard covers the bar. */
+    strip: string;
     y: number;
     height: number;
     wrote: string;
@@ -93,6 +95,7 @@ function answer(element: HTMLElement): void {
         top: element.style.top,
         maxHeight: element.style.maxHeight,
         paddingBottom: element.style.paddingBottom,
+        strip: element.style.getPropertyValue('--elements-say-strip'),
         y: Number.isFinite(placed) ? placed : rect.top,
         height: rect.height,
     };
@@ -120,7 +123,11 @@ function answer(element: HTMLElement): void {
     element.style.top = `${y}px`;
     element.style.maxHeight = height < from.height ? `${height}px` : from.maxHeight;
     // The keyboard covers the home indicator: nothing is held back for it.
-    if (form === 'panel') element.style.paddingBottom = '0px';
+    // Nor for its chat field: its + and → stand on the keyboard, not on a home bar it hides.
+    if (form === 'panel') {
+        element.style.paddingBottom = '0px';
+        if (from.strip) element.style.setProperty('--elements-say-strip', '0px');
+    }
     stood.set(element, { ...from, wrote: element.style.top });
     keepFieldSeen(element);
 }
@@ -196,6 +203,7 @@ export function backFromKeyboard(element: HTMLElement): void {
     element.style.top = s.top;
     element.style.maxHeight = s.maxHeight;
     element.style.paddingBottom = s.paddingBottom;
+    if (s.strip) element.style.setProperty('--elements-say-strip', s.strip);
 }
 
 /** A field pressed in this window brings the keyboard; wired once per element (Element Axioma). */

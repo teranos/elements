@@ -133,3 +133,64 @@ test.describe('Tim: the field\'s presses', () => {
         expect(at.field.bottom).toBeCloseTo(at.screen, 0);
     });
 });
+
+// Qodo on #114: the field a host draws in place of the first (a harness tab pressed), the field taken away, a press
+// that grows. The element is held to the field it has now.
+test.describe('Jenny: the field changes while the panel is open', () => {
+    const fieldAt = (page: Page) => page.locator(XENON).evaluate((element) => {
+        const field = element.querySelector<HTMLElement>('[data-say]')!;
+        const r = field.getBoundingClientRect();
+        const s = getComputedStyle(field);
+        return { bottom: r.bottom, words: r.bottom - parseFloat(s.paddingBottom) - parseFloat(s.borderBottomWidth), screen: window.innerHeight };
+    });
+
+    test('a field drawn in place of the first reaches the bottom, its words above the bar', async ({ page }, info) => {
+        test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
+        await page.evaluate(() => document.documentElement.style.setProperty('--elements-safe-area-bottom', '34px'));
+        await open(page);
+        await page.locator(XENON).evaluate((element) => {
+            const old = element.querySelector<HTMLElement>('[data-say]')!;
+            const row = old.closest('[data-say-box]')?.parentElement ?? old.parentElement!;
+            const next = document.createElement('div');
+            const field = document.createElement('textarea');
+            field.dataset.say = '';
+            next.appendChild(field);
+            row.replaceWith(next);
+        });
+        await page.waitForTimeout(100);
+        const at = await fieldAt(page);
+
+        expect(at.bottom).toBeCloseTo(at.screen, 0);
+        expect(at.words).toBeLessThanOrEqual(at.screen - 34);
+    });
+
+    test('with the field taken away, the panel keeps the home bar\'s strip again', async ({ page }, info) => {
+        test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
+        await page.evaluate(() => document.documentElement.style.setProperty('--elements-safe-area-bottom', '34px'));
+        await open(page);
+        const kept = await page.locator(XENON).evaluate(async (element) => {
+            const field = element.querySelector<HTMLElement>('[data-say]')!;
+            (field.closest('[data-say-box]')?.parentElement ?? field.parentElement!).remove();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            return parseFloat(getComputedStyle(element).paddingBottom);
+        });
+
+        expect(kept).toBeCloseTo(34, 0);
+    });
+
+    test('a press that grows keeps the words above it', async ({ page }, info) => {
+        test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
+        await page.evaluate(() => document.documentElement.style.setProperty('--elements-safe-area-bottom', '34px'));
+        await open(page);
+        const at = await page.locator(XENON).evaluate(async (element) => {
+            const field = element.querySelector<HTMLElement>('[data-say]')!;
+            const send = field.parentElement!.querySelectorAll('button')[1]!;
+            send.style.setProperty('height', '72px', 'important');
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            const s = getComputedStyle(field);
+            return { press: send.getBoundingClientRect().top, words: field.getBoundingClientRect().bottom - parseFloat(s.paddingBottom) };
+        });
+
+        expect(at.press).toBeGreaterThanOrEqual(at.words - 1);
+    });
+});

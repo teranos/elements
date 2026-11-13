@@ -457,3 +457,22 @@ describe('Jenny: what else happens while the keyboard is up', () => {
         expect(top(el)).toBe(500);
     });
 });
+
+// Qodo on #114: "Chat buttons stay raised above the keyboard". A panel gives the home bar's strip to its chat field
+// (forms/panel.ts); the keyboard covers the home bar, so while it is up the strip is nobody's, and the field's + and →
+// stand on the keyboard, not 34px above it.
+describe('Jenny: a panel whose chat field holds the home bar\'s strip', () => {
+    test('the strip is nobody\'s while the keyboard is up, and the field\'s again when it goes', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(0, SCREEN.height, 'xenon');
+        setForm(el, 'panel');
+        el.style.setProperty('--elements-say-strip', '34px');
+
+        field.focus();
+        keyboardUp(vv);
+        expect(el.style.getPropertyValue('--elements-say-strip')).toBe('0px');
+
+        keyboardDown(vv);
+        expect(el.style.getPropertyValue('--elements-say-strip')).toBe('34px');
+    });
+});
