@@ -10,7 +10,8 @@
  * Personas:
  * - Tim: Happy path — a pointer on a window leaves the dots at rest; on a dot, they grow
  * - Spike: Edge cases — a dot is an element too, and does not count; the page behind does not either
- * - Jenny: Complex scenarios — leaving the window for the tray, the dots grow again
+ * - Jenny: Complex scenarios — leaving the window for the tray, the dots grow again; a dot already grown over a
+ *   window's control, the pointer landing on it: the window under it is where the pointer is
  */
 
 import { describe, test, expect, beforeAll, afterAll, afterEach } from 'bun:test';
@@ -96,6 +97,42 @@ describe('Jenny: leaving the window for the tray', () => {
 
         moveOn(win);
         proximity.updateProximity(container, NO_ITEMS, false);
+        moveOn(dot);
+        proximity.updateProximity(container, NO_ITEMS, false);
+
+        expect(dot.style.width).toBe('220px');
+    });
+});
+
+// Seen in button.browser.ts, 1 run in 10: a window opened out of the tray stands by it, the dots had grown
+// toward the pointer on its way, and one lay over the window's ↓. The pointer landed on the dot, so it was
+// on no open element, so the dots stayed grown: the window's ↓ could not be pressed.
+describe('Jenny: a dot already grown over a window\'s control', () => {
+    const had = (document as unknown as { elementsFromPoint?: unknown }).elementsFromPoint;
+    afterEach(() => { (document as unknown as { elementsFromPoint?: unknown }).elementsFromPoint = had; });
+
+    /** What a browser says lies under the pointer, top first. */
+    const under = (...nodes: globalThis.Element[]) => {
+        (document as unknown as { elementsFromPoint: () => globalThis.Element[] }).elementsFromPoint = () => nodes;
+    };
+
+    test('the pointer is on the window under it: the dots go back to rest', () => {
+        const proximity = new Proximity();
+        const { container, dot, win } = trayAndWindow();
+        const control = win.querySelector('button')!;
+
+        under(dot, control, win, document.body);
+        moveOn(dot);
+        proximity.updateProximity(container, NO_ITEMS, false);
+
+        expect(dot.style.width).toBe('10px');
+    });
+
+    test('with only the page under the dot, the pointer is reaching for the tray: the dots grow', () => {
+        const proximity = new Proximity();
+        const { container, dot } = trayAndWindow();
+
+        under(dot, container, document.body);
         moveOn(dot);
         proximity.updateProximity(container, NO_ITEMS, false);
 

@@ -98,8 +98,15 @@ export class Proximity {
             this.mouseY = e.clientY;
             // The tray sits above every window: grown toward a pointer on a window by the right
             // edge, it covered the window's Minimize, and the press opened a dot.
-            const on = e.target instanceof globalThis.Element ? e.target.closest('[data-element-id]') : null;
-            this.onElement = on !== null && !on.classList.contains('dot');
+            // Looked for beneath the dots, not only at the top: a dot already grown over a window's control is
+            // what the pointer lands on, and it stayed grown, the control under it unpressable.
+            const under = typeof document.elementsFromPoint === 'function'
+                ? document.elementsFromPoint(e.clientX, e.clientY)
+                : [e.target];
+            this.onElement = under.some((node) => {
+                const on = node instanceof globalThis.Element ? node.closest('[data-element-id]') : null;
+                return on !== null && !on.classList.contains('dot');
+            });
         });
 
         // Mobile: touchmove feeds the same coordinates during browse mode.
