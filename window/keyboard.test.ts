@@ -467,6 +467,10 @@ describe('Jenny: a panel whose chat field holds the home bar\'s strip', () => {
         const vv = giveVisualViewport();
         const { el, field } = windowWithField(0, SCREEN.height, 'xenon');
         setForm(el, 'panel');
+        // The strip is a chat field's (forms/panel.ts): there is one.
+        const say = document.createElement('textarea');
+        say.dataset.say = '';
+        el.appendChild(say);
         el.style.setProperty('--elements-say-strip', '34px');
 
         field.focus();
@@ -495,6 +499,28 @@ describe('Jenny: a chat field drawn while the keyboard is up', () => {
         const say = document.createElement('textarea');
         say.dataset.say = '';
         el.appendChild(say);
+        keyboardDown(vv);
+
+        expect(told).toBe(1);
+    });
+});
+
+// Qodo on #114: "A chat removed with the keyboard up leaves controls over the home bar". The panel is told when the
+// keyboard goes whether it has a chat field now or not: it gives the strip to the field, or keeps it itself.
+describe('Jenny: a chat field taken away while the keyboard is up', () => {
+    test('when the keyboard goes, the panel is told, to keep the home bar\'s strip itself', () => {
+        const vv = giveVisualViewport();
+        const { el, field } = windowWithField(0, SCREEN.height, 'xenon');
+        setForm(el, 'panel');
+        const say = document.createElement('textarea');
+        say.dataset.say = '';
+        el.appendChild(say);
+        let told = 0;
+        el.addEventListener(SAY_HELD, () => told++);
+
+        field.focus();
+        keyboardUp(vv);
+        say.remove();
         keyboardDown(vv);
 
         expect(told).toBe(1);

@@ -65,6 +65,19 @@ export const SAY_HELD = 'elements:say-held';
 /** The field each element is held to now, whichever it is. */
 const holding = new WeakMap<HTMLElement, { field: HTMLElement | null; row: HTMLElement | null }>();
 
+/**
+ * The field's box holds the field and its presses, nothing else. What a press says after itself (a two-stage press's
+ * confirmation, its failure: forms/press.ts) goes into the row, above the field, as what else the host put beside it.
+ */
+function keepBoxToItsOwn(field: HTMLElement): void {
+    const box = field.parentElement;
+    if (box?.dataset.sayBox !== '') return;
+    const own = presses.get(field);
+    for (const child of Array.from(box.children)) {
+        if (child !== field && child !== own?.start && child !== own?.end) box.before(child);
+    }
+}
+
 /** The row a field stands in: its box's, when it has one. */
 function rowOf(field: HTMLElement): HTMLElement | null {
     const box = field.parentElement?.dataset.sayBox === '' ? field.parentElement : field;
@@ -84,6 +97,7 @@ export function holdSay(element: HTMLElement): void {
     holding.set(element, hold);
     const look = () => {
         const field = element.querySelector<HTMLElement>('[data-say]');
+        if (field) keepBoxToItsOwn(field);
         const row = field ? rowOf(field) : null;
         if (field === hold.field && row === hold.row) return;
         const changed = field !== hold.field;

@@ -213,15 +213,15 @@ function detectSlideDirection(): 'from-top' | 'from-bottom' {
     return (rect.top + rect.height / 2) > viewportMid ? 'from-top' : 'from-bottom';
 }
 
+/** Panels already listening for their field. */
+const heldSays = new WeakSet<HTMLElement>();
+
 /**
  * The panel's background fills the screen; what is in it stays inside the
  * safe area (Apple Human Interface Guidelines, Layout: "place foreground
  * elements like interactive controls within the safe area"). Its edge is
  * pulled in with it, so the edge stays something a finger can take.
  */
-/** Panels already listening for their field. */
-const heldSays = new WeakSet<HTMLElement>();
-
 function keepInsideSafeArea(panel: HTMLElement): void {
     const insets = safeAreaInsets();
     const at = panel.getBoundingClientRect();

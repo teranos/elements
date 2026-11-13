@@ -191,3 +191,30 @@ describe('Jenny: a field declared after it was put in', () => {
         expect(told).toBe(1);
     });
 });
+
+// Qodo on #114: "Confirmation text shifts chat fields". A two-stage press says its confirmation and its failure right
+// after itself (forms/press.ts); in the field's box that pushed the field up. What a press says goes to the row,
+// above the field, as what else the host put beside it does.
+describe('Spike: what a press says after itself', () => {
+    test('is not in the field\'s box, but in its row', async () => {
+        const element = document.createElement('div');
+        const body = document.createElement('div');
+        body.dataset.scroller = 'body';
+        const row = document.createElement('div');
+        const field = document.createElement('textarea');
+        const send = document.createElement('button');
+        declareSay(field, { end: send });
+        row.append(send, field);
+        body.appendChild(row);
+        element.appendChild(body);
+        document.body.appendChild(element);
+        holdSay(element);
+
+        const said = document.createElement('span');
+        send.after(said);
+        await settled();
+
+        expect(said.parentElement).toBe(row);
+        expect(send.parentElement!.dataset.sayBox).toBe('');
+    });
+});
