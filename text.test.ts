@@ -62,6 +62,61 @@ describe('Tim: the set, and a node sized from it', () => {
         expect(css).toMatch(/\[contenteditable\]:not\(\[contenteditable="false"\]\)[^{]*\{ font-size: 16px !important; \}/);
     });
 
+    // "Be prepared for text-size changes" (Apple HIG, Accessibility): a size follows the person's text size, which is
+    // what `font-size: medium` is (the browser's own default), and is never smaller than the package's number. The
+    // scale is measured once and written into every size as a number: nothing in the page resolves it again, so no
+    // host's root, custom property or rule moves it.
+    function measuring(px: string): () => void {
+        const had = window.getComputedStyle;
+        (window as any).getComputedStyle = (node: Element) => {
+            const real = had.call(window, node);
+            return (node as HTMLElement).style?.fontSize === 'medium' ? { ...real, fontSize: px } : real;
+        };
+        return () => { (window as any).getComputedStyle = had; };
+    }
+
+    test('the person\'s larger text size is written into every size, a number and nothing to resolve', () => {
+        const restore = measuring('24px');
+        try {
+            sizeText(document.createElement('span'), 'sm');
+            const css = rule()!.textContent!;
+            for (const [px, at] of [[10, 15], [11, 16.5], [13, 19.5], [14, 21], [16, 24]]) {
+                expect(css).toContain(`font-size: ${at}px !important`);
+                expect(css).not.toContain(`font-size: ${px}px !important`);
+            }
+            expect(css).not.toContain('--elements-text-scale');
+            expect(css).not.toContain('rem');
+        } finally { restore(); }
+    });
+
+    test('a smaller one makes nothing smaller: the package\'s numbers are the least', () => {
+        const restore = measuring('12px');
+        try {
+            sizeText(document.createElement('span'), 'sm');
+            const css = rule()!.textContent!;
+            for (const px of [10, 11, 13, 14, 16]) expect(css).toContain(`font-size: ${px}px !important`);
+        } finally { restore(); }
+    });
+
+    test('where `medium` measures nothing (a test DOM), the sizes are the package\'s numbers', () => {
+        sizeText(document.createElement('span'), 'sm');
+        const css = rule()!.textContent!;
+        for (const px of [10, 11, 13, 14, 16]) expect(css).toContain(`font-size: ${px}px !important`);
+    });
+
+    test('`medium` is measured where no page rule reaches: inside a shadow root of the package\'s', () => {
+        const seen: string[] = [];
+        const had = window.getComputedStyle;
+        (window as any).getComputedStyle = (node: Element) => {
+            if ((node as HTMLElement).style?.fontSize === 'medium') seen.push(node.getRootNode() === document ? 'page' : 'shadow');
+            return had.call(window, node);
+        };
+        try {
+            sizeText(document.createElement('span'), 'sm');
+            expect(seen).toEqual(['shadow']);
+        } finally { (window as any).getComputedStyle = had; }
+    });
+
     test('text breaks to the width it has, a word too long anywhere in it', () => {
         sizeText(document.createElement('span'), 'sm');
         const css = rule()!.textContent!;

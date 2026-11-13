@@ -13,6 +13,41 @@ export type TextSize = keyof typeof TEXT_SIZES;
 /** px: a field's or editor's text, not a size a host picks: under 16, iOS zooms the page when it is tapped. */
 export const FIELD_TEXT_SIZE = 16;
 
+/** The person's text size over the browser's default of 16, as measured when the rule was put in the page. */
+let heldScale = 1;
+
+/**
+ * A size as written: the person's text size, never under the package's number. "Be prepared for text-size changes"
+ * (Apple HIG, Accessibility). The person's text size is the browser's own default, what `font-size: medium` is; a host
+ * cannot set that, where it can set its root's font-size (so not rem). Measured once (personScale) and written in as
+ * a number, so nothing in the page resolves it again: no host's root, custom property or rule moves it.
+ */
+function written(px: number): string {
+    return `${Number((px * Math.max(1, heldScale)).toFixed(3))}px`;
+}
+
+/**
+ * The person's text size over the browser's default of 16: what `medium` measures, in a closed shadow root of the
+ * package's own, where no rule of the page reaches (a host's `span { font-size: 24px !important }` would). In serif,
+ * a family of no one's choosing here: `medium` in a monospace family is the browser's fixed-width size (13 in Chrome).
+ * Where nothing can be measured (a test DOM), 1.
+ */
+function personScale(): number {
+    if (typeof document === 'undefined' || typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') return 1;
+    const host = document.createElement('span');
+    host.style.position = 'absolute';
+    host.style.visibility = 'hidden';
+    const probe = document.createElement('span');
+    probe.style.fontSize = 'medium';
+    probe.style.fontFamily = 'serif';
+    if (typeof host.attachShadow === 'function') host.attachShadow({ mode: 'closed' }).appendChild(probe);
+    else host.appendChild(probe);
+    document.documentElement.appendChild(host);
+    const px = parseFloat(window.getComputedStyle(probe).fontSize);
+    host.remove();
+    return Number.isFinite(px) && px > 0 ? px / 16 : 1;
+}
+
 /** What text inside an element is at until sizeText() says otherwise. */
 const DEFAULT: TextSize = 'sm';
 
@@ -33,17 +68,17 @@ const ELEMENT = '[data-element-id]:not(.dot)';
 // An editor is a field that is not a tag (CodeMirror's surface is a div): the same 16, and what is written in it.
 const EDITOR = '[contenteditable]:not([contenteditable="false"])';
 
-const RULE = `@layer elements {
-${ELEMENT} { font-size: ${TEXT_SIZES[DEFAULT]}px !important; }
+const rule = (): string => `@layer elements {
+${ELEMENT} { font-size: ${written(TEXT_SIZES[DEFAULT])} !important; }
 ${ELEMENT} * { font-size: inherit !important; }
 ${ELEMENT}, ${ELEMENT} * { overflow-wrap: anywhere !important; word-break: normal !important; }
 ${fitRule(ELEMENT)}
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
-    `${ELEMENT} [data-text-size="${name}"], ${ELEMENT}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
-${ELEMENT} :is(input, textarea, select):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
-${ELEMENT} :is(${EDITOR}, ${EDITOR} *):is([data-text-size], *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
+    `${ELEMENT} [data-text-size="${name}"], ${ELEMENT}[data-text-size="${name}"] { font-size: ${written(px)} !important; }`).join('\n')}
+${ELEMENT} :is(input, textarea, select):is([data-text-size], *) { font-size: ${written(FIELD_TEXT_SIZE)} !important; }
+${ELEMENT} :is(${EDITOR}, ${EDITOR} *):is([data-text-size], *) { font-size: ${written(FIELD_TEXT_SIZE)} !important; }
 ${Object.entries(TEXT_SIZES).map(([name, px]) =>
-    `${SURFACE} [data-text-size="${name}"], ${SURFACE}[data-text-size="${name}"] { font-size: ${px}px !important; }`).join('\n')}
+    `${SURFACE} [data-text-size="${name}"], ${SURFACE}[data-text-size="${name}"] { font-size: ${written(px)} !important; }`).join('\n')}
 }`;
 
 // A document stylesheet does not reach into a shadow root: the field rule is put into each open one
@@ -51,8 +86,8 @@ ${Object.entries(TEXT_SIZES).map(([name, px]) =>
 // Adopted where the browser has adoptedStyleSheets: nothing a host writes into the root's contents
 // (innerHTML) takes it away, and it comes off cleanly. Elsewhere, a style element in the root.
 const SHADOW_ID = 'data-elements-text';
-const SHADOW_RULE = `@layer elements {
-:is(input, textarea, select, ${EDITOR}, ${EDITOR} *) { font-size: ${FIELD_TEXT_SIZE}px !important; }
+const shadowRule = (): string => `@layer elements {
+:is(input, textarea, select, ${EDITOR}, ${EDITOR} *) { font-size: ${written(FIELD_TEXT_SIZE)} !important; }
 }`;
 
 let adopted: CSSStyleSheet | null | undefined;
@@ -64,7 +99,7 @@ function adoptable(): CSSStyleSheet | null {
     if (typeof CSSStyleSheet === 'function' && typeof ShadowRoot !== 'undefined'
         && 'replaceSync' in CSSStyleSheet.prototype && 'adoptedStyleSheets' in ShadowRoot.prototype) {
         const sheet = new CSSStyleSheet();
-        sheet.replaceSync(SHADOW_RULE);
+        sheet.replaceSync(shadowRule());
         adopted = sheet;
     }
     return adopted;
@@ -88,7 +123,7 @@ function style(shadow: ShadowRoot): void {
     }
     const tag = document.createElement('style');
     tag.setAttribute(SHADOW_ID, '');
-    tag.textContent = SHADOW_RULE;
+    tag.textContent = shadowRule();
     shadow.prepend(tag);
 }
 
@@ -103,7 +138,8 @@ export function holdTextSize(): void {
     if (document.getElementById(RULE_ID)) return;
     const style = document.createElement('style');
     style.id = RULE_ID;
-    style.textContent = RULE;
+    heldScale = personScale();
+    style.textContent = rule();
     document.head.appendChild(style);
 }
 
