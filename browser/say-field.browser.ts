@@ -81,3 +81,22 @@ test.describe('Jenny: scrolled up to the start', () => {
         expect(field.bottom).toBeGreaterThan(inside.bottom - 80);
     });
 });
+
+// "missed opportunity", in red, under the field, five times: on a phone the field stopped short of the home bar's
+// strip, and what lay below it was nothing. The strip is the field's: its box reaches the screen's edge, and what is
+// typed in it stays above the home bar.
+test.describe('Jenny: over the home bar', () => {
+    test('the field reaches the bottom of the screen, its words above the bar', async ({ page }, info) => {
+        test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
+        await page.evaluate(() => document.documentElement.style.setProperty('--elements-safe-area-bottom', '34px'));
+        await open(page);
+        const at = await page.locator(`${XENON} [data-say]`).evaluate((field) => {
+            const r = field.getBoundingClientRect();
+            const s = getComputedStyle(field);
+            return { bottom: r.bottom, words: r.bottom - parseFloat(s.paddingBottom) - parseFloat(s.borderBottomWidth), screen: window.innerHeight };
+        });
+
+        expect(at.bottom).toBeCloseTo(at.screen, 0);
+        expect(at.words).toBeLessThanOrEqual(at.screen - 34);
+    });
+});

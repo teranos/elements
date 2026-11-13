@@ -33,6 +33,7 @@ import {
     setElementId
 } from '../dataset';
 import { prepareMorphTo, calculateTrayTarget, resetElement } from './morphology';
+import { SAY_HELD } from '../content/say';
 import { beginMorphToBox, beginMorphToDot } from '../morph-transaction';
 import {
     getOpenDuration,
@@ -217,6 +218,9 @@ function detectSlideDirection(): 'from-top' | 'from-bottom' {
  * elements like interactive controls within the safe area"). Its edge is
  * pulled in with it, so the edge stays something a finger can take.
  */
+/** Panels already listening for their field. */
+const heldSays = new WeakSet<HTMLElement>();
+
 function keepInsideSafeArea(panel: HTMLElement): void {
     const insets = safeAreaInsets();
     const at = panel.getBoundingClientRect();
@@ -224,12 +228,37 @@ function keepInsideSafeArea(panel: HTMLElement): void {
     const bottom = Math.max(0, at.bottom - (window.innerHeight - insets.bottom));
     panel.style.boxSizing = 'border-box';
     panel.style.paddingTop = `${top}px`;
-    panel.style.paddingBottom = `${bottom}px`;
+    panel.style.paddingBottom = giveStripToSay(panel, bottom) ? '0px' : `${bottom}px`;
     panel.style.paddingLeft = `${insets.left}px`;
     panel.style.paddingRight = `${insets.right}px`;
     const handle = panel.querySelector<HTMLElement>(':scope > .panel-resize-handle');
     if (handle?.classList.contains('panel-resize-handle--top')) handle.style.top = `${top}px`;
     if (handle?.classList.contains('panel-resize-handle--bottom')) handle.style.bottom = `${bottom}px`;
+}
+
+/**
+ * "missed opportunity", in red, under a chat's field, five times: the panel kept
+ * the home bar's strip below the field, and the strip was nothing. A panel that
+ * says from a field (content/say.ts) gives the strip to the field: the field's box
+ * reaches the screen's edge, and what is typed in it stays above the bar. The
+ * body's own padding under it goes too. Answers whether the strip was given.
+ */
+function giveStripToSay(panel: HTMLElement, strip: number): boolean {
+    const field = panel.querySelector<HTMLElement>('[data-say]');
+    if (!field) return false;
+    const body = panel.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
+    // Its own padding, read once: the strip is added to it, and taken off it again.
+    field.style.removeProperty('padding-bottom');
+    const own = field.dataset.sayOwnPadding ?? window.getComputedStyle(field).paddingBottom;
+    field.dataset.sayOwnPadding = own;
+    if (strip <= 0) {
+        body?.style.removeProperty('padding-bottom');
+        delete field.dataset.sayOwnPadding;
+        return false;
+    }
+    field.style.setProperty('padding-bottom', `calc(${own} + ${strip}px)`, 'important');
+    body?.style.setProperty('padding-bottom', '0px');
+    return true;
 }
 
 /**
@@ -426,6 +455,11 @@ export function morphDotToPanel(
         const cleanupFn = attachResizeHandle(element, direction);
         resizeCleanups.set(element, cleanupFn);
         keepInsideSafeArea(element);
+        // A field the host draws later is given the strip when it arrives (content/say.ts).
+        if (!heldSays.has(element)) {
+            heldSays.add(element);
+            element.addEventListener(SAY_HELD, () => keepInsideSafeArea(element));
+        }
 
         // On a touch screen, the title bar is the grabber's strip, and the grabber shows it can be
         // swiped down to the tray.

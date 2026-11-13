@@ -39,11 +39,33 @@ export function sayFrom(say: { id: string; label: string }): HTMLTextAreaElement
     return field;
 }
 
-/** The declared field's row, at the bottom of this element, worn in the element's own colour. */
+/** What an element is told when the field it says from is held: a panel gives it the home bar's strip (forms/panel.ts). */
+export const SAY_HELD = 'elements:say-held';
+
+const waiting = new WeakMap<HTMLElement, MutationObserver>();
+
+/**
+ * The declared field's row, at the bottom of this element, worn in the element's own colour.
+ *
+ * A host may draw its field after the element opened: QNTX-Web's Node Agent asks the node which harnesses it offers
+ * first. A field not there yet is held when it arrives.
+ */
 export function holdSay(element: HTMLElement): void {
+    if (pinSay(element) || waiting.has(element) || typeof MutationObserver !== 'function') return;
+    const observer = new MutationObserver(() => {
+        if (!pinSay(element)) return;
+        observer.disconnect();
+        waiting.delete(element);
+    });
+    waiting.set(element, observer);
+    observer.observe(element, { childList: true, subtree: true });
+}
+
+/** Pins the declared field's row, if there is one yet, and tells the element. */
+function pinSay(element: HTMLElement): boolean {
     const field = element.querySelector<HTMLElement>('[data-say]');
     const row = field?.parentElement;
-    if (!field || !row) return;
+    if (!field || !row) return false;
     const body = element.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
     // Its own row only: the body or the element is not a row to pin.
     const pinned = row === body || row === element ? field : row;
@@ -51,4 +73,8 @@ export function holdSay(element: HTMLElement): void {
     for (const [name, value] of Object.entries(ROW)) pinned.style.setProperty(name, value, 'important');
     // What scrolls under it is not seen through it.
     pinned.style.setProperty('background-color', element.style.backgroundColor || getComputedStyle(element).backgroundColor, 'important');
+    // The element's own window makes the event: a document's events are its window's.
+    const view = element.ownerDocument.defaultView ?? window;
+    element.dispatchEvent(new view.Event(SAY_HELD));
+    return true;
 }
