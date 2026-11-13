@@ -98,8 +98,25 @@ export class Proximity {
             this.mouseY = e.clientY;
             // The tray sits above every window: grown toward a pointer on a window by the right
             // edge, it covered the window's Minimize, and the press opened a dot.
-            const on = e.target instanceof globalThis.Element ? e.target.closest('[data-element-id]') : null;
-            this.onElement = on !== null && !on.classList.contains('dot');
+            // Looked for beneath the dots, not only at the top: a dot already grown over a window's control is
+            // what the pointer lands on, and it stayed grown, the control under it unpressable.
+            // Mousemove fires at display rate and a hit-test flushes layout, so the stack is asked for
+            // only on a dot, the one place the top alone cannot answer.
+            const elementOf = (node: unknown) =>
+                node instanceof globalThis.Element ? node.closest('[data-element-id]') : null;
+            // The ground (the workspace, a canvas expanded) fills the viewport, always under the tray: it is
+            // what everything stands on, never what the pointer is on instead of the tray. QNTX opens its
+            // canvas as the workspace at start, and counted, the dots never grew.
+            const isOpen = (on: globalThis.Element | null) => on instanceof HTMLElement
+                && !on.classList.contains('dot')
+                && on.dataset.form !== 'workspace' && on.dataset.form !== 'canvasExpanded';
+            const top = elementOf(e.target);
+            const onDot = top !== null && top.classList.contains('dot');
+            if (!onDot || typeof document.elementsFromPoint !== 'function') {
+                this.onElement = isOpen(top);
+                return;
+            }
+            this.onElement = document.elementsFromPoint(e.clientX, e.clientY).some((node) => isOpen(elementOf(node)));
         });
 
         // Mobile: touchmove feeds the same coordinates during browse mode.
