@@ -76,8 +76,8 @@ describe('Tim: every option visible, a press sends, the roll in order', () => {
     test('every option is a button; yes is green, no is red, neither is white', () => {
         const { card } = roll.add(yesNo('Raise the interval', 1, { options: [{ label: 'Yes', means: 'yes' }, { label: 'No', means: 'no' }, { label: 'Later' }] }));
         expect(buttons(card).map((b) => b.querySelector('span')!.textContent)).toEqual(['Yes', 'No', 'Later']);
-        expect(isColor(button(card, 'Yes').style.border, '#16a34a')).toBe(true);
-        expect(isColor(button(card, 'No').style.border, '#dc2626')).toBe(true);
+        expect(isColor(button(card, 'Yes').style.border, '#16873c')).toBe(true);
+        expect(isColor(button(card, 'No').style.border, '#d93636')).toBe(true);
         expect(isColor(button(card, 'Later').style.border, '#fff')).toBe(true);
     });
 
@@ -85,7 +85,7 @@ describe('Tim: every option visible, a press sends, the roll in order', () => {
         const { card } = roll.add(yesNo('Raise the interval'));
         button(card, 'Yes').click();
         expect(pressed).toEqual(['Raise the interval: Yes → Yes']);
-        expect(isColor(button(card, 'Yes').style.background, '#16a34a')).toBe(true);
+        expect(isColor(button(card, 'Yes').style.background, '#16873c')).toBe(true);
         expect(isColor(button(card, 'No').style.background, '#000')).toBe(true);
     });
 
@@ -203,7 +203,7 @@ describe('Jenny: the PR story', () => {
         // Nothing stands on Merge any more: it only says what pressing it would do.
         expect(note(button(card, 'Merge'))).toBe('press: merge when main CI passes');
         expect(isColor(button(card, 'Merge').style.background, '#000')).toBe(true);
-        expect(isColor(button(card, 'Don’t merge').style.background, '#dc2626')).toBe(true);
+        expect(isColor(button(card, 'Don’t merge').style.background, '#d93636')).toBe(true);
         expect(note(button(card, 'Don’t merge'))).toContain('cancel the merge');
         button(card, 'Don’t merge').click();
         expect(pressed.at(-1)).toBe('Merge PR #29: Don’t merge → definitely no');

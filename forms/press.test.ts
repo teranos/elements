@@ -124,7 +124,7 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         nuke.click();
         unbind.click();
         await settle();
-        expect(isColor(nuke.style.borderColor, '#dc2626')).toBe(true);
+        expect(isColor(nuke.style.borderColor, '#d93636')).toBe(true);
         expect(isColor(unbind.style.borderColor, AX.ink)).toBe(true);
     });
 
@@ -238,7 +238,7 @@ describe('Spike: "To be clear that you\'re arming the button and can then press 
         await settle();
         expect(isColor(unbind.style.backgroundColor, AX.ink)).toBe(true);
         expect(isColor(unbind.style.color, '#000')).toBe(true);
-        expect(isColor(nuke.style.backgroundColor, '#dc2626')).toBe(true);
+        expect(isColor(nuke.style.backgroundColor, '#d93636')).toBe(true);
         expect(isColor(nuke.style.color, '#fff')).toBe(true);
     });
 

@@ -15,7 +15,7 @@ import { tray } from './tray/tray';
 import { canvasPlaced } from './canvas/placed';
 import { resetElement } from './forms/morphology';
 import { readPaint, wearPaint } from './paint';
-import { DEFAULT_COLOR } from './element';
+import { DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from './element';
 import type { Element } from './element';
 
 const PAINTED = 'rgb(5, 16, 11)';
@@ -104,5 +104,32 @@ describe('an element whose datum names no colour', () => {
         });
 
         expect(element.style.backgroundColor).toBe(DEFAULT_COLOR);
+    });
+});
+
+// "Text is not readable like this": Lithium is red with black words (its textColor), and its dot drew its symbol white,
+// the page's colour, at 4.0 to 1 (browser/contrast.browser.ts). Its words' colour is paint, as its background is.
+describe('the colour of an element\'s words', () => {
+    test('a dot born in the tray wears its textColor', () => {
+        tray.add(make('lithium-born', { color: 'rgb(255, 0, 0)', textColor: 'rgb(0, 0, 0)' }));
+        const dot = document.querySelector<HTMLElement>('[data-element-id="lithium-born"]')!;
+        expect(dot.style.color).toBe('rgb(0, 0, 0)');
+    });
+
+    test('is kept across a wipe, as the background is', () => {
+        const el = document.createElement('div');
+        el.style.color = 'rgb(0, 0, 0)';
+        const was = readPaint(el);
+        el.style.cssText = '';
+        wearPaint(el, was);
+        expect(el.style.color).toBe('rgb(0, 0, 0)');
+    });
+
+    test('one that never had a colour for its words gets the default', () => {
+        const el = document.createElement('div');
+        wearPaint(el, readPaint(el));
+        const white = document.createElement('div');
+        white.style.color = DEFAULT_TEXT_COLOR;
+        expect(el.style.color).toBe(white.style.color);
     });
 });

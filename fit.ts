@@ -42,6 +42,8 @@ export function fitRule(element: string): string {
 ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
 ${element} button:not([data-element-id]):not([data-press]):not([data-say-press]) { width: fit-content !important; flex: 0 0 auto !important; }
 ${element} :is([data-scroller="body"], [data-scroller="declared"]) button:not([data-element-id]):not([data-press]):not([data-say-press]) { box-sizing: border-box !important; min-height: ${FINGER}px !important; padding: 0 1em !important; }
+${element} [data-say-box] [data-say] { color: inherit; }
+${element} :is(input, textarea)::placeholder { color: color-mix(in srgb, currentColor 65%, transparent); }
 ${element} [data-say-press] { box-sizing: border-box !important; width: ${SAY_PRESS}px !important; height: ${SAY_PRESS}px !important; padding: 0 !important; border-radius: 50% !important; flex: none !important; margin: 0 !important; display: inline-grid !important; place-items: center !important; }
 ${element} button[data-fit-even]:not([data-element-id]):not([data-press]):not([data-say-press]) { min-width: var(--fit-even) !important; }
 ${element} table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }

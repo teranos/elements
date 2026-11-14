@@ -43,3 +43,21 @@ describe('Jenny: the pill around its presses', () => {
         expect(SAY_INSET).toBe(8);
     });
 });
+
+// "Text is not readable like this": what was typed into xenon's pill was black on black. The field is out of the field
+// look (it is the pill's surface), so its words are the element's colour, unless the host says otherwise.
+describe('Spike: the words in the pill', () => {
+    test('are the element\'s colour, in the package\'s layer, so a host stylesheet still says otherwise', () => {
+        expect(RULE).toContain('[data-element-id] [data-say-box] [data-say] { color: inherit; }');
+        // Not important: a host's own colour for its words wins.
+        expect(RULE).not.toContain('[data-say-box] [data-say] { color: inherit !important');
+    });
+});
+
+// The field look gave a field its ground and ink but no colour for what it says before anything is typed: the
+// browser's grey, 3.8 to 1 on the field's ground (browser/contrast.browser.ts). It is the field's own ink, lighter.
+describe('Spike: what a field says before anything is typed', () => {
+    test('is its own ink, lighter, in the package\'s layer, so a host stylesheet still says otherwise', () => {
+        expect(RULE).toContain('[data-element-id] :is(input, textarea)::placeholder { color: color-mix(in srgb, currentColor 65%, transparent); }');
+    });
+});

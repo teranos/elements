@@ -6,7 +6,8 @@ import { sizeText, TEXT_SIZES, type TextSize } from '../text';
 import type { Form } from '../form';
 
 /** What an outline says: yes is green, no is red, neither is white. The approvals' options wear it too. */
-export const MEANS: Readonly<{ yes: '#16a34a'; no: '#dc2626'; neither: '#fff' }> = Object.freeze({ yes: '#16a34a', no: '#dc2626', neither: '#fff' } as const);
+// Each reads at 4.5 to 1 as words on black and as a fill under white words (forms/means-contrast.test.ts).
+export const MEANS: Readonly<{ yes: '#16873c'; no: '#d93636'; neither: '#fff' }> = Object.freeze({ yes: '#16873c', no: '#d93636', neither: '#fff' } as const);
 
 import { AX } from './ax';
 import { getWindowBorderRadius } from '../config';
