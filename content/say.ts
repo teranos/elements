@@ -36,9 +36,9 @@ const PILL: Record<string, string> = {
     display: 'flex', 'align-items': 'center', gap: '8px', padding: '7px', 'border-radius': '9999px',
 };
 
-/** A press in the pill: round, on the field's line. */
+/** A press in the pill: on the field's line, as wide as it is. What it looks like is the host's. */
 const PRESS: Record<string, string> = {
-    flex: 'none', margin: '0', 'border-radius': '50%', 'aspect-ratio': '1', 'min-width': '36px',
+    flex: 'none', margin: '0',
 };
 
 /** The field in the pill: the words, on the pill's surface. */
