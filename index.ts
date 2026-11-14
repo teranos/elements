@@ -116,7 +116,7 @@ export { declareScroller, watchScroll, expectScroll, expectFits } from './conten
 // A chat's field takes the bottom of its element, the whole width (content/say.ts)
 export { declareSay, sayFrom } from './content/say';
 export { choicesFrom, type Choice, type Choices } from './content/choices';
-export { pillFrom, pillAbove, PILL_RESTED, type PillHandle } from './forms/pill';
+export { pillFrom, pillIn, PILL_RESTED, type PillHandle } from './forms/pill';
 
 export { renderContent } from './content/render';
 export type { RenderContentResult } from './content/render';

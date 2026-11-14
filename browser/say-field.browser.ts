@@ -60,37 +60,44 @@ test.describe('Tim: the pill', () => {
         expect(pill.right).toBeCloseTo(inside.right, 0);
     });
 
-    test('the + at its start, the words, the → at its end, on one line; its presses round, SAY_INSET in', async ({ page }) => {
+    // "Inputfield an element yes, new form, inputfield. The input field pill should be inside of inputfield form."
+    // Claude's composer with its model pill: the words on top; under them the +, the pill, and the → at the end.
+    test('the words on top; under them the + at its start and the → at its end; its presses round, SAY_INSET in', async ({ page }) => {
         await open(page);
+        await page.locator(`${XENON} [data-say]`).focus();
         const at = await page.locator(PILL).evaluate((pill) => {
             const box = (b: Element) => b.getBoundingClientRect();
-            const [attach, send] = Array.from(pill.querySelectorAll('button'));
+            const [attach, send] = Array.from(pill.querySelectorAll(':scope [data-say-press]'));
             const field = pill.querySelector('[data-say]')!;
+            const choices = pill.querySelector('[data-choices]')!;
             const s = getComputedStyle(pill);
             return {
-                pill: box(pill), attach: box(attach!), send: box(send!), field: box(field),
+                form: (pill as HTMLElement).dataset.form,
+                pill: box(pill), attach: box(attach!), send: box(send!), field: box(field), choices: box(choices),
                 round: getComputedStyle(attach!).borderTopLeftRadius,
-                // A host may draw the pill an outline: the presses stand SAY_INSET in from inside it.
-                edge: { left: parseFloat(s.borderLeftWidth), right: parseFloat(s.borderRightWidth) },
+                // A host may draw the input field an outline: the presses stand SAY_INSET in from inside it.
+                edge: { left: parseFloat(s.borderLeftWidth), right: parseFloat(s.borderRightWidth), bottom: parseFloat(s.borderBottomWidth) },
             };
         });
 
-        expect(at.attach.right).toBeLessThanOrEqual(at.field.left);
-        expect(at.field.right).toBeLessThanOrEqual(at.send.left);
+        expect(at.form).toBe('inputfield');
+        expect(at.field.bottom).toBeLessThanOrEqual(at.attach.top);
+        expect(at.attach.right).toBeLessThanOrEqual(at.choices.left);
+        expect(at.choices.right).toBeLessThanOrEqual(at.send.left);
         const middle = (r: { top: number; bottom: number }) => (r.top + r.bottom) / 2;
-        expect(middle(at.attach)).toBeCloseTo(middle(at.pill), 0);
-        expect(middle(at.send)).toBeCloseTo(middle(at.pill), 0);
-        expect(middle(at.field)).toBeCloseTo(middle(at.pill), 0);
+        expect(middle(at.choices)).toBeCloseTo(middle(at.attach), 0);
+        expect(middle(at.send)).toBeCloseTo(middle(at.attach), 0);
         expect(at.attach.width).toBeCloseTo(SAY_PRESS, 0);
         expect(at.attach.height).toBeCloseTo(SAY_PRESS, 0);
         expect(at.round).toBe('50%');
         expect(at.attach.left - at.pill.left - at.edge.left).toBeCloseTo(SAY_INSET, 0);
         expect(at.pill.right - at.send.right - at.edge.right).toBeCloseTo(SAY_INSET, 0);
+        expect(at.pill.bottom - at.send.bottom - at.edge.bottom).toBeCloseTo(SAY_INSET, 0);
     });
 });
 
-// "Not as an overlay, but as a generalised 'pills above inputfields' form": the choices are one element in Pill Form.
-// "we would not be using the inputfield while in the pill choosing something": pressed, it takes the field's place.
+// The choices are one element in Pill Form, in the input field. "I want inputfield to still be there": pressed, it is
+// across its row, the words still above it. "it taking focus should let kb stay in place": the field keeps the focus.
 test.describe('Spike: its choices', () => {
     const CHOICES = `${XENON} [data-choices]`;
 
@@ -99,38 +106,29 @@ test.describe('Spike: its choices', () => {
         await expect(page.locator(CHOICES)).toBeHidden();
     });
 
-    test('while something is, rest as a pill above the field\'s, not squeezing it', async ({ page }) => {
+    test('pressed, the same element across its row, the field still there and still focused; an option taken, a pill again', async ({ page }) => {
         await open(page);
-        await page.locator(`${XENON} [data-say]`).focus();
-        const pill = await boxOf(page, PILL);
-        const choices = await boxOf(page, CHOICES);
-
-        expect(choices.bottom).toBeLessThanOrEqual(pill.top);
-        expect(choices.left).toBeCloseTo(pill.left, 0);
-    });
-
-    test('pressed, it is the same element in the field\'s place; an option taken, a pill again, saying it', async ({ page }) => {
-        await open(page);
-        await page.locator(`${XENON} [data-say]`).focus();
-        const before = await boxOf(page, PILL);
+        const field = page.locator(`${XENON} [data-say]`);
+        await field.focus();
         const node = await page.locator(CHOICES).elementHandle();
+        const focused = () => page.evaluate(() => document.activeElement?.hasAttribute('data-say') ?? false);
+
         await page.locator(CHOICES).click();
         await expect(page.locator(CHOICES)).toHaveAttribute('data-form', 'pillOpen');
         await expect.poll(() => page.locator(CHOICES).evaluate((el) => el.dataset.pillMoving === undefined)).toBe(true);
-
-        // Where the field was, the field stood aside.
-        await expect(page.locator(PILL)).toBeHidden();
+        expect(await focused()).toBe(true);
+        await expect(field).toBeVisible();
+        const row = await boxOf(page, `${XENON} [data-say-row]`);
         const open_ = await boxOf(page, CHOICES);
-        expect(open_.bottom).toBeCloseTo(before.bottom, 0);
-        expect(open_.left).toBeCloseTo(before.left, 0);
-        expect(open_.right).toBeCloseTo(before.right, 0);
+        expect(open_.left).toBeCloseTo(row.left, 0);
+        expect(open_.right).toBeCloseTo(row.right, 0);
+        expect((await boxOf(page, `${XENON} [data-say]`)).bottom).toBeLessThanOrEqual(open_.top);
 
         await page.locator(CHOICES).getByRole('button', { name: 'max' }).click();
         await expect(page.locator(CHOICES)).toHaveAttribute('data-form', 'pill');
         await expect.poll(() => page.locator(CHOICES).evaluate((el) => el.dataset.pillMoving === undefined)).toBe(true);
         await expect(page.locator(CHOICES)).toHaveText('Opus 5.5 · max');
-        await expect(page.locator(PILL)).toBeVisible();
-        expect(await page.evaluate(() => document.activeElement?.hasAttribute('data-say'))).toBe(true);
+        expect(await focused()).toBe(true);
         // One element all the way (Element Axioma).
         expect(await node!.evaluate((el) => el === document.querySelector('[data-choices]'))).toBe(true);
     });

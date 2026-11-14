@@ -50,15 +50,16 @@ describe('Tim: the choices', () => {
         expect(choices.textContent).toBe('Opus 5.5 · high');
     });
 
-    test('pressed, its options are in the field\'s place, no words over them, what is chosen marked', async () => {
+    test('pressed, its options are across its row in the input field, no words over them; the field stays', async () => {
         const { field, choices, box } = chat();
         field.focus();
         choices.click();
         await settled();
 
         expect(getForm(choices)).toBe('pillOpen');
-        expect(choices.nextElementSibling).toBe(box);
-        expect(box.style.getPropertyValue('display')).toBe('none');
+        expect(box.contains(choices)).toBe(true);
+        expect(box.contains(field)).toBe(true);
+        expect(document.activeElement).toBe(field);
         // "the word labels being overly verbose, it isn't telling us anything we don't know": named for a screen reader only.
         const groups = Array.from(choices.querySelectorAll('[role="group"]')).map((g) => g.getAttribute('aria-label'));
         expect(groups).toEqual(['Model', 'Effort']);
@@ -79,7 +80,7 @@ describe('Tim: the choices', () => {
         expect(getForm(choices)).toBe('pill');
         expect(choices.textContent).toBe('Opus 5.5 · max');
         expect(told).toEqual([['Effort', 'max']]);
-        expect(box.style.getPropertyValue('display')).toBe('flex');
+        expect(box.contains(choices)).toBe(true);
         expect(document.activeElement).toBe(field);
         expect(choices.hidden).toBe(false);
     });
@@ -96,9 +97,11 @@ describe('Spike: what it is not given', () => {
 });
 
 describe('Jenny: beside a say field', () => {
-    test('it rests in the row above the field\'s pill, hidden while nothing is being said', () => {
-        const { choices, box } = chat();
-        expect(choices.nextElementSibling).toBe(box);
+    // "The input field pill should be inside of inputfield form."
+    test('it rests in the input field, in the row under the words, hidden while nothing is being said', () => {
+        const { field, choices, box } = chat();
+        expect(choices.parentElement!.parentElement).toBe(box);
+        expect(choices.parentElement).toBe(field.nextElementSibling);
         expect(choices.hidden).toBe(true);
     });
 

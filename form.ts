@@ -123,6 +123,12 @@ export interface FormTable {
      * inputfield while in the pill choosing something". forms/pill.ts; let go, it is the pill again.
      */
     readonly pillOpen: { readonly opensFromTray: false };
+
+    /**
+     * "Inputfield an element yes, new form, inputfield": the field something is said from, with its presses and its
+     * pills, one element. content/say.ts. Never in the tray.
+     */
+    readonly inputfield: { readonly opensFromTray: false };
 }
 
 // Annotated here rather than only on FORMS: a literal assigned straight
@@ -142,6 +148,7 @@ const TABLE: FormTable = {
     overlay: { opensFromTray: false },
     pill: { opensFromTray: false },
     pillOpen: { opensFromTray: false },
+    inputfield: { opensFromTray: false },
 };
 
 export const FORMS: FormTable = Object.freeze(TABLE);

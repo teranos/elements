@@ -125,6 +125,46 @@ describe('Tim: a field with its presses', () => {
     });
 });
 
+// "Inputfield an element yes, new form, inputfield." "The input field pill should be inside of inputfield form."
+// Claude's composer with a pill in it: the words on top, under them a row of the +, the pill, and the → at the end.
+describe('Tim: an input field', () => {
+    function inputField(withPill: boolean) {
+        const element = document.createElement('div');
+        const body = document.createElement('div');
+        body.dataset.scroller = 'body';
+        const row = document.createElement('div');
+        const field = document.createElement('textarea');
+        field.dataset.sayId = 'xenon-says';
+        const attach = document.createElement('button');
+        const send = document.createElement('button');
+        const pill = document.createElement('div');
+        declareSay(field, withPill ? { start: attach, end: send, choices: pill } : { start: attach, end: send });
+        row.append(attach, field, send);
+        body.appendChild(row);
+        element.appendChild(body);
+        document.body.appendChild(element);
+        holdSay(element);
+        return { field, attach, send, pill, box: field.parentElement! };
+    }
+
+    test('is an element of its own, in the inputfield form', () => {
+        const { box } = inputField(false);
+        expect(box.dataset.elementId).toBe('xenon-says-input');
+        expect(box.dataset.form).toBe('inputfield');
+    });
+
+    test('with a pill: the words on top; under them the +, the pill, and the → at the end', () => {
+        const { field, attach, send, pill, box } = inputField(true);
+        expect(box.dataset.form).toBe('inputfield');
+        expect(box.firstElementChild).toBe(field);
+        const under = field.nextElementSibling as HTMLElement;
+        expect(under.dataset.sayRow).toBe('');
+        const order = Array.from(under.children).filter((n) => (n as HTMLElement).dataset.saySpace === undefined);
+        expect(order).toEqual([attach, pill, send]);
+        expect(box.style.getPropertyValue('flex-direction')).toBe('column');
+    });
+});
+
 // Qodo on #114: "Switched chats obscure typed text", "Removing a chat field exposes bottom controls". QNTX-Web draws a
 // new chat, its own field, when a harness tab is pressed; a host may take its chat away. The element is held to the
 // field it has now, whichever that is, and told each time it changes.

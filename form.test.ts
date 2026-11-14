@@ -27,6 +27,7 @@ describe('Tim: the table', () => {
             'canvasPlaced',
             'cursor',
             'dot',
+            'inputfield',
             'overlay',
             'panel',
             'pill',

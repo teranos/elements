@@ -1,11 +1,12 @@
 /**
- * Pill Form — an element resting as a pill above an input field.
+ * Pill Form — an element resting as a pill in an input field.
  *
  * "Why doesn't it behave like an element form? Not as an overlay, but as a generalised 'pills above inputfields'
- * form?" "In elemental form, everything has an answer." At rest it is a pill above its field, saying its title.
- * Pressed, it is the same element in the field's place (pillOpen), what it holds in it: "we would not be using the
- * inputfield while in the pill choosing something". Let go (rest, Escape, a press outside), it goes back to where it
- * rested, the field is back, and the field has the words again.
+ * form?" "In elemental form, everything has an answer." "The input field pill should be inside of inputfield form, and
+ * it taking focus should let kb stay in place." At rest it is a pill in its field's row, saying its title. Pressed, it
+ * is the same element across that row (pillOpen), what it holds in it, while what else is in the row stands aside;
+ * the field stays where it is: "I want inputfield to still be there". Let go (rest, Escape, a press outside), it goes
+ * back to where it rested. A press on it never takes the focus from the field, so the keyboard stays.
  *
  * Where it rests while it is away is a gap, as Button Form's is: no id, no form (Element Axioma). Its road there and
  * back is Button Form's road, box to box (morph-transaction.ts). Its shape at rest and open is the package's
@@ -30,23 +31,21 @@ export interface PillHandle {
     rest(): void;
 }
 
-/** The field each pill takes the place of, said by whoever puts it above one (content/say.ts). */
+/** The field each pill is in, said by whoever puts it there (content/say.ts). */
 const fields = new WeakMap<HTMLElement, HTMLElement>();
 
-/** Says which field this pill rests above, and takes the place of when pressed. */
-export function pillAbove(pill: HTMLElement, field: HTMLElement): void {
+/** Says which field this pill is in: the one that keeps the words, and the keyboard, while it is pressed. */
+export function pillIn(pill: HTMLElement, field: HTMLElement): void {
     fields.set(pill, field);
 }
 
-/** Whether a pill is pressed open, or on its way: its field is not where something is said. */
+/** Whether a pill is pressed open, or on its way. */
 export function pillAway(pill: HTMLElement): boolean {
     return getForm(pill) === 'pillOpen' || pill.dataset.pillMoving === '';
 }
 
-/** The field's place: its box with its presses (content/say.ts), or the field alone. */
-function placeOf(field: HTMLElement): HTMLElement {
-    return field.closest<HTMLElement>('[data-say-box]') ?? field;
-}
+/** What else is in the row, and how it was shown, while the pill is across it. */
+type Aside = { node: HTMLElement; display: string; priority: string }[];
 
 function boxOf(el: HTMLElement): TooltipBox {
     const r = el.getBoundingClientRect();
@@ -85,8 +84,7 @@ export function pillFrom(item: Element): PillHandle {
 
     let gap: HTMLElement | null = null;
     let restsAs = { width: 0, height: 0 };
-    // The field's place, and how it was shown, while the pill stands in it.
-    let held: { place: HTMLElement; display: string; priority: string } | null = null;
+    let aside: Aside | null = null;
 
     const say = () => {
         label.textContent = title;
@@ -112,12 +110,13 @@ export function pillFrom(item: Element): PillHandle {
     const open = () => {
         if (getForm(element) !== 'pill' || element.dataset.pillMoving === '') return;
         const field = fields.get(element);
-        if (!field?.isConnected) return;
-        const place = placeOf(field);
+        const place = element.parentElement;
+        if (!field?.isConnected || !place) return;
         const at = boxOf(element);
+        const to = boxOf(place);
         restsAs = { width: at.width, height: at.height };
 
-        // Where it rests, kept while it is away; its line folds while the field's place is taken.
+        // Where it rests, kept while it is away, and folded: it is across the row.
         gap = document.createElement('div');
         gap.dataset.pillGap = '';
         gap.style.display = 'none';
@@ -133,35 +132,41 @@ export function pillFrom(item: Element): PillHandle {
         element.dataset.pillMoving = '';
         say();
 
-        const to = boxOf(place);
-        held = { place, display: place.style.getPropertyValue('display'), priority: place.style.getPropertyPriority('display') };
-        place.style.setProperty('visibility', 'hidden');
+        // What else is in the row stands aside while it is across it; the field is not in the row, and stays.
+        aside = Array.from(place.children).filter((n): n is HTMLElement => n instanceof HTMLElement && n !== gap)
+            .map((node) => ({ node, display: node.style.getPropertyValue('display'), priority: node.style.getPropertyPriority('display') }));
+        // Unseen, keeping their room while it moves: the input field keeps its size, and the words theirs.
+        for (const { node } of aside) node.style.setProperty('visibility', 'hidden');
         beginMorphToButton(element, at, to, getRestDuration())
             .then(() => {
                 delete element.dataset.pillMoving;
-                // In the field's place, in the flow; the field stands aside.
+                // Across the row, in the flow; what else was in it stands aside.
                 element.style.cssText = '';
-                place.before(element);
-                place.style.removeProperty('visibility');
-                place.style.setProperty('display', 'none', 'important');
+                for (const { node } of aside ?? []) {
+                    node.style.removeProperty('visibility');
+                    node.style.setProperty('display', 'none', 'important');
+                }
+                gap?.after(element);
                 element.ownerDocument.addEventListener('pointerdown', outside, true);
             })
             .catch((err: unknown) => {
                 delete element.dataset.pillMoving;
-                log.warn(seg, `[Pill ${item.id}] The road to the field's place was abandoned: ${err instanceof Error ? err.message : String(err)}`);
+                for (const { node } of aside ?? []) node.style.removeProperty('visibility');
+                log.warn(seg, `[Pill ${item.id}] The road across its row was abandoned: ${err instanceof Error ? err.message : String(err)}`);
             });
     };
 
     function rest(): void {
-        if (getForm(element) !== 'pillOpen' || element.dataset.pillMoving === '' || !gap || !held) return;
+        if (getForm(element) !== 'pillOpen' || element.dataset.pillMoving === '' || !gap || !aside) return;
         element.ownerDocument.removeEventListener('pointerdown', outside, true);
         const field = fields.get(element)!;
         const from = boxOf(element);
         lift(element, from, field);
-        const { place, display, priority } = held;
-        held = null;
-        if (display) place.style.setProperty('display', display, priority);
-        else place.style.removeProperty('display');
+        for (const { node, display, priority } of aside) {
+            if (display) node.style.setProperty('display', display, priority);
+            else node.style.removeProperty('display');
+        }
+        aside = null;
 
         // Where it rests, as big as it was there.
         gap.style.display = 'inline-block';
@@ -176,8 +181,9 @@ export function pillFrom(item: Element): PillHandle {
                 resting();
                 gap?.replaceWith(element);
                 gap = null;
-                // Choosing was part of saying something: the field has the words again.
-                fields.get(element)?.focus();
+                // Choosing was part of saying something: the field has the words, if anything took them.
+                const field = fields.get(element);
+                if (field && field.ownerDocument.activeElement !== field) field.focus();
                 element.dispatchEvent(new (element.ownerDocument.defaultView ?? window).Event(PILL_RESTED));
             })
             .catch((err: unknown) => {
@@ -186,6 +192,10 @@ export function pillFrom(item: Element): PillHandle {
             });
     }
 
+    // "it taking focus should let kb stay in place": a press on it, or on what it holds, takes no focus from the field.
+    const keepFocus = (e: Event) => { if (fields.has(element)) e.preventDefault(); };
+    element.addEventListener('pointerdown', keepFocus);
+    element.addEventListener('mousedown', keepFocus);
     element.addEventListener('click', (e) => {
         if (getForm(element) === 'pill') { e.preventDefault(); open(); }
     });

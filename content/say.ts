@@ -8,7 +8,8 @@
  * beside the field wraps above it. Written important: no host stylesheet squeezes it.
  */
 
-import { pillAbove, pillAway, PILL_RESTED } from '../forms/pill';
+import { pillIn, pillAway, PILL_RESTED } from '../forms/pill';
+import { setForm, setElementId } from '../dataset';
 
 const FIELD: Record<string, string> = {
     flex: '1 1 100%', width: '100%', 'min-width': '0', 'max-width': 'none',
@@ -29,7 +30,7 @@ const ROW: Record<string, string> = {
 export interface SayPresses {
     start?: HTMLElement;
     end?: HTMLElement;
-    /** The choices it says with (choicesFrom, content/choices.ts), a pill above it: only while something is being said. */
+    /** The choices it says with (choicesFrom, content/choices.ts), a pill in it: only while something is being said. */
     choices?: HTMLElement;
 }
 
@@ -38,10 +39,23 @@ const presses = new WeakMap<HTMLElement, SayPresses>();
 
 export { SAY_PRESS, SAY_INSET } from './say-sizes';
 
-/** The pill the field and its presses are: one line, rounded whole, its presses SAY_INSET in. Literals: a const made of another is undefined in a Bun bundle. */
+/** The input field the field and its presses are: one line, rounded whole, its presses SAY_INSET in. Literals: a const made of another is undefined in a Bun bundle. */
 const PILL: Record<string, string> = {
     display: 'flex', 'align-items': 'center', gap: '8px', padding: '8px', 'border-radius': '9999px',
 };
+
+/** With a pill in it, Claude's composer: the words on top, the row of presses and pills under them. SAY_PRESS / 2 + SAY_INSET round. */
+const STACKED: Record<string, string> = {
+    'flex-direction': 'column', 'align-items': 'stretch', 'border-radius': '26px',
+};
+
+/** The row under the words: the + and the pills at its start, the → at its end. */
+const UNDER: Record<string, string> = {
+    display: 'flex', 'align-items': 'center', gap: '8px', 'min-width': '0',
+};
+
+/** Input fields with no name of their own, numbered. */
+let unnamed = 0;
 
 /** The field in the pill: the words, on the pill's surface. */
 const IN_PILL: Record<string, string> = {
@@ -54,7 +68,7 @@ export function declareSay(field: HTMLElement, with_?: SayPresses): void {
     for (const [name, value] of Object.entries(FIELD)) field.style.setProperty(name, value, 'important');
     if (with_?.start || with_?.end || with_?.choices) presses.set(field, with_);
     if (with_?.choices) {
-        pillAbove(with_.choices, field);
+        pillIn(with_.choices, field);
         whileSaying(field, with_.choices);
     }
 }
@@ -110,7 +124,7 @@ function keepBoxToItsOwn(field: HTMLElement): void {
     if (box?.dataset.sayBox !== '') return;
     const own = presses.get(field);
     for (const child of Array.from(box.children)) {
-        if (child !== field && child !== own?.start && child !== own?.end) box.before(child);
+        if (child !== field && child !== own?.start && child !== own?.end && (child as HTMLElement).dataset.sayRow === undefined) box.before(child);
     }
 }
 
@@ -172,27 +186,42 @@ function pinSay(element: HTMLElement, field: HTMLElement): void {
     pinned.style.setProperty('background-color', element.style.backgroundColor || getComputedStyle(element).backgroundColor, 'important');
 }
 
-/** The field's box: the field itself, or, with presses, the pill holding it and them, where the field stood. */
+/**
+ * The field's box: the field itself, or, with presses or a pill, the input field holding it and them, where the field
+ * stood. "Inputfield an element yes, new form, inputfield": it is an element of its own, in the inputfield form.
+ */
 function boxOf(field: HTMLElement): HTMLElement {
     const own = presses.get(field);
-    if (!own || (!own.start && !own.end)) {
-        if (own?.choices && field.parentElement && own.choices.parentElement !== field.parentElement) field.parentElement.insertBefore(own.choices, field);
-        return field;
-    }
+    if (!own) return field;
     const parent = field.parentElement!;
     if (parent.dataset.sayBox === '') return parent;
     const box = field.ownerDocument.createElement('div');
     box.dataset.sayBox = '';
-    // The pill takes the field's line, as the field did.
+    setElementId(box, field.dataset.sayId ? `${field.dataset.sayId}-input` : `say-input-${++unnamed}`);
+    setForm(box, 'inputfield');
+    // It takes the field's line, as the field did.
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
     for (const [name, value] of Object.entries(PILL)) box.style.setProperty(name, value, 'important');
     parent.insertBefore(box, field);
-    // The choices stand above the pill, on their own line of the row.
-    if (own.choices) parent.insertBefore(own.choices, box);
-    if (own.start) box.appendChild(own.start);
-    box.appendChild(field);
-    if (own.end) box.appendChild(own.end);
+    if (own.choices) {
+        // "The input field pill should be inside of inputfield form": the words on top, the row under them.
+        for (const [name, value] of Object.entries(STACKED)) box.style.setProperty(name, value, 'important');
+        box.appendChild(field);
+        const under = field.ownerDocument.createElement('div');
+        under.dataset.sayRow = '';
+        for (const [name, value] of Object.entries(UNDER)) under.style.setProperty(name, value, 'important');
+        const space = field.ownerDocument.createElement('div');
+        space.dataset.saySpace = '';
+        space.style.setProperty('flex', '1 1 auto', 'important');
+        for (const node of [own.start, own.choices, space, own.end]) if (node) under.appendChild(node);
+        box.appendChild(under);
+    } else {
+        if (own.start) box.appendChild(own.start);
+        box.appendChild(field);
+        if (own.end) box.appendChild(own.end);
+    }
     for (const [name, value] of Object.entries(IN_PILL)) field.style.setProperty(name, value, 'important');
+    if (own.choices) field.style.setProperty('align-self', 'stretch', 'important');
     // The pill is its surface: the field draws none of its own.
     field.style.setProperty('border', 'none');
     field.style.setProperty('background', 'transparent');

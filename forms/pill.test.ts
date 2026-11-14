@@ -1,19 +1,19 @@
 /**
- * Pill Form — an element resting as a pill above an input field, and taking the field's place when pressed.
+ * Pill Form — an element resting as a pill in an input field, across its row when pressed.
  *
  * "Why doesn't it behave like an element form? Not as an overlay, but as a generalised 'pills above inputfields'
- * form?" "In elemental form, everything has an answer." And cyan, on a screenshot: "we would not be using the
- * inputfield while in the pill choosing something". Pressed, the pill is the same element in the field's place, what
- * it holds in it; let go, it is the pill again, above the field, and the field has the words again.
+ * form?" "In elemental form, everything has an answer." "The input field pill should be inside of inputfield form, and
+ * it taking focus should let kb stay in place." "I want inputfield to still be there." Pressed, the pill is the same
+ * element across its row, what it holds in it, what else is in the row aside; the field stays, with the focus.
  *
  * Personas:
- * - Tim: Happy path — at rest a pill above the field; pressed, in the field's place; let go, a pill again
+ * - Tim: Happy path — at rest a pill in the row; pressed, across the row, the field still there; let go, a pill again
  * - Spike: Edge cases — no field yet, Escape, a press outside, a press while it moves
  * - Jenny: Complex scenarios — one element through every form, what it holds drawn once, renamed while open
  */
 
 import { describe, test, expect, afterEach } from 'bun:test';
-import { pillFrom, pillAbove, PILL_RESTED } from './pill';
+import { pillFrom, pillIn, PILL_RESTED } from './pill';
 import { getForm } from '../dataset';
 import type { Element } from '../element';
 import { fitRule } from '../fit';
@@ -51,22 +51,23 @@ function item(): Element {
     };
 }
 
-/** A row the way a chat draws it: the pill, then the field's box. */
+/** An input field the way a chat draws it: the field, and under it a row of a +, the pill and a send. */
 function rowWithField() {
     const element = document.createElement('div');
     element.dataset.elementId = 'xenon';
-    const row = document.createElement('div');
     const place = document.createElement('div');
     place.dataset.sayBox = '';
-    place.style.setProperty('display', 'flex', 'important');
     const field = document.createElement('textarea');
-    place.appendChild(field);
+    const row = document.createElement('div');
+    const plus = document.createElement('button');
+    const send = document.createElement('button');
     const pill = pillFrom(item());
-    row.append(pill.element, place);
-    element.appendChild(row);
+    row.append(plus, pill.element, send);
+    place.append(field, row);
+    element.appendChild(place);
     document.body.appendChild(element);
-    pillAbove(pill.element, field);
-    return { pill, row, place, field };
+    pillIn(pill.element, field);
+    return { pill, row, place, field, plus, send };
 }
 
 describe('Tim: a pill', () => {
@@ -78,21 +79,25 @@ describe('Tim: a pill', () => {
         expect(pill.element.tabIndex).toBe(0);
     });
 
-    test('pressed, it takes the field\'s place, holding what it holds, and the field stands aside', async () => {
-        const { pill, row, place } = rowWithField();
+    test('pressed, it is across its row, holding what it holds; what else is in the row stands aside; the field stays', async () => {
+        const { pill, row, field, plus, send } = rowWithField();
+        field.focus();
         pill.element.click();
         await settled();
 
         expect(getForm(pill.element)).toBe('pillOpen');
         expect(pill.element.parentElement).toBe(row);
-        expect(pill.element.nextElementSibling).toBe(place);
-        expect(place.style.getPropertyValue('display')).toBe('none');
+        expect(plus.style.getPropertyValue('display')).toBe('none');
+        expect(send.style.getPropertyValue('display')).toBe('none');
+        expect(field.isConnected).toBe(true);
+        expect(field.style.getPropertyValue('display')).toBe('');
+        expect(document.activeElement).toBe(field);
         expect(pill.element.querySelector('.options')).not.toBeNull();
         expect(pill.element.getAttribute('aria-expanded')).toBe('true');
     });
 
-    test('let go, it is the pill again above the field, the field back, with the words', async () => {
-        const { pill, place, field } = rowWithField();
+    test('let go, it is the pill again in its place in the row, what was aside back, the field with the words', async () => {
+        const { pill, field, plus, send } = rowWithField();
         let told = 0;
         pill.element.addEventListener(PILL_RESTED, () => told++);
         pill.element.click();
@@ -101,13 +106,37 @@ describe('Tim: a pill', () => {
         await settled();
 
         expect(getForm(pill.element)).toBe('pill');
-        expect(pill.element.nextElementSibling).toBe(place);
-        expect(place.style.getPropertyValue('display')).toBe('flex');
-        expect(place.style.getPropertyPriority('display')).toBe('important');
+        expect(pill.element.previousElementSibling).toBe(plus);
+        expect(pill.element.nextElementSibling).toBe(send);
+        expect(plus.style.getPropertyValue('display')).toBe('');
         expect(pill.element.querySelector('.options')).toBeNull();
         expect(pill.element.textContent).toBe('Opus 5.5 · high');
         expect(document.activeElement).toBe(field);
         expect(told).toBe(1);
+    });
+});
+
+// "it taking focus should let kb stay in place": a press is a pointerdown first, and a pointerdown is where the
+// focus moves; on the pill, it does not.
+describe('Spike: a press on it', () => {
+    test('takes no focus from the field, at rest or open', async () => {
+        const { pill } = rowWithField();
+        const down = () => {
+            const e = new Event('pointerdown', { bubbles: true, cancelable: true });
+            pill.element.dispatchEvent(e);
+            return e.defaultPrevented;
+        };
+        const mouse = () => {
+            const e = new Event('mousedown', { bubbles: true, cancelable: true });
+            pill.element.querySelector('button, span')!.dispatchEvent(e);
+            return e.defaultPrevented;
+        };
+        expect(down()).toBe(true);
+        expect(mouse()).toBe(true);
+        pill.element.click();
+        await settled();
+        expect(down()).toBe(true);
+        expect(mouse()).toBe(true);
     });
 });
 
@@ -176,6 +205,19 @@ describe('Jenny: on its road, still in its element', () => {
         pill.element.click();
         expect(pill.element.parentElement).toBe(body);
         expect(pill.element.style.position).toBe('fixed');
+        cancelMorph(pill.element);
+    });
+});
+
+// Seen on the moving frame: the row's presses folded at the first frame, the input field shrank, and the pill on its
+// road lay over the words. They keep their room, unseen, until it is across the row.
+describe('Jenny: on its road, the row keeps its room', () => {
+    test('what else is in the row is unseen while it moves, and stands aside once it is there', () => {
+        const { pill, plus } = rowWithField();
+        stillMoving(pill.element);
+        pill.element.click();
+        expect(plus.style.getPropertyValue('visibility')).toBe('hidden');
+        expect(plus.style.getPropertyValue('display')).toBe('');
         cancelMorph(pill.element);
     });
 });
