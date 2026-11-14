@@ -1,21 +1,23 @@
 /**
- * A chat's field takes the bottom, in a real browser.
+ * A chat's field is the Claude app's composer, in a real browser.
  *
- * "making the inputfield take up the entire bottom of the screen for chat
- * elements like claude or pi" (#40), and a red cross over a choice that left the
- * field "Say somethi". The field a host declares (`declareSay`) has the bottom
- * line of its row to itself, the whole width, and the row stays at the bottom of
- * the element while what was said scrolls above it.
+ * "making the inputfield take up the entire bottom of the screen for chat elements like claude or pi" (#40). "This i
+ * want", "I want this only", "LOOK AT THIS THE SHAPE": one pill as wide as the body, the + at its start, what is typed,
+ * the → at its end, on one line; the row stays at the bottom of the element while what was said scrolls above it, and
+ * on a phone the home bar's strip is the page's, under the pill.
  *
  * Personas:
- * - Tim: Happy path — Xenon's field is as wide as the body, on the bottom line of its row
+ * - Tim: Happy path — Xenon's pill is as wide as the body: the +, the words, the → on one line, its presses round
  * - Spike: Edge cases — what the host put beside it is above it, not squeezing it
- * - Jenny: Complex scenarios — scrolled up to the start, the row is still at the bottom
+ * - Jenny: Complex scenarios — scrolled up, over the home bar, the field drawn again or taken away
  */
 
 import { test, expect, type Page } from '@playwright/test';
 
 const XENON = '[data-element-id="chat-specimen"]';
+// The Claude app's composer (content/say.ts); literals here, as the page's test cannot import the package.
+const SAY_PRESS = 36;
+const SAY_INSET = 8;
 
 async function open(page: Page) {
     const xenon = page.locator(XENON);
@@ -27,7 +29,7 @@ async function open(page: Page) {
 
 const boxOf = (page: Page, selector: string) => page.locator(selector).evaluate((el) => {
     const r = el.getBoundingClientRect();
-    return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width };
+    return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
 });
 
 /** The body's inside: where its content can be, and how far down it is seen. */
@@ -41,30 +43,56 @@ const insideOf = (page: Page) => page.locator(`${XENON} [data-scroller="body"]`)
     };
 });
 
+const PILL = `${XENON} [data-say-box]`;
+
 test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.locator(XENON).waitFor();
 });
 
-test.describe('Tim: the field', () => {
-    test('is as wide as the body, on the bottom line of its row', async ({ page }) => {
+test.describe('Tim: the pill', () => {
+    test('is as wide as the body', async ({ page }) => {
         await open(page);
-        const field = await boxOf(page, `${XENON} [data-say]`);
+        const pill = await boxOf(page, PILL);
         const inside = await insideOf(page);
 
-        expect(field.left).toBeCloseTo(inside.left, 0);
-        expect(field.right).toBeCloseTo(inside.right, 0);
+        expect(pill.left).toBeCloseTo(inside.left, 0);
+        expect(pill.right).toBeCloseTo(inside.right, 0);
+    });
+
+    test('the + at its start, the words, the → at its end, on one line; its presses round, SAY_INSET in', async ({ page }) => {
+        await open(page);
+        const at = await page.locator(PILL).evaluate((pill) => {
+            const box = (b: Element) => b.getBoundingClientRect();
+            const [attach, send] = Array.from(pill.querySelectorAll('button'));
+            const field = pill.querySelector('[data-say]')!;
+            return {
+                pill: box(pill), attach: box(attach!), send: box(send!), field: box(field),
+                round: getComputedStyle(attach!).borderTopLeftRadius,
+            };
+        });
+
+        expect(at.attach.right).toBeLessThanOrEqual(at.field.left);
+        expect(at.field.right).toBeLessThanOrEqual(at.send.left);
+        const middle = (r: { top: number; bottom: number }) => (r.top + r.bottom) / 2;
+        expect(middle(at.attach)).toBeCloseTo(middle(at.pill), 0);
+        expect(middle(at.send)).toBeCloseTo(middle(at.pill), 0);
+        expect(middle(at.field)).toBeCloseTo(middle(at.pill), 0);
+        expect(at.attach.width).toBeCloseTo(SAY_PRESS, 0);
+        expect(at.attach.height).toBeCloseTo(SAY_PRESS, 0);
+        expect(at.round).toBe('50%');
+        expect(at.attach.left - at.pill.left).toBeCloseTo(SAY_INSET, 0);
+        expect(at.pill.right - at.send.right).toBeCloseTo(SAY_INSET, 0);
     });
 });
 
 test.describe('Spike: what the host put beside it', () => {
     test('is above it, not squeezing it', async ({ page }) => {
         await open(page);
-        const field = await boxOf(page, `${XENON} [data-say]`);
+        const pill = await boxOf(page, PILL);
         const choice = await boxOf(page, `${XENON} select`);
 
-        // Its own presses are in it (Tim: the field's presses); what else the host put beside it is above it.
-        expect(choice.bottom).toBeLessThanOrEqual(field.top);
+        expect(choice.bottom).toBeLessThanOrEqual(pill.top);
     });
 });
 
@@ -73,78 +101,32 @@ test.describe('Jenny: scrolled up to the start', () => {
         await open(page);
         await page.locator(`${XENON} [data-scroller="body"]`).evaluate((s) => { s.scrollTop = 0; });
         await page.waitForTimeout(100);
-        const field = await boxOf(page, `${XENON} [data-say]`);
+        const pill = await boxOf(page, PILL);
         const inside = await insideOf(page);
 
-        expect(field.bottom).toBeLessThanOrEqual(inside.bottom + 1);
-        expect(field.bottom).toBeGreaterThan(inside.bottom - 80);
+        expect(pill.bottom).toBeLessThanOrEqual(inside.bottom + 1);
+        expect(pill.bottom).toBeGreaterThan(inside.bottom - 80);
     });
 });
 
-// "missed opportunity", in red, under the field, five times: on a phone the field stopped short of the home bar's
-// strip, and what lay below it was nothing. The strip is the field's: its box reaches the screen's edge, and what is
-// typed in it stays above the home bar.
+// Gemini's, ChatGPT's, Manus's and Claude's composers float above the home bar: the strip under it is the page's.
 test.describe('Jenny: over the home bar', () => {
-    test('the field reaches the bottom of the screen, its words above the bar', async ({ page }, info) => {
+    test('the pill stands above the home bar\'s strip', async ({ page }, info) => {
         test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
         await page.evaluate(() => document.documentElement.style.setProperty('--elements-safe-area-bottom', '34px'));
         await open(page);
-        const at = await page.locator(`${XENON} [data-say]`).evaluate((field) => {
-            const r = field.getBoundingClientRect();
-            const s = getComputedStyle(field);
-            return { bottom: r.bottom, words: r.bottom - parseFloat(s.paddingBottom) - parseFloat(s.borderBottomWidth), screen: window.innerHeight };
-        });
+        const pill = await boxOf(page, PILL);
+        const screen = await page.evaluate(() => window.innerHeight);
 
-        expect(at.bottom).toBeCloseTo(at.screen, 0);
-        expect(at.words).toBeLessThanOrEqual(at.screen - 34);
+        expect(pill.bottom).toBeLessThanOrEqual(screen - 34 + 1);
+        expect(pill.bottom).toBeGreaterThan(screen - 34 - 16);
     });
 });
 
-// Purple arrows: the + into the field's bottom-left corner, the → into its bottom-right.
-test.describe('Tim: the field\'s presses', () => {
-    test('the + and the → are in the field, at its bottom corners, above the home bar, under its words', async ({ page }, info) => {
-        test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
-        await page.evaluate(() => document.documentElement.style.setProperty('--elements-safe-area-bottom', '34px'));
-        await open(page);
-        const at = await page.locator(XENON).evaluate((element) => {
-            const field = element.querySelector<HTMLElement>('[data-say]')!;
-            const box = (b: Element) => b.getBoundingClientRect();
-            const [attach, send] = Array.from(field.parentElement!.querySelectorAll('button'));
-            const s = getComputedStyle(field);
-            return {
-                field: box(field), attach: box(attach), send: box(send),
-                words: box(field).bottom - parseFloat(s.paddingBottom),
-                screen: window.innerHeight,
-            };
-        });
-
-        // Inside the field's box.
-        expect(at.attach.left).toBeGreaterThanOrEqual(at.field.left);
-        expect(at.send.right).toBeLessThanOrEqual(at.field.right);
-        expect(at.attach.bottom).toBeLessThanOrEqual(at.field.bottom);
-        // At its corners: the + to the left, the → to the right, on one line.
-        expect(at.attach.left - at.field.left).toBeLessThan(16);
-        expect(at.field.right - at.send.right).toBeLessThan(16);
-        expect(at.attach.top).toBeCloseTo(at.send.top, 0);
-        // Above the home bar, and under the words.
-        expect(at.attach.bottom).toBeLessThanOrEqual(at.screen - 34);
-        expect(at.attach.top).toBeGreaterThanOrEqual(at.words - 1);
-        // The field still reaches the bottom of the screen.
-        expect(at.field.bottom).toBeCloseTo(at.screen, 0);
-    });
-});
-
-// Qodo on #114: the field a host draws in place of the first (a harness tab pressed), the field taken away, a press
-// that grows. The element is held to the field it has now.
+// Qodo on #114: the field a host draws in place of the first (a harness tab pressed), the field taken away. The
+// element is held to the field it has now.
 test.describe('Jenny: the field changes while the panel is open', () => {
-    const fieldAt = (page: Page) => page.locator(XENON).evaluate((element) => {
-        const field = element.querySelector<HTMLElement>('[data-say]')!;
-        const r = field.getBoundingClientRect();
-        const s = getComputedStyle(field);
-        return { bottom: r.bottom, words: r.bottom - parseFloat(s.paddingBottom) - parseFloat(s.borderBottomWidth), screen: window.innerHeight };
-    });
-
-    test('a field drawn in place of the first reaches the bottom, its words above the bar', async ({ page }, info) => {
+    test('a field drawn in place of the first stands above the bar', async ({ page }, info) => {
         test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
         await page.evaluate(() => document.documentElement.style.setProperty('--elements-safe-area-bottom', '34px'));
         await open(page);
@@ -158,13 +140,13 @@ test.describe('Jenny: the field changes while the panel is open', () => {
             row.replaceWith(next);
         });
         await page.waitForTimeout(100);
-        const at = await fieldAt(page);
+        const field = await boxOf(page, `${XENON} [data-say]`);
+        const screen = await page.evaluate(() => window.innerHeight);
 
-        expect(at.bottom).toBeCloseTo(at.screen, 0);
-        expect(at.words).toBeLessThanOrEqual(at.screen - 34);
+        expect(field.bottom).toBeLessThanOrEqual(screen - 34 + 1);
     });
 
-    test('with the field taken away, the panel keeps the home bar\'s strip again', async ({ page }, info) => {
+    test('with the field taken away, the body has its own padding back', async ({ page }, info) => {
         test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
         await page.evaluate(() => document.documentElement.style.setProperty('--elements-safe-area-bottom', '34px'));
         await open(page);
@@ -177,23 +159,7 @@ test.describe('Jenny: the field changes while the panel is open', () => {
         });
 
         expect(kept.panel).toBeCloseTo(34, 0);
-        // And the body its own padding back (Qodo on #114: "Content loses spacing after chat removal").
+        // Qodo on #114: "Content loses spacing after chat removal".
         expect(kept.body).toBeCloseTo(8, 0);
-    });
-
-    test('a press that grows keeps the words above it', async ({ page }, info) => {
-        test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
-        await page.evaluate(() => document.documentElement.style.setProperty('--elements-safe-area-bottom', '34px'));
-        await open(page);
-        const at = await page.locator(XENON).evaluate(async (element) => {
-            const field = element.querySelector<HTMLElement>('[data-say]')!;
-            const send = field.parentElement!.querySelectorAll('button')[1]!;
-            send.style.setProperty('height', '72px', 'important');
-            await new Promise((resolve) => setTimeout(resolve, 200));
-            const s = getComputedStyle(field);
-            return { press: send.getBoundingClientRect().top, words: field.getBoundingClientRect().bottom - parseFloat(s.paddingBottom) };
-        });
-
-        expect(at.press).toBeGreaterThanOrEqual(at.words - 1);
     });
 });

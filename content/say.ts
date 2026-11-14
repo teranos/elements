@@ -31,14 +31,13 @@ export interface SayPresses {
 
 const presses = new WeakMap<HTMLElement, SayPresses>();
 
-/** The pill the field and its presses are: one line, rounded whole. */
-const PILL: Record<string, string> = {
-    display: 'flex', 'align-items': 'center', gap: '8px', padding: '7px', 'border-radius': '9999px',
-};
+/** The Claude app's composer, measured from its screenshots on #114 at 3px a point: a 36pt press, 8pt in from the pill's edge. */
+export const SAY_PRESS = 36;
+export const SAY_INSET = 8;
 
-/** A press in the pill: on the field's line, as wide as it is. What it looks like is the host's. */
-const PRESS: Record<string, string> = {
-    flex: 'none', margin: '0',
+/** The pill the field and its presses are: one line, rounded whole, its presses SAY_INSET in. Literals: a const made of another is undefined in a Bun bundle. */
+const PILL: Record<string, string> = {
+    display: 'flex', 'align-items': 'center', gap: '8px', padding: '8px', 'border-radius': '9999px',
 };
 
 /** The field in the pill: the words, on the pill's surface. */
@@ -166,9 +165,7 @@ function boxOf(field: HTMLElement): HTMLElement {
     field.style.setProperty('border', 'none');
     field.style.setProperty('background', 'transparent');
     field.style.setProperty('resize', 'none');
-    for (const press of [own.start, own.end]) {
-        if (!press) continue;
-        for (const [name, value] of Object.entries(PRESS)) press.style.setProperty(name, value, 'important');
-    }
+    // Its presses are SAY_PRESS square and round, by the package's rule (fit.ts); what they look like is the host's.
+    for (const press of [own.start, own.end]) if (press) press.dataset.sayPress = '';
     return box;
 }

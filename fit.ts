@@ -1,5 +1,6 @@
 import { AX } from './forms/ax';
 import { COMPACT_WIDTH } from './compact';
+import { SAY_PRESS } from './content/say';
 
 // "no element should have content that isnt accesible"
 // Nothing in an element is wider than what holds it: text wraps even where a host said nowrap,
@@ -16,8 +17,8 @@ const BUTTON_PROPERTIES = ['width', 'flex', 'flex-grow', 'flex-basis'];
 /** Inside an element, an important style attribute saying how wide is taken off; the element's own box is the form's. */
 export function takeOffFit(node: Element): void {
     if (!(node instanceof HTMLElement) || node.dataset.elementId !== undefined) return;
-    // A press's box is PRESS_SIZES' (forms/press.ts), not what it says.
-    if (node.tagName === 'BUTTON' && node.dataset.press === undefined) {
+    // A press's box is PRESS_SIZES' (forms/press.ts), a say press's SAY_PRESS (content/say.ts), not what it says.
+    if (node.tagName === 'BUTTON' && node.dataset.press === undefined && node.dataset.sayPress === undefined) {
         for (const name of BUTTON_PROPERTIES) {
             if (node.style.getPropertyPriority(name) === 'important') node.style.removeProperty(name);
         }
@@ -36,8 +37,9 @@ export function takeOffFit(node: Element): void {
 export function fitRule(element: string): string {
     return `${element} * { text-wrap-mode: wrap !important; max-width: 100% !important; min-width: 0 !important; }
 ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
-${element} button:not([data-element-id]):not([data-press]) { width: fit-content !important; flex: 0 0 auto !important; }
-${element} button[data-fit-even]:not([data-element-id]):not([data-press]) { min-width: var(--fit-even) !important; }
+${element} button:not([data-element-id]):not([data-press]):not([data-say-press]) { width: fit-content !important; flex: 0 0 auto !important; }
+${element} [data-say-press] { box-sizing: border-box !important; width: ${SAY_PRESS}px !important; height: ${SAY_PRESS}px !important; padding: 0 !important; border-radius: 50% !important; flex: none !important; margin: 0 !important; display: inline-grid !important; place-items: center !important; }
+${element} button[data-fit-even]:not([data-element-id]):not([data-press]):not([data-say-press]) { min-width: var(--fit-even) !important; }
 ${element} table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }
 ${element} .element-table, ${element} .element-table * { overflow-wrap: break-word !important; }
 @media ${COMPACT_WIDTH} {
@@ -69,7 +71,7 @@ export function wrapRows(scroller: HTMLElement): void {
 /** The presses of one list are as wide as its widest says: buttons stacked in one holder, or the one button of each row. Measured, so only on a page. */
 export function evenButtons(scroller: HTMLElement): void {
     const lists = new Map<HTMLElement, HTMLButtonElement[]>();
-    for (const button of Array.from(scroller.querySelectorAll<HTMLButtonElement>('button:not([data-element-id]):not([data-press])'))) {
+    for (const button of Array.from(scroller.querySelectorAll<HTMLButtonElement>('button:not([data-element-id]):not([data-press]):not([data-say-press])'))) {
         const list = listOf(button);
         if (!list) continue;
         lists.set(list, [...(lists.get(list) ?? []), button]);

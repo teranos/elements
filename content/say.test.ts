@@ -12,7 +12,7 @@
  */
 
 import { describe, test, expect } from 'bun:test';
-import { declareSay, holdSay, SAY_HELD } from './say';
+import { declareSay, holdSay, SAY_HELD, SAY_INSET } from './say';
 
 function chatElement(withField: boolean): { element: HTMLElement; body: HTMLElement } {
     const element = document.createElement('div');
@@ -75,11 +75,10 @@ describe('Jenny: a field drawn after the element opened', () => {
     });
 });
 
-// Purple arrows on a screenshot: the + into the field's bottom-left corner, the → into its bottom-right. "And how
-// often do you want me to complain about the positions of these buttons". A field's presses are in its box, not on
-// the line above it.
+// "This i want", "I want this only", "LOOK AT THIS THE SHAPE": the Claude app's composer. One pill, the + at its start,
+// what is typed, the → at its end, on one line.
 describe('Tim: a field with its presses', () => {
-    test('the + and the → are in the field\'s box, at its bottom corners, and the words leave them room', () => {
+    test('is one pill: the + first, the words, the → last; what else the host put there stays in the row', () => {
         const element = document.createElement('div');
         const body = document.createElement('div');
         body.dataset.scroller = 'body';
@@ -98,15 +97,31 @@ describe('Tim: a field with its presses', () => {
 
         const box = field.parentElement!;
         expect(box.dataset.sayBox).toBe('');
-        expect(attach.parentElement).toBe(box);
-        expect(send.parentElement).toBe(box);
+        expect(Array.from(box.children)).toEqual([attach, field, send]);
+        expect(box.style.getPropertyValue('display')).toBe('flex');
+        expect(box.style.getPropertyValue('align-items')).toBe('center');
+        expect(box.style.getPropertyValue('padding')).toBe(`${SAY_INSET}px`);
         expect(choice.parentElement).toBe(row);
-        expect(attach.style.getPropertyValue('position')).toBe('absolute');
-        expect(attach.style.getPropertyValue('left')).not.toBe('');
-        expect(send.style.getPropertyValue('right')).not.toBe('');
-        // The line the presses stand on is kept under the words (happy-dom drops a calc() with a var() in it; a
-        // browser holds it, browser/say-field.browser.ts).
-        expect(field.style.getPropertyValue('--elements-say-room')).not.toBe('');
+        // The words take what the presses leave, in their place between them.
+        expect(field.style.getPropertyValue('order')).toBe('0');
+        expect(field.style.getPropertyValue('flex')).toBe('1 1 auto');
+    });
+
+    test('its presses are the package\'s: marked, so the pill\'s rule sizes them, not what they hold', () => {
+        const field = document.createElement('textarea');
+        const attach = document.createElement('button');
+        const send = document.createElement('button');
+        declareSay(field, { start: attach, end: send });
+        const row = document.createElement('div');
+        row.append(attach, field, send);
+        const element = document.createElement('div');
+        element.appendChild(row);
+        document.body.appendChild(element);
+
+        holdSay(element);
+
+        expect(attach.dataset.sayPress).toBe('');
+        expect(send.dataset.sayPress).toBe('');
     });
 });
 
@@ -126,7 +141,6 @@ describe('Jenny: the field changes while the element is open', () => {
         await settled();
 
         expect(next.style.getPropertyValue('position')).toBe('sticky');
-        expect((next.firstElementChild as HTMLElement).dataset.sayOwnPadding).not.toBeUndefined();
         expect(told).toBe(2);
     });
 

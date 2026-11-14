@@ -7,7 +7,6 @@
 
 import { tray } from '../tray/tray';
 import type { Element } from '../element';
-import { createButton } from '../canvas/ui-primitives';
 import { sayFrom } from '../content/say';
 
 export function renderChatSpecimen(): void {
@@ -36,8 +35,15 @@ export function renderChatSpecimen(): void {
             // "the inputfield take up the entire bottom of the screen for chat elements"
             // The package's chat field, which takes that bottom (#40).
             // Its presses in its box: the + at its start, the → at its end.
-            const attach = createButton({ label: '+', onClick: () => {} });
-            const send = createButton({ label: '→', onClick: () => {} });
+            // Drawn, as a host's are: a press in the pill is SAY_PRESS square whatever it holds.
+            const icon = (label: string, path: string) => {
+                const press = document.createElement('button');
+                press.setAttribute('aria-label', label);
+                press.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="${path}"/></svg>`;
+                return press;
+            };
+            const attach = icon('Picture', 'M12 5v14M5 12h14');
+            const send = icon('Say', 'M12 19V5M6 11l6-6 6 6');
             const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send });
             row.append(mode, says, attach, send);
             body.append(log, row);
