@@ -111,6 +111,18 @@ export interface FormTable {
      * element it is over.
      */
     readonly overlay: { readonly opensFromTray: false };
+
+    /**
+     * "a generalised 'pills above inputfields' form". forms/pill.ts: resting as a pill above an input field, saying
+     * what it is. Never in the tray.
+     */
+    readonly pill: { readonly opensFromTray: false };
+
+    /**
+     * The pill pressed: the same element in its field's place, what it holds in it, "we would not be using the
+     * inputfield while in the pill choosing something". forms/pill.ts; let go, it is the pill again.
+     */
+    readonly pillOpen: { readonly opensFromTray: false };
 }
 
 // Annotated here rather than only on FORMS: a literal assigned straight
@@ -128,6 +140,8 @@ const TABLE: FormTable = {
     tooltip: { opensFromTray: false },
     button: { opensFromTray: false },
     overlay: { opensFromTray: false },
+    pill: { opensFromTray: false },
+    pillOpen: { opensFromTray: false },
 };
 
 export const FORMS: FormTable = Object.freeze(TABLE);

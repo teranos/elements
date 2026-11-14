@@ -162,9 +162,10 @@
     /* The pill's look, as a host gives it: its shape and sizes are the package's. */
     [data-say-box] { border: 1px solid #fff; }
     [data-say-press] { border: 1px solid #fff; background: #000; color: #fff; }
-    [data-choices-pill], [data-choices-sheet] button { border: 1px solid #fff; background: #000; color: #fff; font: inherit; }
-    [data-choices-sheet] { border: 1px solid #fff; }
-    [data-choices-sheet] button[aria-pressed="true"] { background: #fff; color: #000; }
+    /* The choices' look, at rest and open: their shape is the package's (Pill Form). */
+    [data-choices] { border: 1px solid #fff; background: #000; color: #fff; }
+    [data-choices] button { border: 1px solid #fff; background: #000; color: #fff; font: inherit; }
+    [data-choices] button[aria-pressed="true"] { background: #fff; color: #000; }
 
     .content {
       font-family: var(--font-mono);

@@ -8,7 +8,7 @@
  * beside the field wraps above it. Written important: no host stylesheet squeezes it.
  */
 
-import { sheetOpen, CHOICES_CLOSED, CHOICE_TAKEN } from './choices';
+import { pillAbove, pillAway, PILL_RESTED } from '../forms/pill';
 
 const FIELD: Record<string, string> = {
     flex: '1 1 100%', width: '100%', 'min-width': '0', 'max-width': 'none',
@@ -29,16 +29,14 @@ const ROW: Record<string, string> = {
 export interface SayPresses {
     start?: HTMLElement;
     end?: HTMLElement;
-    /** The choices it says with (choicesFrom, content/choices.ts): above the pill, only while something is being said. */
+    /** The choices it says with (choicesFrom, content/choices.ts), a pill above it: only while something is being said. */
     choices?: HTMLElement;
 }
 
 const presses = new WeakMap<HTMLElement, SayPresses>();
 
 
-/** The Claude app's composer, measured from its screenshots on #114 at 3px a point: a 36pt press, 8pt in from the pill's edge. */
-export const SAY_PRESS = 36;
-export const SAY_INSET = 8;
+export { SAY_PRESS, SAY_INSET } from './say-sizes';
 
 /** The pill the field and its presses are: one line, rounded whole, its presses SAY_INSET in. Literals: a const made of another is undefined in a Bun bundle. */
 const PILL: Record<string, string> = {
@@ -55,7 +53,10 @@ export function declareSay(field: HTMLElement, with_?: SayPresses): void {
     field.dataset.say = '';
     for (const [name, value] of Object.entries(FIELD)) field.style.setProperty(name, value, 'important');
     if (with_?.start || with_?.end || with_?.choices) presses.set(field, with_);
-    if (with_?.choices) whileSaying(field, with_.choices);
+    if (with_?.choices) {
+        pillAbove(with_.choices, field);
+        whileSaying(field, with_.choices);
+    }
 }
 
 /**
@@ -66,7 +67,7 @@ function whileSaying(field: HTMLElement, choices: HTMLElement): void {
     const words = () => ((field as HTMLTextAreaElement).value ?? '').trim() !== '';
     const look = () => {
         const doc = field.ownerDocument;
-        choices.hidden = !(doc.activeElement === field || words() || sheetOpen(choices) || choices.contains(doc.activeElement));
+        choices.hidden = !(doc.activeElement === field || words() || pillAway(choices) || choices.contains(doc.activeElement));
     };
     choices.hidden = true;
     field.addEventListener('focus', look);
@@ -74,9 +75,8 @@ function whileSaying(field: HTMLElement, choices: HTMLElement): void {
     // Left for the pill: the press lands before it is looked at again.
     field.addEventListener('blur', () => setTimeout(look, 0));
     choices.addEventListener('focusout', () => setTimeout(look, 0));
-    choices.addEventListener(CHOICES_CLOSED, look);
-    // A choice taken is part of saying something: the field has the words again, as Claude's does.
-    choices.addEventListener(CHOICE_TAKEN, () => { field.focus(); look(); });
+    // Rested again, the field has the words (forms/pill.ts).
+    choices.addEventListener(PILL_RESTED, look);
 }
 
 // "i think chatfield soudl be considered different from regular inputfied"

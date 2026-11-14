@@ -89,33 +89,50 @@ test.describe('Tim: the pill', () => {
     });
 });
 
+// "Not as an overlay, but as a generalised 'pills above inputfields' form": the choices are one element in Pill Form.
+// "we would not be using the inputfield while in the pill choosing something": pressed, it takes the field's place.
 test.describe('Spike: its choices', () => {
+    const CHOICES = `${XENON} [data-choices]`;
+
     test('are gone while nothing is being said', async ({ page }) => {
         await open(page);
-        await expect(page.locator(`${XENON} [data-choices]`)).toBeHidden();
+        await expect(page.locator(CHOICES)).toBeHidden();
     });
 
-    test('while something is, are above the pill, not squeezing it', async ({ page }) => {
+    test('while something is, rest as a pill above the field\'s, not squeezing it', async ({ page }) => {
         await open(page);
         await page.locator(`${XENON} [data-say]`).focus();
         const pill = await boxOf(page, PILL);
-        const choices = await boxOf(page, `${XENON} [data-choices-pill]`);
+        const choices = await boxOf(page, CHOICES);
 
         expect(choices.bottom).toBeLessThanOrEqual(pill.top);
         expect(choices.left).toBeCloseTo(pill.left, 0);
     });
 
-    test('pressed, the sheet opens above them; an option taken, the pill reads it', async ({ page }) => {
+    test('pressed, it is the same element in the field\'s place; an option taken, a pill again, saying it', async ({ page }) => {
         await open(page);
         await page.locator(`${XENON} [data-say]`).focus();
-        await page.locator(`${XENON} [data-choices-pill]`).click();
-        const sheet = page.locator(`${XENON} [data-choices-sheet]`);
-        await expect(sheet).toBeVisible();
-        expect((await boxOf(page, `${XENON} [data-choices-sheet]`)).bottom).toBeLessThanOrEqual((await boxOf(page, `${XENON} [data-choices-pill]`)).top);
-        await sheet.getByRole('button', { name: 'max' }).click();
+        const before = await boxOf(page, PILL);
+        const node = await page.locator(CHOICES).elementHandle();
+        await page.locator(CHOICES).click();
+        await expect(page.locator(CHOICES)).toHaveAttribute('data-form', 'pillOpen');
+        await expect.poll(() => page.locator(CHOICES).evaluate((el) => el.dataset.pillMoving === undefined)).toBe(true);
 
-        await expect(sheet).toBeHidden();
-        await expect(page.locator(`${XENON} [data-choices-pill]`)).toHaveText('Opus 5.5 · max');
+        // Where the field was, the field stood aside.
+        await expect(page.locator(PILL)).toBeHidden();
+        const open_ = await boxOf(page, CHOICES);
+        expect(open_.bottom).toBeCloseTo(before.bottom, 0);
+        expect(open_.left).toBeCloseTo(before.left, 0);
+        expect(open_.right).toBeCloseTo(before.right, 0);
+
+        await page.locator(CHOICES).getByRole('button', { name: 'max' }).click();
+        await expect(page.locator(CHOICES)).toHaveAttribute('data-form', 'pill');
+        await expect.poll(() => page.locator(CHOICES).evaluate((el) => el.dataset.pillMoving === undefined)).toBe(true);
+        await expect(page.locator(CHOICES)).toHaveText('Opus 5.5 · max');
+        await expect(page.locator(PILL)).toBeVisible();
+        expect(await page.evaluate(() => document.activeElement?.hasAttribute('data-say'))).toBe(true);
+        // One element all the way (Element Axioma).
+        expect(await node!.evaluate((el) => el === document.querySelector('[data-choices]'))).toBe(true);
     });
 });
 

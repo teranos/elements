@@ -1,6 +1,6 @@
 import { AX } from './forms/ax';
 import { COMPACT_WIDTH } from './compact';
-import { SAY_PRESS } from './content/say';
+import { SAY_PRESS, SAY_INSET } from './content/say-sizes';
 
 // "no element should have content that isnt accesible"
 // Nothing in an element is wider than what holds it: text wraps even where a host said nowrap,
@@ -43,6 +43,9 @@ ${element} [data-say-box] [data-say] { color: inherit; }
 ${element} [data-say-box] [data-say] { outline: none; }
 ${element} [data-say-box]:focus-within { outline: 2px solid currentColor; outline-offset: 2px; }
 ${element} :is(input, textarea)::placeholder { color: color-mix(in srgb, currentColor 65%, transparent); }
+${element} [data-pill-moving] { box-sizing: border-box !important; border-radius: ${SAY_PRESS / 2 + SAY_INSET}px !important; padding: ${SAY_INSET}px !important; }
+${element} [data-form="pill"]:not([hidden]):not([data-pill-moving]) { display: inline-flex !important; align-items: center !important; box-sizing: border-box !important; border-radius: 9999px !important; padding: 0.5em 1em !important; cursor: pointer; }
+${element} [data-form="pillOpen"]:not([data-pill-moving]) { display: block !important; box-sizing: border-box !important; width: 100% !important; border-radius: ${SAY_PRESS / 2 + SAY_INSET}px !important; padding: ${SAY_INSET}px !important; }
 ${element} [data-say-press] { box-sizing: border-box !important; width: ${SAY_PRESS}px !important; height: ${SAY_PRESS}px !important; padding: 0 !important; border-radius: 50% !important; flex: none !important; margin: 0 !important; display: inline-grid !important; place-items: center !important; }
 ${element} button[data-fit-even]:not([data-element-id]):not([data-press]):not([data-say-press]) { min-width: var(--fit-even) !important; }
 ${element} table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }

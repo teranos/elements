@@ -119,6 +119,8 @@ const SIZE_IN: Readonly<Record<Form, PressSize>> = Object.freeze({
     tooltip: 'sm',
     button: 'sm',
     overlay: 'sm',
+    pill: 'sm',
+    pillOpen: 'sm',
 });
 
 /** The box a press is in a form, or on the bare page. */
