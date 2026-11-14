@@ -105,7 +105,22 @@ export function pillFrom(item: Element): PillHandle {
         say();
     };
 
-    const outside = (e: Event) => { if (!element.contains(e.target as Node)) rest(); };
+    // Taken off the page while open, it hears nothing more.
+    const gone = (): boolean => {
+        if (element.isConnected) return false;
+        element.ownerDocument.removeEventListener('pointerdown', outside, true);
+        element.ownerDocument.removeEventListener('keydown', escape, true);
+        return true;
+    };
+    const outside = (e: Event) => { if (!gone() && !element.contains(e.target as Node)) rest(); };
+    // Open, it takes no focus: Escape is said wherever the focus is, the field most of all.
+    // It is the innermost thing open: the Escape is its own, and the element it rests in does not hear it.
+    const escape = (e: KeyboardEvent) => {
+        if (e.key !== 'Escape' || gone()) return;
+        e.stopPropagation();
+        e.preventDefault();
+        rest();
+    };
 
     const open = () => {
         if (getForm(element) !== 'pill' || element.dataset.pillMoving === '') return;
@@ -148,6 +163,7 @@ export function pillFrom(item: Element): PillHandle {
                 }
                 gap?.after(element);
                 element.ownerDocument.addEventListener('pointerdown', outside, true);
+                element.ownerDocument.addEventListener('keydown', escape, true);
             })
             .catch((err: unknown) => {
                 delete element.dataset.pillMoving;
@@ -159,6 +175,7 @@ export function pillFrom(item: Element): PillHandle {
     function rest(): void {
         if (getForm(element) !== 'pillOpen' || element.dataset.pillMoving === '' || !gap || !aside) return;
         element.ownerDocument.removeEventListener('pointerdown', outside, true);
+        element.ownerDocument.removeEventListener('keydown', escape, true);
         const field = fields.get(element)!;
         const from = boxOf(element);
         lift(element, from, field);
@@ -200,7 +217,6 @@ export function pillFrom(item: Element): PillHandle {
         if (getForm(element) === 'pill') { e.preventDefault(); open(); }
     });
     element.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Escape') { rest(); return; }
         if (getForm(element) !== 'pill' || (e.key !== 'Enter' && e.key !== ' ')) return;
         e.preventDefault();
         open();

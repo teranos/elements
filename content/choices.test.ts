@@ -21,6 +21,8 @@ afterEach(() => { document.body.innerHTML = ''; });
 
 const MODEL = { name: 'Model', options: ['Opus 5.5', 'Sonnet 5.5', 'Haiku 5.5'], value: 'Opus 5.5' };
 const EFFORT = { name: 'Effort', options: ['low', 'medium', 'high', 'xhigh', 'max'], value: 'high' };
+// "add another inputfieldpillmenu for attached repositories": more than one of them can be chosen.
+const REPOSITORIES = { name: 'Repositories', options: ['QNTX', 'QNTX-Web', 'elements', 'ground'], chosen: ['QNTX', 'elements'], many: true as const };
 
 const settled = () => new Promise((resolve) => setTimeout(resolve, 0));
 const option = (choices: HTMLElement, text: string) =>
@@ -34,7 +36,7 @@ function chat(onChoose?: (name: string, value: string) => void) {
     const field = document.createElement('textarea');
     const send = document.createElement('button');
     const choices = choicesFrom({ id: 'xenon-choices', label: 'Model and effort', choices: [MODEL, EFFORT], onChoose });
-    declareSay(field, { end: send, choices });
+    declareSay(field, { end: send, pills: [choices] });
     row.append(field, send);
     element.appendChild(row);
     document.body.appendChild(element);
@@ -83,6 +85,58 @@ describe('Tim: the choices', () => {
         expect(box.contains(choices)).toBe(true);
         expect(document.activeElement).toBe(field);
         expect(choices.hidden).toBe(false);
+    });
+});
+
+describe('Tim: a choice of many, the attached repositories', () => {
+    function repositories(onChoose?: (name: string, value: string, chosen: readonly string[]) => void) {
+        const choices = choicesFrom({ id: 'xenon-repositories', label: 'Attached repositories', choices: [REPOSITORIES], onChoose });
+        const field = document.createElement('textarea');
+        declareSay(field, { pills: [choices] });
+        const element = document.createElement('div');
+        element.appendChild(field);
+        document.body.appendChild(element);
+        holdSay(element);
+        return { choices, field };
+    }
+
+    test('it says what is attached, joined', () => {
+        const { choices } = repositories();
+        expect(choices.textContent).toBe('QNTX · elements');
+    });
+
+    test('an option taken is attached or let go, and it stays open for the next', async () => {
+        const told: [string, string, string[]][] = [];
+        const { choices } = repositories((name, value, chosen) => told.push([name, value, [...chosen]]));
+        choices.click();
+        await settled();
+        option(choices, 'ground').click();
+        await settled();
+        expect(getForm(choices)).toBe('pillOpen');
+        expect(option(choices, 'ground').getAttribute('aria-pressed')).toBe('true');
+        option(choices, 'QNTX').click();
+        await settled();
+        expect(option(choices, 'QNTX').getAttribute('aria-pressed')).toBe('false');
+        // Told what was taken, and what is attached now, in the order they are offered.
+        expect(told).toEqual([['Repositories', 'ground', ['QNTX', 'elements', 'ground']], ['Repositories', 'QNTX', ['elements', 'ground']]]);
+    });
+
+    test('more than two attached: the first, and how many more', async () => {
+        const { choices } = repositories();
+        choices.click();
+        await settled();
+        option(choices, 'ground').click();
+        option(choices, 'QNTX-Web').click();
+        expect(choices.getAttribute('aria-label')).toBe('QNTX +3');
+    });
+
+    test('none attached: it says what it is', async () => {
+        const { choices } = repositories();
+        choices.click();
+        await settled();
+        option(choices, 'QNTX').click();
+        option(choices, 'elements').click();
+        expect(choices.getAttribute('aria-label')).toBe('Repositories');
     });
 });
 

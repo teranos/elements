@@ -40,6 +40,14 @@ export function renderChatSpecimen(): void {
                     { name: 'Effort', options: ['low', 'medium', 'high', 'xhigh', 'max'], value: 'high' },
                 ],
             });
+            // "add another inputfieldpillmenu for attached repositories": any of them, none or all.
+            const repositories = choicesFrom({
+                id: 'xenon-repositories',
+                label: 'Attached repositories',
+                choices: [
+                    { name: 'Repositories', options: ['QNTX', 'QNTX-Web', 'elements', 'ground'], chosen: ['QNTX', 'elements'], many: true },
+                ],
+            });
             // "the inputfield take up the entire bottom of the screen for chat elements"
             // The package's chat field, which takes that bottom (#40).
             // Its presses in its box: the + at its start, the → at its end.
@@ -52,8 +60,8 @@ export function renderChatSpecimen(): void {
             };
             const attach = icon('Picture', 'M12 5v14M5 12h14');
             const send = icon('Say', 'M12 19V5M6 11l6-6 6 6');
-            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send, choices });
-            row.append(choices, says, attach, send);
+            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send, pills: [choices, repositories] });
+            row.append(choices, repositories, says, attach, send);
             body.append(log, row);
             return body;
         },

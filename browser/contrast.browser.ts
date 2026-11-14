@@ -126,10 +126,16 @@ test.describe('Spike: a field', () => {
         await expect.poll(() => xenon.evaluate((el) => el.dataset.form !== 'dot' && !el.classList.contains('morphing'))).toBe(true);
         await page.locator('[data-element-id="chat-specimen"] [data-say]').focus();
         expect(await unreadable(page, '[data-element-id="chat-specimen"] [data-choices]')).toEqual([]);
-        await page.locator('[data-element-id="chat-specimen"] [data-choices]').click();
-        await expect(page.locator('[data-choices]')).toHaveAttribute('data-form', 'pillOpen');
-        await expect.poll(() => page.locator('[data-choices]').evaluate((el) => el.dataset.pillMoving === undefined)).toBe(true);
-        expect(await unreadable(page, '[data-element-id="chat-specimen"] [data-choices]')).toEqual([]);
+        // Each pill open, as it is read there.
+        for (const id of ['xenon-choices', 'xenon-repositories']) {
+            const pill = page.locator(`[data-choices="${id}"]`);
+            await pill.click();
+            await expect(pill).toHaveAttribute('data-form', 'pillOpen');
+            await expect.poll(() => pill.evaluate((el) => el.dataset.pillMoving === undefined)).toBe(true);
+            expect(await unreadable(page, `[data-choices="${id}"]`)).toEqual([]);
+            await page.keyboard.press('Escape');
+            await expect.poll(() => pill.evaluate((el) => el.dataset.form === 'pill' && el.dataset.pillMoving === undefined)).toBe(true);
+        }
     });
 });
 

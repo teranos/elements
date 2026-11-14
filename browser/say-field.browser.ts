@@ -69,11 +69,11 @@ test.describe('Tim: the pill', () => {
             const box = (b: Element) => b.getBoundingClientRect();
             const [attach, send] = Array.from(pill.querySelectorAll(':scope [data-say-press]'));
             const field = pill.querySelector('[data-say]')!;
-            const choices = pill.querySelector('[data-choices]')!;
+            const [choices, repositories] = Array.from(pill.querySelectorAll('[data-choices]'));
             const s = getComputedStyle(pill);
             return {
                 form: (pill as HTMLElement).dataset.form,
-                pill: box(pill), attach: box(attach!), send: box(send!), field: box(field), choices: box(choices),
+                pill: box(pill), attach: box(attach!), send: box(send!), field: box(field), choices: box(choices!), repositories: box(repositories!),
                 round: getComputedStyle(attach!).borderTopLeftRadius,
                 // A host may draw the input field an outline: the presses stand SAY_INSET in from inside it.
                 edge: { left: parseFloat(s.borderLeftWidth), right: parseFloat(s.borderRightWidth), bottom: parseFloat(s.borderBottomWidth) },
@@ -83,7 +83,8 @@ test.describe('Tim: the pill', () => {
         expect(at.form).toBe('inputfield');
         expect(at.field.bottom).toBeLessThanOrEqual(at.attach.top);
         expect(at.attach.right).toBeLessThanOrEqual(at.choices.left);
-        expect(at.choices.right).toBeLessThanOrEqual(at.send.left);
+        expect(at.choices.right).toBeLessThanOrEqual(at.repositories.left);
+        expect(at.repositories.right).toBeLessThanOrEqual(at.send.left);
         const middle = (r: { top: number; bottom: number }) => (r.top + r.bottom) / 2;
         expect(middle(at.choices)).toBeCloseTo(middle(at.attach), 0);
         expect(middle(at.send)).toBeCloseTo(middle(at.attach), 0);
@@ -99,7 +100,8 @@ test.describe('Tim: the pill', () => {
 // The choices are one element in Pill Form, in the input field. "I want inputfield to still be there": pressed, it is
 // across its row, the words still above it. "it taking focus should let kb stay in place": the field keeps the focus.
 test.describe('Spike: its choices', () => {
-    const CHOICES = `${XENON} [data-choices]`;
+    const CHOICES = `${XENON} [data-choices="xenon-choices"]`;
+    const REPOSITORIES = `${XENON} [data-choices="xenon-repositories"]`;
 
     test('are gone while nothing is being said', async ({ page }) => {
         await open(page);
@@ -130,7 +132,25 @@ test.describe('Spike: its choices', () => {
         await expect(page.locator(CHOICES)).toHaveText('Opus 5.5 · max');
         expect(await focused()).toBe(true);
         // One element all the way (Element Axioma).
-        expect(await node!.evaluate((el) => el === document.querySelector('[data-choices]'))).toBe(true);
+        expect(await node!.evaluate((el) => el === document.querySelector('[data-choices="xenon-choices"]'))).toBe(true);
+    });
+
+    // "add another inputfieldpillmenu for attached repositories": any of them; it stays open for the next.
+    test('the attached repositories: one taken is attached, it stays open; let go, it says what is attached', async ({ page }) => {
+        await open(page);
+        await page.locator(`${XENON} [data-say]`).focus();
+        const pill = page.locator(REPOSITORIES);
+        await expect(pill).toHaveText('QNTX · elements');
+        await pill.click();
+        await expect.poll(() => pill.evaluate((el) => el.dataset.form === 'pillOpen' && el.dataset.pillMoving === undefined)).toBe(true);
+        await pill.getByRole('button', { name: 'ground' }).click();
+        await expect(pill).toHaveAttribute('data-form', 'pillOpen');
+        await expect(pill.getByRole('button', { name: 'ground' })).toHaveAttribute('aria-pressed', 'true');
+
+        await page.keyboard.press('Escape');
+        await expect.poll(() => pill.evaluate((el) => el.dataset.form === 'pill' && el.dataset.pillMoving === undefined)).toBe(true);
+        await expect(pill).toHaveText('QNTX +2');
+        expect(await page.evaluate(() => document.activeElement?.hasAttribute('data-say') ?? false)).toBe(true);
     });
 });
 

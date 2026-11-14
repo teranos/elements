@@ -30,8 +30,11 @@ const ROW: Record<string, string> = {
 export interface SayPresses {
     start?: HTMLElement;
     end?: HTMLElement;
-    /** The choices it says with (choicesFrom, content/choices.ts), a pill in it: only while something is being said. */
-    choices?: HTMLElement;
+    /**
+     * The pills in it, in order (pillFrom, forms/pill.ts; choicesFrom, content/choices.ts): only while something is
+     * being said. "add another inputfieldpillmenu for attached repositories".
+     */
+    pills?: HTMLElement[];
 }
 
 const presses = new WeakMap<HTMLElement, SayPresses>();
@@ -66,10 +69,10 @@ const IN_PILL: Record<string, string> = {
 export function declareSay(field: HTMLElement, with_?: SayPresses): void {
     field.dataset.say = '';
     for (const [name, value] of Object.entries(FIELD)) field.style.setProperty(name, value, 'important');
-    if (with_?.start || with_?.end || with_?.choices) presses.set(field, with_);
-    if (with_?.choices) {
-        pillIn(with_.choices, field);
-        whileSaying(field, with_.choices);
+    if (with_?.start || with_?.end || with_?.pills?.length) presses.set(field, with_);
+    for (const pill of with_?.pills ?? []) {
+        pillIn(pill, field);
+        whileSaying(field, pill);
     }
 }
 
@@ -203,7 +206,7 @@ function boxOf(field: HTMLElement): HTMLElement {
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
     for (const [name, value] of Object.entries(PILL)) box.style.setProperty(name, value, 'important');
     parent.insertBefore(box, field);
-    if (own.choices) {
+    if (own.pills?.length) {
         // "The input field pill should be inside of inputfield form": the words on top, the row under them.
         for (const [name, value] of Object.entries(STACKED)) box.style.setProperty(name, value, 'important');
         box.appendChild(field);
@@ -213,7 +216,7 @@ function boxOf(field: HTMLElement): HTMLElement {
         const space = field.ownerDocument.createElement('div');
         space.dataset.saySpace = '';
         space.style.setProperty('flex', '1 1 auto', 'important');
-        for (const node of [own.start, own.choices, space, own.end]) if (node) under.appendChild(node);
+        for (const node of [own.start, ...own.pills, space, own.end]) if (node) under.appendChild(node);
         box.appendChild(under);
     } else {
         if (own.start) box.appendChild(own.start);
@@ -221,7 +224,7 @@ function boxOf(field: HTMLElement): HTMLElement {
         if (own.end) box.appendChild(own.end);
     }
     for (const [name, value] of Object.entries(IN_PILL)) field.style.setProperty(name, value, 'important');
-    if (own.choices) field.style.setProperty('align-self', 'stretch', 'important');
+    if (own.pills?.length) field.style.setProperty('align-self', 'stretch', 'important');
     // The pill is its surface: the field draws none of its own.
     field.style.setProperty('border', 'none');
     field.style.setProperty('background', 'transparent');

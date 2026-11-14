@@ -138,13 +138,14 @@ describe('Tim: an input field', () => {
         const attach = document.createElement('button');
         const send = document.createElement('button');
         const pill = document.createElement('div');
-        declareSay(field, withPill ? { start: attach, end: send, choices: pill } : { start: attach, end: send });
+        const other = document.createElement('div');
+        declareSay(field, withPill ? { start: attach, end: send, pills: [pill, other] } : { start: attach, end: send });
         row.append(attach, field, send);
         body.appendChild(row);
         element.appendChild(body);
         document.body.appendChild(element);
         holdSay(element);
-        return { field, attach, send, pill, box: field.parentElement! };
+        return { field, attach, send, pill, other, box: field.parentElement! };
     }
 
     test('is an element of its own, in the inputfield form', () => {
@@ -153,14 +154,15 @@ describe('Tim: an input field', () => {
         expect(box.dataset.form).toBe('inputfield');
     });
 
-    test('with a pill: the words on top; under them the +, the pill, and the → at the end', () => {
-        const { field, attach, send, pill, box } = inputField(true);
+    // "add another inputfieldpillmenu for attached repositories": a field may have more than one pill, in the order given.
+    test('with pills: the words on top; under them the +, the pills in order, and the → at the end', () => {
+        const { field, attach, send, pill, other, box } = inputField(true);
         expect(box.dataset.form).toBe('inputfield');
         expect(box.firstElementChild).toBe(field);
         const under = field.nextElementSibling as HTMLElement;
         expect(under.dataset.sayRow).toBe('');
         const order = Array.from(under.children).filter((n) => (n as HTMLElement).dataset.saySpace === undefined);
-        expect(order).toEqual([attach, pill, send]);
+        expect(order).toEqual([attach, pill, other, send]);
         expect(box.style.getPropertyValue('flex-direction')).toBe('column');
     });
 });

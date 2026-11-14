@@ -149,13 +149,45 @@ describe('Spike: how it is left, and when it is not', () => {
         expect(getForm(pill.element)).toBe('pill');
     });
 
-    test('Escape lets it go', async () => {
+    // Open, it takes no focus: the field has it, and Escape is said there.
+    test('Escape lets it go, said in the field', async () => {
+        const { pill, field } = rowWithField();
+        field.focus();
+        pill.element.click();
+        await settled();
+        field.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        await settled();
+        expect(getForm(pill.element)).toBe('pill');
+    });
+
+    // Seen in xenon: the Escape that let the pill go also reached the panel, and the panel went to the tray.
+    test('the Escape that lets it go is its own: nothing else hears it', async () => {
+        const { pill, field } = rowWithField();
+        let heard = 0;
+        const panel = () => heard++;
+        document.addEventListener('keydown', panel);
+        field.focus();
+        pill.element.click();
+        await settled();
+        field.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        await settled();
+        document.removeEventListener('keydown', panel);
+        expect(getForm(pill.element)).toBe('pill');
+        expect(heard).toBe(0);
+    });
+
+    // Seen in the suite: a pill left open and taken off the page swallowed every Escape after it.
+    test('taken off the page while open, it hears no Escape', async () => {
         const { pill } = rowWithField();
         pill.element.click();
         await settled();
-        pill.element.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-        await settled();
-        expect(getForm(pill.element)).toBe('pill');
+        document.body.innerHTML = '';
+        let heard = 0;
+        const after = () => heard++;
+        document.addEventListener('keydown', after);
+        document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        document.removeEventListener('keydown', after);
+        expect(heard).toBe(1);
     });
 
     test('a press outside lets it go; a press inside does not', async () => {
