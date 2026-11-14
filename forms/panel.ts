@@ -229,7 +229,8 @@ function keepInsideSafeArea(panel: HTMLElement): void {
     const bottom = Math.max(0, at.bottom - (window.innerHeight - insets.bottom));
     panel.style.boxSizing = 'border-box';
     panel.style.paddingTop = `${top}px`;
-    panel.style.paddingBottom = giveStripToSay(panel, bottom) ? '0px' : `${bottom}px`;
+    panel.style.paddingBottom = `${bottom}px`;
+    nothingUnderSay(panel);
     panel.style.paddingLeft = `${insets.left}px`;
     panel.style.paddingRight = `${insets.right}px`;
     const handle = panel.querySelector<HTMLElement>(':scope > .panel-resize-handle');
@@ -238,31 +239,22 @@ function keepInsideSafeArea(panel: HTMLElement): void {
 }
 
 /**
- * "missed opportunity", in red, under a chat's field, five times: the panel kept
- * the home bar's strip below the field, and the strip was nothing. A panel that
- * says from a field (content/say.ts) gives the strip to the field: the field's box
- * reaches the screen's edge, and what is typed in it stays above the bar. The
- * body's own padding under it goes too. Answers whether the strip was given.
+ * "missed opportunity", in red, under a chat's field; then "This i want", "I want this only": the Claude app's
+ * composer, a pill, and under it the home bar's strip and nothing else (measured: 34.7pt on a 34pt home bar). A panel
+ * that says from a field keeps the strip under it, and its body keeps nothing of its own there.
  */
-function giveStripToSay(panel: HTMLElement, strip: number): boolean {
+function nothingUnderSay(panel: HTMLElement): void {
     const field = panel.querySelector<HTMLElement>('[data-say]');
     const body = panel.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
-    if (!field || strip <= 0) {
-        panel.style.removeProperty('--elements-say-strip');
-        // The body has its own padding under it again, as it was before (render.ts writes it as a shorthand).
-        if (body?.dataset.sayOwnPadding !== undefined) {
-            body.style.paddingBottom = body.dataset.sayOwnPadding;
-            delete body.dataset.sayOwnPadding;
-        }
-        return false;
-    }
-    // The field adds the strip to what it keeps under its words (content/say.ts), and its presses stand above it.
-    panel.style.setProperty('--elements-say-strip', `${strip}px`);
-    if (body) {
+    if (!body) return;
+    if (field) {
         body.dataset.sayOwnPadding ??= body.style.paddingBottom;
         body.style.setProperty('padding-bottom', '0px');
+    } else if (body.dataset.sayOwnPadding !== undefined) {
+        // The body has its own padding under it again, as it was before (render.ts writes it as a shorthand).
+        body.style.paddingBottom = body.dataset.sayOwnPadding;
+        delete body.dataset.sayOwnPadding;
     }
-    return true;
 }
 
 /**
@@ -459,7 +451,7 @@ export function morphDotToPanel(
         const cleanupFn = attachResizeHandle(element, direction);
         resizeCleanups.set(element, cleanupFn);
         keepInsideSafeArea(element);
-        // A field the host draws later is given the strip when it arrives (content/say.ts).
+        // A field the host draws later, or takes away, is answered when it does (content/say.ts).
         if (!heldSays.has(element)) {
             heldSays.add(element);
             // Only while it is a panel: the same element told about its field as a window or a dot is not a panel's.

@@ -20,9 +20,9 @@ const ROW: Record<string, string> = {
 /**
  * The presses a field says with: the + at its start, the → at its end.
  *
- * Purple arrows on a screenshot: the + into the field's bottom-left corner, the → into its bottom-right. "And how
- * often do you want me to complain about the positions of these buttons". They are in the field's box, at its
- * bottom corners, and what is typed leaves them their line.
+ * "And how often do you want me to complain about the positions of these buttons". "This i want", "I want this
+ * only": the Claude app's composer, one pill, the + at its start, what is typed, the → (■ while it answers) at its
+ * end, all on one line.
  */
 export interface SayPresses {
     start?: HTMLElement;
@@ -31,9 +31,24 @@ export interface SayPresses {
 
 const presses = new WeakMap<HTMLElement, SayPresses>();
 
-/** Where a press stands in the field's box: at its bottom corner, above the home bar's strip (forms/panel.ts). */
+/** The pill the field and its presses are: one line, rounded whole. */
+const PILL: Record<string, string> = {
+    display: 'flex', 'align-items': 'center', gap: '8px', padding: '6px', 'border-radius': '9999px',
+};
+
+/** What the pill is to look at; a host may say otherwise. */
+const PILL_LOOK: Record<string, string> = {
+    border: '1px solid rgba(255, 255, 255, 0.14)', 'background-color': 'rgba(255, 255, 255, 0.04)',
+};
+
+/** A press in the pill: round, on the field's line. */
 const PRESS: Record<string, string> = {
-    position: 'absolute', bottom: 'calc(6px + var(--elements-say-strip, 0px))', margin: '0', 'z-index': '1',
+    flex: 'none', margin: '0', 'border-radius': '50%', 'aspect-ratio': '1', 'min-width': '36px',
+};
+
+/** The field in the pill: the words, on the pill's surface. */
+const IN_PILL: Record<string, string> = {
+    flex: '1 1 auto', width: 'auto', 'min-width': '0', display: 'block', 'align-self': 'center',
 };
 
 /** A host's word that this field is the one its element says from, with its presses. Callable before it is in an element. */
@@ -59,7 +74,7 @@ export function sayFrom(say: { id: string; label: string } & SayPresses): HTMLTe
     return field;
 }
 
-/** What an element is told when the field it says from is held: a panel gives it the home bar's strip (forms/panel.ts). */
+/** What an element is told when the field it says from changes: a panel keeps nothing of its body under it (forms/panel.ts). */
 export const SAY_HELD = 'elements:say-held';
 
 /** The field each element is held to now, whichever it is. */
@@ -114,7 +129,7 @@ export function holdSay(element: HTMLElement): void {
     }
 }
 
-/** Tells the element its field changed: a panel gives it the home bar's strip, or takes it back (forms/panel.ts). */
+/** Tells the element its field changed (forms/panel.ts). */
 function tell(element: HTMLElement): void {
     // The element's own window makes the event: a document's events are its window's.
     const view = element.ownerDocument.defaultView ?? window;
@@ -134,10 +149,9 @@ function pinSay(element: HTMLElement, field: HTMLElement): void {
     for (const [name, value] of Object.entries(ROW)) pinned.style.setProperty(name, value, 'important');
     // What scrolls under it is not seen through it.
     pinned.style.setProperty('background-color', element.style.backgroundColor || getComputedStyle(element).backgroundColor, 'important');
-    leaveRoom(field);
 }
 
-/** The field's box: the field itself, or, with presses, a box holding it and them, where the field stood. */
+/** The field's box: the field itself, or, with presses, the pill holding it and them, where the field stood. */
 function boxOf(field: HTMLElement): HTMLElement {
     const own = presses.get(field);
     if (!own) return field;
@@ -145,48 +159,22 @@ function boxOf(field: HTMLElement): HTMLElement {
     if (parent.dataset.sayBox === '') return parent;
     const box = field.ownerDocument.createElement('div');
     box.dataset.sayBox = '';
-    // The box takes the field's line, as the field did; the field fills it.
+    // The pill takes the field's line, as the field did.
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
-    box.style.setProperty('position', 'relative', 'important');
+    for (const [name, value] of Object.entries(PILL)) box.style.setProperty(name, value, 'important');
+    for (const [name, value] of Object.entries(PILL_LOOK)) box.style.setProperty(name, value);
     parent.insertBefore(box, field);
+    if (own.start) box.appendChild(own.start);
     box.appendChild(field);
-    // A block in its box: an inline field keeps a descender's gap under itself.
-    field.style.setProperty('flex', 'none', 'important');
-    field.style.setProperty('display', 'block', 'important');
-    for (const [side, press] of [['left', own.start], ['right', own.end]] as const) {
+    if (own.end) box.appendChild(own.end);
+    for (const [name, value] of Object.entries(IN_PILL)) field.style.setProperty(name, value, 'important');
+    // The pill is its surface: the field draws none of its own.
+    field.style.setProperty('border', 'none');
+    field.style.setProperty('background', 'transparent');
+    field.style.setProperty('resize', 'none');
+    for (const press of [own.start, own.end]) {
         if (!press) continue;
-        box.appendChild(press);
         for (const [name, value] of Object.entries(PRESS)) press.style.setProperty(name, value, 'important');
-        press.style.setProperty(side, '6px', 'important');
     }
     return box;
-}
-
-/** Fields whose presses are measured as they change. */
-const measured = new WeakSet<HTMLElement>();
-
-/**
- * What is typed stays above the presses and above the home bar's strip: the field's own padding under it, the
- * presses' line, and the strip a panel gives it (forms/panel.ts).
- */
-function leaveRoom(field: HTMLElement): void {
-    if (field.dataset.sayOwnPadding === undefined) {
-        const own = parseFloat(getComputedStyle(field).paddingBottom);
-        field.dataset.sayOwnPadding = `${Number.isFinite(own) ? own : 0}px`;
-    }
-    const own = presses.get(field);
-    if (own) {
-        const roomFor = () => {
-            const tallest = Math.max(...[own.start, own.end].map((press) => press?.getBoundingClientRect().height ?? 0));
-            field.style.setProperty('--elements-say-room', `${(tallest > 0 ? tallest : 32) + 6}px`);
-        };
-        roomFor();
-        // A press that grows (its label changed) takes more of the line: the words keep above it.
-        if (typeof ResizeObserver === 'function' && !measured.has(field)) {
-            measured.add(field);
-            const watch = new ResizeObserver(roomFor);
-            for (const press of [own.start, own.end]) if (press) watch.observe(press);
-        }
-    }
-    field.style.setProperty('padding-bottom', `calc(${field.dataset.sayOwnPadding} + var(--elements-say-room, 0px) + var(--elements-say-strip, 0px))`, 'important');
 }
