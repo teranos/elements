@@ -61,3 +61,12 @@ describe('Spike: what a field says before anything is typed', () => {
         expect(RULE).toContain('[data-element-id] :is(input, textarea)::placeholder { color: color-mix(in srgb, currentColor 65%, transparent); }');
     });
 });
+
+// The field in the pill drew its own focus ring, a box inside the pill. The pill is the field's surface: it shows the
+// focus, around itself.
+describe('Spike: the pill, focused', () => {
+    test('rings itself, not the field inside it', () => {
+        expect(RULE).toContain('[data-element-id] [data-say-box] [data-say] { outline: none; }');
+        expect(RULE).toContain('[data-element-id] [data-say-box]:focus-within { outline: 2px solid currentColor; outline-offset: 2px; }');
+    });
+});

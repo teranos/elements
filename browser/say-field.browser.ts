@@ -66,9 +66,12 @@ test.describe('Tim: the pill', () => {
             const box = (b: Element) => b.getBoundingClientRect();
             const [attach, send] = Array.from(pill.querySelectorAll('button'));
             const field = pill.querySelector('[data-say]')!;
+            const s = getComputedStyle(pill);
             return {
                 pill: box(pill), attach: box(attach!), send: box(send!), field: box(field),
                 round: getComputedStyle(attach!).borderTopLeftRadius,
+                // A host may draw the pill an outline: the presses stand SAY_INSET in from inside it.
+                edge: { left: parseFloat(s.borderLeftWidth), right: parseFloat(s.borderRightWidth) },
             };
         });
 
@@ -81,18 +84,38 @@ test.describe('Tim: the pill', () => {
         expect(at.attach.width).toBeCloseTo(SAY_PRESS, 0);
         expect(at.attach.height).toBeCloseTo(SAY_PRESS, 0);
         expect(at.round).toBe('50%');
-        expect(at.attach.left - at.pill.left).toBeCloseTo(SAY_INSET, 0);
-        expect(at.pill.right - at.send.right).toBeCloseTo(SAY_INSET, 0);
+        expect(at.attach.left - at.pill.left - at.edge.left).toBeCloseTo(SAY_INSET, 0);
+        expect(at.pill.right - at.send.right - at.edge.right).toBeCloseTo(SAY_INSET, 0);
     });
 });
 
-test.describe('Spike: what the host put beside it', () => {
-    test('is above it, not squeezing it', async ({ page }) => {
+test.describe('Spike: its choices', () => {
+    test('are gone while nothing is being said', async ({ page }) => {
         await open(page);
-        const pill = await boxOf(page, PILL);
-        const choice = await boxOf(page, `${XENON} select`);
+        await expect(page.locator(`${XENON} [data-choices]`)).toBeHidden();
+    });
 
-        expect(choice.bottom).toBeLessThanOrEqual(pill.top);
+    test('while something is, are above the pill, not squeezing it', async ({ page }) => {
+        await open(page);
+        await page.locator(`${XENON} [data-say]`).focus();
+        const pill = await boxOf(page, PILL);
+        const choices = await boxOf(page, `${XENON} [data-choices-pill]`);
+
+        expect(choices.bottom).toBeLessThanOrEqual(pill.top);
+        expect(choices.left).toBeCloseTo(pill.left, 0);
+    });
+
+    test('pressed, the sheet opens above them; an option taken, the pill reads it', async ({ page }) => {
+        await open(page);
+        await page.locator(`${XENON} [data-say]`).focus();
+        await page.locator(`${XENON} [data-choices-pill]`).click();
+        const sheet = page.locator(`${XENON} [data-choices-sheet]`);
+        await expect(sheet).toBeVisible();
+        expect((await boxOf(page, `${XENON} [data-choices-sheet]`)).bottom).toBeLessThanOrEqual((await boxOf(page, `${XENON} [data-choices-pill]`)).top);
+        await sheet.getByRole('button', { name: 'max' }).click();
+
+        await expect(sheet).toBeHidden();
+        await expect(page.locator(`${XENON} [data-choices-pill]`)).toHaveText('Opus 5.5 · max');
     });
 });
 

@@ -8,6 +8,8 @@
  * beside the field wraps above it. Written important: no host stylesheet squeezes it.
  */
 
+import { sheetOpen, CHOICES_CLOSED, CHOICE_TAKEN } from './choices';
+
 const FIELD: Record<string, string> = {
     flex: '1 1 100%', width: '100%', 'min-width': '0', 'max-width': 'none',
     order: '99', 'box-sizing': 'border-box', margin: '0',
@@ -27,9 +29,12 @@ const ROW: Record<string, string> = {
 export interface SayPresses {
     start?: HTMLElement;
     end?: HTMLElement;
+    /** The choices it says with (choicesFrom, content/choices.ts): above the pill, only while something is being said. */
+    choices?: HTMLElement;
 }
 
 const presses = new WeakMap<HTMLElement, SayPresses>();
+
 
 /** The Claude app's composer, measured from its screenshots on #114 at 3px a point: a 36pt press, 8pt in from the pill's edge. */
 export const SAY_PRESS = 36;
@@ -49,7 +54,29 @@ const IN_PILL: Record<string, string> = {
 export function declareSay(field: HTMLElement, with_?: SayPresses): void {
     field.dataset.say = '';
     for (const [name, value] of Object.entries(FIELD)) field.style.setProperty(name, value, 'important');
-    if (with_?.start || with_?.end) presses.set(field, with_);
+    if (with_?.start || with_?.end || with_?.choices) presses.set(field, with_);
+    if (with_?.choices) whileSaying(field, with_.choices);
+}
+
+/**
+ * "We don't need to show the picker always": the choices show while something is being said, the field focused or
+ * holding words, and while their own sheet is open; otherwise they are gone.
+ */
+function whileSaying(field: HTMLElement, choices: HTMLElement): void {
+    const words = () => ((field as HTMLTextAreaElement).value ?? '').trim() !== '';
+    const look = () => {
+        const doc = field.ownerDocument;
+        choices.hidden = !(doc.activeElement === field || words() || sheetOpen(choices) || choices.contains(doc.activeElement));
+    };
+    choices.hidden = true;
+    field.addEventListener('focus', look);
+    field.addEventListener('input', look);
+    // Left for the pill: the press lands before it is looked at again.
+    field.addEventListener('blur', () => setTimeout(look, 0));
+    choices.addEventListener('focusout', () => setTimeout(look, 0));
+    choices.addEventListener(CHOICES_CLOSED, look);
+    // A choice taken is part of saying something: the field has the words again, as Claude's does.
+    choices.addEventListener(CHOICE_TAKEN, () => { field.focus(); look(); });
 }
 
 // "i think chatfield soudl be considered different from regular inputfied"
@@ -148,7 +175,10 @@ function pinSay(element: HTMLElement, field: HTMLElement): void {
 /** The field's box: the field itself, or, with presses, the pill holding it and them, where the field stood. */
 function boxOf(field: HTMLElement): HTMLElement {
     const own = presses.get(field);
-    if (!own) return field;
+    if (!own || (!own.start && !own.end)) {
+        if (own?.choices && field.parentElement && own.choices.parentElement !== field.parentElement) field.parentElement.insertBefore(own.choices, field);
+        return field;
+    }
     const parent = field.parentElement!;
     if (parent.dataset.sayBox === '') return parent;
     const box = field.ownerDocument.createElement('div');
@@ -157,6 +187,8 @@ function boxOf(field: HTMLElement): HTMLElement {
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
     for (const [name, value] of Object.entries(PILL)) box.style.setProperty(name, value, 'important');
     parent.insertBefore(box, field);
+    // The choices stand above the pill, on their own line of the row.
+    if (own.choices) parent.insertBefore(own.choices, box);
     if (own.start) box.appendChild(own.start);
     box.appendChild(field);
     if (own.end) box.appendChild(own.end);

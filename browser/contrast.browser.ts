@@ -119,6 +119,15 @@ test.describe('Spike: a field', () => {
         await expect.poll(() => xenon.evaluate((el) => el.dataset.form !== 'dot' && !el.classList.contains('morphing'))).toBe(true);
         expect(await unreadable(page, '[data-element-id="chat-specimen"] [data-say-box]')).toEqual([]);
     });
+
+    test('xenon\'s choices, and their sheet open, are readable', async ({ page }) => {
+        const xenon = page.locator('[data-element-id="chat-specimen"]');
+        await xenon.click();
+        await expect.poll(() => xenon.evaluate((el) => el.dataset.form !== 'dot' && !el.classList.contains('morphing'))).toBe(true);
+        await page.locator('[data-element-id="chat-specimen"] [data-say]').focus();
+        await page.locator('[data-element-id="chat-specimen"] [data-choices-pill]').click();
+        expect(await unreadable(page, '[data-element-id="chat-specimen"] [data-choices]')).toEqual([]);
+    });
 });
 
 test.describe('Jenny: every example, opened', () => {

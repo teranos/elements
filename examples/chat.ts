@@ -8,6 +8,7 @@
 import { tray } from '../tray/tray';
 import type { Element } from '../element';
 import { sayFrom } from '../content/say';
+import { choicesFrom } from '../content/choices';
 
 export function renderChatSpecimen(): void {
     const item: Element = {
@@ -26,12 +27,19 @@ export function renderChatSpecimen(): void {
                 line.textContent = `line ${i} · ${i % 2 ? 'you' : 'xenon'} said something`;
                 log.appendChild(line);
             }
-            // The row a chat says from: a choice beside the field and a button, as a host draws it.
+            // The row a chat says from, as a host draws it.
             const row = document.createElement('div');
             row.style.display = 'flex';
             row.style.gap = '4px';
-            const mode = document.createElement('select');
-            mode.appendChild(new Option('', ''));
+            // "Why not do it like anthropic does, where its a combined model+effort pill"
+            const choices = choicesFrom({
+                id: 'xenon-choices',
+                label: 'Model and effort',
+                choices: [
+                    { name: 'Model', options: ['Opus 5.5', 'Sonnet 5.5', 'Haiku 5.5'], value: 'Opus 5.5' },
+                    { name: 'Effort', options: ['low', 'medium', 'high', 'xhigh', 'max'], value: 'high' },
+                ],
+            });
             // "the inputfield take up the entire bottom of the screen for chat elements"
             // The package's chat field, which takes that bottom (#40).
             // Its presses in its box: the + at its start, the → at its end.
@@ -44,8 +52,8 @@ export function renderChatSpecimen(): void {
             };
             const attach = icon('Picture', 'M12 5v14M5 12h14');
             const send = icon('Say', 'M12 19V5M6 11l6-6 6 6');
-            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send });
-            row.append(mode, says, attach, send);
+            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send, choices });
+            row.append(choices, says, attach, send);
             body.append(log, row);
             return body;
         },
