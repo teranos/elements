@@ -33,12 +33,7 @@ const presses = new WeakMap<HTMLElement, SayPresses>();
 
 /** The pill the field and its presses are: one line, rounded whole. */
 const PILL: Record<string, string> = {
-    display: 'flex', 'align-items': 'center', gap: '8px', padding: '6px', 'border-radius': '9999px',
-};
-
-/** What the pill is to look at; a host may say otherwise. */
-const PILL_LOOK: Record<string, string> = {
-    border: '1px solid rgba(255, 255, 255, 0.14)', 'background-color': 'rgba(255, 255, 255, 0.04)',
+    display: 'flex', 'align-items': 'center', gap: '8px', padding: '7px', 'border-radius': '9999px',
 };
 
 /** A press in the pill: round, on the field's line. */
@@ -48,7 +43,7 @@ const PRESS: Record<string, string> = {
 
 /** The field in the pill: the words, on the pill's surface. */
 const IN_PILL: Record<string, string> = {
-    flex: '1 1 auto', width: 'auto', 'min-width': '0', display: 'block', 'align-self': 'center',
+    flex: '1 1 auto', width: 'auto', 'min-width': '0', display: 'block', 'align-self': 'center', order: '0',
 };
 
 /** A host's word that this field is the one its element says from, with its presses. Callable before it is in an element. */
@@ -162,7 +157,6 @@ function boxOf(field: HTMLElement): HTMLElement {
     // The pill takes the field's line, as the field did.
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
     for (const [name, value] of Object.entries(PILL)) box.style.setProperty(name, value, 'important');
-    for (const [name, value] of Object.entries(PILL_LOOK)) box.style.setProperty(name, value);
     parent.insertBefore(box, field);
     if (own.start) box.appendChild(own.start);
     box.appendChild(field);
