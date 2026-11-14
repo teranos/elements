@@ -8,6 +8,9 @@ import { SAY_PRESS } from './content/say';
 // is in it, a table divides the width it has (the package's own table is a box that scrolls sideways, and
 // what in it must not break does not), and a grid's tracks give way before the edge does.
 
+/** px: what a finger needs to press, as every press is tall (PRESS_SIZES, forms/press.ts). */
+export const FINGER = 44;
+
 /** What the fit decides, which a style attribute written important would otherwise keep. */
 const FIT_PROPERTIES = ['white-space', 'text-wrap-mode', 'max-width', 'min-width', 'flex-wrap', 'table-layout'];
 
@@ -38,6 +41,7 @@ export function fitRule(element: string): string {
     return `${element} * { text-wrap-mode: wrap !important; max-width: 100% !important; min-width: 0 !important; }
 ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
 ${element} button:not([data-element-id]):not([data-press]):not([data-say-press]) { width: fit-content !important; flex: 0 0 auto !important; }
+${element} :is([data-scroller="body"], [data-scroller="declared"]) button:not([data-element-id]):not([data-press]):not([data-say-press]) { box-sizing: border-box !important; min-height: ${FINGER}px !important; padding: 0 1em !important; }
 ${element} [data-say-press] { box-sizing: border-box !important; width: ${SAY_PRESS}px !important; height: ${SAY_PRESS}px !important; padding: 0 !important; border-radius: 50% !important; flex: none !important; margin: 0 !important; display: inline-grid !important; place-items: center !important; }
 ${element} button[data-fit-even]:not([data-element-id]):not([data-press]):not([data-say-press]) { min-width: var(--fit-even) !important; }
 ${element} table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }
