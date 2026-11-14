@@ -9,7 +9,7 @@
  */
 
 export interface Choice {
-    /** What is chosen, said above its options: "Model", "Effort". */
+    /** What is chosen, "Model", "Effort": its options' name for a screen reader, and what the host is told. */
     name: string;
     options: readonly string[];
     value: string;
@@ -29,7 +29,7 @@ const PILL: Record<string, string> = { 'border-radius': '9999px' };
 
 /** The sheet: above the pill, in the element's own colour, rounded as a window is. */
 const SHEET: Record<string, string> = {
-    position: 'absolute', bottom: 'calc(100% + 8px)', left: '0', 'z-index': '2', width: 'max-content',
+    position: 'absolute', bottom: 'calc(100% + 8px)', left: '0', right: '0', width: 'auto', 'z-index': '2',
     'flex-direction': 'column', gap: '4px', padding: '8px', 'border-radius': '16px',
 };
 
@@ -85,10 +85,10 @@ export function choicesFrom(c: Choices): HTMLElement {
     };
 
     for (const choice of c.choices) {
-        const name = document.createElement('div');
-        name.dataset.choicesName = '';
-        name.textContent = choice.name;
+        // No words over its options: they say what they are. Named for a screen reader.
         const options = document.createElement('div');
+        options.setAttribute('role', 'group');
+        options.setAttribute('aria-label', choice.name);
         pin(options, OPTIONS);
         for (const value of choice.options) {
             const press = document.createElement('button');
@@ -104,7 +104,7 @@ export function choicesFrom(c: Choices): HTMLElement {
             });
             options.appendChild(press);
         }
-        sheet.append(name, options);
+        sheet.appendChild(options);
     }
 
     // A press anywhere else closes it, as a sheet is left.

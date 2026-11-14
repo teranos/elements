@@ -1,26 +1,26 @@
 /**
- * A button in an element is never squeezed around its words.
+ * A button in an element is neither squeezed around its words nor swollen past them.
  *
- * "NO MORE SQUEEZED BUTTONS PLEASE", "buttons of elements have the same issue": the fit makes a button as wide as what
- * it says (fit.ts), and a host's padding of 4px by 8px left its words touching its edges. In an element's body a button
- * is a finger tall, as every press is (PRESS_SIZES), with its words an em in from each side, whatever the host wrote.
+ * "NO MORE SQUEEZED BUTTONS PLEASE", "buttons of elements have the same issue": a host's padding of 4px by 8px left
+ * its words touching its edges. Then a finger's 44 tall, on 14px words, was "wasted space", purple on a screenshot of
+ * xenon's model and effort pill. In an element's body a button's words are an em in from each side and half an em from
+ * its top and bottom, whatever the host wrote.
  *
  * Personas:
- * - Tim: Happy path — a button in an element's body is a finger tall, its words an em in
+ * - Tim: Happy path — a button in an element's body: an em at its sides, half an em above and below
  * - Spike: Edge cases — a press, a say press and the title bar's controls keep their own boxes
- * - Jenny: Complex scenarios — a finger is a press's height: one number, not two
+ * - Jenny: Complex scenarios — no height is held over its words: no air but the half em
  */
 
 import { describe, test, expect } from 'bun:test';
-import { fitRule, FINGER } from './fit';
-import { PRESS_SIZES } from './forms/press';
+import { fitRule } from './fit';
 
 const RULE = fitRule('[data-element-id]');
 const ROOM = ':is([data-scroller="body"], [data-scroller="declared"]) button:not([data-element-id]):not([data-press]):not([data-say-press])';
 
 describe('Tim: a button in an element\'s body', () => {
-    test('is a finger tall, its words an em in from each side', () => {
-        expect(RULE).toContain(`[data-element-id] ${ROOM} { box-sizing: border-box !important; min-height: ${FINGER}px !important; padding: 0 1em !important; }`);
+    test('has its words an em in from each side, half an em from its top and bottom', () => {
+        expect(RULE).toContain(`[data-element-id] ${ROOM} { box-sizing: border-box !important; padding: 0.5em 1em !important; }`);
     });
 });
 
@@ -32,8 +32,9 @@ describe('Spike: what keeps its own box', () => {
     });
 });
 
-describe('Jenny: a finger', () => {
-    test('is a press\'s height', () => {
-        for (const size of Object.values(PRESS_SIZES)) expect(size.height).toBe(FINGER);
+describe('Jenny: no air but the half em', () => {
+    test('no height is held over its words', () => {
+        const rule = RULE.split('\n').find((line) => line.includes(ROOM))!;
+        expect(rule).not.toContain('min-height');
     });
 });

@@ -1,18 +1,18 @@
 /**
  * A button in an element is never squeezed around its words, in a real browser.
  *
- * "NO MORE SQUEEZED BUTTONS PLEASE": a host's 4px by 8px left its words touching its edges. In an element's body a
- * button is a finger tall (FINGER, fit.ts), its words an em in from each side.
+ * "NO MORE SQUEEZED BUTTONS PLEASE": a host's 4px by 8px left its words touching its edges; a finger's 44 tall on
+ * 14px words was wasted space. In an element's body a button's words are an em in from each side, half an em from its
+ * top and bottom (fit.ts).
  *
  * Personas:
- * - Tim: Happy path — a host's tight button in Xenon's body is a finger tall, its words an em in
+ * - Tim: Happy path — a host's tight button in Xenon's body: its words an em in, half an em from top and bottom
  * - Spike: Edge cases — the title bar's controls keep their own box
  */
 
 import { test, expect, type Page } from '@playwright/test';
 
 const XENON = '[data-element-id="chat-specimen"]';
-const FINGER = 44;
 
 async function open(page: Page) {
     const xenon = page.locator(XENON);
@@ -27,7 +27,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('Tim: a host\'s tight button', () => {
-    test('is a finger tall, its words an em in from each side', async ({ page }) => {
+    test('has its words an em in from each side, half an em from its top and bottom', async ({ page }) => {
         await open(page);
         const at = await page.locator(`${XENON} [data-scroller="body"]`).evaluate(async (body) => {
             const tight = document.createElement('button');
@@ -36,10 +36,11 @@ test.describe('Tim: a host\'s tight button', () => {
             body.prepend(tight);
             await new Promise((resolve) => setTimeout(resolve, 50));
             const s = getComputedStyle(tight);
-            return { height: tight.getBoundingClientRect().height, left: parseFloat(s.paddingLeft), right: parseFloat(s.paddingRight), em: parseFloat(s.fontSize) };
+            return { top: parseFloat(s.paddingTop), bottom: parseFloat(s.paddingBottom), left: parseFloat(s.paddingLeft), right: parseFloat(s.paddingRight), em: parseFloat(s.fontSize) };
         });
 
-        expect(at.height).toBeGreaterThanOrEqual(FINGER - 0.5);
+        expect(at.top).toBeCloseTo(at.em / 2, 0);
+        expect(at.bottom).toBeCloseTo(at.em / 2, 0);
         expect(at.left).toBeCloseTo(at.em, 0);
         expect(at.right).toBeCloseTo(at.em, 0);
     });

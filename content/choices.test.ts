@@ -34,7 +34,7 @@ describe('Tim: the pill', () => {
         expect(sheetOf(choices).hidden).toBe(true);
     });
 
-    test('pressed, opens its sheet: each choice named, its options under it, what is chosen marked', () => {
+    test('pressed, opens its sheet: each choice\'s options, what is chosen marked', () => {
         const choices = choicesFrom({ id: 'xenon-choices', label: 'Model and effort', choices: [MODEL, EFFORT] });
         document.body.appendChild(choices);
         pillOf(choices).click();
@@ -42,8 +42,11 @@ describe('Tim: the pill', () => {
         expect(sheetOf(choices).hidden).toBe(false);
         expect(sheetOf(choices).style.display).toBe('flex');
         expect(pillOf(choices).getAttribute('aria-expanded')).toBe('true');
-        const names = Array.from(sheetOf(choices).querySelectorAll('[data-choices-name]')).map((n) => n.textContent);
-        expect(names).toEqual(['Model', 'Effort']);
+        // "the word labels being overly verbose, it isn't telling us anything we don't know": no words over the options;
+        // each group is named for a screen reader.
+        expect(sheetOf(choices).querySelector('[data-choices-name]')).toBeNull();
+        const groups = Array.from(sheetOf(choices).querySelectorAll('[role="group"]')).map((g) => g.getAttribute('aria-label'));
+        expect(groups).toEqual(['Model', 'Effort']);
         expect(option(choices, 'high').getAttribute('aria-pressed')).toBe('true');
         expect(option(choices, 'max').getAttribute('aria-pressed')).toBe('false');
     });
@@ -60,6 +63,17 @@ describe('Tim: the pill', () => {
         expect(sheetOf(choices).hidden).toBe(true);
         // Hidden in a browser too, where a display written important outranks the attribute.
         expect(sheetOf(choices).style.display).toBe('none');
+    });
+});
+
+// Off the right edge on a phone: "Haiku 5.5" and "max" were cut. The sheet spans the row it stands over, and its
+// options wrap inside it.
+describe('Tim: the sheet', () => {
+    test('spans the row it stands over', () => {
+        const choices = choicesFrom({ id: 'xenon-choices', label: 'Model and effort', choices: [MODEL, EFFORT] });
+        expect(sheetOf(choices).style.getPropertyValue('left')).toBe('0px');
+        expect(sheetOf(choices).style.getPropertyValue('right')).toBe('0px');
+        expect(sheetOf(choices).style.getPropertyValue('width')).toBe('auto');
     });
 });
 
