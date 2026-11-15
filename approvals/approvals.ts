@@ -2,17 +2,17 @@
  * Approvals — a panel's list of things that wait on a human, to go through.
  *
  * "Do you hear how little it matters what the 'thing' is to approve?"
- * An approval is something to look at, options to choose between, maybe a
- * confidence on each, maybe something to open that chooses nothing.
+ * An approval is something to look at, options to choose between, maybe
+ * something to open that chooses nothing.
  *
  * "A YES or NO is a final choice. I already sent it. And i can send yes again,
  * and no again." Every press is handed to the host, and pressing the other
  * option hands it another, until nothing more can be sent: a step that settles
  * now, the host saying what stood took effect, or the time running out.
  *
- * The package shows and sends; what a press does is the host's. Where there is
- * a fast classifier it answers the confidence, where there are checks the host says their
- * state, and where a merge waits on main's CI the host says when it passed.
+ * The package shows and sends; what a press does is the host's. Where there are
+ * checks the host says their state, and where a merge waits on main's CI the
+ * host says when it passed.
  */
 
 import { shatter } from './shatter';
@@ -32,12 +32,6 @@ export interface ApprovalOption {
     label: string;
     /** Left out, a press says the label and pressing it again says nothing more. */
     steps?: ApprovalStep[];
-    /**
-     * 0–100, from the fast classifier. A promise is the fast classifier still answering:
-     * the card is there first and the number arrives. Left out where a
-     * percentage makes no sense, as on a merge.
-     */
-    confidence?: number | Promise<number>;
     /** Red is no and green is yes; an option that is neither stays white. */
     means?: 'yes' | 'no';
 }
@@ -130,27 +124,6 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     label.textContent = option.label;
     sizeText(label, 'lg');
     btn.appendChild(label);
-
-    if (option.confidence !== undefined) {
-        const pct = document.createElement('span');
-        pct.title = 'fast classifier';
-        pct.style.fontFamily = 'var(--font-mono)';
-        sizeText(pct, 'lg');
-        pct.style.fontVariantNumeric = 'tabular-nums';
-        const answered = (n: number) => {
-            pct.textContent = `${n}%`;
-            pct.style.opacity = '1';
-        };
-        if (typeof option.confidence === 'number') {
-            answered(option.confidence);
-        } else {
-            // The fast classifier has not answered yet: the place is kept, so nothing moves when it does.
-            pct.textContent = '··%';
-            pct.style.opacity = '0.4';
-            option.confidence.then(answered, () => { pct.textContent = ''; });
-        }
-        btn.appendChild(pct);
-    }
 
     // What this button has said, and what pressing it again would say.
     const note = document.createElement('span');
