@@ -28,7 +28,6 @@ describe('Tim: the table', () => {
             'cursor',
             'dot',
             'inputfield',
-            'overlay',
             'panel',
             'pill',
             'pillOpen',

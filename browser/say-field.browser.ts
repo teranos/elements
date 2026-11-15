@@ -61,33 +61,42 @@ test.describe('Tim: the pill', () => {
     });
 
     // "Inputfield an element yes, new form, inputfield. The input field pill should be inside of inputfield form."
-    // Claude's composer with its model pill: the words on top; under them the +, the pill, and the → at the end.
-    test('the words on top; under them the + at its start and the → at its end; its presses round, SAY_INSET in', async ({ page }) => {
+    // Claude's composer with its pills: the words on top; under them the +, the pills, and the → at the end. More pills
+    // than a phone's row holds go on to the next line, each saying its words on one line.
+    test('the words on top; under them the + at its start, the pills in order, each on one line, and the → at its end; its presses round, SAY_INSET in', async ({ page }) => {
         await open(page);
         await page.locator(`${XENON} [data-say]`).focus();
         const at = await page.locator(PILL).evaluate((pill) => {
             const box = (b: Element) => b.getBoundingClientRect();
+            // How many lines its words are on: the tops of its text's boxes.
+            const lines = (node: Element) => {
+                const range = document.createRange();
+                range.selectNodeContents(node);
+                return new Set(Array.from(range.getClientRects()).map((r) => Math.round(r.top))).size;
+            };
             const [attach, send] = Array.from(pill.querySelectorAll(':scope [data-say-press]'));
             const field = pill.querySelector('[data-say]')!;
-            const [choices, repositories] = Array.from(pill.querySelectorAll('[data-choices]'));
+            const pills = Array.from(pill.querySelectorAll('[data-form="pill"]'));
             const s = getComputedStyle(pill);
             return {
                 form: (pill as HTMLElement).dataset.form,
-                pill: box(pill), attach: box(attach!), send: box(send!), field: box(field), choices: box(choices!), repositories: box(repositories!),
+                pill: box(pill), attach: box(attach!), send: box(send!), field: box(field),
+                pills: pills.map((p) => ({ box: box(p), lines: lines(p.querySelector('[data-pill-label]')!) })),
                 round: getComputedStyle(attach!).borderTopLeftRadius,
                 // A host may draw the input field an outline: the presses stand SAY_INSET in from inside it.
                 edge: { left: parseFloat(s.borderLeftWidth), right: parseFloat(s.borderRightWidth), bottom: parseFloat(s.borderBottomWidth) },
             };
         });
 
+        type Box = { left: number; right: number; top: number; bottom: number };
+        // Read as a line is read: above, or on the same line and to the left.
+        const before = (a: Box, b: Box) => a.bottom <= b.top + 1 || (a.top < b.bottom && a.right <= b.left + 1);
         expect(at.form).toBe('inputfield');
         expect(at.field.bottom).toBeLessThanOrEqual(at.attach.top);
-        expect(at.attach.right).toBeLessThanOrEqual(at.choices.left);
-        expect(at.choices.right).toBeLessThanOrEqual(at.repositories.left);
-        expect(at.repositories.right).toBeLessThanOrEqual(at.send.left);
-        const middle = (r: { top: number; bottom: number }) => (r.top + r.bottom) / 2;
-        expect(middle(at.choices)).toBeCloseTo(middle(at.attach), 0);
-        expect(middle(at.send)).toBeCloseTo(middle(at.attach), 0);
+        expect(at.pills.length).toBe(3);
+        const order = [at.attach, ...at.pills.map((p) => p.box), at.send];
+        for (let i = 1; i < order.length; i++) expect(before(order[i - 1]!, order[i]!)).toBe(true);
+        for (const pill of at.pills) expect(pill.lines).toBe(1);
         expect(at.attach.width).toBeCloseTo(SAY_PRESS, 0);
         expect(at.attach.height).toBeCloseTo(SAY_PRESS, 0);
         expect(at.round).toBe('50%');

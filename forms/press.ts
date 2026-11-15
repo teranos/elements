@@ -118,7 +118,6 @@ const SIZE_IN: Readonly<Record<Form, PressSize>> = Object.freeze({
     cursor: 'sm',
     tooltip: 'sm',
     button: 'sm',
-    overlay: 'sm',
     pill: 'sm',
     pillOpen: 'sm',
     inputfield: 'sm',

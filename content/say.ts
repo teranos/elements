@@ -35,7 +35,17 @@ export interface SayPresses {
      * being said. "add another inputfieldpillmenu for attached repositories".
      */
     pills?: HTMLElement[];
+    /**
+     * What waits to be said, a pill each (forms/pill.ts), in the row before the others and seen whether or not
+     * anything is being said: "IF THERE ARE MESSAGES PENDING TO BE SENT, AS A COLLECTED BATCH, I SEE IT". Pressed, it is
+     * across its row, the field and the keyboard where they were, not an overlay "taking over everything for no good
+     * reason". When nothing waits, the host hides it.
+     */
+    waiting?: HTMLElement[];
 }
+
+/** The pills in a field's row, in order: what waits, then the others. */
+const pillsOf = (own: SayPresses): HTMLElement[] => [...(own.waiting ?? []), ...(own.pills ?? [])];
 
 const presses = new WeakMap<HTMLElement, SayPresses>();
 
@@ -52,9 +62,12 @@ const STACKED: Record<string, string> = {
     'flex-direction': 'column', 'align-items': 'stretch', 'border-radius': '26px',
 };
 
-/** The row under the words: the + and the pills at its start, the → at its end. */
+/**
+ * The row under the words: the + and the pills at its start, the → at its end. More than a line holds goes on to the
+ * next, each pill its words on one line; the → stays last, at the end of the last line.
+ */
 const UNDER: Record<string, string> = {
-    display: 'flex', 'align-items': 'center', gap: '8px', 'min-width': '0',
+    display: 'flex', 'flex-wrap': 'wrap', 'align-items': 'center', gap: '8px', 'min-width': '0',
 };
 
 /** Input fields with no name of their own, numbered. */
@@ -69,7 +82,8 @@ const IN_PILL: Record<string, string> = {
 export function declareSay(field: HTMLElement, with_?: SayPresses): void {
     field.dataset.say = '';
     for (const [name, value] of Object.entries(FIELD)) field.style.setProperty(name, value, 'important');
-    if (with_?.start || with_?.end || with_?.pills?.length) presses.set(field, with_);
+    if (with_?.start || with_?.end || (with_ && pillsOf(with_).length)) presses.set(field, with_);
+    for (const pill of with_?.waiting ?? []) pillIn(pill, field);
     for (const pill of with_?.pills ?? []) {
         pillIn(pill, field);
         whileSaying(field, pill);
@@ -206,7 +220,8 @@ function boxOf(field: HTMLElement): HTMLElement {
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
     for (const [name, value] of Object.entries(PILL)) box.style.setProperty(name, value, 'important');
     parent.insertBefore(box, field);
-    if (own.pills?.length) {
+    const pills = pillsOf(own);
+    if (pills.length) {
         // "The input field pill should be inside of inputfield form": the words on top, the row under them.
         for (const [name, value] of Object.entries(STACKED)) box.style.setProperty(name, value, 'important');
         box.appendChild(field);
@@ -216,7 +231,7 @@ function boxOf(field: HTMLElement): HTMLElement {
         const space = field.ownerDocument.createElement('div');
         space.dataset.saySpace = '';
         space.style.setProperty('flex', '1 1 auto', 'important');
-        for (const node of [own.start, ...own.pills, space, own.end]) if (node) under.appendChild(node);
+        for (const node of [own.start, ...pills, space, own.end]) if (node) under.appendChild(node);
         box.appendChild(under);
     } else {
         if (own.start) box.appendChild(own.start);
@@ -224,7 +239,7 @@ function boxOf(field: HTMLElement): HTMLElement {
         if (own.end) box.appendChild(own.end);
     }
     for (const [name, value] of Object.entries(IN_PILL)) field.style.setProperty(name, value, 'important');
-    if (own.pills?.length) field.style.setProperty('align-self', 'stretch', 'important');
+    if (pills.length) field.style.setProperty('align-self', 'stretch', 'important');
     // The pill is its surface: the field draws none of its own.
     field.style.setProperty('border', 'none');
     field.style.setProperty('background', 'transparent');

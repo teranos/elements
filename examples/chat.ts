@@ -9,6 +9,7 @@ import { tray } from '../tray/tray';
 import type { Element } from '../element';
 import { sayFrom } from '../content/say';
 import { choicesFrom } from '../content/choices';
+import { outboxFrom } from './outbox';
 
 export function renderChatSpecimen(): void {
     const item: Element = {
@@ -48,6 +49,8 @@ export function renderChatSpecimen(): void {
                     { name: 'Repositories', options: ['QNTX', 'QNTX-Web', 'elements', 'ground'], chosen: ['QNTX', 'elements'], many: true },
                 ],
             });
+            // "I want you to use the pills for it instead": what waits to be said, seen whether or not anything is.
+            const outbox = outboxFrom();
             // "the inputfield take up the entire bottom of the screen for chat elements"
             // The package's chat field, which takes that bottom (#40).
             // Its presses in its box: the + at its start, the → at its end.
@@ -60,8 +63,8 @@ export function renderChatSpecimen(): void {
             };
             const attach = icon('Picture', 'M12 5v14M5 12h14');
             const send = icon('Say', 'M12 19V5M6 11l6-6 6 6');
-            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send, pills: [choices, repositories] });
-            row.append(choices, repositories, says, attach, send);
+            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send, waiting: [outbox], pills: [choices, repositories] });
+            row.append(outbox, choices, repositories, says, attach, send);
             body.append(log, row);
             return body;
         },

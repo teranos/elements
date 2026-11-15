@@ -103,14 +103,6 @@ export interface FormTable {
      */
     readonly button: { readonly opensFromTray: false };
 
-    /**
-     * Resting over one other element, bottom left, slightly transparent, moved
-     * by a drag and no further than that element. forms/overlay.ts: a press
-     * opens it fullscreen, a panel, the same element, and every way out of that
-     * brings it back over its element. Never in the tray, and never without the
-     * element it is over.
-     */
-    readonly overlay: { readonly opensFromTray: false };
 
     /**
      * "a generalised 'pills above inputfields' form". forms/pill.ts: resting as a pill above an input field, saying
@@ -145,7 +137,6 @@ const TABLE: FormTable = {
     cursor: { opensFromTray: false },
     tooltip: { opensFromTray: false },
     button: { opensFromTray: false },
-    overlay: { opensFromTray: false },
     pill: { opensFromTray: false },
     pillOpen: { opensFromTray: false },
     inputfield: { opensFromTray: false },

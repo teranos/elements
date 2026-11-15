@@ -18,3 +18,31 @@ describe('an element that opens at its end', () => {
         expect(element.dataset.opensAt).toBeUndefined();
     });
 });
+
+// Seen in xenon: what waits, a pill in its input field, holds a list scrolled in itself. The chat opened at the end of
+// that list, not at the end of what was said: the pill is an element of its own, and its scroller is its own.
+describe('Jenny: an element holding another', () => {
+    test('opens at the end of its own scroller, not of one in an element it holds', () => {
+        const element = document.createElement('div');
+        element.dataset.elementId = 'xenon';
+        const body = document.createElement('div');
+        body.dataset.scroller = 'body';
+        const pill = document.createElement('div');
+        pill.dataset.elementId = 'xenon-outbox';
+        const list = document.createElement('div');
+        list.dataset.scroller = 'declared';
+        pill.appendChild(list);
+        body.appendChild(pill);
+        element.appendChild(body);
+        document.body.appendChild(element);
+        let asked: string | null = null;
+        for (const node of [body, list]) {
+            Object.defineProperty(node, 'scrollHeight', { value: 500 });
+            Object.defineProperty(node, 'scrollTop', { set: () => { asked = node === body ? 'body' : 'list'; }, get: () => 0 });
+        }
+        openAtEnd(element);
+        expect(asked).toBe('body');
+        stopFollowing(element);
+        element.remove();
+    });
+});

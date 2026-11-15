@@ -22,7 +22,7 @@ import { applyRestingDotGeometry } from '../tray/proximity';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { wearIdentity, wearShadow } from '../paint';
 import { addWindowControls } from './title-bar-controls';
-import { homeOf, onlyHomeOf } from './home';
+import { homeOf } from './home';
 import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
 import { renderContent } from '../content/render';
@@ -372,13 +372,8 @@ export function morphDotToPanel(
     const targetX = 0;
     const targetY = direction === 'from-top' ? 0 : window.innerHeight - panelHeight;
 
-    // Where it goes when it is minimized, swiped away or left by Escape: the
-    // tray, or the only place it rests (forms/home.ts).
-    const toRest = () => {
-        const home = onlyHomeOf(element);
-        if (home) home();
-        else morphPanelToDot(element, item, verifyElement, onMinimize);
-    };
+    // Where it goes when it is minimized, swiped away or left by Escape: the tray.
+    const toRest = () => morphPanelToDot(element, item, verifyElement, onMinimize);
 
     // Close on Escape
     const escapeHandler = (e: KeyboardEvent) => {
@@ -473,12 +468,6 @@ export function morphDotToPanel(
         if (handler) {
             document.removeEventListener('keydown', handler);
             escapeHandlers.delete(element);
-        }
-        // One that rests only at its place (forms/home.ts) is on its way there, or is put there: never a dot.
-        if (onlyHomeOf(element)) {
-            morph.rollbackClass();
-            onMinimize(element, item);
-            return;
         }
         // Reattach to tray so the element isn't orphaned — with the classes it had
         setForm(element, 'dot');

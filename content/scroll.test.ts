@@ -210,6 +210,24 @@ describe('Spike: what is a second scroller, and what is not', () => {
         expect(column.dataset.scroller).toBe('undeclared');
     });
 
+    // Seen in xenon: what waits, a pill in its input field, holds a list scrolled in itself. The pill is an element of
+    // its own: its scroller is its own, and the chat's body still scrolls what was said.
+    test('a scroller declared in an element it holds is that element\'s: the body still scrolls', () => {
+        const content = div('chat');
+        content.appendChild(div('log', 'what was said'));
+        const pill = div('pill');
+        pill.dataset.elementId = 'xenon-outbox';
+        const list = div('waits');
+        list.style.overflowY = 'auto';
+        declareScroller(list);
+        pill.appendChild(list);
+        content.appendChild(pill);
+        const { body } = opened(content, 'xenon', 'Xenon');
+
+        expect(scrollsVertically(body)).toBe(true);
+        expect(warnings).toEqual([]);
+    });
+
     test('a vertical scroller inside a declared one is a second scroller', () => {
         const outer = div('cm-scroller');
         outer.style.overflowY = 'auto';

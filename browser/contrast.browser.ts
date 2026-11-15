@@ -137,6 +137,19 @@ test.describe('Spike: a field', () => {
             await expect.poll(() => pill.evaluate((el) => el.dataset.form === 'pill' && el.dataset.pillMoving === undefined)).toBe(true);
         }
     });
+
+    test('what waits in xenon, at rest, open, and with one chosen, is readable', async ({ page }) => {
+        const xenon = page.locator('[data-element-id="chat-specimen"]');
+        await xenon.click();
+        await expect.poll(() => xenon.evaluate((el) => el.dataset.form !== 'dot' && !el.classList.contains('morphing'))).toBe(true);
+        const outbox = page.locator('[data-outbox="xenon-outbox"]');
+        expect(await unreadable(page, '[data-outbox="xenon-outbox"]')).toEqual([]);
+        await outbox.click();
+        await expect.poll(() => outbox.evaluate((el) => el.dataset.form === 'pillOpen' && el.dataset.pillMoving === undefined)).toBe(true);
+        expect(await unreadable(page, '[data-outbox="xenon-outbox"]')).toEqual([]);
+        await outbox.locator('[data-waits]').first().click();
+        expect(await unreadable(page, '[data-outbox="xenon-outbox"]')).toEqual([]);
+    });
 });
 
 test.describe('Jenny: every example, opened', () => {

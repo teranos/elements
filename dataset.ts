@@ -120,11 +120,8 @@ export function setProximityText(element: HTMLElement, hasText: boolean): void {
 /**
  * Get element ID from element
  */
-/**
- * What finds the members of a composition: every element in it but an overlay,
- * which is over one of them and no member itself (forms/overlay.ts).
- */
-export const MEMBERS = '[data-element-id]:not([data-form="overlay"])';
+/** What finds the members of a composition. */
+export const MEMBERS = '[data-element-id]';
 
 export function getElementId(element: HTMLElement): string | null {
     return element.getAttribute('data-element-id');

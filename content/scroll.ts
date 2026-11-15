@@ -141,6 +141,17 @@ export function expectScroll(element: HTMLElement): void {
 }
 
 /**
+ * The first scroller declared in `within` that is the element's own: one in an element it holds (a pill in its input
+ * field) is that element's.
+ */
+export function ownDeclared(within: HTMLElement, element: HTMLElement): HTMLElement | null {
+    return Array.from(within.querySelectorAll<HTMLElement>('[data-scroller="declared"]')).find((s) => {
+        const holder = s.parentElement?.closest('[data-element-id]');
+        return !holder || holder === element || !element.contains(holder);
+    }) ?? null;
+}
+
+/**
  * For a host's tests in a real browser: nothing in the element is wider than it.
  * Measured now, so it fails whether or not the watch has looked yet.
  */
@@ -192,13 +203,13 @@ function review(element: HTMLElement, watch: Watch, candidates: HTMLElement[]): 
     if (watch.body && watch.body !== body) giveWay(watch.body, null);
     watch.body = body;
     if (body) {
-        const declared = body.querySelector<HTMLElement>('[data-scroller="declared"]');
+        const declared = ownDeclared(body, element);
         giveWay(body, declared ? childHolding(body, declared) : null);
         reach(body, watch.title);
     }
 
-    const scroller = body?.querySelector<HTMLElement>('[data-scroller="declared"]')
-        ?? element.querySelector<HTMLElement>('[data-scroller="declared"]')
+    const scroller = (body && ownDeclared(body, element))
+        ?? ownDeclared(element, element)
         ?? body;
     if (watch.dead && watch.dead !== scroller) revive(watch.dead, watch);
     if (scroller) {

@@ -166,6 +166,11 @@
     [data-choices] { border: 1px solid #fff; background: #000; color: #fff; }
     [data-choices] button { border: 1px solid #fff; background: #000; color: #fff; font: inherit; }
     [data-choices] button[aria-pressed="true"] { background: #fff; color: #000; }
+    [data-outbox] { border: 1px solid #fff; background: #000; color: #fff; }
+    [data-outbox] [data-press] { border: 1px solid #fff; background: #000; color: #fff; }
+    [data-outbox] [data-waits] { display: block; width: 100%; text-align: left; padding: 6px 8px; border: 1px solid #fff; border-radius: 12px; background: #000; color: #fff; font: inherit; }
+    [data-outbox] [data-waits][aria-pressed="true"] { background: #fff; color: #000; }
+    [data-outbox] [data-waits-from] { opacity: 0.75; }
 
     .content {
       font-family: var(--font-mono);

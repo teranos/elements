@@ -165,6 +165,27 @@ describe('Tim: an input field', () => {
         expect(order).toEqual([attach, pill, other, send]);
         expect(box.style.getPropertyValue('flex-direction')).toBe('column');
     });
+
+    // "IF THERE ARE MESSAGES PENDING TO BE SENT, AS A COLLECTED BATCH, I SEE IT": what waits is a pill in the input
+    // field, not an overlay "taking over everything for no good reason". It is seen whether or not anything is being said.
+    test('what waits is a pill in the row after the +, before the others, seen though nothing is being said', () => {
+        const element = document.createElement('div');
+        const field = document.createElement('textarea');
+        const attach = document.createElement('button');
+        const waits = document.createElement('div');
+        const choices = document.createElement('div');
+        declareSay(field, { start: attach, waiting: [waits], pills: [choices] });
+        element.appendChild(field);
+        document.body.appendChild(element);
+        holdSay(element);
+        const under = field.nextElementSibling as HTMLElement;
+        // Named, not compared as nodes: a node that differs is printed whole, with all it holds.
+        const named = new Map<unknown, string>([[attach, '+'], [waits, 'waits'], [choices, 'choices']]);
+        const order = Array.from(under?.children ?? []).filter((n) => (n as HTMLElement).dataset.saySpace === undefined);
+        expect(order.map((n) => named.get(n) ?? '?')).toEqual(['+', 'waits', 'choices']);
+        expect(choices.hidden).toBe(true);
+        expect(waits.hidden).toBe(false);
+    });
 });
 
 // Qodo on #114: "Switched chats obscure typed text", "Removing a chat field exposes bottom controls". QNTX-Web draws a

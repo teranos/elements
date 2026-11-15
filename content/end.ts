@@ -8,6 +8,8 @@
  * left reading.
  */
 
+
+import { ownDeclared } from './scroll';
 /** px: this near the end is at the end, for a scroller whose height is not a whole pixel. */
 const AT_END = 2;
 
@@ -18,10 +20,12 @@ interface Following {
 
 const following = new WeakMap<HTMLElement, Following>();
 
-/** The element's own scroller: the one its host declared, or the body the package gave it. */
+/**
+ * The element's own scroller: the one its host declared, or the body the package gave it. One in an element it holds
+ * (a pill in its input field) is that element's.
+ */
 function scrollerOf(element: HTMLElement): HTMLElement | null {
-    return element.querySelector<HTMLElement>('[data-scroller="declared"]')
-        ?? element.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
+    return ownDeclared(element, element) ?? element.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
 }
 
 function toEnd(element: HTMLElement): void {
