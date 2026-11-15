@@ -61,7 +61,10 @@ const isColor = (got: string, hex: string): boolean => {
 };
 
 const buttons = (card: HTMLElement) => Array.from(card.querySelectorAll<HTMLButtonElement>('button'));
-const button = (card: HTMLElement, label: string) => buttons(card).find((b) => b.querySelector('span')?.textContent === label)!;
+// An option is named by its label, whether it shows it as words or draws its mark.
+const button = (card: HTMLElement, label: string) => buttons(card).find((b) => b.getAttribute('aria-label') === label)!;
+/** Whether it shows it is waiting: its spinner, there always, shown or not. */
+const spinning = (btn: HTMLButtonElement) => btn.querySelector<HTMLElement>('[data-waiting]')!.style.display !== 'none';
 const note = (btn: HTMLButtonElement) => btn.querySelector<HTMLElement>('[data-note]')!.textContent;
 const titles = () => Array.from(roll.body.querySelectorAll('section')).map((s) => s.querySelector('[data-title]')!.textContent);
 
@@ -75,7 +78,7 @@ beforeEach(() => {
 describe('Tim: every option visible, a press sends, the roll in order', () => {
     test('every option is a button; yes is green, no is red, neither is white', () => {
         const { card } = roll.add(yesNo('Raise the interval', 1, { options: [{ label: 'Yes', means: 'yes' }, { label: 'No', means: 'no' }, { label: 'Later' }] }));
-        expect(buttons(card).map((b) => b.querySelector('span')!.textContent)).toEqual(['Yes', 'No', 'Later']);
+        expect(buttons(card).map((b) => b.getAttribute('aria-label'))).toEqual(['Yes', 'No', 'Later']);
         expect(isColor(button(card, 'Yes').style.border, '#16873c')).toBe(true);
         expect(isColor(button(card, 'No').style.border, '#d93636')).toBe(true);
         expect(isColor(button(card, 'Later').style.border, '#fff')).toBe(true);
@@ -122,11 +125,42 @@ describe('Tim: the checks button is named, and nothing is written over its check
     });
 });
 
+// "I don't like how constantly meaning is conveyed with words while visually you could use standard stuff".
+describe('Tim: what an option says, drawn', () => {
+    test('a marked option draws its mark, and says its label only to a screen reader', () => {
+        const { card } = roll.add(yesNo('Raise the interval', 1, {
+            options: [{ label: 'Yes', means: 'yes', mark: 'yes' }, { label: 'No', means: 'no', mark: 'no' }, { label: 'Later' }],
+        }));
+        for (const label of ['Yes', 'No']) {
+            const b = button(card, label);
+            expect(b.querySelector('svg[data-mark]')).not.toBeNull();
+            expect(b.textContent).toBe('');
+        }
+        expect(button(card, 'Later').textContent).toBe('Later');
+    });
+
+    test('the time left to choose is a bar that drains, not a count of seconds', () => {
+        const { card } = roll.add(yesNo('Raise the interval', 1, { openForSeconds: 60 }));
+        const bar = button(card, 'Yes').querySelector<HTMLElement>('[data-time-left]')!;
+        expect(bar).not.toBeNull();
+        expect(bar.style.getPropertyValue('--left')).toBe('1');
+        expect(note(button(card, 'Yes'))).not.toMatch(/\d+s/);
+    });
+
+    test('its box is its own: the package\'s fit does not size it by its words', () => {
+        const { card } = roll.add(yesNo('Raise the interval'));
+        expect(button(card, 'Yes').dataset.ownBox).toBe('');
+    });
+});
+
 describe('Spike: not yet, not at all, and nothing more', () => {
     test('checks still running: nothing can be pressed, and the buttons say so', () => {
         const { card } = roll.add(merge('Merge PR #29', { checks: [{ name: 'TypeScript', state: 'done' }, { name: 'Browser', state: 'running' }] }));
         expect(button(card, 'Merge').disabled).toBe(true);
-        expect(note(button(card, 'Merge'))).toBe('checks running');
+        // Waiting is a spinner, as everywhere: said to a screen reader, not in words on the button.
+        expect(spinning(button(card, 'Merge'))).toBe(true);
+        expect(button(card, 'Merge').title).toBe('checks running');
+        expect(note(button(card, 'Merge'))).toBe('');
         button(card, 'Merge').click();
         expect(pressed).toEqual([]);
     });
@@ -134,7 +168,9 @@ describe('Spike: not yet, not at all, and nothing more', () => {
     test('a check failed: not ready for approval at all', () => {
         const { card } = roll.add(merge('Merge PR #31', { checks: [{ name: 'TypeScript', state: 'done' }, { name: 'Browser', state: 'failed' }] }));
         expect(button(card, 'Merge').disabled).toBe(true);
-        expect(note(button(card, 'Merge'))).toBe('checks failed');
+        expect(spinning(button(card, 'Merge'))).toBe(false);
+        expect(button(card, 'Merge').title).toBe('checks failed');
+        expect(note(button(card, 'Merge'))).toBe('');
     });
 
     test('the host says the checks are done, and it can be decided', () => {
@@ -177,8 +213,10 @@ describe('Jenny: the PR story', () => {
         const { card } = roll.add(merge('Merge PR #29'));
         button(card, 'Merge').click();
         expect(note(button(card, 'Merge'))).toContain('merge when main CI passes');
-        expect(note(button(card, 'Merge'))).toContain('main CI');
         expect(note(button(card, 'Merge'))).toContain('again: force merge');
+        // What it waits on is a spinner in the button, named for a screen reader.
+        expect(spinning(button(card, 'Merge'))).toBe(true);
+        expect(button(card, 'Merge').title).toBe('waiting on main CI');
         button(card, 'Merge').click();
         expect(note(button(card, 'Merge'))).toBe('force merge');
         expect(button(card, 'Merge').disabled).toBe(true);

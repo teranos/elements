@@ -35,13 +35,13 @@ function text(lines: string[], mono = false): HTMLElement {
 // wait for CI, the NO will cancel the yes. Press NO again and it's definitely NO."
 const MERGE_OPTIONS: Approval['options'] = [
     {
-        label: 'Merge', means: 'yes', steps: [
+        label: 'Merge', means: 'yes', mark: 'merge', steps: [
             { says: 'merge when main CI passes', settles: 'when-ready' },
             { says: 'force merge', settles: 'now' },
         ],
     },
     {
-        label: 'Don’t merge', means: 'no', steps: [
+        label: 'Don’t merge', means: 'no', mark: 'no', steps: [
             { says: 'cancel the merge' },
             { says: 'definitely no' },
         ],
@@ -55,7 +55,7 @@ const APPROVALS: { approval: Approval; runs?: Run[] }[] = [
             title: 'Raise the schedule interval',
             arrivedMinutesAgo: 12,
             context: () => text(['every 1m → every 5m on schedule 12', 'cuts runs from 1440 to 288 a day']),
-            options: [{ label: 'Yes', means: 'yes' }, { label: 'No', means: 'no' }],
+            options: [{ label: 'Yes', means: 'yes', mark: 'yes' }, { label: 'No', means: 'no', mark: 'no' }],
             openForSeconds: 60,
         },
     },
@@ -128,7 +128,7 @@ const APPROVALS: { approval: Approval; runs?: Run[] }[] = [
             title: 'Create an account for a cleaner',
             arrivedMinutesAgo: 40,
             context: () => text(['Applicant · example', 'applied 9 Oct · 3 years experience · Utrecht']),
-            options: [{ label: 'Yes', means: 'yes' }, { label: 'No', means: 'no' }],
+            options: [{ label: 'Yes', means: 'yes', mark: 'yes' }, { label: 'No', means: 'no', mark: 'no' }],
             asides: [{
                 label: 'Open mail & CV',
                 open: () => text([

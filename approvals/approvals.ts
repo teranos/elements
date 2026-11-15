@@ -34,7 +34,19 @@ export interface ApprovalOption {
     steps?: ApprovalStep[];
     /** Red is no and green is yes; an option that is neither stays white. */
     means?: 'yes' | 'no';
+    /**
+     * Drawn in place of its label, which a screen reader still says: "I don't like how constantly meaning is
+     * conveyed with words while visually you could use standard stuff". Left out, it says its label.
+     */
+    mark?: keyof typeof MARKS;
 }
+
+/** The standard marks an option can be drawn as: ✓, ✗, a merge. */
+export const MARKS = {
+    yes: 'M3 8.5l3.5 3.5L13 4.5',
+    no: 'M4 4l8 8M12 4l-8 8',
+    merge: 'M5 3v10M5 5c0 4 6 2 6 6M11 13a1.5 1.5 0 1 0 0 .01M5 3a1.5 1.5 0 1 0 0 .01M5 13a1.5 1.5 0 1 0 0 .01',
+} as const;
 
 /** Something to open that chooses nothing: the mail and the CV, the agent's table. */
 export interface ApprovalAside {
@@ -103,12 +115,16 @@ const COLOR = MEANS;
 
 const stepsOf = (option: ApprovalOption): ApprovalStep[] => option.steps ?? [{ says: option.label }];
 
-function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: HTMLElement } {
+function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: HTMLElement; waiting: HTMLElement; left: HTMLElement } {
     const btn = document.createElement('button');
     btn.type = 'button';
+    btn.setAttribute('aria-label', option.label);
+    // Its box is its own: it shares its row with the others, whatever each says (fit.ts).
+    btn.dataset.ownBox = '';
     btn.style.flex = '1 1 0';
     btn.style.minWidth = '0';
-    btn.style.minHeight = '64px';
+    // Every option one height, a label on two lines or one, a mark or words.
+    btn.style.minHeight = '72px';
     btn.style.padding = '8px';
     btn.style.border = `2px solid ${COLOR[option.means ?? 'neither']}`;
     btn.style.borderRadius = '0';
@@ -121,9 +137,35 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     btn.style.position = 'relative';
 
     const label = document.createElement('span');
-    label.textContent = option.label;
-    sizeText(label, 'lg');
+    label.setAttribute('aria-hidden', 'true');
+    if (option.mark) {
+        label.innerHTML = `<svg data-mark="${option.mark}" viewBox="0 0 16 16" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto"><path d="${MARKS[option.mark]}"/></svg>`;
+    } else {
+        label.textContent = option.label;
+        sizeText(label, 'lg');
+    }
     btn.appendChild(label);
+
+    // Waiting (on checks, on main's CI) is a spinner, as everywhere.
+    const waiting = document.createElement('span');
+    waiting.dataset.waiting = '';
+    waiting.setAttribute('aria-hidden', 'true');
+    Object.assign(waiting.style, {
+        width: '14px', height: '14px', margin: '0 auto', boxSizing: 'border-box', borderRadius: '50%',
+        border: '2px solid currentColor', borderRightColor: 'transparent', display: 'none',
+    });
+    waiting.animate?.([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 900, iterations: Infinity });
+    btn.appendChild(waiting);
+
+    // The time left is a bar along its foot that drains: --left from 1 to 0.
+    const left = document.createElement('span');
+    left.dataset.timeLeft = '';
+    left.setAttribute('aria-hidden', 'true');
+    Object.assign(left.style, {
+        position: 'absolute', left: '0', bottom: '0', height: '3px', width: 'calc(var(--left, 0) * 100%)',
+        background: 'currentColor', transition: 'width 1s linear', display: 'none',
+    });
+    btn.appendChild(left);
 
     // What this button has said, and what pressing it again would say.
     const note = document.createElement('span');
@@ -132,7 +174,7 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     sizeText(note, 'sm');
     note.style.lineHeight = '1.3';
     btn.appendChild(note);
-    return { btn, note };
+    return { btn, note, waiting, left };
 }
 
 interface Rendered {
@@ -347,7 +389,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
     };
 
     const buttons = approval.options.map((option, i) => {
-        const { btn, note } = optionButton(option);
+        const { btn, note, waiting, left } = optionButton(option);
         btn.addEventListener('click', (e) => {
             if (locked || !presented()) return;
             if (current?.option === i) {
@@ -364,12 +406,12 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             changed(true);
         });
         row.appendChild(btn);
-        return { btn, note };
+        return { btn, note, waiting, left };
     });
 
     const show = () => {
         const notYet = !presented();
-        buttons.forEach(({ btn, note }, i) => {
+        buttons.forEach(({ btn, note, waiting, left }, i) => {
             const option = approval.options[i]!;
             const steps = stepsOf(option);
             const on = current?.option === i;
@@ -381,18 +423,24 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             btn.style.opacity = (locked && !on) || notYet ? '0.4' : '1';
             const next = on ? steps[current!.step + 1] : steps[0];
             const said = on ? steps[current!.step]!.says : null;
-            // "The countdown, why not IN THE button." In the one that stands, how long
-            // until it takes effect or can no longer change; before anything is sent,
-            // in each, how long to choose.
-            const count = locked || notYet ? null
-                : on && merging !== null ? (merging === Infinity ? approval.merges!.label : `${approval.merges!.label} ${merging}s`)
-                : approval.openForSeconds && (on || current === null) ? `${remaining}s` : null;
+            // "The countdown, why not IN THE button." In the one that stands, how long until it takes effect or can no
+            // longer change; before anything is sent, in each, how long to choose. Drawn, not counted: a bar that drains.
+            const merge = approval.merges;
+            const timing = locked || notYet ? null
+                : on && merging !== null ? (merging === Infinity ? null : { left: merging / (merge!.seconds ?? 1), says: `${merge!.label} in ${merging}s` })
+                : approval.openForSeconds && (on || current === null) ? { left: remaining / approval.openForSeconds, says: `${remaining}s left` } : null;
+            left.style.display = timing ? 'block' : 'none';
+            left.style.setProperty('--left', timing ? String(Math.max(0, Math.min(1, timing.left))) : '0');
+            const spins = !locked && ((notYet && !failed()) || (on && merging === Infinity));
+            waiting.style.display = spins ? 'block' : 'none';
+            btn.title = notYet ? (failed() ? 'checks failed' : 'checks running')
+                : spins ? `waiting on ${merge!.label}`
+                : timing?.says ?? '';
             const lines = notYet
-                ? [failed() ? 'checks failed' : 'checks running']
+                ? []
                 : [
                     said && said !== option.label ? said : null,
                     !locked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
-                    count,
                 ].filter(Boolean);
             note.textContent = lines.join('\n');
             note.style.whiteSpace = 'pre-line';

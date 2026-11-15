@@ -38,12 +38,12 @@ export function takeOffFit(node: Element): void {
 export function fitRule(element: string): string {
     return `${element} * { text-wrap-mode: wrap !important; max-width: 100% !important; min-width: 0 !important; }
 ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
-${element} button:not([data-element-id]):not([data-press]):not([data-say-press]):not(.title-bar *) { width: fit-content !important; flex: 0 0 auto !important; }
+${element} button:not([data-element-id]):not([data-press]):not([data-say-press]):not([data-own-box]):not(.title-bar *) { width: fit-content !important; flex: 0 0 auto !important; }
 ${element} .title-bar:has(button) { padding-right: ${TITLE_INSET}px !important; }
 ${element} .title-bar button { box-sizing: border-box !important; width: ${TITLE_PRESS}px !important; height: ${TITLE_PRESS}px !important; min-width: ${TITLE_PRESS}px !important; padding: 0 !important; margin: 0 !important; flex: none !important; display: inline-grid !important; place-items: center !important; line-height: 1 !important; }
 ${element} .title-bar .title-bar-presses, ${element} .title-bar .window-controls { display: inline-flex !important; align-items: center !important; gap: ${TITLE_INSET}px !important; flex: none !important; margin-left: auto !important; }
 ${element} .title-bar .title-bar-presses + .window-controls { margin-left: ${TITLE_INSET}px !important; }
-${element} :is([data-scroller="body"], [data-scroller="declared"]) button:not([data-element-id]):not([data-press]):not([data-say-press]) { box-sizing: border-box !important; padding: 0.5em 1em !important; }
+${element} :is([data-scroller="body"], [data-scroller="declared"]) button:not([data-element-id]):not([data-press]):not([data-say-press]):not([data-own-box]) { box-sizing: border-box !important; padding: 0.5em 1em !important; }
 ${element} [data-say-box] [data-say] { color: inherit; }
 ${element} [data-say-box] [data-say] { outline: none; }
 ${element} [data-say-box]:focus-within { outline: 2px solid currentColor; outline-offset: 2px; }

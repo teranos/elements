@@ -42,6 +42,8 @@ async function opened(page: Page, symbols: string[]) {
         const element = page.locator(`[data-element-id="${id}"]`);
         await element.click();
         await expect(element).not.toHaveAttribute('data-form', 'dot');
+        // Opened, its controls are in its bar.
+        await expect(element.locator('.title-bar .window-controls button').first()).toBeVisible();
         await expect.poll(() => page.evaluate(() => document.querySelector('.morphing') === null)).toBe(true);
     }
 }

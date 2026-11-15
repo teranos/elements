@@ -8,7 +8,7 @@
  *
  * Personas:
  * - Tim: Happy path — a button in an element's body: an em at its sides, half an em above and below
- * - Spike: Edge cases — a press, a say press and the title bar's controls keep their own boxes
+ * - Spike: Edge cases — a press, a say press, the title bar's controls and an approval's options keep their own boxes
  * - Jenny: Complex scenarios — no height is held over its words: no air but the half em
  */
 
@@ -16,7 +16,7 @@ import { describe, test, expect } from 'bun:test';
 import { fitRule } from './fit';
 
 const RULE = fitRule('[data-element-id]');
-const ROOM = ':is([data-scroller="body"], [data-scroller="declared"]) button:not([data-element-id]):not([data-press]):not([data-say-press])';
+const ROOM = ':is([data-scroller="body"], [data-scroller="declared"]) button:not([data-element-id]):not([data-press]):not([data-say-press]):not([data-own-box])';
 
 describe('Tim: a button in an element\'s body', () => {
     test('has its words an em in from each side, half an em from its top and bottom', () => {
