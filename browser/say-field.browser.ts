@@ -60,10 +60,10 @@ test.describe('Tim: the pill', () => {
         expect(pill.right).toBeCloseTo(inside.right, 0);
     });
 
-    // "Inputfield an element yes, new form, inputfield. The input field pill should be inside of inputfield form."
-    // Claude's composer with its pills: the words on top; under them the +, the pills, and the → at the end. More pills
-    // than a phone's row holds go on to the next line, each saying its words on one line.
-    test('the words on top; under them the + at its start, the pills in order, each on one line, and the → at its end; its presses round, SAY_INSET in', async ({ page }) => {
+    // "The pills should be above, and outside of inputfield area": the input field is one line, the + first, the words,
+    // the → last; its pills in a strip of their own above it, each its words on one line, the strip dragged sideways:
+    // "normally you're able to drag pills sideways in most applications".
+    test('one line: the + at its start, the words, the → at its end; its pills above it, outside it, one line; its presses round, SAY_INSET in', async ({ page }) => {
         await open(page);
         await page.locator(`${XENON} [data-say]`).focus();
         const at = await page.locator(PILL).evaluate((pill) => {
@@ -76,11 +76,13 @@ test.describe('Tim: the pill', () => {
             };
             const [attach, send] = Array.from(pill.querySelectorAll(':scope [data-say-press]'));
             const field = pill.querySelector('[data-say]')!;
-            const pills = Array.from(pill.querySelectorAll('[data-form="pill"]'));
+            const strip = pill.previousElementSibling as HTMLElement;
+            const pills = Array.from(strip.querySelectorAll('[data-form="pill"]'));
             const s = getComputedStyle(pill);
             return {
                 form: (pill as HTMLElement).dataset.form,
-                pill: box(pill), attach: box(attach!), send: box(send!), field: box(field),
+                inside: pill.querySelectorAll('[data-form="pill"]').length,
+                pill: box(pill), attach: box(attach!), send: box(send!), field: box(field), strip: box(strip),
                 pills: pills.map((p) => ({ box: box(p), lines: lines(p.querySelector('[data-pill-label]')!) })),
                 round: getComputedStyle(attach!).borderTopLeftRadius,
                 // A host may draw the input field an outline: the presses stand SAY_INSET in from inside it.
@@ -88,14 +90,19 @@ test.describe('Tim: the pill', () => {
             };
         });
 
-        type Box = { left: number; right: number; top: number; bottom: number };
-        // Read as a line is read: above, or on the same line and to the left.
-        const before = (a: Box, b: Box) => a.bottom <= b.top + 1 || (a.top < b.bottom && a.right <= b.left + 1);
         expect(at.form).toBe('inputfield');
-        expect(at.field.bottom).toBeLessThanOrEqual(at.attach.top);
+        expect(at.inside).toBe(0);
+        const middle = (r: { top: number; bottom: number }) => (r.top + r.bottom) / 2;
+        expect(middle(at.field)).toBeCloseTo(middle(at.attach), 0);
+        expect(middle(at.send)).toBeCloseTo(middle(at.attach), 0);
+        expect(at.attach.right).toBeLessThanOrEqual(at.field.left);
+        expect(at.field.right).toBeLessThanOrEqual(at.send.left);
+        expect(at.strip.bottom).toBeLessThanOrEqual(at.pill.top + 1);
         expect(at.pills.length).toBe(3);
-        const order = [at.attach, ...at.pills.map((p) => p.box), at.send];
-        for (let i = 1; i < order.length; i++) expect(before(order[i - 1]!, order[i]!)).toBe(true);
+        for (let i = 1; i < at.pills.length; i++) {
+            expect(middle(at.pills[i]!.box)).toBeCloseTo(middle(at.pills[0]!.box), 0);
+            expect(at.pills[i - 1]!.box.right).toBeLessThanOrEqual(at.pills[i]!.box.left);
+        }
         for (const pill of at.pills) expect(pill.lines).toBe(1);
         expect(at.attach.width).toBeCloseTo(SAY_PRESS, 0);
         expect(at.attach.height).toBeCloseTo(SAY_PRESS, 0);
@@ -103,6 +110,31 @@ test.describe('Tim: the pill', () => {
         expect(at.attach.left - at.pill.left - at.edge.left).toBeCloseTo(SAY_INSET, 0);
         expect(at.pill.right - at.send.right - at.edge.right).toBeCloseTo(SAY_INSET, 0);
         expect(at.pill.bottom - at.send.bottom - at.edge.bottom).toBeCloseTo(SAY_INSET, 0);
+    });
+
+    test('pills more than the strip holds: it is dragged sideways to the last', async ({ page }, info) => {
+        test.skip(info.project.name !== 'phone', 'a finger drags it');
+        await open(page);
+        await page.locator(`${XENON} [data-say]`).focus();
+        const strip = page.locator(`${XENON} [data-say-pills]`);
+        // A strip narrower than its pills, as a small phone's is.
+        await strip.evaluate((s) => { s.style.setProperty('flex', '0 0 200px', 'important'); s.style.setProperty('width', '200px', 'important'); });
+        const wide = await strip.evaluate((s) => ({ scroll: s.scrollWidth, client: s.clientWidth }));
+        expect(wide.scroll).toBeGreaterThan(wide.client);
+        const last = page.locator(`${XENON} [data-choices="xenon-repositories"]`);
+        const seen = () => last.evaluate((p) => { const r = p.getBoundingClientRect(); const s = p.parentElement!.getBoundingClientRect(); return r.right <= s.right + 1; });
+        expect(await seen()).toBe(false);
+        // A finger drags it: the strip scrolls as the platform scrolls it.
+        const b = (await strip.boundingBox())!;
+        const y = Math.round(b.y + b.height / 2);
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: Math.round(b.x + b.width - 10), y }] });
+        for (let x = Math.round(b.x + b.width - 20); x >= b.x - 200; x -= 10) {
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: Math.max(1, x), y }] });
+        }
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        await expect.poll(seen).toBe(true);
+        expect(await page.evaluate(() => document.activeElement?.hasAttribute('data-say') ?? false)).toBe(true);
     });
 });
 
@@ -129,17 +161,25 @@ test.describe('Spike: its choices', () => {
         await expect.poll(() => page.locator(CHOICES).evaluate((el) => el.dataset.pillMoving === undefined)).toBe(true);
         expect(await focused()).toBe(true);
         await expect(field).toBeVisible();
-        const row = await boxOf(page, `${XENON} [data-say-row]`);
+        // Across the strip above the input field, the field under it.
+        const strip = await boxOf(page, `${XENON} [data-say-pills]`);
         const open_ = await boxOf(page, CHOICES);
-        expect(open_.left).toBeCloseTo(row.left, 0);
-        expect(open_.right).toBeCloseTo(row.right, 0);
-        expect((await boxOf(page, `${XENON} [data-say]`)).bottom).toBeLessThanOrEqual(open_.top);
+        expect(open_.left).toBeCloseTo(strip.left, 0);
+        expect(open_.right).toBeCloseTo(strip.right, 0);
+        expect(open_.bottom).toBeLessThanOrEqual((await boxOf(page, `${XENON} [data-say]`)).top);
 
         await page.locator(CHOICES).getByRole('button', { name: 'max' }).click();
         await expect(page.locator(CHOICES)).toHaveAttribute('data-form', 'pill');
         await expect.poll(() => page.locator(CHOICES).evaluate((el) => el.dataset.pillMoving === undefined)).toBe(true);
         await expect(page.locator(CHOICES)).toHaveText('Opus 5.5 · max');
         expect(await focused()).toBe(true);
+        // Seen in xenon: let go, the pills squeezed, their words on two lines.
+        const lines = await page.locator(`${XENON} [data-say-pills]`).evaluate((strip) => Array.from(strip.querySelectorAll('[data-pill-label]')).map((label) => {
+            const range = document.createRange();
+            range.selectNodeContents(label);
+            return new Set(Array.from(range.getClientRects()).map((r) => Math.round(r.top))).size;
+        }));
+        expect(lines).toEqual([1, 1, 1]);
         // One element all the way (Element Axioma).
         expect(await node!.evaluate((el) => el === document.querySelector('[data-choices="xenon-choices"]'))).toBe(true);
     });

@@ -40,13 +40,13 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('Tim: what waits', () => {
-    test('is a pill in the input field, saying how many wait and when they go, seen though nothing is being said', async ({ page }) => {
+    test('is a pill above the input field, saying how many wait and when they go, seen though nothing is being said', async ({ page }) => {
         await open(page);
         const outbox = page.locator(OUTBOX);
         await expect(outbox).toBeVisible();
         await expect(outbox).toHaveAttribute('data-form', 'pill');
         await expect(outbox).toHaveText('8 wait · 00:40');
-        expect(await outbox.evaluate((el) => el.closest('[data-say-box]') !== null)).toBe(true);
+        expect(await outbox.evaluate((el) => el.closest('[data-say-pills]') !== null && el.closest('[data-say-box]') === null)).toBe(true);
     });
 
     test('pressed, it is across its row: the words, the keyboard and what was said stay where they are', async ({ page }) => {
@@ -64,8 +64,9 @@ test.describe('Tim: what waits', () => {
             const log = document.querySelector(`${xenon} .content`)!;
             return { open: box(open), field: box(field), log: box(log), screen: window.innerHeight };
         }, { xenon: XENON, outbox: OUTBOX });
-        // Under the words, not over them; what was said is still seen above.
-        expect(at.open.top).toBeGreaterThanOrEqual(at.field.bottom - 1);
+        // "The pills should be above, and outside of inputfield area": above the words, not over them; what was said is
+        // still seen above it.
+        expect(at.open.bottom).toBeLessThanOrEqual(at.field.top + 1);
         expect(at.log.bottom).toBeGreaterThan(at.log.top);
         // "taking over everything for no good reason": it takes no more than half of what is seen.
         expect(at.open.height).toBeLessThanOrEqual(at.screen / 2);

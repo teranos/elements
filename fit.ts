@@ -45,6 +45,7 @@ ${element} [data-say-box]:focus-within { outline: 2px solid currentColor; outlin
 ${element} :is(input, textarea)::placeholder { color: color-mix(in srgb, currentColor 65%, transparent); }
 ${element} [data-pill-moving] { box-sizing: border-box !important; border-radius: ${SAY_PRESS / 2 + SAY_INSET}px !important; padding: ${SAY_INSET}px !important; }
 ${element} [data-form="pill"]:not([hidden]):not([data-pill-moving]) { display: inline-flex !important; align-items: center !important; box-sizing: border-box !important; border-radius: 9999px !important; padding: 0.5em 1em !important; cursor: pointer; }
+${element} [data-say-pills] > [data-form="pill"] { flex: 0 0 auto !important; }
 ${element} [data-form="pillOpen"]:not([data-pill-moving]) { display: block !important; box-sizing: border-box !important; width: 100% !important; border-radius: ${SAY_PRESS / 2 + SAY_INSET}px !important; padding: ${SAY_INSET}px !important; }
 ${element} [data-say-press] { box-sizing: border-box !important; width: ${SAY_PRESS}px !important; height: ${SAY_PRESS}px !important; padding: 0 !important; border-radius: 50% !important; flex: none !important; margin: 0 !important; display: inline-grid !important; place-items: center !important; }
 ${element} button[data-fit-even]:not([data-element-id]):not([data-press]):not([data-say-press]) { min-width: var(--fit-even) !important; }
@@ -62,6 +63,8 @@ export function wrapRows(scroller: HTMLElement): void {
     for (const node of Array.from(scroller.querySelectorAll<HTMLElement>('*'))) {
         // Once: a wrapped row would measure as fitting, and unwrapped it would not.
         if (node.dataset.fitWrapped !== undefined) continue;
+        // What the package says scrolls sideways (a strip of pills, a table) is dragged, not wrapped.
+        if (node.closest('[data-scroller="sideways"]')) continue;
         const style = getComputedStyle(node);
         if (!style.display.includes('flex') || !style.flexDirection.startsWith('row')) continue;
         const squeezed = Array.from(node.children).some((child) => child.scrollWidth > child.clientWidth + 1);

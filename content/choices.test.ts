@@ -52,14 +52,14 @@ describe('Tim: the choices', () => {
         expect(choices.textContent).toBe('Opus 5.5 · high');
     });
 
-    test('pressed, its options are across its row in the input field, no words over them; the field stays', async () => {
+    test('pressed, its options are across the strip above the input field, no words over them; the field stays', async () => {
         const { field, choices, box } = chat();
         field.focus();
         choices.click();
         await settled();
 
         expect(getForm(choices)).toBe('pillOpen');
-        expect(box.contains(choices)).toBe(true);
+        expect(box.previousElementSibling!.contains(choices)).toBe(true);
         expect(box.contains(field)).toBe(true);
         expect(document.activeElement).toBe(field);
         // "the word labels being overly verbose, it isn't telling us anything we don't know": named for a screen reader only.
@@ -82,7 +82,7 @@ describe('Tim: the choices', () => {
         expect(getForm(choices)).toBe('pill');
         expect(choices.textContent).toBe('Opus 5.5 · max');
         expect(told).toEqual([['Effort', 'max']]);
-        expect(box.contains(choices)).toBe(true);
+        expect(box.previousElementSibling!.contains(choices)).toBe(true);
         expect(document.activeElement).toBe(field);
         expect(choices.hidden).toBe(false);
     });
@@ -151,11 +151,11 @@ describe('Spike: what it is not given', () => {
 });
 
 describe('Jenny: beside a say field', () => {
-    // "The input field pill should be inside of inputfield form."
-    test('it rests in the input field, in the row under the words, hidden while nothing is being said', () => {
-        const { field, choices, box } = chat();
-        expect(choices.parentElement!.parentElement).toBe(box);
-        expect(choices.parentElement).toBe(field.nextElementSibling);
+    // "The pills should be above, and outside of inputfield area".
+    test('it rests in the strip above the input field, outside it, hidden while nothing is being said', () => {
+        const { choices, box } = chat();
+        expect(choices.parentElement).toBe(box.previousElementSibling);
+        expect(box.contains(choices)).toBe(false);
         expect(choices.hidden).toBe(true);
     });
 

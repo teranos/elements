@@ -44,7 +44,17 @@ export interface SayPresses {
     waiting?: HTMLElement[];
 }
 
-/** The pills in a field's row, in order: what waits, then the others. */
+/**
+ * "The pills should be above, and outside of inputfield area": their strip, above the input field in its row, one line
+ * dragged sideways: "normally you're able to drag pills sideways in most applications". Never wrapped.
+ */
+const STRIP: Record<string, string> = {
+    display: 'flex', 'flex-wrap': 'nowrap', 'align-items': 'center', gap: '8px',
+    flex: '1 1 100%', width: '100%', 'min-width': '0', order: '98', 'box-sizing': 'border-box', margin: '0',
+    'overflow-x': 'auto', 'overflow-y': 'hidden', 'scrollbar-width': 'none', 'overscroll-behavior-x': 'contain',
+};
+
+/** The pills in a field's strip, in order: what waits, then the others. */
 const pillsOf = (own: SayPresses): HTMLElement[] => [...(own.waiting ?? []), ...(own.pills ?? [])];
 
 const presses = new WeakMap<HTMLElement, SayPresses>();
@@ -55,19 +65,6 @@ export { SAY_PRESS, SAY_INSET } from './say-sizes';
 /** The input field the field and its presses are: one line, rounded whole, its presses SAY_INSET in. Literals: a const made of another is undefined in a Bun bundle. */
 const PILL: Record<string, string> = {
     display: 'flex', 'align-items': 'center', gap: '8px', padding: '8px', 'border-radius': '9999px',
-};
-
-/** With a pill in it, Claude's composer: the words on top, the row of presses and pills under them. SAY_PRESS / 2 + SAY_INSET round. */
-const STACKED: Record<string, string> = {
-    'flex-direction': 'column', 'align-items': 'stretch', 'border-radius': '26px',
-};
-
-/**
- * The row under the words: the + and the pills at its start, the → at its end. More than a line holds goes on to the
- * next, each pill its words on one line; the → stays last, at the end of the last line.
- */
-const UNDER: Record<string, string> = {
-    display: 'flex', 'flex-wrap': 'wrap', 'align-items': 'center', gap: '8px', 'min-width': '0',
 };
 
 /** Input fields with no name of their own, numbered. */
@@ -141,7 +138,7 @@ function keepBoxToItsOwn(field: HTMLElement): void {
     if (box?.dataset.sayBox !== '') return;
     const own = presses.get(field);
     for (const child of Array.from(box.children)) {
-        if (child !== field && child !== own?.start && child !== own?.end && (child as HTMLElement).dataset.sayRow === undefined) box.before(child);
+        if (child !== field && child !== own?.start && child !== own?.end) box.before(child);
     }
 }
 
@@ -220,26 +217,21 @@ function boxOf(field: HTMLElement): HTMLElement {
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
     for (const [name, value] of Object.entries(PILL)) box.style.setProperty(name, value, 'important');
     parent.insertBefore(box, field);
+    if (own.start) box.appendChild(own.start);
+    box.appendChild(field);
+    if (own.end) box.appendChild(own.end);
     const pills = pillsOf(own);
     if (pills.length) {
-        // "The input field pill should be inside of inputfield form": the words on top, the row under them.
-        for (const [name, value] of Object.entries(STACKED)) box.style.setProperty(name, value, 'important');
-        box.appendChild(field);
-        const under = field.ownerDocument.createElement('div');
-        under.dataset.sayRow = '';
-        for (const [name, value] of Object.entries(UNDER)) under.style.setProperty(name, value, 'important');
-        const space = field.ownerDocument.createElement('div');
-        space.dataset.saySpace = '';
-        space.style.setProperty('flex', '1 1 auto', 'important');
-        for (const node of [own.start, ...pills, space, own.end]) if (node) under.appendChild(node);
-        box.appendChild(under);
-    } else {
-        if (own.start) box.appendChild(own.start);
-        box.appendChild(field);
-        if (own.end) box.appendChild(own.end);
+        const strip = field.ownerDocument.createElement('div');
+        strip.dataset.sayPills = '';
+        // Sideways only: not a second scroller of its element (content/scroll.ts).
+        strip.dataset.scroller = 'sideways';
+        for (const [name, value] of Object.entries(STRIP)) strip.style.setProperty(name, value, 'important');
+        // Each as wide as its words: the package's rule (fit.ts).
+        for (const pill of pills) strip.appendChild(pill);
+        box.before(strip);
     }
     for (const [name, value] of Object.entries(IN_PILL)) field.style.setProperty(name, value, 'important');
-    if (pills.length) field.style.setProperty('align-self', 'stretch', 'important');
     // The pill is its surface: the field draws none of its own.
     field.style.setProperty('border', 'none');
     field.style.setProperty('background', 'transparent');

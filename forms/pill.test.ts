@@ -293,3 +293,13 @@ describe('Spike: on its road, its size is the road\'s', () => {
         expect(moving).not.toContain('display');
     });
 });
+
+// Seen in xenon: let go, its words on two lines. Resting, it is written afresh, and what was written on it to keep it
+// as wide as its words was gone; the strip squeezed it. It is the package's rule, not something written on it once.
+describe('Spike: in a strip of pills, as wide as its words', () => {
+    test('the rule keeps a pill in its strip from being squeezed, whatever is written on it', () => {
+        const rule = fitRule('[data-element-id]');
+        const line = rule.split('\n').find((l) => l.includes('[data-say-pills] > [data-form="pill"]'))!;
+        expect(line).toContain('flex: 0 0 auto !important');
+    });
+});
