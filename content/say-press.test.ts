@@ -25,7 +25,8 @@ describe('Tim: a say press', () => {
 
 describe('Spike: the button fit does not reach it', () => {
     test('by rule', () => {
-        expect(RULE).toContain('button:not([data-element-id]):not([data-press]):not([data-say-press]) { width: fit-content !important;');
+        const fit = RULE.split('\n').find((line) => line.includes('{ width: fit-content !important;'))!;
+        expect(fit).toContain('button:not([data-element-id]):not([data-press]):not([data-say-press])');
     });
 
     test('by style attribute: its width written important stays', () => {
