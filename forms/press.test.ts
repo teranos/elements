@@ -2,7 +2,7 @@
 // Personas: Tim (one press, two stages), Spike (rest is never red, arming runs out, a failure beside it, misuse), Jenny (every face from the start).
 
 import { describe, test, expect, beforeEach } from 'bun:test';
-import { pressFrom, pressSizeFor, AtField, AX, PRESS_SIZES, type Press } from './press';
+import { pressFrom, pressSizeFor, AtField, AX, HELD, PRESS_SIZES, type Press } from './press';
 
 /** JSDOM says a colour back as rgb(); happy-dom as it was set. Either is the colour. */
 const isColor = (got: string, hex: string): boolean => {
@@ -182,6 +182,17 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         await settle();
         expect(done).toEqual(['save']);
         expect(handle.element.nextElementSibling).toBeNull();
+    });
+
+    // CodeRabbit on #115: held at 0.4 opacity, Selenium's Invite read 3.32 to 1. "A colour that fails it is fixed, never
+    // excused": held, it is drawn in HELD, which reads, not faded.
+    test('held, it is drawn in HELD, not faded; let go, in its ink again', () => {
+        const handle = place({ id: 'invite', title: 'Invite', does: () => {} });
+        handle.hold('only a session invites');
+        expect(handle.element.style.getPropertyValue('opacity')).toBe('1');
+        expect(isColor(handle.element.style.getPropertyValue('color'), HELD)).toBe(true);
+        handle.hold(null);
+        expect(isColor(handle.element.style.getPropertyValue('color'), HELD)).toBe(false);
     });
 
     // What a flow walked in a browser showed: the reason stood in red after the step was done.

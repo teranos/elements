@@ -197,6 +197,50 @@ describe('Tim: an input field', () => {
     });
 });
 
+// CodeRabbit on #115: "Evaluate pill visibility when the listeners are installed." "Move the pill strip with an existing
+// inputfield box."
+describe('Spike: pills of a field that already says something, or has moved', () => {
+    test('a field declared with words in it shows its pills', () => {
+        const field = document.createElement('textarea');
+        field.value = 'half a sentence';
+        const choices = document.createElement('div');
+        declareSay(field, { pills: [choices] });
+        expect(choices.hidden).toBe(false);
+    });
+
+    test('a field declared while it has the focus shows its pills', () => {
+        const field = document.createElement('textarea');
+        document.body.appendChild(field);
+        field.focus();
+        const choices = document.createElement('div');
+        declareSay(field, { pills: [choices] });
+        expect(choices.hidden).toBe(false);
+        field.remove();
+    });
+
+    test('its input field moved into another row: its pills go with it, above it', async () => {
+        const { element, body } = chatElement(false);
+        const field = document.createElement('textarea');
+        const choices = document.createElement('div');
+        declareSay(field, { pills: [choices] });
+        const first = document.createElement('div');
+        first.appendChild(field);
+        body.appendChild(first);
+        holdSay(element);
+        const box = field.parentElement!;
+        const strip = box.previousElementSibling as HTMLElement;
+        expect(strip.dataset.sayPills).toBe('');
+
+        const next = document.createElement('div');
+        next.appendChild(box);
+        body.replaceChildren(next);
+        await settled();
+
+        expect(box.previousElementSibling).toBe(strip);
+        expect(strip.parentElement).toBe(next);
+    });
+});
+
 // Qodo on #114: "Switched chats obscure typed text", "Removing a chat field exposes bottom controls". QNTX-Web draws a
 // new chat, its own field, when a harness tab is pressed; a host may take its chat away. The element is held to the
 // field it has now, whichever that is, and told each time it changes.

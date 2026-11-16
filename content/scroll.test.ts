@@ -20,7 +20,7 @@ import { describe, test, expect, beforeEach } from 'bun:test';
 import { configureElements } from '../config';
 import { renderContent } from './render';
 import { holdBody } from './body';
-import { watchScroll, declareScroller, expectScroll, expectFits } from './scroll';
+import { watchScroll, declareScroller, expectScroll, expectFits, ownDeclared } from './scroll';
 
 let warnings: { message: string; metadata?: Record<string, unknown> }[] = [];
 let errors: { message: string; metadata?: Record<string, unknown> }[] = [];
@@ -530,5 +530,19 @@ describe('Jenny: dead while too wide, alive once it fits', () => {
 
         expect(body.dataset.tooWide).toBe('900px in 390px');
         expect(wideErrors()).toHaveLength(2);
+    });
+});
+
+// CodeRabbit on #115: "Include the declared node in the ownership lookup." An element held in another, which is itself
+// its declared scroller, is that element's: not the one that holds it.
+describe('Spike: an element held in another that is its own scroller', () => {
+    test('is not the scroller of the element that holds it', () => {
+        const outer = document.createElement('div');
+        outer.dataset.elementId = 'xenon';
+        const held = document.createElement('div');
+        held.dataset.elementId = 'xenon-outbox';
+        held.dataset.scroller = 'declared';
+        outer.appendChild(held);
+        expect(ownDeclared(outer, outer)).toBeNull();
     });
 });

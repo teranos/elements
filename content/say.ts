@@ -67,6 +67,9 @@ const PILL: Record<string, string> = {
     display: 'flex', 'align-items': 'center', gap: '8px', padding: '8px', 'border-radius': '9999px',
 };
 
+/** The strip of each input field's pills, above it. */
+const strips = new WeakMap<HTMLElement, HTMLElement>();
+
 /** Input fields with no name of their own, numbered. */
 let unnamed = 0;
 
@@ -97,7 +100,6 @@ function whileSaying(field: HTMLElement, choices: HTMLElement): void {
         const doc = field.ownerDocument;
         choices.hidden = !(doc.activeElement === field || words() || pillAway(choices) || choices.contains(doc.activeElement));
     };
-    choices.hidden = true;
     field.addEventListener('focus', look);
     field.addEventListener('input', look);
     // Left for the pill: the press lands before it is looked at again.
@@ -105,6 +107,8 @@ function whileSaying(field: HTMLElement, choices: HTMLElement): void {
     choices.addEventListener('focusout', () => setTimeout(look, 0));
     // Rested again, the field has the words (forms/pill.ts).
     choices.addEventListener(PILL_RESTED, look);
+    // Declared with words in it, or while it has the focus, its pills show from the start.
+    look();
 }
 
 // "i think chatfield soudl be considered different from regular inputfied"
@@ -208,7 +212,12 @@ function boxOf(field: HTMLElement): HTMLElement {
     const own = presses.get(field);
     if (!own) return field;
     const parent = field.parentElement!;
-    if (parent.dataset.sayBox === '') return parent;
+    if (parent.dataset.sayBox === '') {
+        // Moved into another row, its pills go with it, above it.
+        const strip = strips.get(parent);
+        if (strip && strip.nextElementSibling !== parent) parent.before(strip);
+        return parent;
+    }
     const box = field.ownerDocument.createElement('div');
     box.dataset.sayBox = '';
     setElementId(box, field.dataset.sayId ? `${field.dataset.sayId}-input` : `say-input-${++unnamed}`);
@@ -230,6 +239,7 @@ function boxOf(field: HTMLElement): HTMLElement {
         // Each as wide as its words: the package's rule (fit.ts).
         for (const pill of pills) strip.appendChild(pill);
         box.before(strip);
+        strips.set(box, strip);
     }
     for (const [name, value] of Object.entries(IN_PILL)) field.style.setProperty(name, value, 'important');
     // The pill is its surface: the field draws none of its own.

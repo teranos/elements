@@ -54,6 +54,8 @@ test.describe('Spike: the title bar', () => {
             return control ? getComputedStyle(control).paddingLeft : null;
         });
 
+        // CodeRabbit on #115: a control that is not there passes nothing.
+        expect(padding).not.toBeNull();
         expect(padding).not.toBe('1em');
     });
 });

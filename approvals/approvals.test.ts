@@ -7,6 +7,7 @@
 
 import { describe, test, expect, beforeEach, beforeAll } from 'bun:test';
 import { renderApprovals } from './approvals';
+import { HELD } from '../forms/press';
 import type { Approval, ApprovalHost, ApprovalRoll } from './approvals';
 
 const realm = () => globalThis.window as unknown as { HTMLCanvasElement: typeof HTMLCanvasElement };
@@ -147,6 +148,18 @@ describe('Tim: what an option says, drawn', () => {
         expect(note(button(card, 'Yes'))).not.toMatch(/\d+s/);
     });
 
+    // CodeRabbit on #115: "Reference the action note from each option button with `aria-describedby`." Named by its label,
+    // what it says under it is read out only when the button points at it.
+    test('what an option says under its label is read out with it', () => {
+        const { card } = roll.add(merge('Merge PR #29'));
+        button(card, 'Merge').click();
+        const merged = button(card, 'Merge');
+        const said = document.getElementById(merged.getAttribute('aria-describedby') ?? '');
+        expect(said?.textContent).toContain('again: force merge');
+        const other = button(card, 'Don’t merge').getAttribute('aria-describedby');
+        expect(other).not.toBe(merged.getAttribute('aria-describedby'));
+    });
+
     test('its box is its own: the package\'s fit does not size it by its words', () => {
         const { card } = roll.add(yesNo('Raise the interval'));
         expect(button(card, 'Yes').dataset.ownBox).toBe('');
@@ -163,6 +176,13 @@ describe('Spike: not yet, not at all, and nothing more', () => {
         expect(note(button(card, 'Merge'))).toBe('');
         button(card, 'Merge').click();
         expect(pressed).toEqual([]);
+    });
+
+    // CodeRabbit on #115: faded to 0.4, what an option says read under 4.5 to 1. Not yet, it is drawn in HELD.
+    test('not yet, it is drawn in HELD, not faded', () => {
+        const { card } = roll.add(yesNo('Raise the interval', 1, { checks: [{ name: 'Browser', state: 'running' }], options: [{ label: 'Skip' }, { label: 'Stop' }] }));
+        expect(button(card, 'Skip').style.opacity).toBe('1');
+        expect(isColor(button(card, 'Skip').style.color, HELD)).toBe(true);
     });
 
     test('a check failed: not ready for approval at all', () => {

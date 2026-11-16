@@ -56,7 +56,8 @@ export function outboxFrom(): HTMLElement {
         // What is chosen, or, nothing chosen, all of it. Never sent can't be undone: the first press arms it.
         pressFrom({
             id: `${id}-cancel`, title: 'Cancel', again: 'never sent', irrevocable: true,
-            does: async () => { await moment(); away(chosen().length ? chosen() : rows.slice()); told(); },
+            // What is taken is what was chosen when it was pressed: a row let go while it is done stays taken.
+            does: async () => { const taken = chosen().length ? chosen() : rows.slice(); await moment(); away(taken); told(); },
         }).element,
     );
 
@@ -93,7 +94,10 @@ export function outboxFrom(): HTMLElement {
     // Nothing left, it rests and is gone; otherwise it says what waits.
     const told = () => {
         pill.retitle(says());
-        if (!rows.length) pill.rest();
+        if (rows.length) return;
+        pill.rest();
+        // Already at rest, it is not told so again: gone now.
+        if (pill.element.dataset.form === 'pill' && pill.element.dataset.pillMoving === undefined) pill.element.hidden = true;
     };
     pill.element.addEventListener(PILL_RESTED, () => { pill.element.hidden = rows.length === 0; });
     return pill.element;

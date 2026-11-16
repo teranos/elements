@@ -160,7 +160,7 @@ export { tooltipFrom } from './forms/tooltip';
 export { buttonFrom } from './forms/button';
 export type { ButtonOptions } from './forms/button';
 // A press: button form that does what it says, once or in two stages; the same size at every stage
-export { pressFrom, pressSizeFor, AtField, MEANS, CREATES, ARMED_FOR_MS, PRESS_SIZES } from './forms/press';
+export { pressFrom, pressSizeFor, AtField, MEANS, HELD, CREATES, ARMED_FOR_MS, PRESS_SIZES } from './forms/press';
 // A field: one line of text with its label, the package's only field but the chat's
 export { fieldFrom, KEYBOARDS } from './forms/field';
 export { flowFrom } from './forms/flow';

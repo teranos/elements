@@ -31,6 +31,20 @@ function stillMoving(element: HTMLElement): void {
     };
 }
 
+/** A road that ends when it is told to, or is cancelled, as a browser's does. */
+function roads(element: HTMLElement): { end: () => void } {
+    let told = new Map<string, () => void>();
+    (element as unknown as { animate: unknown }).animate = () => {
+        told = new Map();
+        return {
+            addEventListener: (type: string, f: () => void) => told.set(type, f),
+            removeEventListener: (type: string) => told.delete(type),
+            cancel: () => told.get('cancel')?.(),
+        };
+    };
+    return { end: () => told.get('finish')?.() };
+}
+
 afterEach(() => { document.body.innerHTML = ''; });
 
 const settled = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -207,6 +221,55 @@ describe('Spike: how it is left, and when it is not', () => {
         pill.element.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
         await settled();
         expect(getForm(pill.element)).toBe('pillOpen');
+    });
+});
+
+// CodeRabbit on #115: "Keep dismissal requests made during opening." "Complete the rest state when the return morph is
+// rejected." "Do not restore composer focus after an outside focus change."
+describe('Spike: let go while it moves, and its road back cut short', () => {
+    test('let go while it is still opening, it goes back once it is open', async () => {
+        const { pill, row } = rowWithField();
+        const road = roads(pill.element);
+        pill.element.click();
+        pill.rest();
+        road.end();
+        await settled();
+        road.end();
+        await settled();
+        expect(getForm(pill.element)).toBe('pill');
+        expect(pill.element.parentElement).toBe(row);
+    });
+
+    test('its road back cut short, it is still back where it rests, and says so', async () => {
+        const { pill, row, plus, send } = rowWithField();
+        let told = 0;
+        pill.element.addEventListener(PILL_RESTED, () => told++);
+        pill.element.click();
+        await settled();
+        roads(pill.element);
+        pill.rest();
+        cancelMorph(pill.element);
+        await settled();
+        expect(getForm(pill.element)).toBe('pill');
+        expect(pill.element.dataset.pillMoving).toBeUndefined();
+        expect(pill.element.parentElement).toBe(row);
+        expect(pill.element.previousElementSibling).toBe(plus);
+        expect(pill.element.nextElementSibling).toBe(send);
+        expect(row.children.length).toBe(3);
+        expect(told).toBe(1);
+    });
+
+    test('let go by pressing another field, that field keeps the focus', async () => {
+        const { pill } = rowWithField();
+        const other = document.createElement('input');
+        document.body.appendChild(other);
+        pill.element.click();
+        await settled();
+        other.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+        other.focus();
+        await settled();
+        expect(getForm(pill.element)).toBe('pill');
+        expect(document.activeElement).toBe(other);
     });
 });
 

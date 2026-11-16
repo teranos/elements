@@ -146,7 +146,7 @@ export function expectScroll(element: HTMLElement): void {
  */
 export function ownDeclared(within: HTMLElement, element: HTMLElement): HTMLElement | null {
     return Array.from(within.querySelectorAll<HTMLElement>('[data-scroller="declared"]')).find((s) => {
-        const holder = s.parentElement?.closest('[data-element-id]');
+        const holder = s.closest('[data-element-id]');
         return !holder || holder === element || !element.contains(holder);
     }) ?? null;
 }

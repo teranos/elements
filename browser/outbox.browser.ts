@@ -135,3 +135,29 @@ test.describe('Jenny: some taken away', () => {
         await expect(page.locator(OUTBOX)).toHaveText('6 wait · 00:40');
     });
 });
+
+// CodeRabbit on #115: "Capture the cancellation targets before the delay." "Hide the outbox when the action empties it
+// while the pill is already resting."
+test.describe('Spike: changed while it is being done', () => {
+    test('a row chosen, Cancel pressed, the row let go before it is done: only that row is taken', async ({ page }) => {
+        await open(page);
+        await press(page);
+        const rows = page.locator(`${OUTBOX} [data-waits]`);
+        await rows.nth(0).click();
+        const cancel = page.locator(`${OUTBOX} [data-press="xenon-outbox-cancel"]`);
+        await cancel.click();
+        await cancel.click();
+        await rows.nth(0).click();
+        await expect(rows).toHaveCount(7);
+        await expect(rows).toHaveCount(7, { timeout: 1500 });
+    });
+
+    test('sent now, and let go before it is done: nothing waits, and it is gone', async ({ page }) => {
+        await open(page);
+        await press(page);
+        await page.locator(`${OUTBOX} [data-press="xenon-outbox-now"]`).click();
+        await page.keyboard.press('Escape');
+        await expect(page.locator(OUTBOX)).toBeHidden();
+    });
+});
+

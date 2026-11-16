@@ -42,11 +42,19 @@ async function unreadable(page: Page, scope: string): Promise<Unreadable[]> {
             const mix = (i: number) => (top[i]! * top[3] + under[i]! * under[3] * (1 - top[3])) / a;
             return [mix(0), mix(1), mix(2), a];
         };
+        // CodeRabbit on #115: "Include ancestor opacity in the contrast calculation." A node and all it holds are drawn
+        // as faint as it and each ancestor's opacity make them.
+        const faded = (node: Element): number => {
+            let o = 1;
+            for (let n: Element | null = node; n; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity);
+            return o;
+        };
         /** What a node is drawn on: its own background and each ancestor's, down to the page's. */
         const ground = (node: Element): RGBA => {
             const layers: RGBA[] = [];
             for (let n: Element | null = node; n; n = n.parentElement) {
-                const bg = parse(getComputedStyle(n).backgroundColor);
+                const own = parse(getComputedStyle(n).backgroundColor);
+                const bg: RGBA = [own[0], own[1], own[2], own[3] * faded(n)];
                 if (bg[3] > 0) layers.push(bg);
                 if (bg[3] >= 1) break;
             }
@@ -69,8 +77,9 @@ async function unreadable(page: Page, scope: string): Promise<Unreadable[]> {
         };
         const name = (el: Element) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).join('.') : ''}`;
         const out: { where: string; text: string; fg: string; bg: string; ratio: number }[] = [];
-        const check = (el: Element, text: string, fg: RGBA) => {
+        const check = (el: Element, text: string, drawn: RGBA) => {
             const bg = ground(el);
+            const fg: RGBA = [drawn[0], drawn[1], drawn[2], drawn[3] * faded(el)];
             const r = ratio(fg, bg);
             if (r < least) out.push({ where: name(el), text: text.slice(0, 40), fg: `rgba(${fg.join(',')})`, bg: `rgba(${bg.map(Math.round).join(',')})`, ratio: Math.round(r * 100) / 100 });
         };
@@ -149,6 +158,19 @@ test.describe('Spike: a field', () => {
         expect(await unreadable(page, '[data-outbox="xenon-outbox"]')).toEqual([]);
         await outbox.locator('[data-waits]').first().click();
         expect(await unreadable(page, '[data-outbox="xenon-outbox"]')).toEqual([]);
+    });
+});
+
+// Held, a press says why it is held when pressed; it is still read: "A colour that fails it is fixed, never excused."
+test.describe('Spike: a press held back', () => {
+    test('selenium\'s Invite, held, is readable', async ({ page }) => {
+        const selenium = page.locator('[data-element-id="field-specimen"], .dot[data-symbol="Se"]').first();
+        const id = await selenium.getAttribute('data-element-id');
+        const el = page.locator(`[data-element-id="${id}"]`);
+        await el.click();
+        await expect.poll(() => el.evaluate((node) => node.dataset.form !== 'dot' && !node.classList.contains('morphing'))).toBe(true);
+        await expect(page.locator('[data-press="selenium-invite"]')).toHaveAttribute('aria-disabled', 'true');
+        expect(await unreadable(page, '[data-press="selenium-invite"]')).toEqual([]);
     });
 });
 

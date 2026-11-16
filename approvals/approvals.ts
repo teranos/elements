@@ -19,7 +19,7 @@ import { shatter } from './shatter';
 import { growInPlace } from './grow';
 import { paintSegment, segmentStrip, type SegmentState } from './segments';
 import { sizeText } from '../text';
-import { MEANS } from '../forms/press';
+import { MEANS, HELD } from '../forms/press';
 
 /** What one press says. The same option pressed again says its next step. */
 export interface ApprovalStep {
@@ -115,6 +115,9 @@ const COLOR = MEANS;
 
 const stepsOf = (option: ApprovalOption): ApprovalStep[] => option.steps ?? [{ says: option.label }];
 
+/** Notes numbered, each one's own name, for the button that says it. */
+let notes = 0;
+
 function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: HTMLElement; waiting: HTMLElement; left: HTMLElement } {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -174,6 +177,9 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     sizeText(note, 'sm');
     note.style.lineHeight = '1.3';
     btn.appendChild(note);
+    // Named by its label, what it says under it is read out only when the button points at it.
+    note.id = `elements-approval-note-${++notes}`;
+    btn.setAttribute('aria-describedby', note.id);
     return { btn, note, waiting, left };
 }
 
@@ -417,10 +423,13 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             const on = current?.option === i;
             const color = COLOR[option.means ?? 'neither'];
             // What was sent last fills with its colour; the others wear it as an outline.
+            // Not to be chosen (not yet, or another stood): drawn in HELD, which reads, never faded.
+            const dim = (locked && !on) || notYet;
             btn.style.background = on ? color : '#000';
-            btn.style.color = on ? (option.means ? '#fff' : '#000') : color;
+            btn.style.color = on ? (option.means ? '#fff' : '#000') : dim ? HELD : color;
+            btn.style.borderColor = dim ? HELD : color;
             btn.disabled = !!locked || notYet;
-            btn.style.opacity = (locked && !on) || notYet ? '0.4' : '1';
+            btn.style.opacity = '1';
             const next = on ? steps[current!.step + 1] : steps[0];
             const said = on ? steps[current!.step]!.says : null;
             // "The countdown, why not IN THE button." In the one that stands, how long until it takes effect or can no

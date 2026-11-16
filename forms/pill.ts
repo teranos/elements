@@ -85,6 +85,8 @@ export function pillFrom(item: Element): PillHandle {
     let gap: HTMLElement | null = null;
     let restsAs = { width: 0, height: 0 };
     let aside: Aside | null = null;
+    /** Let go while it was still opening: it goes back once it is open. */
+    let restAsked = false;
 
     const say = () => {
         label.textContent = title;
@@ -164,16 +166,27 @@ export function pillFrom(item: Element): PillHandle {
                 gap?.after(element);
                 element.ownerDocument.addEventListener('pointerdown', outside, true);
                 element.ownerDocument.addEventListener('keydown', escape, true);
+                if (restAsked) {
+                    restAsked = false;
+                    rest();
+                }
             })
             .catch((err: unknown) => {
                 delete element.dataset.pillMoving;
+                restAsked = false;
                 for (const { node } of aside ?? []) node.style.removeProperty('visibility');
                 log.warn(seg, `[Pill ${item.id}] The road across its row was abandoned: ${err instanceof Error ? err.message : String(err)}`);
             });
     };
 
     function rest(): void {
-        if (getForm(element) !== 'pillOpen' || element.dataset.pillMoving === '' || !gap || !aside) return;
+        if (getForm(element) !== 'pillOpen') return;
+        // Still opening: let go once it is open, not never.
+        if (element.dataset.pillMoving === '') {
+            restAsked = true;
+            return;
+        }
+        if (!gap || !aside) return;
         element.ownerDocument.removeEventListener('pointerdown', outside, true);
         element.ownerDocument.removeEventListener('keydown', escape, true);
         const field = fields.get(element)!;
@@ -193,19 +206,23 @@ export function pillFrom(item: Element): PillHandle {
         setForm(element, 'pill');
         element.dataset.pillMoving = '';
 
+        // Back where it rests, whether its road there ended or was cut short.
+        const back = () => {
+            resting();
+            gap?.replaceWith(element);
+            gap = null;
+            // Choosing was part of saying something: the field has the words, unless another field was pressed.
+            const field = fields.get(element);
+            const doc = element.ownerDocument;
+            const active = doc.activeElement;
+            if (field && active !== field && (!active || active === doc.body || element.contains(active))) field.focus();
+            element.dispatchEvent(new (doc.defaultView ?? window).Event(PILL_RESTED));
+        };
         beginMorphToButton(element, from, to, getRestDuration())
-            .then(() => {
-                resting();
-                gap?.replaceWith(element);
-                gap = null;
-                // Choosing was part of saying something: the field has the words, if anything took them.
-                const field = fields.get(element);
-                if (field && field.ownerDocument.activeElement !== field) field.focus();
-                element.dispatchEvent(new (element.ownerDocument.defaultView ?? window).Event(PILL_RESTED));
-            })
+            .then(back)
             .catch((err: unknown) => {
-                delete element.dataset.pillMoving;
-                log.warn(seg, `[Pill ${item.id}] The road back to where it rests was abandoned: ${err instanceof Error ? err.message : String(err)}`);
+                log.warn(seg, `[Pill ${item.id}] The road back to where it rests was cut short: ${err instanceof Error ? err.message : String(err)}`);
+                back();
             });
     }
 
