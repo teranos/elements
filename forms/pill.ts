@@ -176,6 +176,8 @@ export function pillFrom(item: Element): PillHandle {
                 restAsked = false;
                 for (const { node } of aside ?? []) node.style.removeProperty('visibility');
                 log.warn(seg, `[Pill ${item.id}] The road across its row was abandoned: ${err instanceof Error ? err.message : String(err)}`);
+                // Cut short on its way across, it goes back where it rests rather than stay lifted.
+                if (element.isConnected) rest();
             });
     };
 

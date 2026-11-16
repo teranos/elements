@@ -118,7 +118,7 @@ const stepsOf = (option: ApprovalOption): ApprovalStep[] => option.steps ?? [{ s
 /** Notes numbered, each one's own name, for the button that says it. */
 let notes = 0;
 
-function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: HTMLElement; waiting: HTMLElement; left: HTMLElement } {
+function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: HTMLElement; waiting: HTMLElement; left: HTMLElement; status: HTMLElement } {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.setAttribute('aria-label', option.label);
@@ -179,8 +179,14 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     btn.appendChild(note);
     // Named by its label, what it says under it is read out only when the button points at it.
     note.id = `elements-approval-note-${++notes}`;
-    btn.setAttribute('aria-describedby', note.id);
-    return { btn, note, waiting, left };
+    // What the spinner and the bar say, read out with the note: drawn, not written.
+    const status = document.createElement('span');
+    status.dataset.status = '';
+    status.id = `elements-approval-status-${notes}`;
+    Object.assign(status.style, { position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clipPath: 'inset(50%)', whiteSpace: 'nowrap' });
+    btn.appendChild(status);
+    btn.setAttribute('aria-describedby', `${note.id} ${status.id}`);
+    return { btn, note, waiting, left, status };
 }
 
 interface Rendered {
@@ -395,7 +401,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
     };
 
     const buttons = approval.options.map((option, i) => {
-        const { btn, note, waiting, left } = optionButton(option);
+        const { btn, note, waiting, left, status } = optionButton(option);
         btn.addEventListener('click', (e) => {
             if (locked || !presented()) return;
             if (current?.option === i) {
@@ -412,12 +418,12 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             changed(true);
         });
         row.appendChild(btn);
-        return { btn, note, waiting, left };
+        return { btn, note, waiting, left, status };
     });
 
     const show = () => {
         const notYet = !presented();
-        buttons.forEach(({ btn, note, waiting, left }, i) => {
+        buttons.forEach(({ btn, note, waiting, left, status }, i) => {
             const option = approval.options[i]!;
             const steps = stepsOf(option);
             const on = current?.option === i;
@@ -445,6 +451,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             btn.title = notYet ? (failed() ? 'checks failed' : 'checks running')
                 : spins ? `waiting on ${merge!.label}`
                 : timing?.says ?? '';
+            status.textContent = btn.title;
             const lines = notYet
                 ? []
                 : [

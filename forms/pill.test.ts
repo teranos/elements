@@ -240,6 +240,21 @@ describe('Spike: let go while it moves, and its road back cut short', () => {
         expect(pill.element.parentElement).toBe(row);
     });
 
+    test('its road across cut short, it goes back where it rests', async () => {
+        const { pill, row, plus, send } = rowWithField();
+        const road = roads(pill.element);
+        pill.element.click();
+        cancelMorph(pill.element);
+        await settled();
+        road.end();
+        await settled();
+        expect(getForm(pill.element)).toBe('pill');
+        expect(pill.element.parentElement).toBe(row);
+        expect(pill.element.previousElementSibling).toBe(plus);
+        expect(pill.element.nextElementSibling).toBe(send);
+        expect(plus.style.getPropertyValue('visibility')).toBe('');
+    });
+
     test('its road back cut short, it is still back where it rests, and says so', async () => {
         const { pill, row, plus, send } = rowWithField();
         let told = 0;
@@ -286,13 +301,17 @@ describe('Jenny: on its road', () => {
         pill.element.click();
         expect(Number(pill.element.style.zIndex)).toBeGreaterThan(1000);
         cancelMorph(pill.element);
+        // Cut short across, it starts back: that road is cut short too, so nothing is left moving.
+        await settled();
+        cancelMorph(pill.element);
+        await settled();
     });
 });
 
 // Seen on the moving frame: square, its options smaller. Lifted onto the bare page, it was no longer in its element,
 // and what the package says of what is in an element no longer said it of this.
 describe('Jenny: on its road, still in its element', () => {
-    test('it is held by the body of the element it rests in', () => {
+    test('it is held by the body of the element it rests in', async () => {
         const { pill, row } = rowWithField();
         const body = row.parentElement!;
         body.dataset.scroller = 'body';
@@ -301,19 +320,27 @@ describe('Jenny: on its road, still in its element', () => {
         expect(pill.element.parentElement).toBe(body);
         expect(pill.element.style.position).toBe('fixed');
         cancelMorph(pill.element);
+        // Cut short across, it starts back: that road is cut short too, so nothing is left moving.
+        await settled();
+        cancelMorph(pill.element);
+        await settled();
     });
 });
 
 // Seen on the moving frame: the row's presses folded at the first frame, the input field shrank, and the pill on its
 // road lay over the words. They keep their room, unseen, until it is across the row.
 describe('Jenny: on its road, the row keeps its room', () => {
-    test('what else is in the row is unseen while it moves, and stands aside once it is there', () => {
+    test('what else is in the row is unseen while it moves, and stands aside once it is there', async () => {
         const { pill, plus } = rowWithField();
         stillMoving(pill.element);
         pill.element.click();
         expect(plus.style.getPropertyValue('visibility')).toBe('hidden');
         expect(plus.style.getPropertyValue('display')).toBe('');
         cancelMorph(pill.element);
+        // Cut short across, it starts back: that road is cut short too, so nothing is left moving.
+        await settled();
+        cancelMorph(pill.element);
+        await settled();
     });
 });
 

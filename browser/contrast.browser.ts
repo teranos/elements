@@ -42,32 +42,27 @@ async function unreadable(page: Page, scope: string): Promise<Unreadable[]> {
             const mix = (i: number) => (top[i]! * top[3] + under[i]! * under[3] * (1 - top[3])) / a;
             return [mix(0), mix(1), mix(2), a];
         };
-        // CodeRabbit on #115: "Include ancestor opacity in the contrast calculation." A node and all it holds are drawn
-        // as faint as it and each ancestor's opacity make them.
-        const faded = (node: Element): number => {
-            let o = 1;
-            for (let n: Element | null = node; n; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity);
-            return o;
-        };
-        /** What a node is drawn on: its own background and each ancestor's, down to the page's. */
-        const ground = (node: Element): RGBA => {
-            const layers: RGBA[] = [];
+        // CodeRabbit on #115: "Composite opacity groups before calculating contrast." What an element holds is drawn
+        // over its own background, then the whole is faded by its opacity and laid over what is under it: one picture
+        // per element, from the text out to the page.
+        const drawn = (node: Element, top: RGBA): RGBA => {
+            let acc = top;
             for (let n: Element | null = node; n; n = n.parentElement) {
-                const own = parse(getComputedStyle(n).backgroundColor);
-                const bg: RGBA = [own[0], own[1], own[2], own[3] * faded(n)];
-                if (bg[3] > 0) layers.push(bg);
-                if (bg[3] >= 1) break;
+                const s = getComputedStyle(n);
+                acc = over(acc, parse(s.backgroundColor));
+                const o = parseFloat(s.opacity);
+                acc = [acc[0], acc[1], acc[2], acc[3] * o];
             }
-            let base: RGBA = [255, 255, 255, 1];
-            for (const layer of layers.reverse()) base = over(layer, base);
-            return base;
+            return over(acc, [255, 255, 255, 1]);
         };
+        /** What a node is drawn on, as the browser draws it. */
+        const ground = (node: Element): RGBA => drawn(node, [0, 0, 0, 0]);
         const lum = ([r, g, b]: RGBA) => {
             const ch = (v: number) => { const s = v / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; };
             return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b);
         };
         const ratio = (fg: RGBA, bg: RGBA) => {
-            const a = lum(over(fg, bg)), b = lum(bg);
+            const a = lum(fg), b = lum(bg);
             return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
         };
         const seen = (el: Element) => {
@@ -77,9 +72,9 @@ async function unreadable(page: Page, scope: string): Promise<Unreadable[]> {
         };
         const name = (el: Element) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).join('.') : ''}`;
         const out: { where: string; text: string; fg: string; bg: string; ratio: number }[] = [];
-        const check = (el: Element, text: string, drawn: RGBA) => {
+        const check = (el: Element, text: string, color: RGBA) => {
             const bg = ground(el);
-            const fg: RGBA = [drawn[0], drawn[1], drawn[2], drawn[3] * faded(el)];
+            const fg = drawn(el, color);
             const r = ratio(fg, bg);
             if (r < least) out.push({ where: name(el), text: text.slice(0, 40), fg: `rgba(${fg.join(',')})`, bg: `rgba(${bg.map(Math.round).join(',')})`, ratio: Math.round(r * 100) / 100 });
         };
@@ -171,6 +166,33 @@ test.describe('Spike: a press held back', () => {
         await expect.poll(() => el.evaluate((node) => node.dataset.form !== 'dot' && !node.classList.contains('morphing'))).toBe(true);
         await expect(page.locator('[data-press="selenium-invite"]')).toHaveAttribute('aria-disabled', 'true');
         expect(await unreadable(page, '[data-press="selenium-invite"]')).toEqual([]);
+    });
+});
+
+// CodeRabbit on #115: "Composite opacity groups before calculating contrast." An element's opacity fades it and all it
+// holds as one picture: white on black at 0.6 over a white page reads 5.74 to 1, not the 3.22 a second fading gives.
+test.describe('Spike: what opacity does', () => {
+    const fixture = (page: Page, opacity: number) => page.evaluate((o) => {
+        document.getElementById('opacity-fixture')?.remove();
+        const page = document.createElement('div');
+        page.id = 'opacity-fixture';
+        page.style.cssText = 'position:fixed;left:0;top:0;width:200px;height:60px;background:#fff;z-index:99999';
+        const group = document.createElement('div');
+        group.style.cssText = `background:#000;color:#fff;opacity:${o};padding:8px`;
+        group.textContent = 'faded together';
+        page.appendChild(group);
+        document.body.appendChild(page);
+    }, opacity);
+
+    test('white on black at 0.6 over white reads, as the browser draws it', async ({ page }) => {
+        await fixture(page, 0.6);
+        expect(await unreadable(page, '#opacity-fixture')).toEqual([]);
+    });
+
+    test('at 0.3 it does not, and is said', async ({ page }) => {
+        await fixture(page, 0.3);
+        const bad = await unreadable(page, '#opacity-fixture');
+        expect(bad.map((b) => b.text)).toEqual(['faded together']);
     });
 });
 

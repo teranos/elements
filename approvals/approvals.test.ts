@@ -154,10 +154,24 @@ describe('Tim: what an option says, drawn', () => {
         const { card } = roll.add(merge('Merge PR #29'));
         button(card, 'Merge').click();
         const merged = button(card, 'Merge');
-        const said = document.getElementById(merged.getAttribute('aria-describedby') ?? '');
-        expect(said?.textContent).toContain('again: force merge');
+        const said = (merged.getAttribute('aria-describedby') ?? '').split(/\s+/).map((id) => document.getElementById(id)?.textContent ?? '').join(' ');
+        expect(said).toContain('again: force merge');
         const other = button(card, 'Don’t merge').getAttribute('aria-describedby');
         expect(other).not.toBe(merged.getAttribute('aria-describedby'));
+    });
+
+    // CodeRabbit on #115: once a button points at its note, its title is no longer read as its description, and the note
+    // is empty while checks run. What the spinner and the bar say is read out with the note.
+    test('what it waits on, and the time left, are read out with it', () => {
+        const desc = (b: HTMLButtonElement) => (b.getAttribute('aria-describedby') ?? '').split(/\s+/)
+            .map((id) => document.getElementById(id)?.textContent ?? '').join(' ');
+        const running = roll.add(merge('Running', { checks: [{ name: 'Browser', state: 'running' }] }));
+        expect(desc(button(running.card, 'Merge'))).toContain('checks running');
+        const timed = roll.add(yesNo('Timed', 1, { openForSeconds: 60 }));
+        expect(desc(button(timed.card, 'Yes'))).toContain('60s left');
+        const waits = roll.add(merge('Waits'));
+        button(waits.card, 'Merge').click();
+        expect(desc(button(waits.card, 'Merge'))).toContain('waiting on main CI');
     });
 
     test('its box is its own: the package\'s fit does not size it by its words', () => {
