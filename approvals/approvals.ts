@@ -2,17 +2,17 @@
  * Approvals — a panel's list of things that wait on a human, to go through.
  *
  * "Do you hear how little it matters what the 'thing' is to approve?"
- * An approval is something to look at, options to choose between, maybe
- * something to open that chooses nothing.
+ * 「[Opus 5.5] An approval is something to look at, options to choose between, maybe」
+ * 「[Opus 5.5] something to open that chooses nothing.」
  *
  * "A YES or NO is a final choice. I already sent it. And i can send yes again,
  * and no again." Every press is handed to the host, and pressing the other
  * option hands it another, until nothing more can be sent: a step that settles
  * now, the host saying what stood took effect, or the time running out.
  *
- * The package shows and sends; what a press does is the host's. Where there are
- * checks the host says their state, and where a merge waits on main's CI the
- * host says when it passed.
+ * 「[Opus 5.5] The package shows and sends; what a press does is the host's. Where there are」
+ * 「[Opus 5.5] checks the host says their state, and where a merge waits on main's CI the」
+ * 「[Opus 5.5] host says when it passed.」
  */
 
 import { shatter } from './shatter';
@@ -35,8 +35,8 @@ export interface ApprovalOption {
     /** Red is no and green is yes; an option that is neither stays white. */
     means?: 'yes' | 'no';
     /**
-     * Drawn in place of its label, which a screen reader still says: "I don't like how constantly meaning is
-     * conveyed with words while visually you could use standard stuff". Left out, it says its label.
+     * 「[Opus 5.5] Drawn in place of its label, which a screen reader still says: "I don't like how constantly meaning is」
+     * 「[Opus 5.5] conveyed with words while visually you could use standard stuff". Left out, it says its label.」
      */
     mark?: keyof typeof MARKS;
 }
@@ -122,11 +122,11 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.setAttribute('aria-label', option.label);
-    // Its box is its own: it shares its row with the others, whatever each says (fit.ts).
+    // 「[Opus 5.5] Its box is its own: it shares its row with the others, whatever each says (fit.ts).」
     btn.dataset.ownBox = '';
     btn.style.flex = '1 1 0';
     btn.style.minWidth = '0';
-    // Every option one height, a label on two lines or one, a mark or words.
+    // 「[Opus 5.5] Every option one height, a label on two lines or one, a mark or words.」
     btn.style.minHeight = '72px';
     btn.style.padding = '8px';
     btn.style.border = `2px solid ${COLOR[option.means ?? 'neither']}`;
@@ -149,7 +149,7 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     }
     btn.appendChild(label);
 
-    // Waiting (on checks, on main's CI) is a spinner, as everywhere.
+    // 「[Opus 5.5] Waiting (on checks, on main's CI) is a spinner, as everywhere.」
     const waiting = document.createElement('span');
     waiting.dataset.waiting = '';
     waiting.setAttribute('aria-hidden', 'true');
@@ -160,7 +160,7 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     waiting.animate?.([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 900, iterations: Infinity });
     btn.appendChild(waiting);
 
-    // The time left is a bar along its foot that drains: --left from 1 to 0.
+    // 「[Opus 5.5] The time left is a bar along its foot that drains: --left from 1 to 0.」
     const left = document.createElement('span');
     left.dataset.timeLeft = '';
     left.setAttribute('aria-hidden', 'true');
@@ -177,9 +177,9 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     sizeText(note, 'sm');
     note.style.lineHeight = '1.3';
     btn.appendChild(note);
-    // Named by its label, what it says under it is read out only when the button points at it.
+    // 「[Opus 5.5] Named by its label, what it says under it is read out only when the button points at it.」
     note.id = `elements-approval-note-${++notes}`;
-    // What the spinner and the bar say, read out with the note: drawn, not written.
+    // 「[Opus 5.5] What the spinner and the bar say, read out with the note: drawn, not written.」
     const status = document.createElement('span');
     status.dataset.status = '';
     status.id = `elements-approval-status-${notes}`;
@@ -429,7 +429,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             const on = current?.option === i;
             const color = COLOR[option.means ?? 'neither'];
             // What was sent last fills with its colour; the others wear it as an outline.
-            // Not to be chosen (not yet, or another stood): drawn in HELD, which reads, never faded.
+            // 「[Opus 5.5] Not to be chosen (not yet, or another stood): drawn in HELD, which reads, never faded.」
             const dim = (locked && !on) || notYet;
             btn.style.background = on ? color : '#000';
             btn.style.color = on ? (option.means ? '#fff' : '#000') : dim ? HELD : color;
@@ -439,7 +439,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             const next = on ? steps[current!.step + 1] : steps[0];
             const said = on ? steps[current!.step]!.says : null;
             // "The countdown, why not IN THE button." In the one that stands, how long until it takes effect or can no
-            // longer change; before anything is sent, in each, how long to choose. Drawn, not counted: a bar that drains.
+            // 「[Opus 5.5] longer change; before anything is sent, in each, how long to choose. Drawn, not counted: a bar that drains.」
             const merge = approval.merges;
             const timing = locked || notYet ? null
                 : on && merging !== null ? (merging === Infinity ? null : { left: merging / (merge!.seconds ?? 1), says: `${merge!.label} in ${merging}s` })
