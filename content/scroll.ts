@@ -141,8 +141,8 @@ export function expectScroll(element: HTMLElement): void {
 }
 
 /**
- * The first scroller declared in `within` that is the element's own: one in an element it holds (a pill in its input
- * field) is that element's.
+ * 「[Opus 5.5] The first scroller declared in `within` that is the element's own: one in an element it holds (a pill in its input」
+ * 「[Opus 5.5] field) is that element's.」
  */
 export function ownDeclared(within: HTMLElement, element: HTMLElement): HTMLElement | null {
     return Array.from(within.querySelectorAll<HTMLElement>('[data-scroller="declared"]')).find((s) => {
