@@ -18,11 +18,11 @@ const ROW: Record<string, string> = {
 };
 
 /**
- * The presses a field says with: the + at its start, the → at its end.
+ * 「[Opus 5.5] The presses a field says with: the + at its start, the → at its end.」
  *
- * Purple arrows on a screenshot: the + into the field's bottom-left corner, the → into its bottom-right. "And how
- * often do you want me to complain about the positions of these buttons". They are in the field's box, at its
- * bottom corners, and what is typed leaves them their line.
+ * 「[Opus 5.5] Purple arrows on a screenshot: the + into the field's bottom-left corner, the → into its bottom-right. "And how」
+ * 「[Opus 5.5] often do you want me to complain about the positions of these buttons". They are in the field's box, at its」
+ * 「[Opus 5.5] bottom corners, and what is typed leaves them their line.」
  */
 export interface SayPresses {
     start?: HTMLElement;
@@ -66,8 +66,8 @@ export const SAY_HELD = 'elements:say-held';
 const holding = new WeakMap<HTMLElement, { field: HTMLElement | null; row: HTMLElement | null }>();
 
 /**
- * The field's box holds the field and its presses, nothing else. What a press says after itself (a two-stage press's
- * confirmation, its failure: forms/press.ts) goes into the row, above the field, as what else the host put beside it.
+ * 「[Opus 5.5] The field's box holds the field and its presses, nothing else. What a press says after itself (a two-stage press's」
+ * 「[Opus 5.5] confirmation, its failure: forms/press.ts) goes into the row, above the field, as what else the host put beside it.」
  */
 function keepBoxToItsOwn(field: HTMLElement): void {
     const box = field.parentElement;
@@ -85,11 +85,11 @@ function rowOf(field: HTMLElement): HTMLElement | null {
 }
 
 /**
- * The declared field's row, at the bottom of this element, worn in the element's own colour.
+ * 「[Opus 5.5] The declared field's row, at the bottom of this element, worn in the element's own colour.」
  *
- * A host may draw its field after the element opened: QNTX-Web's Node Agent asks the node which harnesses it offers
- * first. It may draw another in its place: a harness tab pressed draws that harness's chat, its own field. It may take
- * it away. The element is held to the field it has now, and told each time that changes (SAY_HELD).
+ * 「[Opus 5.5] A host may draw its field after the element opened: QNTX-Web's Node Agent asks the node which harnesses it offers」
+ * 「[Opus 5.5] first. It may draw another in its place: a harness tab pressed draws that harness's chat, its own field. It may take」
+ * 「[Opus 5.5] it away. The element is held to the field it has now, and told each time that changes (SAY_HELD).」
  */
 export function holdSay(element: HTMLElement): void {
     if (holding.has(element)) return;
@@ -103,12 +103,12 @@ export function holdSay(element: HTMLElement): void {
         const changed = field !== hold.field;
         hold.field = field;
         if (field) pinSay(element, field);
-        // Its row, once pinned: the same field moved into another row is pinned there too.
+        // 「[Opus 5.5] Its row, once pinned: the same field moved into another row is pinned there too.」
         hold.row = field ? rowOf(field) : null;
         if (changed) tell(element);
     };
     look();
-    // A field put in first and declared after is found when it is declared.
+    // 「[Opus 5.5] A field put in first and declared after is found when it is declared.」
     if (typeof MutationObserver === 'function') {
         new MutationObserver(look).observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-say'] });
     }
@@ -116,7 +116,7 @@ export function holdSay(element: HTMLElement): void {
 
 /** Tells the element its field changed: a panel gives it the home bar's strip, or takes it back (forms/panel.ts). */
 function tell(element: HTMLElement): void {
-    // The element's own window makes the event: a document's events are its window's.
+    // 「[Opus 5.5] The element's own window makes the event: a document's events are its window's.」
     const view = element.ownerDocument.defaultView ?? window;
     element.dispatchEvent(new view.Event(SAY_HELD));
 }
@@ -145,12 +145,12 @@ function boxOf(field: HTMLElement): HTMLElement {
     if (parent.dataset.sayBox === '') return parent;
     const box = field.ownerDocument.createElement('div');
     box.dataset.sayBox = '';
-    // The box takes the field's line, as the field did; the field fills it.
+    // 「[Opus 5.5] The box takes the field's line, as the field did; the field fills it.」
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
     box.style.setProperty('position', 'relative', 'important');
     parent.insertBefore(box, field);
     box.appendChild(field);
-    // A block in its box: an inline field keeps a descender's gap under itself.
+    // 「[Opus 5.5] A block in its box: an inline field keeps a descender's gap under itself.」
     field.style.setProperty('flex', 'none', 'important');
     field.style.setProperty('display', 'block', 'important');
     for (const [side, press] of [['left', own.start], ['right', own.end]] as const) {
@@ -166,8 +166,8 @@ function boxOf(field: HTMLElement): HTMLElement {
 const measured = new WeakSet<HTMLElement>();
 
 /**
- * What is typed stays above the presses and above the home bar's strip: the field's own padding under it, the
- * presses' line, and the strip a panel gives it (forms/panel.ts).
+ * 「[Opus 5.5] What is typed stays above the presses and above the home bar's strip: the field's own padding under it, the」
+ * 「[Opus 5.5] presses' line, and the strip a panel gives it (forms/panel.ts).」
  */
 function leaveRoom(field: HTMLElement): void {
     if (field.dataset.sayOwnPadding === undefined) {
@@ -181,7 +181,7 @@ function leaveRoom(field: HTMLElement): void {
             field.style.setProperty('--elements-say-room', `${(tallest > 0 ? tallest : 32) + 6}px`);
         };
         roomFor();
-        // A press that grows (its label changed) takes more of the line: the words keep above it.
+        // 「[Opus 5.5] A press that grows (its label changed) takes more of the line: the words keep above it.」
         if (typeof ResizeObserver === 'function' && !measured.has(field)) {
             measured.add(field);
             const watch = new ResizeObserver(roomFor);
