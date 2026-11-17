@@ -21,7 +21,7 @@ const ROW: Record<string, string> = {
 };
 
 /**
- * The presses a field says with: the + at its start, the → at its end.
+ * 「[Opus 5.5] The presses a field says with: the + at its start, the → at its end.」
  *
  * "And how often do you want me to complain about the positions of these buttons". "This i want", "I want this
  * 「[Opus 5.5] only": the Claude app's composer, one pill, the + at its start, what is typed, the → (■ while it answers) at its」
@@ -152,8 +152,8 @@ export const SAY_HELD = 'elements:say-held';
 const holding = new WeakMap<HTMLElement, { field: HTMLElement | null; row: HTMLElement | null; box: HTMLElement | null }>();
 
 /**
- * The field's box holds the field and its presses, nothing else. What a press says after itself (a two-stage press's
- * confirmation, its failure: forms/press.ts) goes into the row, above the field, as what else the host put beside it.
+ * 「[Opus 5.5] The field's box holds the field and its presses, nothing else. What a press says after itself (a two-stage press's」
+ * 「[Opus 5.5] confirmation, its failure: forms/press.ts) goes into the row, above the field, as what else the host put beside it.」
  */
 function keepBoxToItsOwn(field: HTMLElement): void {
     const box = field.parentElement;
@@ -171,11 +171,11 @@ function rowOf(field: HTMLElement): HTMLElement | null {
 }
 
 /**
- * The declared field's row, at the bottom of this element, worn in the element's own colour.
+ * 「[Opus 5.5] The declared field's row, at the bottom of this element, worn in the element's own colour.」
  *
- * A host may draw its field after the element opened: QNTX-Web's Node Agent asks the node which harnesses it offers
- * first. It may draw another in its place: a harness tab pressed draws that harness's chat, its own field. It may take
- * it away. The element is held to the field it has now, and told each time that changes (SAY_HELD).
+ * 「[Opus 5.5] A host may draw its field after the element opened: QNTX-Web's Node Agent asks the node which harnesses it offers」
+ * 「[Opus 5.5] first. It may draw another in its place: a harness tab pressed draws that harness's chat, its own field. It may take」
+ * 「[Opus 5.5] it away. The element is held to the field it has now, and told each time that changes (SAY_HELD).」
  */
 export function holdSay(element: HTMLElement): void {
     if (holding.has(element)) return;
@@ -202,7 +202,7 @@ export function holdSay(element: HTMLElement): void {
         if (changed) tell(element);
     };
     look();
-    // A field put in first and declared after is found when it is declared.
+    // 「[Opus 5.5] A field put in first and declared after is found when it is declared.」
     if (typeof MutationObserver === 'function') {
         new MutationObserver(look).observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-say'] });
     }
@@ -210,7 +210,7 @@ export function holdSay(element: HTMLElement): void {
 
 /** Tells the element its field changed (forms/panel.ts). */
 function tell(element: HTMLElement): void {
-    // The element's own window makes the event: a document's events are its window's.
+    // 「[Opus 5.5] The element's own window makes the event: a document's events are its window's.」
     const view = element.ownerDocument.defaultView ?? window;
     element.dispatchEvent(new view.Event(SAY_HELD));
 }

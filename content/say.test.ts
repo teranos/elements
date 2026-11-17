@@ -1,14 +1,14 @@
 /**
- * The field a chat says from takes the bottom, whenever the host draws it.
+ * 「[Opus 5.5] The field a chat says from takes the bottom, whenever the host draws it.」
  *
- * QNTX-Web draws its Node Agent's chat after the element opens: it asks the node which harnesses it offers first.
- * The field arrived after the package had looked for it, so its row was never pinned and a panel never gave it the
- * home bar's strip.
+ * 「[Opus 5.5] QNTX-Web draws its Node Agent's chat after the element opens: it asks the node which harnesses it offers first.」
+ * 「[Opus 5.5] The field arrived after the package had looked for it, so its row was never pinned and a panel never gave it the」
+ * 「[Opus 5.5] home bar's strip.」
  *
- * Personas:
- * - Tim: Happy path — a field drawn with the element: its row is pinned at once
- * - Spike: Edge cases — an element that never says from a field is left alone
- * - Jenny: Complex scenarios — a field drawn later: its row is pinned when it arrives, and the element is told
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — a field drawn with the element: its row is pinned at once」
+ * 「[Opus 5.5] - Spike: Edge cases — an element that never says from a field is left alone」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — a field drawn later: its row is pinned when it arrives, and the element is told」
  */
 
 import { describe, test, expect } from 'bun:test';
@@ -63,7 +63,7 @@ describe('Jenny: a field drawn after the element opened', () => {
         element.addEventListener(SAY_HELD, () => told++);
         holdSay(element);
 
-        // The host asks the node first, then draws its chat.
+        // 「[Opus 5.5] The host asks the node first, then draws its chat.」
         const talk = document.createElement('div');
         body.appendChild(talk);
         const row = rowWithField();
@@ -289,9 +289,9 @@ describe('Jenny: the pills and their input field, as one', () => {
     });
 });
 
-// Qodo on #114: "Switched chats obscure typed text", "Removing a chat field exposes bottom controls". QNTX-Web draws a
-// new chat, its own field, when a harness tab is pressed; a host may take its chat away. The element is held to the
-// field it has now, whichever that is, and told each time it changes.
+// 「[Opus 5.5] Qodo on #114: "Switched chats obscure typed text", "Removing a chat field exposes bottom controls". QNTX-Web draws a」
+// 「[Opus 5.5] new chat, its own field, when a harness tab is pressed; a host may take its chat away. The element is held to the」
+// 「[Opus 5.5] field it has now, whichever that is, and told each time it changes.」
 describe('Jenny: the field changes while the element is open', () => {
     test('a field drawn in place of the first is pinned, and the element told again', async () => {
         const { element, body } = chatElement(true);
@@ -333,7 +333,7 @@ describe('Jenny: the field changes while the element is open', () => {
     });
 });
 
-// Qodo on #114: "Moved chat fields lose their bottom row". A host may move the field it has into another row.
+// 「[Opus 5.5] Qodo on #114: "Moved chat fields lose their bottom row". A host may move the field it has into another row.」
 describe('Jenny: the same field, moved', () => {
     test('into another row: that row is pinned', async () => {
         const { element, body } = chatElement(true);
@@ -349,7 +349,7 @@ describe('Jenny: the same field, moved', () => {
     });
 });
 
-// Qodo on #114: "Late-declared chat fields stay unpinned". A host may put its field in first and declare it after.
+// 「[Opus 5.5] Qodo on #114: "Late-declared chat fields stay unpinned". A host may put its field in first and declare it after.」
 describe('Jenny: a field declared after it was put in', () => {
     test('is pinned when it is declared, and the element told', async () => {
         const { element, body } = chatElement(false);
@@ -370,9 +370,9 @@ describe('Jenny: a field declared after it was put in', () => {
     });
 });
 
-// Qodo on #114: "Confirmation text shifts chat fields". A two-stage press says its confirmation and its failure right
-// after itself (forms/press.ts); in the field's box that pushed the field up. What a press says goes to the row,
-// above the field, as what else the host put beside it does.
+// 「[Opus 5.5] Qodo on #114: "Confirmation text shifts chat fields". A two-stage press says its confirmation and its failure right」
+// 「[Opus 5.5] after itself (forms/press.ts); in the field's box that pushed the field up. What a press says goes to the row,」
+// 「[Opus 5.5] above the field, as what else the host put beside it does.」
 describe('Spike: what a press says after itself', () => {
     test('is not in the field\'s box, but in its row', async () => {
         const element = document.createElement('div');

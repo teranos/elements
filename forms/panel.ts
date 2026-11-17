@@ -449,7 +449,7 @@ export function morphDotToPanel(
         // 「[Opus 5.5] A field the host draws later, or takes away, is answered when it does (content/say.ts).」
         if (!heldSays.has(element)) {
             heldSays.add(element);
-            // Only while it is a panel: the same element told about its field as a window or a dot is not a panel's.
+            // 「[Opus 5.5] Only while it is a panel: the same element told about its field as a window or a dot is not a panel's.」
             element.addEventListener(SAY_HELD, () => {
                 if (element.isConnected && getForm(element) === 'panel') keepInsideSafeArea(element);
             });

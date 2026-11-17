@@ -329,8 +329,8 @@ describe('Jenny: opened after a window, in front of it', () => {
     });
 });
 
-// Qodo on #114: "Panel padding logic runs after the element leaves panel form". The element is one DOM element in
-// every form (Element Axioma): what it is told about its chat field once it is a window or a dot is not a panel's.
+// 「[Opus 5.5] Qodo on #114: "Panel padding logic runs after the element leaves panel form". The element is one DOM element in」
+// 「[Opus 5.5] every form (Element Axioma): what it is told about its chat field once it is a window or a dot is not a panel's.」
 describe('Spike: told about its chat field once it is no longer a panel', () => {
     test('nothing of a panel\'s is written on it', async () => {
         await open(element);
