@@ -63,7 +63,7 @@ test.describe('Spike: what the host put beside it', () => {
         const field = await boxOf(page, `${XENON} [data-say]`);
         const choice = await boxOf(page, `${XENON} select`);
 
-        // Its own presses are in it (Tim: the field's presses); what else the host put beside it is above it.
+        // 「[Opus 5.5] Its own presses are in it (Tim: the field's presses); what else the host put beside it is above it.」
         expect(choice.bottom).toBeLessThanOrEqual(field.top);
     });
 });
@@ -82,8 +82,8 @@ test.describe('Jenny: scrolled up to the start', () => {
 });
 
 // "missed opportunity", in red, under the field, five times: on a phone the field stopped short of the home bar's
-// strip, and what lay below it was nothing. The strip is the field's: its box reaches the screen's edge, and what is
-// typed in it stays above the home bar.
+// 「[Opus 5.5] strip, and what lay below it was nothing. The strip is the field's: its box reaches the screen's edge, and what is」
+// 「[Opus 5.5] typed in it stays above the home bar.」
 test.describe('Jenny: over the home bar', () => {
     test('the field reaches the bottom of the screen, its words above the bar', async ({ page }, info) => {
         test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
@@ -100,7 +100,7 @@ test.describe('Jenny: over the home bar', () => {
     });
 });
 
-// Purple arrows: the + into the field's bottom-left corner, the → into its bottom-right.
+// 「[Opus 5.5] Purple arrows: the + into the field's bottom-left corner, the → into its bottom-right.」
 test.describe('Tim: the field\'s presses', () => {
     test('the + and the → are in the field, at its bottom corners, above the home bar, under its words', async ({ page }, info) => {
         test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
@@ -118,24 +118,24 @@ test.describe('Tim: the field\'s presses', () => {
             };
         });
 
-        // Inside the field's box.
+        // 「[Opus 5.5] Inside the field's box.」
         expect(at.attach.left).toBeGreaterThanOrEqual(at.field.left);
         expect(at.send.right).toBeLessThanOrEqual(at.field.right);
         expect(at.attach.bottom).toBeLessThanOrEqual(at.field.bottom);
-        // At its corners: the + to the left, the → to the right, on one line.
+        // 「[Opus 5.5] At its corners: the + to the left, the → to the right, on one line.」
         expect(at.attach.left - at.field.left).toBeLessThan(16);
         expect(at.field.right - at.send.right).toBeLessThan(16);
         expect(at.attach.top).toBeCloseTo(at.send.top, 0);
-        // Above the home bar, and under the words.
+        // 「[Opus 5.5] Above the home bar, and under the words.」
         expect(at.attach.bottom).toBeLessThanOrEqual(at.screen - 34);
         expect(at.attach.top).toBeGreaterThanOrEqual(at.words - 1);
-        // The field still reaches the bottom of the screen.
+        // 「[Opus 5.5] The field still reaches the bottom of the screen.」
         expect(at.field.bottom).toBeCloseTo(at.screen, 0);
     });
 });
 
-// Qodo on #114: the field a host draws in place of the first (a harness tab pressed), the field taken away, a press
-// that grows. The element is held to the field it has now.
+// 「[Opus 5.5] Qodo on #114: the field a host draws in place of the first (a harness tab pressed), the field taken away, a press」
+// 「[Opus 5.5] that grows. The element is held to the field it has now.」
 test.describe('Jenny: the field changes while the panel is open', () => {
     const fieldAt = (page: Page) => page.locator(XENON).evaluate((element) => {
         const field = element.querySelector<HTMLElement>('[data-say]')!;
@@ -177,7 +177,7 @@ test.describe('Jenny: the field changes while the panel is open', () => {
         });
 
         expect(kept.panel).toBeCloseTo(34, 0);
-        // And the body its own padding back (Qodo on #114: "Content loses spacing after chat removal").
+        // 「[Opus 5.5] And the body its own padding back (Qodo on #114: "Content loses spacing after chat removal").」
         expect(kept.body).toBeCloseTo(8, 0);
     });
 
