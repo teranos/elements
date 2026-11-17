@@ -239,24 +239,24 @@ function keepInsideSafeArea(panel: HTMLElement): void {
 
 /**
  * "missed opportunity", in red, under a chat's field, five times: the panel kept
- * the home bar's strip below the field, and the strip was nothing. A panel that
- * says from a field (content/say.ts) gives the strip to the field: the field's box
- * reaches the screen's edge, and what is typed in it stays above the bar. The
- * body's own padding under it goes too. Answers whether the strip was given.
+ * 「[Opus 5.5] the home bar's strip below the field, and the strip was nothing. A panel that」
+ * 「[Opus 5.5] says from a field (content/say.ts) gives the strip to the field: the field's box」
+ * 「[Opus 5.5] reaches the screen's edge, and what is typed in it stays above the bar. The」
+ * 「[Opus 5.5] body's own padding under it goes too. Answers whether the strip was given.」
  */
 function giveStripToSay(panel: HTMLElement, strip: number): boolean {
     const field = panel.querySelector<HTMLElement>('[data-say]');
     const body = panel.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
     if (!field || strip <= 0) {
         panel.style.removeProperty('--elements-say-strip');
-        // The body has its own padding under it again, as it was before (render.ts writes it as a shorthand).
+        // 「[Opus 5.5] The body has its own padding under it again, as it was before (render.ts writes it as a shorthand).」
         if (body?.dataset.sayOwnPadding !== undefined) {
             body.style.paddingBottom = body.dataset.sayOwnPadding;
             delete body.dataset.sayOwnPadding;
         }
         return false;
     }
-    // The field adds the strip to what it keeps under its words (content/say.ts), and its presses stand above it.
+    // 「[Opus 5.5] The field adds the strip to what it keeps under its words (content/say.ts), and its presses stand above it.」
     panel.style.setProperty('--elements-say-strip', `${strip}px`);
     if (body) {
         body.dataset.sayOwnPadding ??= body.style.paddingBottom;
@@ -459,10 +459,10 @@ export function morphDotToPanel(
         const cleanupFn = attachResizeHandle(element, direction);
         resizeCleanups.set(element, cleanupFn);
         keepInsideSafeArea(element);
-        // A field the host draws later is given the strip when it arrives (content/say.ts).
+        // 「[Opus 5.5] A field the host draws later is given the strip when it arrives (content/say.ts).」
         if (!heldSays.has(element)) {
             heldSays.add(element);
-            // Only while it is a panel: the same element told about its field as a window or a dot is not a panel's.
+            // 「[Opus 5.5] Only while it is a panel: the same element told about its field as a window or a dot is not a panel's.」
             element.addEventListener(SAY_HELD, () => {
                 if (element.isConnected && getForm(element) === 'panel') keepInsideSafeArea(element);
             });
