@@ -1,13 +1,13 @@
 /**
- * A button in an element is never squeezed around its words, in a real browser.
+ * 「[Opus 5.5] A button in an element is never squeezed around its words, in a real browser.」
  *
  * "NO MORE SQUEEZED BUTTONS PLEASE": a host's 4px by 8px left its words touching its edges; a finger's 44 tall on
- * 14px words was wasted space. In an element's body a button's words are an em in from each side, half an em from its
- * top and bottom (fit.ts).
+ * 「[Opus 5.5] 14px words was wasted space. In an element's body a button's words are an em in from each side, half an em from its」
+ * 「[Opus 5.5] top and bottom (fit.ts).」
  *
- * Personas:
- * - Tim: Happy path — a host's tight button in Xenon's body: its words an em in, half an em from top and bottom
- * - Spike: Edge cases — the title bar's controls keep their own box
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — a host's tight button in Xenon's body: its words an em in, half an em from top and bottom」
+ * 「[Opus 5.5] - Spike: Edge cases — the title bar's controls keep their own box」
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -54,7 +54,7 @@ test.describe('Spike: the title bar', () => {
             return control ? getComputedStyle(control).paddingLeft : null;
         });
 
-        // CodeRabbit on #115: a control that is not there passes nothing.
+        // 「[Opus 5.5] CodeRabbit on #115: a control that is not there passes nothing.」
         expect(padding).not.toBeNull();
         expect(padding).not.toBe('1em');
     });
