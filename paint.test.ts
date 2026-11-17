@@ -108,7 +108,7 @@ describe('an element whose datum names no colour', () => {
 });
 
 // "Text is not readable like this": Lithium is red with black words (its textColor), and its dot drew its symbol white,
-// the page's colour, at 4.0 to 1 (browser/contrast.browser.ts). Its words' colour is paint, as its background is.
+// 「[Opus 5.5] the page's colour, at 4.0 to 1 (browser/contrast.browser.ts). Its words' colour is paint, as its background is.」
 describe('the colour of an element\'s words', () => {
     test('a dot born in the tray wears its textColor', () => {
         tray.add(make('lithium-born', { color: 'rgb(255, 0, 0)', textColor: 'rgb(0, 0, 0)' }));
