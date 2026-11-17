@@ -105,7 +105,7 @@ export function canvasPlaced(config: CanvasPlacedConfig): CanvasPlacedResult {
         titleBar.appendChild(label);
 
         if (config.titleBar.actions?.length) {
-            // The host's presses stand together at the bar's end, as the window's controls do (fit.ts).
+            // 「[Opus 5.5] The host's presses stand together at the bar's end, as the window's controls do (fit.ts).」
             const presses = document.createElement('span');
             presses.className = 'title-bar-presses';
             for (const action of config.titleBar.actions) {
