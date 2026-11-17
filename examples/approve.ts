@@ -2,8 +2,8 @@
  * Approve specimen — Rubidium, the next element after the panel's Krypton.
  *
  * The element is the package's (approvals/approvals.ts); this is a host
- * playing it: five made-up approvals, checks that run on a clock, and a main
- * CI that passes after twenty seconds.
+ * 「[Opus 5.5] playing it: five made-up approvals, checks that run on a clock, and a main」
+ * 「[Opus 5.5] CI that passes after twenty seconds.」
  */
 
 import { tray } from '../tray/tray';
