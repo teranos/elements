@@ -1,21 +1,21 @@
 /**
- * A chat's field is the Claude app's composer, in a real browser.
+ * 「[Opus 5.5] A chat's field is the Claude app's composer, in a real browser.」
  *
  * "making the inputfield take up the entire bottom of the screen for chat elements like claude or pi" (#40). "This i
- * want", "I want this only", "LOOK AT THIS THE SHAPE": one pill as wide as the body, the + at its start, what is typed,
- * the → at its end, on one line; the row stays at the bottom of the element while what was said scrolls above it, and
- * on a phone the home bar's strip is the page's, under the pill.
+ * 「[Opus 5.5] want", "I want this only", "LOOK AT THIS THE SHAPE": one pill as wide as the body, the + at its start, what is typed,」
+ * 「[Opus 5.5] the → at its end, on one line; the row stays at the bottom of the element while what was said scrolls above it, and」
+ * 「[Opus 5.5] on a phone the home bar's strip is the page's, under the pill.」
  *
  * Personas:
- * - Tim: Happy path — Xenon's pill is as wide as the body: the +, the words, the → on one line, its presses round
+ * 「[Opus 5.5] - Tim: Happy path — Xenon's pill is as wide as the body: the +, the words, the → on one line, its presses round」
  * - Spike: Edge cases — what the host put beside it is above it, not squeezing it
- * - Jenny: Complex scenarios — scrolled up, over the home bar, the field drawn again or taken away
+ * 「[Opus 5.5] - Jenny: Complex scenarios — scrolled up, over the home bar, the field drawn again or taken away」
  */
 
 import { test, expect, type Page } from '@playwright/test';
 
 const XENON = '[data-element-id="chat-specimen"]';
-// The Claude app's composer (content/say.ts); literals here, as the page's test cannot import the package.
+// 「[Opus 5.5] The Claude app's composer (content/say.ts); literals here, as the page's test cannot import the package.」
 const SAY_PRESS = 36;
 const SAY_INSET = 8;
 
@@ -61,14 +61,14 @@ test.describe('Tim: the pill', () => {
     });
 
     // "The pills should be above, and outside of inputfield area": the input field is one line, the + first, the words,
-    // the → last; its pills in a strip of their own above it, each its words on one line, the strip dragged sideways:
+    // 「[Opus 5.5] the → last; its pills in a strip of their own above it, each its words on one line, the strip dragged sideways:」
     // "normally you're able to drag pills sideways in most applications".
     test('one line: the + at its start, the words, the → at its end; its pills above it, outside it, one line; its presses round, SAY_INSET in', async ({ page }) => {
         await open(page);
         await page.locator(`${XENON} [data-say]`).focus();
         const at = await page.locator(PILL).evaluate((pill) => {
             const box = (b: Element) => b.getBoundingClientRect();
-            // How many lines its words are on: the tops of its text's boxes.
+            // 「[Opus 5.5] How many lines its words are on: the tops of its text's boxes.」
             const lines = (node: Element) => {
                 const range = document.createRange();
                 range.selectNodeContents(node);
@@ -85,7 +85,7 @@ test.describe('Tim: the pill', () => {
                 pill: box(pill), attach: box(attach!), send: box(send!), field: box(field), strip: box(strip),
                 pills: pills.map((p) => ({ box: box(p), lines: lines(p.querySelector('[data-pill-label]')!) })),
                 round: getComputedStyle(attach!).borderTopLeftRadius,
-                // A host may draw the input field an outline: the presses stand SAY_INSET in from inside it.
+                // 「[Opus 5.5] A host may draw the input field an outline: the presses stand SAY_INSET in from inside it.」
                 edge: { left: parseFloat(s.borderLeftWidth), right: parseFloat(s.borderRightWidth), bottom: parseFloat(s.borderBottomWidth) },
             };
         });
@@ -117,14 +117,14 @@ test.describe('Tim: the pill', () => {
         await open(page);
         await page.locator(`${XENON} [data-say]`).focus();
         const strip = page.locator(`${XENON} [data-say-pills]`);
-        // A strip narrower than its pills, as a small phone's is.
+        // 「[Opus 5.5] A strip narrower than its pills, as a small phone's is.」
         await strip.evaluate((s) => { s.style.setProperty('flex', '0 0 200px', 'important'); s.style.setProperty('width', '200px', 'important'); });
         const wide = await strip.evaluate((s) => ({ scroll: s.scrollWidth, client: s.clientWidth }));
         expect(wide.scroll).toBeGreaterThan(wide.client);
         const last = page.locator(`${XENON} [data-choices="xenon-repositories"]`);
         const seen = () => last.evaluate((p) => { const r = p.getBoundingClientRect(); const s = p.parentElement!.getBoundingClientRect(); return r.right <= s.right + 1; });
         expect(await seen()).toBe(false);
-        // A finger drags it: the strip scrolls as the platform scrolls it.
+        // 「[Opus 5.5] A finger drags it: the strip scrolls as the platform scrolls it.」
         const b = (await strip.boundingBox())!;
         const y = Math.round(b.y + b.height / 2);
         const cdp = await page.context().newCDPSession(page);
@@ -138,8 +138,8 @@ test.describe('Tim: the pill', () => {
     });
 });
 
-// The choices are one element in Pill Form, in the input field. "I want inputfield to still be there": pressed, it is
-// across its row, the words still above it. "it taking focus should let kb stay in place": the field keeps the focus.
+// 「[Opus 5.5] The choices are one element in Pill Form, in the input field. "I want inputfield to still be there": pressed, it is」
+// 「[Opus 5.5] across its row, the words still above it. "it taking focus should let kb stay in place": the field keeps the focus.」
 test.describe('Spike: its choices', () => {
     const CHOICES = `${XENON} [data-choices="xenon-choices"]`;
     const REPOSITORIES = `${XENON} [data-choices="xenon-repositories"]`;
@@ -161,7 +161,7 @@ test.describe('Spike: its choices', () => {
         await expect.poll(() => page.locator(CHOICES).evaluate((el) => el.dataset.pillMoving === undefined)).toBe(true);
         expect(await focused()).toBe(true);
         await expect(field).toBeVisible();
-        // Across the strip above the input field, the field under it.
+        // 「[Opus 5.5] Across the strip above the input field, the field under it.」
         const strip = await boxOf(page, `${XENON} [data-say-pills]`);
         const open_ = await boxOf(page, CHOICES);
         expect(open_.left).toBeCloseTo(strip.left, 0);
@@ -173,14 +173,14 @@ test.describe('Spike: its choices', () => {
         await expect.poll(() => page.locator(CHOICES).evaluate((el) => el.dataset.pillMoving === undefined)).toBe(true);
         await expect(page.locator(CHOICES)).toHaveText('Opus 5.5 · max');
         expect(await focused()).toBe(true);
-        // Seen in xenon: let go, the pills squeezed, their words on two lines.
+        // 「[Opus 5.5] Seen in xenon: let go, the pills squeezed, their words on two lines.」
         const lines = await page.locator(`${XENON} [data-say-pills]`).evaluate((strip) => Array.from(strip.querySelectorAll('[data-pill-label]')).map((label) => {
             const range = document.createRange();
             range.selectNodeContents(label);
             return new Set(Array.from(range.getClientRects()).map((r) => Math.round(r.top))).size;
         }));
         expect(lines).toEqual([1, 1, 1]);
-        // One element all the way (Element Axioma).
+        // 「[Opus 5.5] One element all the way (Element Axioma).」
         expect(await node!.evaluate((el) => el === document.querySelector('[data-choices="xenon-choices"]'))).toBe(true);
     });
 
@@ -216,7 +216,7 @@ test.describe('Jenny: scrolled up to the start', () => {
     });
 });
 
-// Gemini's, ChatGPT's, Manus's and Claude's composers float above the home bar: the strip under it is the page's.
+// 「[Opus 5.5] Gemini's, ChatGPT's, Manus's and Claude's composers float above the home bar: the strip under it is the page's.」
 test.describe('Jenny: over the home bar', () => {
     test('the pill stands above the home bar\'s strip', async ({ page }, info) => {
         test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
@@ -230,8 +230,8 @@ test.describe('Jenny: over the home bar', () => {
     });
 });
 
-// Qodo on #114: the field a host draws in place of the first (a harness tab pressed), the field taken away. The
-// element is held to the field it has now.
+// 「[Opus 5.5] Qodo on #114: the field a host draws in place of the first (a harness tab pressed), the field taken away. The」
+// 「[Opus 5.5] element is held to the field it has now.」
 test.describe('Jenny: the field changes while the panel is open', () => {
     test('a field drawn in place of the first stands above the bar', async ({ page }, info) => {
         test.skip(info.project.name !== 'phone', 'a home bar is a phone\'s');
@@ -266,7 +266,7 @@ test.describe('Jenny: the field changes while the panel is open', () => {
         });
 
         expect(kept.panel).toBeCloseTo(34, 0);
-        // Qodo on #114: "Content loses spacing after chat removal".
+        // 「[Opus 5.5] Qodo on #114: "Content loses spacing after chat removal".」
         expect(kept.body).toBeCloseTo(8, 0);
     });
 });
