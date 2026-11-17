@@ -19,8 +19,8 @@ describe('an element that opens at its end', () => {
     });
 });
 
-// Seen in xenon: what waits, a pill in its input field, holds a list scrolled in itself. The chat opened at the end of
-// that list, not at the end of what was said: the pill is an element of its own, and its scroller is its own.
+// 「[Opus 5.5] Seen in xenon: what waits, a pill in its input field, holds a list scrolled in itself. The chat opened at the end of」
+// 「[Opus 5.5] that list, not at the end of what was said: the pill is an element of its own, and its scroller is its own.」
 describe('Jenny: an element holding another', () => {
     test('opens at the end of its own scroller, not of one in an element it holds', () => {
         const element = document.createElement('div');
