@@ -184,8 +184,8 @@ describe('Spike: "the immediate red communicates, irrevocable click, which is wr
         expect(handle.element.nextElementSibling).toBeNull();
     });
 
-    // CodeRabbit on #115: held at 0.4 opacity, Selenium's Invite read 3.32 to 1. "A colour that fails it is fixed, never
-    // excused": held, it is drawn in HELD, which reads, not faded.
+    // 「[Opus 5.5] CodeRabbit on #115: held at 0.4 opacity, Selenium's Invite read 3.32 to 1. "A colour that fails it is fixed, never」
+    // 「[Opus 5.5] excused": held, it is drawn in HELD, which reads, not faded.」
     test('held, it is drawn in HELD, not faded; let go, in its ink again', () => {
         const handle = place({ id: 'invite', title: 'Invite', does: () => {} });
         handle.hold('only a session invites');
