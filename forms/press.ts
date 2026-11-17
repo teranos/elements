@@ -6,14 +6,14 @@ import { sizeText, TEXT_SIZES, type TextSize } from '../text';
 import type { Form } from '../form';
 
 /** What an outline says: yes is green, no is red, neither is white. The approvals' options wear it too. */
-// Each reads at 4.5 to 1 as words on black and as a fill under white words (forms/means-contrast.test.ts).
+// 「[Opus 5.5] Each reads at 4.5 to 1 as words on black and as a fill under white words (forms/means-contrast.test.ts).」
 export const MEANS: Readonly<{ yes: '#16873c'; no: '#d93636'; neither: '#fff' }> = Object.freeze({ yes: '#16873c', no: '#d93636', neither: '#fff' } as const);
 
 import { AX } from './ax';
 import { getWindowBorderRadius } from '../config';
 export { AX };
 
-// CodeRabbit on #115: faded to 0.4, a held press read 3.32 to 1. "A colour that fails it is fixed, never excused."
+// 「[Opus 5.5] CodeRabbit on #115: faded to 0.4, a held press read 3.32 to 1. "A colour that fails it is fixed, never excused."」
 /** What a press held back, or an option not yet to be chosen, is drawn in: it reads at 4.5 to 1 on black and on AX.ground. */
 export const HELD = '#999999';
 
