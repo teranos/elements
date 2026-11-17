@@ -197,7 +197,7 @@ export function holdSay(element: HTMLElement): void {
         hold.field = field;
         if (field) pinSay(element, field);
         hold.box = field?.parentElement?.dataset.sayBox === '' ? field.parentElement : null;
-        // Its row, once pinned: the same field moved into another row is pinned there too.
+        // 「[Opus 5.5] Its row, once pinned: the same field moved into another row is pinned there too.」
         hold.row = field ? rowOf(field) : null;
         if (changed) tell(element);
     };
