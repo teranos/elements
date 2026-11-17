@@ -53,7 +53,7 @@ export function renderChatSpecimen(): void {
             const outbox = outboxFrom();
             // "the inputfield take up the entire bottom of the screen for chat elements"
             // The package's chat field, which takes that bottom (#40).
-            // Its presses in its box: the + at its start, the → at its end.
+            // 「[Opus 5.5] Its presses in its box: the + at its start, the → at its end.」
             // 「[Opus 5.5] Drawn, as a host's are: a press in the pill is SAY_PRESS square whatever it holds.」
             const icon = (label: string, path: string) => {
                 const press = document.createElement('button');
