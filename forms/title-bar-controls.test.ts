@@ -1,14 +1,14 @@
 /**
- * The presses in an element's title bar.
+ * 「[Opus 5.5] The presses in an element's title bar.」
  *
  * "Those buttons are supposed to be square and equally sized and margin and alignment within the header". "You can
- * see how it's broken in what should have been the exemplar". Each was as wide as its glyph: the package's fit wrote
- * every button in an element `fit-content`, the title bar's too.
+ * 「[Opus 5.5] see how it's broken in what should have been the exemplar". Each was as wide as its glyph: the package's fit wrote」
+ * 「[Opus 5.5] every button in an element `fit-content`, the title bar's too.」
  *
- * Personas:
- * - Tim: Happy path — the package's rule makes every press in a title bar the same square
- * - Spike: Edge cases — a host's own presses (canvasPlaced actions) stand together, as the window's controls do
- * - Jenny: Complex scenarios — the host's presses and the window's controls: one row, evenly apart, at the bar's end
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — the package's rule makes every press in a title bar the same square」
+ * 「[Opus 5.5] - Spike: Edge cases — a host's own presses (canvasPlaced actions) stand together, as the window's controls do」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — the host's presses and the window's controls: one row, evenly apart, at the bar's end」
  */
 
 import { describe, test, expect, afterEach } from 'bun:test';
