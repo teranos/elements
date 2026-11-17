@@ -240,8 +240,8 @@ function keepInsideSafeArea(panel: HTMLElement): void {
 
 /**
  * "missed opportunity", in red, under a chat's field; then "This i want", "I want this only": the Claude app's
- * composer, a pill, and under it the home bar's strip and nothing else (measured: 34.7pt on a 34pt home bar). A panel
- * that says from a field keeps the strip under it, and its body keeps nothing of its own there.
+ * 「[Opus 5.5] composer, a pill, and under it the home bar's strip and nothing else (measured: 34.7pt on a 34pt home bar). A panel」
+ * 「[Opus 5.5] that says from a field keeps the strip under it, and its body keeps nothing of its own there.」
  */
 function nothingUnderSay(panel: HTMLElement): void {
     const field = panel.querySelector<HTMLElement>('[data-say]');
@@ -251,7 +251,7 @@ function nothingUnderSay(panel: HTMLElement): void {
         body.dataset.sayOwnPadding ??= body.style.paddingBottom;
         body.style.setProperty('padding-bottom', '0px');
     } else if (body.dataset.sayOwnPadding !== undefined) {
-        // The body has its own padding under it again, as it was before (render.ts writes it as a shorthand).
+        // 「[Opus 5.5] The body has its own padding under it again, as it was before (render.ts writes it as a shorthand).」
         body.style.paddingBottom = body.dataset.sayOwnPadding;
         delete body.dataset.sayOwnPadding;
     }
@@ -372,7 +372,7 @@ export function morphDotToPanel(
     const targetX = 0;
     const targetY = direction === 'from-top' ? 0 : window.innerHeight - panelHeight;
 
-    // Where it goes when it is minimized, swiped away or left by Escape: the tray.
+    // 「[Opus 5.5] Where it goes when it is minimized, swiped away or left by Escape: the tray.」
     const toRest = () => morphPanelToDot(element, item, verifyElement, onMinimize);
 
     // Close on Escape
@@ -446,7 +446,7 @@ export function morphDotToPanel(
         const cleanupFn = attachResizeHandle(element, direction);
         resizeCleanups.set(element, cleanupFn);
         keepInsideSafeArea(element);
-        // A field the host draws later, or takes away, is answered when it does (content/say.ts).
+        // 「[Opus 5.5] A field the host draws later, or takes away, is answered when it does (content/say.ts).」
         if (!heldSays.has(element)) {
             heldSays.add(element);
             // Only while it is a panel: the same element told about its field as a window or a dot is not a panel's.
