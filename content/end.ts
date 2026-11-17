@@ -21,8 +21,8 @@ interface Following {
 const following = new WeakMap<HTMLElement, Following>();
 
 /**
- * The element's own scroller: the one its host declared, or the body the package gave it. One in an element it holds
- * (a pill in its input field) is that element's.
+ * 「[Opus 5.5] The element's own scroller: the one its host declared, or the body the package gave it. One in an element it holds」
+ * 「[Opus 5.5] (a pill in its input field) is that element's.」
  */
 function scrollerOf(element: HTMLElement): HTMLElement | null {
     return ownDeclared(element, element) ?? element.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
