@@ -1,14 +1,14 @@
 /**
- * What yes and no are drawn in reads both ways they are used.
+ * 「[Opus 5.5] What yes and no are drawn in reads both ways they are used.」
  *
  * "Text is not readable like this", "I intend on future sessions to look at the elements work and accept it as
- * exemplary". A meaning colour is words on black (an approval's option, a press's failure said beside it) and a fill
- * under white words (the option that was sent, a red press armed). Both are small text: 4.5 to 1 (WCAG), each way.
+ * 「[Opus 5.5] exemplary". A meaning colour is words on black (an approval's option, a press's failure said beside it) and a fill」
+ * 「[Opus 5.5] under white words (the option that was sent, a red press armed). Both are small text: 4.5 to 1 (WCAG), each way.」
  *
- * Personas:
- * - Tim: Happy path — yes and no, as words on black, read
- * - Spike: Edge cases — yes and no, as a fill under white words, read
- * - Jenny: Complex scenarios — the approvals' failed bar is the same no
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — yes and no, as words on black, read」
+ * 「[Opus 5.5] - Spike: Edge cases — yes and no, as a fill under white words, read」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — the approvals' failed bar is the same no」
  */
 
 import { describe, test, expect } from 'bun:test';
