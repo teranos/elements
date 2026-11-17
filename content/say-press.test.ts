@@ -1,14 +1,14 @@
 /**
- * The presses a field says with are the package's to size, as every other press is.
+ * 「[Opus 5.5] The presses a field says with are the package's to size, as every other press is.」
  *
  * "FIX THE PACKAGE", "STOP CHEATING WITH MAGIC PIXELS": a host's icon press was fitted to its icon (fit.ts makes a
- * button as wide as what it says), and QNTX-Web gave it padding to make it round. The pill's press is SAY_PRESS square
- * and round whatever it holds; the host says only what it looks like.
+ * 「[Opus 5.5] button as wide as what it says), and QNTX-Web gave it padding to make it round. The pill's press is SAY_PRESS square」
+ * 「[Opus 5.5] and round whatever it holds; the host says only what it looks like.」
  *
- * Personas:
- * - Tim: Happy path — a say press is SAY_PRESS square and round
- * - Spike: Edge cases — the button fit does not reach it, by rule or by style attribute
- * - Jenny: Complex scenarios — the pill is a press inset all round, as the Claude app's is
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — a say press is SAY_PRESS square and round」
+ * 「[Opus 5.5] - Spike: Edge cases — the button fit does not reach it, by rule or by style attribute」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — the pill is a press inset all round, as the Claude app's is」
  */
 
 import { describe, test, expect } from 'bun:test';
@@ -46,25 +46,25 @@ describe('Jenny: the pill around its presses', () => {
 });
 
 // "Text is not readable like this": what was typed into xenon's pill was black on black. The field is out of the field
-// look (it is the pill's surface), so its words are the element's colour, unless the host says otherwise.
+// 「[Opus 5.5] look (it is the pill's surface), so its words are the element's colour, unless the host says otherwise.」
 describe('Spike: the words in the pill', () => {
     test('are the element\'s colour, in the package\'s layer, so a host stylesheet still says otherwise', () => {
         expect(RULE).toContain('[data-element-id] [data-say-box] [data-say] { color: inherit; }');
-        // Not important: a host's own colour for its words wins.
+        // 「[Opus 5.5] Not important: a host's own colour for its words wins.」
         expect(RULE).not.toContain('[data-say-box] [data-say] { color: inherit !important');
     });
 });
 
-// The field look gave a field its ground and ink but no colour for what it says before anything is typed: the
-// browser's grey, 3.8 to 1 on the field's ground (browser/contrast.browser.ts). It is the field's own ink, lighter.
+// 「[Opus 5.5] The field look gave a field its ground and ink but no colour for what it says before anything is typed: the」
+// 「[Opus 5.5] browser's grey, 3.8 to 1 on the field's ground (browser/contrast.browser.ts). It is the field's own ink, lighter.」
 describe('Spike: what a field says before anything is typed', () => {
     test('is its own ink, lighter, in the package\'s layer, so a host stylesheet still says otherwise', () => {
         expect(RULE).toContain('[data-element-id] :is(input, textarea)::placeholder { color: color-mix(in srgb, currentColor 65%, transparent); }');
     });
 });
 
-// The field in the pill drew its own focus ring, a box inside the pill. The pill is the field's surface: it shows the
-// focus, around itself.
+// 「[Opus 5.5] The field in the pill drew its own focus ring, a box inside the pill. The pill is the field's surface: it shows the」
+// 「[Opus 5.5] focus, around itself.」
 describe('Spike: the pill, focused', () => {
     test('rings itself, not the field inside it', () => {
         expect(RULE).toContain('[data-element-id] [data-say-box] [data-say] { outline: none; }');
