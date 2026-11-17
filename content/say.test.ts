@@ -241,8 +241,8 @@ describe('Spike: pills of a field that already says something, or has moved', ()
     });
 });
 
-// CodeRabbit on #115, after #114: "Pin the pill strip together with the input box in the direct-child case." "Remove the
-// pill strip when its inputfield box is removed." "Preserve focus when pills trigger field wrapping."
+// 「[Opus 5.5] CodeRabbit on #115, after #114: "Pin the pill strip together with the input box in the direct-child case." "Remove the」
+// 「[Opus 5.5] pill strip when its inputfield box is removed." "Preserve focus when pills trigger field wrapping."」
 describe('Jenny: the pills and their input field, as one', () => {
     test('a field straight in the body: its pills and its input field are pinned together, the pills above', () => {
         const { element, body } = chatElement(false);
