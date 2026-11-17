@@ -18,7 +18,7 @@ const BUTTON_PROPERTIES = ['width', 'flex', 'flex-grow', 'flex-basis'];
 /** Inside an element, an important style attribute saying how wide is taken off; the element's own box is the form's. */
 export function takeOffFit(node: Element): void {
     if (!(node instanceof HTMLElement) || node.dataset.elementId !== undefined) return;
-    // A press's box is PRESS_SIZES' (forms/press.ts), a say press's SAY_PRESS (content/say.ts), not what it says.
+    // 「[Opus 5.5] A press's box is PRESS_SIZES' (forms/press.ts), a say press's SAY_PRESS (content/say.ts), not what it says.」
     if (node.tagName === 'BUTTON' && node.dataset.press === undefined && node.dataset.sayPress === undefined) {
         for (const name of BUTTON_PROPERTIES) {
             if (node.style.getPropertyPriority(name) === 'important') node.style.removeProperty(name);
@@ -68,7 +68,7 @@ export function wrapRows(scroller: HTMLElement): void {
     for (const node of Array.from(scroller.querySelectorAll<HTMLElement>('*'))) {
         // Once: a wrapped row would measure as fitting, and unwrapped it would not.
         if (node.dataset.fitWrapped !== undefined) continue;
-        // What the package says scrolls sideways (a strip of pills, a table) is dragged, not wrapped.
+        // 「[Opus 5.5] What the package says scrolls sideways (a strip of pills, a table) is dragged, not wrapped.」
         if (node.closest('[data-scroller="sideways"]')) continue;
         const style = getComputedStyle(node);
         if (!style.display.includes('flex') || !style.flexDirection.startsWith('row')) continue;
