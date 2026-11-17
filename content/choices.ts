@@ -1,12 +1,12 @@
 /**
- * The choices a chat says with: an element in Pill Form (forms/pill.ts), in its input field.
+ * 「[Opus 5.5] The choices a chat says with: an element in Pill Form (forms/pill.ts), in its input field.」
  *
  * "Why not do it like anthropic does, where its a combined model+effort pill". At rest it says what is chosen, joined
- * (`Opus 5.5 · high`). Pressed, it is across its row and holds each choice's options, with no words over them:
+ * 「[Opus 5.5] (`Opus 5.5 · high`). Pressed, it is across its row and holds each choice's options, with no words over them:」
  * "the word labels being overly verbose, it isn't telling us anything we don't know". An option of one taken is what
- * it says, the host is told, and it rests again; an option of many ("attached repositories") is chosen or let go, and
- * it stays open for the next. In a say field it shows only while something is being said (content/say.ts): "We don't
- * need to show the picker always".
+ * 「[Opus 5.5] it says, the host is told, and it rests again; an option of many ("attached repositories") is chosen or let go, and」
+ * 「[Opus 5.5] it stays open for the next. In a say field it shows only while something is being said (content/say.ts): "We don't」
+ * 「[Opus 5.5] need to show the picker always".」
  */
 
 import { pillFrom } from '../forms/pill';
@@ -20,8 +20,8 @@ export interface ChoiceOfOne {
 }
 
 /**
- * Any of its options chosen, none or all: "add another inputfieldpillmenu for attached repositories". An option taken
- * is chosen or let go, and the pill stays open for the next.
+ * 「[Opus 5.5] Any of its options chosen, none or all: "add another inputfieldpillmenu for attached repositories". An option taken」
+ * 「[Opus 5.5] is chosen or let go, and the pill stays open for the next.」
  */
 export interface ChoiceOfMany {
     /** What is chosen, "Repositories": what the pill says when none is, and what the host is told. */
@@ -61,10 +61,10 @@ export function choicesFrom(c: Choices): HTMLElement {
             }
         }
     }
-    // What is chosen of each, in the order its options are offered.
+    // 「[Opus 5.5] What is chosen of each, in the order its options are offered.」
     const chosen = new Map(c.choices.map((choice) => [choice.name, new Set(many(choice) ? choice.chosen : [choice.value])]));
     const ordered = (choice: Choice) => choice.options.filter((o) => chosen.get(choice.name)!.has(o));
-    // Many chosen: two said, more the first and how many more; none, what it is.
+    // 「[Opus 5.5] Many chosen: two said, more the first and how many more; none, what it is.」
     const says = (choice: Choice) => {
         const are = ordered(choice);
         if (!are.length) return choice.name;
@@ -83,7 +83,7 @@ export function choicesFrom(c: Choices): HTMLElement {
             const all = document.createElement('div');
             pin(all, { display: 'flex', 'flex-direction': 'column', gap: '4px' });
             for (const choice of c.choices) {
-                // No words over its options: they say what they are. Named for a screen reader.
+                // 「[Opus 5.5] No words over its options: they say what they are. Named for a screen reader.」
                 const options = document.createElement('div');
                 options.setAttribute('role', 'group');
                 options.setAttribute('aria-label', choice.name);
@@ -102,7 +102,7 @@ export function choicesFrom(c: Choices): HTMLElement {
                         mark();
                         pill.retitle(words());
                         c.onChoose?.(choice.name, value, ordered(choice));
-                        // One of one taken, it rests; one of many, it stays open for the next.
+                        // 「[Opus 5.5] One of one taken, it rests; one of many, it stays open for the next.」
                         if (!many(choice)) pill.rest();
                     });
                     presses.push(press);
