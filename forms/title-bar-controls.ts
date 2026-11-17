@@ -11,8 +11,8 @@ export { TITLE_PRESS, TITLE_INSET } from './title-sizes';
 const WINDOW_CONTROLS_CLASS = 'window-controls';
 
 /**
- * What each says, drawn: a glyph sits where its font puts it, above the middle of its square; a stroke is where it is
- * drawn. "Those buttons are supposed to be square and equally sized and margin and alignment within the header".
+ * 「[Opus 5.5] What each says, drawn: a glyph sits where its font puts it, above the middle of its square; a stroke is where it is」
+ * 「[Opus 5.5] drawn. "Those buttons are supposed to be square and equally sized and margin and alignment within the header".」
  */
 const MARKS = {
     down: 'M6 2v8M3 7l3 3 3-3',
@@ -47,7 +47,7 @@ export function addWindowControls(titleBar: HTMLElement, config: WindowControlsC
     const container = document.createElement('span');
     container.className = WINDOW_CONTROLS_CLASS;
     container.style.display = 'inline-flex';
-    // TITLE_INSET apart, as the package's rule says (fit.ts).
+    // 「[Opus 5.5] TITLE_INSET apart, as the package's rule says (fit.ts).」
     container.style.gap = '4px';
     container.style.flexShrink = '0';
     container.style.marginLeft = 'auto';
