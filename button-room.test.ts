@@ -1,15 +1,15 @@
 /**
- * A button in an element is neither squeezed around its words nor swollen past them.
+ * 「[Opus 5.5] A button in an element is neither squeezed around its words nor swollen past them.」
  *
  * "NO MORE SQUEEZED BUTTONS PLEASE", "buttons of elements have the same issue": a host's padding of 4px by 8px left
- * its words touching its edges. Then a finger's 44 tall, on 14px words, was "wasted space", purple on a screenshot of
- * xenon's model and effort pill. In an element's body a button's words are an em in from each side and half an em from
- * its top and bottom, whatever the host wrote.
+ * 「[Opus 5.5] its words touching its edges. Then a finger's 44 tall, on 14px words, was "wasted space", purple on a screenshot of」
+ * 「[Opus 5.5] xenon's model and effort pill. In an element's body a button's words are an em in from each side and half an em from」
+ * 「[Opus 5.5] its top and bottom, whatever the host wrote.」
  *
- * Personas:
- * - Tim: Happy path — a button in an element's body: an em at its sides, half an em above and below
- * - Spike: Edge cases — a press, a say press, the title bar's controls and an approval's options keep their own boxes
- * - Jenny: Complex scenarios — no height is held over its words: no air but the half em
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — a button in an element's body: an em at its sides, half an em above and below」
+ * 「[Opus 5.5] - Spike: Edge cases — a press, a say press, the title bar's controls and an approval's options keep their own boxes」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — no height is held over its words: no air but the half em」
  */
 
 import { describe, test, expect } from 'bun:test';
