@@ -35,9 +35,11 @@ export function renderChatSpecimen(): void {
             mode.appendChild(new Option('', ''));
             // "the inputfield take up the entire bottom of the screen for chat elements"
             // The package's chat field, which takes that bottom (#40).
-            const says = sayFrom({ id: 'xenon-says', label: 'say something' });
-            const send = createButton({ label: 'Say', onClick: () => {} });
-            row.append(mode, says, send);
+            // Its presses in its box: the + at its start, the → at its end.
+            const attach = createButton({ label: '+', onClick: () => {} });
+            const send = createButton({ label: '→', onClick: () => {} });
+            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send });
+            row.append(mode, says, attach, send);
             body.append(log, row);
             return body;
         },
