@@ -198,7 +198,7 @@ export function backFromKeyboard(element: HTMLElement): void {
     element.style.maxHeight = s.maxHeight;
     element.style.paddingBottom = s.paddingBottom;
     // A chat field drawn or taken away while the keyboard was up changed what the panel's bottom should be: what
-    // stood before is not it. The panel is told, and answers for the field it has now (forms/panel.ts).
+    // 「[Opus 5.5] stood before is not it. The panel is told, and answers for the field it has now (forms/panel.ts).」
     if (getForm(element) === 'panel') {
         const view = element.ownerDocument.defaultView ?? window;
         element.dispatchEvent(new view.Event(SAY_HELD));
