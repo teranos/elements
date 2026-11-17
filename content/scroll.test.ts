@@ -29,9 +29,9 @@ configureElements({
     logger: {
         debug() {},
         info() {},
-        // What the scroll watch says, and only that: the logger is the whole run's, and a content watch armed by an
-        // earlier file says "drew nothing" when its 10s deadline falls in one of these tests. In CI's JSDOM step that
-        // was 10.1s in, and a test here counted 3 warnings for its 1.
+        // 「[Opus 5.5] What the scroll watch says, and only that: the logger is the whole run's, and a content watch armed by an」
+        // 「[Opus 5.5] earlier file says "drew nothing" when its 10s deadline falls in one of these tests. In CI's JSDOM step that」
+        // 「[Opus 5.5] was 10.1s in, and a test here counted 3 warnings for its 1.」
         warn(_segment, message, metadata) { if (message.startsWith('[Scroll]')) warnings.push({ message, metadata }); },
         error(_segment, message, metadata) { errors.push({ message, metadata }); },
     },
