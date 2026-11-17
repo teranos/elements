@@ -1,15 +1,15 @@
 /**
- * Pill Form — an element resting as a pill in an input field, across its row when pressed.
+ * 「[Opus 5.5] Pill Form — an element resting as a pill in an input field, across its row when pressed.」
  *
  * "Why doesn't it behave like an element form? Not as an overlay, but as a generalised 'pills above inputfields'
- * form?" "In elemental form, everything has an answer." "The input field pill should be inside of inputfield form, and
- * it taking focus should let kb stay in place." "I want inputfield to still be there." Pressed, the pill is the same
- * element across its row, what it holds in it, what else is in the row aside; the field stays, with the focus.
+ * 「[Opus 5.5] form?" "In elemental form, everything has an answer." "The input field pill should be inside of inputfield form, and」
+ * 「[Opus 5.5] it taking focus should let kb stay in place." "I want inputfield to still be there." Pressed, the pill is the same」
+ * 「[Opus 5.5] element across its row, what it holds in it, what else is in the row aside; the field stays, with the focus.」
  *
- * Personas:
- * - Tim: Happy path — at rest a pill in the row; pressed, across the row, the field still there; let go, a pill again
- * - Spike: Edge cases — no field yet, Escape, a press outside, a press while it moves
- * - Jenny: Complex scenarios — one element through every form, what it holds drawn once, renamed while open
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — at rest a pill in the row; pressed, across the row, the field still there; let go, a pill again」
+ * 「[Opus 5.5] - Spike: Edge cases — no field yet, Escape, a press outside, a press while it moves」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — one element through every form, what it holds drawn once, renamed while open」
  */
 
 import { describe, test, expect, afterEach } from 'bun:test';
@@ -131,7 +131,7 @@ describe('Tim: a pill', () => {
 });
 
 // "it taking focus should let kb stay in place": a press is a pointerdown first, and a pointerdown is where the
-// focus moves; on the pill, it does not.
+// 「[Opus 5.5] focus moves; on the pill, it does not.」
 describe('Spike: a press on it', () => {
     test('takes no focus from the field, at rest or open', async () => {
         const { pill } = rowWithField();
@@ -163,7 +163,7 @@ describe('Spike: how it is left, and when it is not', () => {
         expect(getForm(pill.element)).toBe('pill');
     });
 
-    // Open, it takes no focus: the field has it, and Escape is said there.
+    // 「[Opus 5.5] Open, it takes no focus: the field has it, and Escape is said there.」
     test('Escape lets it go, said in the field', async () => {
         const { pill, field } = rowWithField();
         field.focus();
@@ -174,7 +174,7 @@ describe('Spike: how it is left, and when it is not', () => {
         expect(getForm(pill.element)).toBe('pill');
     });
 
-    // Seen in xenon: the Escape that let the pill go also reached the panel, and the panel went to the tray.
+    // 「[Opus 5.5] Seen in xenon: the Escape that let the pill go also reached the panel, and the panel went to the tray.」
     test('the Escape that lets it go is its own: nothing else hears it', async () => {
         const { pill, field } = rowWithField();
         let heard = 0;
@@ -190,7 +190,7 @@ describe('Spike: how it is left, and when it is not', () => {
         expect(heard).toBe(0);
     });
 
-    // Seen in the suite: a pill left open and taken off the page swallowed every Escape after it.
+    // 「[Opus 5.5] Seen in the suite: a pill left open and taken off the page swallowed every Escape after it.」
     test('taken off the page while open, it hears no Escape', async () => {
         const { pill } = rowWithField();
         pill.element.click();
@@ -224,8 +224,8 @@ describe('Spike: how it is left, and when it is not', () => {
     });
 });
 
-// CodeRabbit on #115: "Keep dismissal requests made during opening." "Complete the rest state when the return morph is
-// rejected." "Do not restore composer focus after an outside focus change."
+// 「[Opus 5.5] CodeRabbit on #115: "Keep dismissal requests made during opening." "Complete the rest state when the return morph is」
+// 「[Opus 5.5] rejected." "Do not restore composer focus after an outside focus change."」
 describe('Spike: let go while it moves, and its road back cut short', () => {
     test('let go while it is still opening, it goes back once it is open', async () => {
         const { pill, row } = rowWithField();
@@ -288,28 +288,28 @@ describe('Spike: let go while it moves, and its road back cut short', () => {
     });
 });
 
-// Seen on the moving frame of a screenshot: nothing. On its road it is on the page, and the panel it rests in was in
-// front of it.
+// 「[Opus 5.5] Seen on the moving frame of a screenshot: nothing. On its road it is on the page, and the panel it rests in was in」
+// 「[Opus 5.5] front of it.」
 describe('Jenny: on its road', () => {
     test('it is in front of the element it rests in', async () => {
         const { pill } = rowWithField();
         const holder = pill.element.closest<HTMLElement>('[data-element-id="xenon"]')!;
         holder.style.position = 'fixed';
         holder.style.zIndex = '1000';
-        // A road that does not end at once: the moving frame is looked at.
+        // 「[Opus 5.5] A road that does not end at once: the moving frame is looked at.」
         stillMoving(pill.element);
         pill.element.click();
         expect(Number(pill.element.style.zIndex)).toBeGreaterThan(1000);
         cancelMorph(pill.element);
-        // Cut short across, it starts back: that road is cut short too, so nothing is left moving.
+        // 「[Opus 5.5] Cut short across, it starts back: that road is cut short too, so nothing is left moving.」
         await settled();
         cancelMorph(pill.element);
         await settled();
     });
 });
 
-// Seen on the moving frame: square, its options smaller. Lifted onto the bare page, it was no longer in its element,
-// and what the package says of what is in an element no longer said it of this.
+// 「[Opus 5.5] Seen on the moving frame: square, its options smaller. Lifted onto the bare page, it was no longer in its element,」
+// 「[Opus 5.5] and what the package says of what is in an element no longer said it of this.」
 describe('Jenny: on its road, still in its element', () => {
     test('it is held by the body of the element it rests in', async () => {
         const { pill, row } = rowWithField();
@@ -320,15 +320,15 @@ describe('Jenny: on its road, still in its element', () => {
         expect(pill.element.parentElement).toBe(body);
         expect(pill.element.style.position).toBe('fixed');
         cancelMorph(pill.element);
-        // Cut short across, it starts back: that road is cut short too, so nothing is left moving.
+        // 「[Opus 5.5] Cut short across, it starts back: that road is cut short too, so nothing is left moving.」
         await settled();
         cancelMorph(pill.element);
         await settled();
     });
 });
 
-// Seen on the moving frame: the row's presses folded at the first frame, the input field shrank, and the pill on its
-// road lay over the words. They keep their room, unseen, until it is across the row.
+// 「[Opus 5.5] Seen on the moving frame: the row's presses folded at the first frame, the input field shrank, and the pill on its」
+// 「[Opus 5.5] road lay over the words. They keep their room, unseen, until it is across the row.」
 describe('Jenny: on its road, the row keeps its room', () => {
     test('what else is in the row is unseen while it moves, and stands aside once it is there', async () => {
         const { pill, plus } = rowWithField();
@@ -337,7 +337,7 @@ describe('Jenny: on its road, the row keeps its room', () => {
         expect(plus.style.getPropertyValue('visibility')).toBe('hidden');
         expect(plus.style.getPropertyValue('display')).toBe('');
         cancelMorph(pill.element);
-        // Cut short across, it starts back: that road is cut short too, so nothing is left moving.
+        // 「[Opus 5.5] Cut short across, it starts back: that road is cut short too, so nothing is left moving.」
         await settled();
         cancelMorph(pill.element);
         await settled();
@@ -371,8 +371,8 @@ describe('Jenny: one element, all the way', () => {
     });
 });
 
-// Seen on the moving frame: past the right edge. The open form's width, written important, outranked the road's: it
-// was as wide as the screen from the first frame. Its shape holds once it is there; on the road the road says how big.
+// 「[Opus 5.5] Seen on the moving frame: past the right edge. The open form's width, written important, outranked the road's: it」
+// 「[Opus 5.5] was as wide as the screen from the first frame. Its shape holds once it is there; on the road the road says how big.」
 describe('Spike: on its road, its size is the road\'s', () => {
     test('the form\'s shape is for an element that is not moving', () => {
         const rule = fitRule('[data-element-id]');
@@ -384,8 +384,8 @@ describe('Spike: on its road, its size is the road\'s', () => {
     });
 });
 
-// Seen in xenon: let go, its words on two lines. Resting, it is written afresh, and what was written on it to keep it
-// as wide as its words was gone; the strip squeezed it. It is the package's rule, not something written on it once.
+// 「[Opus 5.5] Seen in xenon: let go, its words on two lines. Resting, it is written afresh, and what was written on it to keep it」
+// 「[Opus 5.5] as wide as its words was gone; the strip squeezed it. It is the package's rule, not something written on it once.」
 describe('Spike: in a strip of pills, as wide as its words', () => {
     test('the rule keeps a pill in its strip from being squeezed, whatever is written on it', () => {
         const rule = fitRule('[data-element-id]');
