@@ -1,15 +1,15 @@
 /**
- * The presses in an element's title bar, in a real browser.
+ * 「[Opus 5.5] The presses in an element's title bar, in a real browser.」
  *
  * "NO MORE SQUEEZED BUTTONS PLEASE, the header. Uttons of elements have the same issue". "Those buttons are supposed
- * to be square and equally sized and margin and alignment within the header". "You can see how it's broken in what
- * should have been the exemplar": Uranium's ⬆ was 17 by 22, Helium's and Cobalt's − 12 by 22, each as wide as its
- * glyph.
+ * 「[Opus 5.5] to be square and equally sized and margin and alignment within the header". "You can see how it's broken in what」
+ * 「[Opus 5.5] should have been the exemplar": Uranium's ⬆ was 17 by 22, Helium's and Cobalt's − 12 by 22, each as wide as its」
+ * 「[Opus 5.5] glyph.」
  *
- * Personas:
- * - Tim: Happy path — every press in a title bar is a square, all the same size
- * - Spike: Edge cases — a host's own press beside the package's: the same square, in the same row
- * - Jenny: Complex scenarios — at the end of the bar, as far in from its edge as from its top and bottom, evenly apart
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — every press in a title bar is a square, all the same size」
+ * 「[Opus 5.5] - Spike: Edge cases — a host's own press beside the package's: the same square, in the same row」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — at the end of the bar, as far in from its edge as from its top and bottom, evenly apart」
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -42,7 +42,7 @@ async function opened(page: Page, symbols: string[]) {
         const element = page.locator(`[data-element-id="${id}"]`);
         await element.click();
         await expect(element).not.toHaveAttribute('data-form', 'dot');
-        // Opened, its controls are in its bar.
+        // 「[Opus 5.5] Opened, its controls are in its bar.」
         await expect(element.locator('.title-bar .window-controls button').first()).toBeVisible();
         await expect.poll(() => page.evaluate(() => document.querySelector('.morphing') === null)).toBe(true);
     }
@@ -93,7 +93,7 @@ test.describe('Jenny: where they stand in the bar', () => {
     });
 });
 
-// Seen on the squares: the − above their middle. A glyph sits where its font puts it; the package draws its own.
+// 「[Opus 5.5] Seen on the squares: the − above their middle. A glyph sits where its font puts it; the package draws its own.」
 test.describe('Jenny: what the package\'s presses say', () => {
     test('is drawn in the middle of each square', async ({ page }) => {
         await opened(page, ['He', 'Co']);
