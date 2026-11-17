@@ -1,16 +1,16 @@
 /**
- * Every text an example draws is readable: WCAG contrast of 4.5 to 1 against what it is drawn on.
+ * 「[Opus 5.5] Every text an example draws is readable: WCAG contrast of 4.5 to 1 against what it is drawn on.」
  *
  * "Text is not readable like this", "Could you enforce contrast and readability linting for the example?": what was
- * typed into xenon's chat field was black on black. "I intend on future sessions to look at the elements work and
- * accept it as exemplary. Like a pattern to copy and use." So every example is opened, every field is typed into, and
- * every text it then shows, its words, what is typed and what a field says before anything is, is held to 4.5: every
- * size here is small text (text.ts).
+ * 「[Opus 5.5] typed into xenon's chat field was black on black. "I intend on future sessions to look at the elements work and」
+ * 「[Opus 5.5] accept it as exemplary. Like a pattern to copy and use." So every example is opened, every field is typed into, and」
+ * 「[Opus 5.5] every text it then shows, its words, what is typed and what a field says before anything is, is held to 4.5: every」
+ * 「[Opus 5.5] size here is small text (text.ts).」
  *
- * Personas:
- * - Tim: Happy path — the page at rest, every text on it readable
- * - Spike: Edge cases — what is typed into a field, and its placeholder, are text too
- * - Jenny: Complex scenarios — each example opened from the tray, one at a time, read whole
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — the page at rest, every text on it readable」
+ * 「[Opus 5.5] - Spike: Edge cases — what is typed into a field, and its placeholder, are text too」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — each example opened from the tray, one at a time, read whole」
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -24,7 +24,7 @@ async function unreadable(page: Page, scope: string): Promise<Unreadable[]> {
     return page.evaluate(([scope, least]) => {
         type RGBA = [number, number, number, number];
         const parse = (c: string): RGBA => {
-            // A mixed colour comes back in its own space: color(srgb r g b / a), each from 0 to 1.
+            // 「[Opus 5.5] A mixed colour comes back in its own space: color(srgb r g b / a), each from 0 to 1.」
             const srgb = c.match(/color\(srgb\s+([^)]+)\)/);
             if (srgb) {
                 const p = srgb[1]!.split(/[\s/]+/).filter(Boolean).map(Number);
@@ -35,16 +35,16 @@ async function unreadable(page: Page, scope: string): Promise<Unreadable[]> {
             const p = m[1]!.split(/[\s,/]+/).filter(Boolean).map(Number);
             return [p[0]!, p[1]!, p[2]!, p[3] ?? 1];
         };
-        // A colour laid over another, as a browser composites it.
+        // 「[Opus 5.5] A colour laid over another, as a browser composites it.」
         const over = (top: RGBA, under: RGBA): RGBA => {
             const a = top[3] + under[3] * (1 - top[3]);
             if (a === 0) return [0, 0, 0, 0];
             const mix = (i: number) => (top[i]! * top[3] + under[i]! * under[3] * (1 - top[3])) / a;
             return [mix(0), mix(1), mix(2), a];
         };
-        // CodeRabbit on #115: "Composite opacity groups before calculating contrast." What an element holds is drawn
-        // over its own background, then the whole is faded by its opacity and laid over what is under it: one picture
-        // per element, from the text out to the page.
+        // 「[Opus 5.5] CodeRabbit on #115: "Composite opacity groups before calculating contrast." What an element holds is drawn」
+        // 「[Opus 5.5] over its own background, then the whole is faded by its opacity and laid over what is under it: one picture」
+        // 「[Opus 5.5] per element, from the text out to the page.」
         const drawn = (node: Element, top: RGBA): RGBA => {
             let acc = top;
             for (let n: Element | null = node; n; n = n.parentElement) {
@@ -85,7 +85,7 @@ async function unreadable(page: Page, scope: string): Promise<Unreadable[]> {
                     if (el instanceof HTMLInputElement && ['checkbox', 'radio', 'range', 'color', 'file', 'hidden'].includes(el.type)) continue;
                     const placeholder = el.placeholder;
                     if (placeholder) check(el, placeholder, parse(getComputedStyle(el, '::placeholder').color));
-                    // What is typed is text too: put some in, read it, take it out.
+                    // 「[Opus 5.5] What is typed is text too: put some in, read it, take it out.」
                     const had = el.value;
                     el.value = 'readable?';
                     check(el, el.value, parse(getComputedStyle(el).color));
@@ -130,7 +130,7 @@ test.describe('Spike: a field', () => {
         await expect.poll(() => xenon.evaluate((el) => el.dataset.form !== 'dot' && !el.classList.contains('morphing'))).toBe(true);
         await page.locator('[data-element-id="chat-specimen"] [data-say]').focus();
         expect(await unreadable(page, '[data-element-id="chat-specimen"] [data-choices]')).toEqual([]);
-        // Each pill open, as it is read there.
+        // 「[Opus 5.5] Each pill open, as it is read there.」
         for (const id of ['xenon-choices', 'xenon-repositories']) {
             const pill = page.locator(`[data-choices="${id}"]`);
             await pill.click();
@@ -156,7 +156,7 @@ test.describe('Spike: a field', () => {
     });
 });
 
-// Held, a press says why it is held when pressed; it is still read: "A colour that fails it is fixed, never excused."
+// 「[Opus 5.5] Held, a press says why it is held when pressed; it is still read: "A colour that fails it is fixed, never excused."」
 test.describe('Spike: a press held back', () => {
     test('selenium\'s Invite, held, is readable', async ({ page }) => {
         const selenium = page.locator('[data-element-id="field-specimen"], .dot[data-symbol="Se"]').first();
@@ -169,8 +169,8 @@ test.describe('Spike: a press held back', () => {
     });
 });
 
-// CodeRabbit on #115: "Composite opacity groups before calculating contrast." An element's opacity fades it and all it
-// holds as one picture: white on black at 0.6 over a white page reads 5.74 to 1, not the 3.22 a second fading gives.
+// 「[Opus 5.5] CodeRabbit on #115: "Composite opacity groups before calculating contrast." An element's opacity fades it and all it」
+// 「[Opus 5.5] holds as one picture: white on black at 0.6 over a white page reads 5.74 to 1, not the 3.22 a second fading gives.」
 test.describe('Spike: what opacity does', () => {
     const fixture = (page: Page, opacity: number) => page.evaluate((o) => {
         document.getElementById('opacity-fixture')?.remove();
@@ -207,7 +207,7 @@ test.describe('Jenny: every example, opened', () => {
             const el = page.locator(`[data-element-id="${id}"]`);
             await el.waitFor();
             await el.click();
-            // What it opens as, settled; one that stays a dot is read as a dot.
+            // 「[Opus 5.5] What it opens as, settled; one that stays a dot is read as a dot.」
             await expect.poll(() => el.evaluate((node) => !node.classList.contains('morphing')), { timeout: 5000 }).toBe(true);
             await page.waitForTimeout(300);
             const bad = await unreadable(page, `[data-element-id="${id}"]`);
