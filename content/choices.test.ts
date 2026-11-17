@@ -1,15 +1,15 @@
 /**
- * The choices a chat says with: one element in Pill Form.
+ * 「[Opus 5.5] The choices a chat says with: one element in Pill Form.」
  *
  * "Why not do it like anthropic does, where its a combined model+effort pill", "We don't need to show the picker
- * always", "Not as an overlay, but as a generalised 'pills above inputfields' form". At rest it says what is chosen,
- * joined (`Opus 5.5 · high`). Pressed, it takes its field's place with each choice's options, no words over them. An
- * option taken is what it says; it rests above the field again, and the field has the words.
+ * 「[Opus 5.5] always", "Not as an overlay, but as a generalised 'pills above inputfields' form". At rest it says what is chosen,」
+ * 「[Opus 5.5] joined (`Opus 5.5 · high`). Pressed, it takes its field's place with each choice's options, no words over them. An」
+ * 「[Opus 5.5] option taken is what it says; it rests above the field again, and the field has the words.」
  *
- * Personas:
- * - Tim: Happy path — it says what is chosen; pressed, its options in the field's place; one taken, it says that
- * - Spike: Edge cases — no choices, a value not among its options
- * - Jenny: Complex scenarios — beside a say field: hidden at rest, there while typing, kept while it is open
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — it says what is chosen; pressed, its options in the field's place; one taken, it says that」
+ * 「[Opus 5.5] - Spike: Edge cases — no choices, a value not among its options」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — beside a say field: hidden at rest, there while typing, kept while it is open」
  */
 
 import { describe, test, expect, afterEach } from 'bun:test';
@@ -117,7 +117,7 @@ describe('Tim: a choice of many, the attached repositories', () => {
         option(choices, 'QNTX').click();
         await settled();
         expect(option(choices, 'QNTX').getAttribute('aria-pressed')).toBe('false');
-        // Told what was taken, and what is attached now, in the order they are offered.
+        // 「[Opus 5.5] Told what was taken, and what is attached now, in the order they are offered.」
         expect(told).toEqual([['Repositories', 'ground', ['QNTX', 'elements', 'ground']], ['Repositories', 'QNTX', ['elements', 'ground']]]);
     });
 
