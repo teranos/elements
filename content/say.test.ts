@@ -76,7 +76,7 @@ describe('Jenny: a field drawn after the element opened', () => {
 });
 
 // "This i want", "I want this only", "LOOK AT THIS THE SHAPE": the Claude app's composer. One pill, the + at its start,
-// what is typed, the → at its end, on one line.
+// 「[Opus 5.5] what is typed, the → at its end, on one line.」
 describe('Tim: a field with its presses', () => {
     test('is one pill: the + first, the words, the → last; what else the host put there stays in the row', () => {
         const element = document.createElement('div');
@@ -102,7 +102,7 @@ describe('Tim: a field with its presses', () => {
         expect(box.style.getPropertyValue('align-items')).toBe('center');
         expect(box.style.getPropertyValue('padding')).toBe(`${SAY_INSET}px`);
         expect(choice.parentElement).toBe(row);
-        // The words take what the presses leave, in their place between them.
+        // 「[Opus 5.5] The words take what the presses leave, in their place between them.」
         expect(field.style.getPropertyValue('order')).toBe('0');
         expect(field.style.getPropertyValue('flex')).toBe('1 1 auto');
     });
@@ -126,7 +126,7 @@ describe('Tim: a field with its presses', () => {
 });
 
 // "Inputfield an element yes, new form, inputfield." "The input field pill should be inside of inputfield form."
-// Claude's composer with a pill in it: the words on top, under them a row of the +, the pill, and the → at the end.
+// 「[Opus 5.5] Claude's composer with a pill in it: the words on top, under them a row of the +, the pill, and the → at the end.」
 describe('Tim: an input field', () => {
     function inputField(withPill: boolean) {
         const element = document.createElement('div');
@@ -155,11 +155,11 @@ describe('Tim: an input field', () => {
     });
 
     // "The pills should be above, and outside of inputfield area", as the Claude app's are: the input field is one line,
-    // the + first, the words, the → last; its pills in a strip of their own above it, in the order given.
+    // 「[Opus 5.5] the + first, the words, the → last; its pills in a strip of their own above it, in the order given.」
     test('with pills: the input field one line; its pills in a strip above it, outside it, in order', () => {
         const { field, attach, send, pill, other, box } = inputField(true);
         expect(box.dataset.form).toBe('inputfield');
-        // Named, not compared as nodes: a node that differs is printed whole, with all it holds.
+        // 「[Opus 5.5] Named, not compared as nodes: a node that differs is printed whole, with all it holds.」
         const named = new Map<unknown, string>([[attach, '+'], [field, 'words'], [send, '→'], [pill, 'pill'], [other, 'other']]);
         expect(Array.from(box.children).map((n) => named.get(n) ?? '?')).toEqual(['+', 'words', '→']);
         const strip = box.previousElementSibling as HTMLElement;
@@ -197,8 +197,8 @@ describe('Tim: an input field', () => {
     });
 });
 
-// CodeRabbit on #115: "Evaluate pill visibility when the listeners are installed." "Move the pill strip with an existing
-// inputfield box."
+// 「[Opus 5.5] CodeRabbit on #115: "Evaluate pill visibility when the listeners are installed." "Move the pill strip with an existing」
+// 「[Opus 5.5] inputfield box."」
 describe('Spike: pills of a field that already says something, or has moved', () => {
     test('a field declared with words in it shows its pills', () => {
         const field = document.createElement('textarea');
