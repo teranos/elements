@@ -28,7 +28,7 @@ export function renderChatSpecimen(): void {
                 line.textContent = `line ${i} · ${i % 2 ? 'you' : 'xenon'} said something`;
                 log.appendChild(line);
             }
-            // The row a chat says from, as a host draws it.
+            // 「[Opus 5.5] The row a chat says from, as a host draws it.」
             const row = document.createElement('div');
             row.style.display = 'flex';
             row.style.gap = '4px';
@@ -54,7 +54,7 @@ export function renderChatSpecimen(): void {
             // "the inputfield take up the entire bottom of the screen for chat elements"
             // The package's chat field, which takes that bottom (#40).
             // Its presses in its box: the + at its start, the → at its end.
-            // Drawn, as a host's are: a press in the pill is SAY_PRESS square whatever it holds.
+            // 「[Opus 5.5] Drawn, as a host's are: a press in the pill is SAY_PRESS square whatever it holds.」
             const icon = (label: string, path: string) => {
                 const press = document.createElement('button');
                 press.setAttribute('aria-label', label);
