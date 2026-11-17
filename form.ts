@@ -106,19 +106,19 @@ export interface FormTable {
 
     /**
      * "a generalised 'pills above inputfields' form". forms/pill.ts: resting as a pill above an input field, saying
-     * what it is. Never in the tray.
+     * 「[Opus 5.5] what it is. Never in the tray.」
      */
     readonly pill: { readonly opensFromTray: false };
 
     /**
-     * The pill pressed: the same element in its field's place, what it holds in it, "we would not be using the
-     * inputfield while in the pill choosing something". forms/pill.ts; let go, it is the pill again.
+     * 「[Opus 5.5] The pill pressed: the same element in its field's place, what it holds in it, "we would not be using the」
+     * 「[Opus 5.5] inputfield while in the pill choosing something". forms/pill.ts; let go, it is the pill again.」
      */
     readonly pillOpen: { readonly opensFromTray: false };
 
     /**
      * "Inputfield an element yes, new form, inputfield": the field something is said from, with its presses and its
-     * pills, one element. content/say.ts. Never in the tray.
+     * 「[Opus 5.5] pills, one element. content/say.ts. Never in the tray.」
      */
     readonly inputfield: { readonly opensFromTray: false };
 }
