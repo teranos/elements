@@ -210,8 +210,8 @@ describe('Spike: what is a second scroller, and what is not', () => {
         expect(column.dataset.scroller).toBe('undeclared');
     });
 
-    // Seen in xenon: what waits, a pill in its input field, holds a list scrolled in itself. The pill is an element of
-    // its own: its scroller is its own, and the chat's body still scrolls what was said.
+    // 「[Opus 5.5] Seen in xenon: what waits, a pill in its input field, holds a list scrolled in itself. The pill is an element of」
+    // 「[Opus 5.5] its own: its scroller is its own, and the chat's body still scrolls what was said.」
     test('a scroller declared in an element it holds is that element\'s: the body still scrolls', () => {
         const content = div('chat');
         content.appendChild(div('log', 'what was said'));
@@ -533,8 +533,8 @@ describe('Jenny: dead while too wide, alive once it fits', () => {
     });
 });
 
-// CodeRabbit on #115: "Include the declared node in the ownership lookup." An element held in another, which is itself
-// its declared scroller, is that element's: not the one that holds it.
+// 「[Opus 5.5] CodeRabbit on #115: "Include the declared node in the ownership lookup." An element held in another, which is itself」
+// 「[Opus 5.5] its declared scroller, is that element's: not the one that holds it.」
 describe('Spike: an element held in another that is its own scroller', () => {
     test('is not the scroller of the element that holds it', () => {
         const outer = document.createElement('div');
