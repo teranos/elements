@@ -1,7 +1,7 @@
 // Approvals: what waits on a human, shown as a list to go through. Every press
 // sends, and the other option sends again. What the host decides with them is
 // the host's.
-// Personas: Tim (options shown, a press sends, the roll's order),
+// 「[Opus 5.5] Personas: Tim (options shown, a press sends, the roll's order),」
 // Spike (checks running or failed, a step that settles now, a press that sends
 // nothing), Jenny (the PR story: merge, force, cancel, main's CI done).
 
@@ -62,7 +62,7 @@ const isColor = (got: string, hex: string): boolean => {
 };
 
 const buttons = (card: HTMLElement) => Array.from(card.querySelectorAll<HTMLButtonElement>('button'));
-// An option is named by its label, whether it shows it as words or draws its mark.
+// 「[Opus 5.5] An option is named by its label, whether it shows it as words or draws its mark.」
 const button = (card: HTMLElement, label: string) => buttons(card).find((b) => b.getAttribute('aria-label') === label)!;
 /** Whether it shows it is waiting: its spinner, there always, shown or not. */
 const spinning = (btn: HTMLButtonElement) => btn.querySelector<HTMLElement>('[data-waiting]')!.style.display !== 'none';
@@ -148,8 +148,8 @@ describe('Tim: what an option says, drawn', () => {
         expect(note(button(card, 'Yes'))).not.toMatch(/\d+s/);
     });
 
-    // CodeRabbit on #115: "Reference the action note from each option button with `aria-describedby`." Named by its label,
-    // what it says under it is read out only when the button points at it.
+    // 「[Opus 5.5] CodeRabbit on #115: "Reference the action note from each option button with `aria-describedby`." Named by its label,」
+    // 「[Opus 5.5] what it says under it is read out only when the button points at it.」
     test('what an option says under its label is read out with it', () => {
         const { card } = roll.add(merge('Merge PR #29'));
         button(card, 'Merge').click();
@@ -160,8 +160,8 @@ describe('Tim: what an option says, drawn', () => {
         expect(other).not.toBe(merged.getAttribute('aria-describedby'));
     });
 
-    // CodeRabbit on #115: once a button points at its note, its title is no longer read as its description, and the note
-    // is empty while checks run. What the spinner and the bar say is read out with the note.
+    // 「[Opus 5.5] CodeRabbit on #115: once a button points at its note, its title is no longer read as its description, and the note」
+    // 「[Opus 5.5] is empty while checks run. What the spinner and the bar say is read out with the note.」
     test('what it waits on, and the time left, are read out with it', () => {
         const desc = (b: HTMLButtonElement) => (b.getAttribute('aria-describedby') ?? '').split(/\s+/)
             .map((id) => document.getElementById(id)?.textContent ?? '').join(' ');
@@ -184,7 +184,7 @@ describe('Spike: not yet, not at all, and nothing more', () => {
     test('checks still running: nothing can be pressed, and the buttons say so', () => {
         const { card } = roll.add(merge('Merge PR #29', { checks: [{ name: 'TypeScript', state: 'done' }, { name: 'Browser', state: 'running' }] }));
         expect(button(card, 'Merge').disabled).toBe(true);
-        // Waiting is a spinner, as everywhere: said to a screen reader, not in words on the button.
+        // 「[Opus 5.5] Waiting is a spinner, as everywhere: said to a screen reader, not in words on the button.」
         expect(spinning(button(card, 'Merge'))).toBe(true);
         expect(button(card, 'Merge').title).toBe('checks running');
         expect(note(button(card, 'Merge'))).toBe('');
@@ -192,7 +192,7 @@ describe('Spike: not yet, not at all, and nothing more', () => {
         expect(pressed).toEqual([]);
     });
 
-    // CodeRabbit on #115: faded to 0.4, what an option says read under 4.5 to 1. Not yet, it is drawn in HELD.
+    // 「[Opus 5.5] CodeRabbit on #115: faded to 0.4, what an option says read under 4.5 to 1. Not yet, it is drawn in HELD.」
     test('not yet, it is drawn in HELD, not faded', () => {
         const { card } = roll.add(yesNo('Raise the interval', 1, { checks: [{ name: 'Browser', state: 'running' }], options: [{ label: 'Skip' }, { label: 'Stop' }] }));
         expect(button(card, 'Skip').style.opacity).toBe('1');
@@ -248,7 +248,7 @@ describe('Jenny: the PR story', () => {
         button(card, 'Merge').click();
         expect(note(button(card, 'Merge'))).toContain('merge when main CI passes');
         expect(note(button(card, 'Merge'))).toContain('again: force merge');
-        // What it waits on is a spinner in the button, named for a screen reader.
+        // 「[Opus 5.5] What it waits on is a spinner in the button, named for a screen reader.」
         expect(spinning(button(card, 'Merge'))).toBe(true);
         expect(button(card, 'Merge').title).toBe('waiting on main CI');
         button(card, 'Merge').click();
