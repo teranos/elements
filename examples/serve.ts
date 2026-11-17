@@ -15,6 +15,17 @@ Bun.serve({
     async fetch(req) {
         const path = new URL(req.url).pathname;
 
+        // The package itself, for a browser test that builds what no example does.
+        if (path === '/package.js') {
+            const built = await Bun.build({ entrypoints: [join(dir, '..', 'index.ts')], sourcemap: 'inline' });
+            if (!built.success) {
+                return new Response(built.logs.join('\n'), { status: 500 });
+            }
+            return new Response(await built.outputs[0].text(), {
+                headers: { 'Content-Type': 'text/javascript' },
+            });
+        }
+
         if (path === '/main.js') {
             const built = await Bun.build({ entrypoints: [join(dir, 'main.ts')], sourcemap: 'inline' });
             if (!built.success) {

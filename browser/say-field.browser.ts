@@ -270,3 +270,27 @@ test.describe('Jenny: the field changes while the panel is open', () => {
         expect(kept.body).toBeCloseTo(8, 0);
     });
 });
+
+// CodeRabbit on #115: "Preserve focus when pills trigger field wrapping." Moved in the page, a field that has the focus
+// loses it in a real browser; wrapped in its input field, it keeps it, and where the caret was.
+test.describe('Spike: a field that has the focus when its pills are given', () => {
+    test('keeps the focus and the caret when it is wrapped', async ({ page }) => {
+        const kept = await page.evaluate(async () => {
+            const { declareSay, renderContent } = await import('/package.js' as string);
+            // As QNTX-Web's Node Agent does: the field is put in, focused, and declared after.
+            const field = document.createElement('textarea');
+            field.value = 'half a sentence';
+            const element = document.createElement('div');
+            element.dataset.elementId = 'focus-specimen';
+            document.body.appendChild(element);
+            renderContent(element, { id: 'focus-specimen', title: 'Focus', renderContent: () => field }, 'Test');
+            field.focus();
+            field.setSelectionRange(4, 6);
+            declareSay(field, { pills: [document.createElement('div')] });
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            return { wrapped: field.parentElement?.dataset.sayBox === '', focused: document.activeElement === field, at: [field.selectionStart, field.selectionEnd] };
+        });
+        expect(kept).toEqual({ wrapped: true, focused: true, at: [4, 6] });
+    });
+});
+

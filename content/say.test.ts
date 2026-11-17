@@ -241,6 +241,54 @@ describe('Spike: pills of a field that already says something, or has moved', ()
     });
 });
 
+// CodeRabbit on #115, after #114: "Pin the pill strip together with the input box in the direct-child case." "Remove the
+// pill strip when its inputfield box is removed." "Preserve focus when pills trigger field wrapping."
+describe('Jenny: the pills and their input field, as one', () => {
+    test('a field straight in the body: its pills and its input field are pinned together, the pills above', () => {
+        const { element, body } = chatElement(false);
+        const field = document.createElement('textarea');
+        const choices = document.createElement('div');
+        declareSay(field, { pills: [choices] });
+        body.appendChild(field);
+        holdSay(element);
+        const box = field.parentElement!;
+        const strip = choices.parentElement!;
+        const together = box.parentElement!;
+        expect(together).not.toBe(body);
+        expect(strip.parentElement).toBe(together);
+        expect(strip.nextElementSibling).toBe(box);
+        expect(together.style.getPropertyValue('position')).toBe('sticky');
+    });
+
+    test('its input field taken away, its pills go with it', async () => {
+        const { element, body } = chatElement(false);
+        const field = document.createElement('textarea');
+        const waits = document.createElement('div');
+        declareSay(field, { waiting: [waits] });
+        const row = document.createElement('div');
+        row.appendChild(field);
+        body.appendChild(row);
+        holdSay(element);
+        field.parentElement!.remove();
+        await settled();
+        expect(waits.isConnected).toBe(false);
+    });
+
+    test('a field that has the focus keeps it, and where the caret was, when it is wrapped', () => {
+        const { element, body } = chatElement(false);
+        const field = document.createElement('textarea');
+        field.value = 'half a sentence';
+        body.appendChild(field);
+        field.focus();
+        field.setSelectionRange(4, 6);
+        declareSay(field, { pills: [document.createElement('div')] });
+        holdSay(element);
+        expect(field.parentElement!.dataset.sayBox).toBe('');
+        expect(document.activeElement).toBe(field);
+        expect([field.selectionStart, field.selectionEnd]).toEqual([4, 6]);
+    });
+});
+
 // Qodo on #114: "Switched chats obscure typed text", "Removing a chat field exposes bottom controls". QNTX-Web draws a
 // new chat, its own field, when a harness tab is pressed; a host may take its chat away. The element is held to the
 // field it has now, whichever that is, and told each time it changes.

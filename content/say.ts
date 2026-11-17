@@ -67,6 +67,24 @@ const PILL: Record<string, string> = {
     display: 'flex', 'align-items': 'center', gap: '8px', padding: '8px', 'border-radius': '9999px',
 };
 
+/**
+ * Moves what holds the field, the field keeping the focus and where the caret was: moved in the page, a field loses
+ * the focus in a browser.
+ */
+function keeping(field: HTMLElement, move: () => void): void {
+    const doc = field.ownerDocument;
+    const had = doc.activeElement === field;
+    const text = field as HTMLTextAreaElement;
+    const caret = had && typeof text.selectionStart === 'number'
+        ? [text.selectionStart, text.selectionEnd, text.selectionDirection] as const : null;
+    move();
+    if (!had || doc.activeElement === field) return;
+    field.focus({ preventScroll: true });
+    if (caret) {
+        try { text.setSelectionRange(caret[0], caret[1], caret[2] ?? undefined); } catch { /* a field with no caret */ }
+    }
+}
+
 /** The strip of each input field's pills, above it. */
 const strips = new WeakMap<HTMLElement, HTMLElement>();
 
@@ -131,7 +149,7 @@ export function sayFrom(say: { id: string; label: string } & SayPresses): HTMLTe
 export const SAY_HELD = 'elements:say-held';
 
 /** The field each element is held to now, whichever it is. */
-const holding = new WeakMap<HTMLElement, { field: HTMLElement | null; row: HTMLElement | null }>();
+const holding = new WeakMap<HTMLElement, { field: HTMLElement | null; row: HTMLElement | null; box: HTMLElement | null }>();
 
 /**
  * The field's box holds the field and its presses, nothing else. What a press says after itself (a two-stage press's
@@ -161,7 +179,7 @@ function rowOf(field: HTMLElement): HTMLElement | null {
  */
 export function holdSay(element: HTMLElement): void {
     if (holding.has(element)) return;
-    const hold: { field: HTMLElement | null; row: HTMLElement | null } = { field: null, row: null };
+    const hold: { field: HTMLElement | null; row: HTMLElement | null; box: HTMLElement | null } = { field: null, row: null, box: null };
     holding.set(element, hold);
     const look = () => {
         const field = element.querySelector<HTMLElement>('[data-say]');
@@ -169,8 +187,16 @@ export function holdSay(element: HTMLElement): void {
         const row = field ? rowOf(field) : null;
         if (field === hold.field && row === hold.row) return;
         const changed = field !== hold.field;
+        // Its input field taken away, its pills go with it: none stays that nothing can open.
+        if (changed && hold.box && !hold.box.isConnected) {
+            const strip = strips.get(hold.box);
+            const together = strip?.parentElement;
+            strip?.remove();
+            if (together?.dataset.sayRow === '' && !together.firstElementChild) together.remove();
+        }
         hold.field = field;
         if (field) pinSay(element, field);
+        hold.box = field?.parentElement?.dataset.sayBox === '' ? field.parentElement : null;
         // Its row, once pinned: the same field moved into another row is pinned there too.
         hold.row = field ? rowOf(field) : null;
         if (changed) tell(element);
@@ -193,9 +219,20 @@ function tell(element: HTMLElement): void {
 function pinSay(element: HTMLElement, field: HTMLElement): void {
     if (!field.parentElement) return;
     const box = boxOf(field);
-    const row = box.parentElement;
+    let row = box.parentElement;
     if (!row) return;
     const body = element.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
+    // Straight in the body, with its pills: they and the input field are one row, pinned together, the pills above.
+    const strip = strips.get(box);
+    if ((row === body || row === element) && strip) {
+        const together = field.ownerDocument.createElement('div');
+        together.dataset.sayRow = '';
+        keeping(field, () => {
+            box.before(together);
+            together.append(strip, box);
+        });
+        row = together;
+    }
     // Its own row only: the body or the element is not a row to pin.
     const pinned = row === body || row === element ? box : row;
     if (pinned === row) row.style.setProperty('display', 'flex', 'important');
@@ -225,10 +262,12 @@ function boxOf(field: HTMLElement): HTMLElement {
     // 「[Opus 5.5] It takes the field's line, as the field did.」
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
     for (const [name, value] of Object.entries(PILL)) box.style.setProperty(name, value, 'important');
-    parent.insertBefore(box, field);
-    if (own.start) box.appendChild(own.start);
-    box.appendChild(field);
-    if (own.end) box.appendChild(own.end);
+    keeping(field, () => {
+        parent.insertBefore(box, field);
+        if (own.start) box.appendChild(own.start);
+        box.appendChild(field);
+        if (own.end) box.appendChild(own.end);
+    });
     const pills = pillsOf(own);
     if (pills.length) {
         const strip = field.ownerDocument.createElement('div');
