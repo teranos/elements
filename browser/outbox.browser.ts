@@ -1,15 +1,15 @@
 /**
- * What waits to be said, in a chat's input field, in a real browser.
+ * 「[Opus 5.5] What waits to be said, in a chat's input field, in a real browser.」
  *
  * "IF THERE ARE MESSAGES PENDING TO BE SENT, AS A COLLECTED BATCH, I SEE IT". It was an overlay that, pressed, took the
- * whole screen: "About it taking over everything for no good reason?" "I want you to use the pills for it instead".
- * Pressed, it is across its row: the words, the keyboard and what was said stay where they are; what waits is a short
- * list, each saying what it says, and what is done with it is said once.
+ * 「[Opus 5.5] whole screen: "About it taking over everything for no good reason?" "I want you to use the pills for it instead".」
+ * 「[Opus 5.5] Pressed, it is across its row: the words, the keyboard and what was said stay where they are; what waits is a short」
+ * 「[Opus 5.5] list, each saying what it says, and what is done with it is said once.」
  *
- * Personas:
- * - Tim: Happy path — seen at rest though nothing is being said; pressed, across its row, the chat still there
- * - Spike: Edge cases — Escape lets it go and the chat stays open; nothing left, it is gone
- * - Jenny: Complex scenarios — some taken away, it says how many wait
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — seen at rest though nothing is being said; pressed, across its row, the chat still there」
+ * 「[Opus 5.5] - Spike: Edge cases — Escape lets it go and the chat stays open; nothing left, it is gone」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — some taken away, it says how many wait」
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -65,7 +65,7 @@ test.describe('Tim: what waits', () => {
             return { open: box(open), field: box(field), log: box(log), screen: window.innerHeight };
         }, { xenon: XENON, outbox: OUTBOX });
         // "The pills should be above, and outside of inputfield area": above the words, not over them; what was said is
-        // still seen above it.
+        // 「[Opus 5.5] still seen above it.」
         expect(at.open.bottom).toBeLessThanOrEqual(at.field.top + 1);
         expect(at.log.bottom).toBeGreaterThan(at.log.top);
         // "taking over everything for no good reason": it takes no more than half of what is seen.
@@ -82,7 +82,7 @@ test.describe('Tim: what waits', () => {
         for (const title of ['Send now', 'Later', 'Cancel']) {
             await expect(page.locator(`${OUTBOX} [data-press]`, { hasText: title })).toHaveCount(1);
         }
-        // Said once, on one line: not "huge and split across three rows".
+        // 「[Opus 5.5] Said once, on one line: not "huge and split across three rows".」
         const tops = await page.locator(`${OUTBOX} [data-press]`).evaluateAll((ps) => ps.map((p) => Math.round(p.getBoundingClientRect().top)));
         expect(new Set(tops).size).toBe(1);
     });
@@ -117,7 +117,7 @@ test.describe('Spike: letting it go', () => {
 });
 
 test.describe('Jenny: some taken away', () => {
-    // What is chosen is what Cancel takes; nothing chosen, it takes them all.
+    // 「[Opus 5.5] What is chosen is what Cancel takes; nothing chosen, it takes them all.」
     test('two chosen and cancelled: it says six wait, and stays open for more', async ({ page }) => {
         await open(page);
         await press(page);
@@ -126,7 +126,7 @@ test.describe('Jenny: some taken away', () => {
         await rows.nth(2).click();
         await expect(rows.nth(0)).toHaveAttribute('aria-pressed', 'true');
         const cancel = page.locator(`${OUTBOX} [data-press="xenon-outbox-cancel"]`);
-        // Never sent can't be undone: armed by the first press, done by the second.
+        // 「[Opus 5.5] Never sent can't be undone: armed by the first press, done by the second.」
         await cancel.click();
         await cancel.click();
         await expect(rows).toHaveCount(6);
@@ -136,8 +136,8 @@ test.describe('Jenny: some taken away', () => {
     });
 });
 
-// CodeRabbit on #115: "Capture the cancellation targets before the delay." "Hide the outbox when the action empties it
-// while the pill is already resting."
+// 「[Opus 5.5] CodeRabbit on #115: "Capture the cancellation targets before the delay." "Hide the outbox when the action empties it」
+// 「[Opus 5.5] while the pill is already resting."」
 test.describe('Spike: changed while it is being done', () => {
     test('a row chosen, Cancel pressed, the row let go before it is done: only that row is taken', async ({ page }) => {
         await open(page);
