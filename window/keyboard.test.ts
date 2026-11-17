@@ -459,15 +459,15 @@ describe('Jenny: what else happens while the keyboard is up', () => {
     });
 });
 
-// Qodo on #114: "Chat buttons stay raised above the keyboard". A panel gives the home bar's strip to its chat field
-// (forms/panel.ts); the keyboard covers the home bar, so while it is up the strip is nobody's, and the field's + and →
-// stand on the keyboard, not 34px above it.
+// 「[Opus 5.5] Qodo on #114: "Chat buttons stay raised above the keyboard". A panel gives the home bar's strip to its chat field」
+// 「[Opus 5.5] (forms/panel.ts); the keyboard covers the home bar, so while it is up the strip is nobody's, and the field's + and →」
+// 「[Opus 5.5] stand on the keyboard, not 34px above it.」
 describe('Jenny: a panel whose chat field holds the home bar\'s strip', () => {
     test('the strip is nobody\'s while the keyboard is up, and the field\'s again when it goes', () => {
         const vv = giveVisualViewport();
         const { el, field } = windowWithField(0, SCREEN.height, 'xenon');
         setForm(el, 'panel');
-        // The strip is a chat field's (forms/panel.ts): there is one.
+        // 「[Opus 5.5] The strip is a chat field's (forms/panel.ts): there is one.」
         const say = document.createElement('textarea');
         say.dataset.say = '';
         el.appendChild(say);
@@ -482,9 +482,9 @@ describe('Jenny: a panel whose chat field holds the home bar\'s strip', () => {
     });
 });
 
-// Qodo on #114: "Late chat fields stop short of the edge". A panel's bottom is put back as it stood before the
-// keyboard; a chat field drawn while the keyboard was up changed what that should be. The panel is told when the
-// keyboard goes, and gives the strip again to the field it has now (forms/panel.ts).
+// 「[Opus 5.5] Qodo on #114: "Late chat fields stop short of the edge". A panel's bottom is put back as it stood before the」
+// 「[Opus 5.5] keyboard; a chat field drawn while the keyboard was up changed what that should be. The panel is told when the」
+// 「[Opus 5.5] keyboard goes, and gives the strip again to the field it has now (forms/panel.ts).」
 describe('Jenny: a chat field drawn while the keyboard is up', () => {
     test('when the keyboard goes, the panel is told, to give its strip to the field it has now', () => {
         const vv = giveVisualViewport();
@@ -505,8 +505,8 @@ describe('Jenny: a chat field drawn while the keyboard is up', () => {
     });
 });
 
-// Qodo on #114: "A chat removed with the keyboard up leaves controls over the home bar". The panel is told when the
-// keyboard goes whether it has a chat field now or not: it gives the strip to the field, or keeps it itself.
+// 「[Opus 5.5] Qodo on #114: "A chat removed with the keyboard up leaves controls over the home bar". The panel is told when the」
+// 「[Opus 5.5] keyboard goes whether it has a chat field now or not: it gives the strip to the field, or keeps it itself.」
 describe('Jenny: a chat field taken away while the keyboard is up', () => {
     test('when the keyboard goes, the panel is told, to keep the home bar\'s strip itself', () => {
         const vv = giveVisualViewport();
