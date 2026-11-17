@@ -425,7 +425,7 @@ export function makeDraggable(
     };
 
     handle.addEventListener('mousedown', (e) => {
-        // A press, or what a press draws (Uranium's ⬆, a host's icon), is the press's.
+        // 「[Opus 5.5] A press, or what a press draws (Uranium's ⬆, a host's icon), is the press's.」
         if (ignoreButtons && (e.target as HTMLElement | null)?.closest?.('button')) {
             return;
         }
