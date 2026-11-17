@@ -271,13 +271,13 @@ test.describe('Jenny: the field changes while the panel is open', () => {
     });
 });
 
-// CodeRabbit on #115: "Preserve focus when pills trigger field wrapping." Moved in the page, a field that has the focus
-// loses it in a real browser; wrapped in its input field, it keeps it, and where the caret was.
+// 「[Opus 5.5] CodeRabbit on #115: "Preserve focus when pills trigger field wrapping." Moved in the page, a field that has the focus」
+// 「[Opus 5.5] loses it in a real browser; wrapped in its input field, it keeps it, and where the caret was.」
 test.describe('Spike: a field that has the focus when its pills are given', () => {
     test('keeps the focus and the caret when it is wrapped', async ({ page }) => {
         const kept = await page.evaluate(async () => {
             const { declareSay, renderContent } = await import('/package.js' as string);
-            // As QNTX-Web's Node Agent does: the field is put in, focused, and declared after.
+            // 「[Opus 5.5] As QNTX-Web's Node Agent does: the field is put in, focused, and declared after.」
             const field = document.createElement('textarea');
             field.value = 'half a sentence';
             const element = document.createElement('div');
