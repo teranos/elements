@@ -68,8 +68,8 @@ const PILL: Record<string, string> = {
 };
 
 /**
- * Moves what holds the field, the field keeping the focus and where the caret was: moved in the page, a field loses
- * the focus in a browser.
+ * 「[Opus 5.5] Moves what holds the field, the field keeping the focus and where the caret was: moved in the page, a field loses」
+ * 「[Opus 5.5] the focus in a browser.」
  */
 function keeping(field: HTMLElement, move: () => void): void {
     const doc = field.ownerDocument;
@@ -187,7 +187,7 @@ export function holdSay(element: HTMLElement): void {
         const row = field ? rowOf(field) : null;
         if (field === hold.field && row === hold.row) return;
         const changed = field !== hold.field;
-        // Its input field taken away, its pills go with it: none stays that nothing can open.
+        // 「[Opus 5.5] Its input field taken away, its pills go with it: none stays that nothing can open.」
         if (changed && hold.box && !hold.box.isConnected) {
             const strip = strips.get(hold.box);
             const together = strip?.parentElement;
@@ -222,7 +222,7 @@ function pinSay(element: HTMLElement, field: HTMLElement): void {
     let row = box.parentElement;
     if (!row) return;
     const body = element.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
-    // Straight in the body, with its pills: they and the input field are one row, pinned together, the pills above.
+    // 「[Opus 5.5] Straight in the body, with its pills: they and the input field are one row, pinned together, the pills above.」
     const strip = strips.get(box);
     if ((row === body || row === element) && strip) {
         const together = field.ownerDocument.createElement('div');
