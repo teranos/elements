@@ -113,14 +113,14 @@ export function setupWindowDrag(windowElement: HTMLElement, handle: HTMLElement)
     };
 
     const handleMouseDown = (e: MouseEvent) => {
-        // A press, or what a press draws, is the press's (forms/title-bar-controls.ts).
+        // 「[Opus 5.5] A press, or what a press draws, is the press's (forms/title-bar-controls.ts).」
         if ((e.target as Element).closest?.('button')) return;
         e.preventDefault();
         startDrag(e.clientX, e.clientY);
     };
 
     const handleTouchStart = (e: TouchEvent) => {
-        // A press, or what a press draws, is the press's (forms/title-bar-controls.ts).
+        // 「[Opus 5.5] A press, or what a press draws, is the press's (forms/title-bar-controls.ts).」
         if ((e.target as Element).closest?.('button')) return;
         if (!e.touches[0]) return;
         e.preventDefault();
