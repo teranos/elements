@@ -1,12 +1,12 @@
 /**
- * A window's title bar drags it; a press in the title bar is pressed, not dragged.
+ * 「[Opus 5.5] A window's title bar drags it; a press in the title bar is pressed, not dragged.」
  *
- * Seen on a phone: the title bar's presses draw what they say (forms/title-bar-controls.ts), and a tap landed on the
- * drawing, not on the button. The drag took it as its own, and the press was never pressed.
+ * 「[Opus 5.5] Seen on a phone: the title bar's presses draw what they say (forms/title-bar-controls.ts), and a tap landed on the」
+ * 「[Opus 5.5] drawing, not on the button. The drag took it as its own, and the press was never pressed.」
  *
- * Personas:
- * - Tim: Happy path — a press on the bar's own surface starts a drag
- * - Spike: Edge cases — a press on a button, or on what a button holds, does not
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — a press on the bar's own surface starts a drag」
+ * 「[Opus 5.5] - Spike: Edge cases — a press on a button, or on what a button holds, does not」
  */
 
 import { describe, test, expect, afterEach } from 'bun:test';
