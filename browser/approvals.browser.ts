@@ -1,15 +1,15 @@
 /**
- * An approval's options, in a real browser.
+ * 「[Opus 5.5] An approval's options, in a real browser.」
  *
  * "Why do these always seem to become inconsistent?" Each option was as wide as its words: the package's fit wrote
- * every button in an element `fit-content`, and an option asked to share its row. "I don't like how constantly meaning
- * is conveyed with words while visually you could use standard stuff": the percentages, the seconds and "checks
- * running" were words under each label, and an option was as tall as what it said.
+ * 「[Opus 5.5] every button in an element `fit-content`, and an option asked to share its row. "I don't like how constantly meaning」
+ * 「[Opus 5.5] is conveyed with words while visually you could use standard stuff": the percentages, the seconds and "checks」
+ * 「[Opus 5.5] running" were words under each label, and an option was as tall as what it said.」
  *
- * Personas:
- * - Tim: Happy path — the options of an approval share its row evenly
- * - Spike: Edge cases — two options or three, a mark or words: the same height
- * - Jenny: Complex scenarios — every approval in the roll: one height for every option
+ * 「[Opus 5.5] Personas:」
+ * 「[Opus 5.5] - Tim: Happy path — the options of an approval share its row evenly」
+ * 「[Opus 5.5] - Spike: Edge cases — two options or three, a mark or words: the same height」
+ * 「[Opus 5.5] - Jenny: Complex scenarios — every approval in the roll: one height for every option」
  */
 
 import { test, expect, type Page } from '@playwright/test';
