@@ -124,7 +124,7 @@ function answer(element: HTMLElement): void {
     element.style.top = `${y}px`;
     element.style.maxHeight = height < from.height ? `${height}px` : from.maxHeight;
     // The keyboard covers the home indicator: nothing is held back for it.
-    // Nor for its chat field: its + and → stand on the keyboard, not on a home bar it hides.
+    // 「[Opus 5.5] Nor for its chat field: its + and → stand on the keyboard, not on a home bar it hides.」
     if (form === 'panel') {
         element.style.paddingBottom = '0px';
         if (from.strip) element.style.setProperty('--elements-say-strip', '0px');
@@ -206,9 +206,9 @@ export function backFromKeyboard(element: HTMLElement): void {
     element.style.paddingBottom = s.paddingBottom;
     const field = element.querySelector('[data-say]');
     if (s.strip && field) element.style.setProperty('--elements-say-strip', s.strip);
-    // A chat field drawn or taken away while the keyboard was up changed what the panel's bottom should be: what
-    // stood before is not it. The panel is told, and gives its strip to the field it has now, or keeps it
-    // (forms/panel.ts).
+    // 「[Opus 5.5] A chat field drawn or taken away while the keyboard was up changed what the panel's bottom should be: what」
+    // 「[Opus 5.5] stood before is not it. The panel is told, and gives its strip to the field it has now, or keeps it」
+    // 「[Opus 5.5] (forms/panel.ts).」
     if (getForm(element) === 'panel') {
         const view = element.ownerDocument.defaultView ?? window;
         element.dispatchEvent(new view.Event(SAY_HELD));
