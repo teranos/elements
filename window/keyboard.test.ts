@@ -459,8 +459,8 @@ describe('Jenny: what else happens while the keyboard is up', () => {
     });
 });
 
-// Gemini's, ChatGPT's, Manus's and Claude's composers stand on the keyboard. The home bar's strip is under the panel
-// (forms/panel.ts); the keyboard covers the home bar, so while it is up the panel keeps nothing under its chat.
+// 「[Opus 5.5] Gemini's, ChatGPT's, Manus's and Claude's composers stand on the keyboard. The home bar's strip is under the panel」
+// 「[Opus 5.5] (forms/panel.ts); the keyboard covers the home bar, so while it is up the panel keeps nothing under its chat.」
 describe('Jenny: a panel with its chat field, the keyboard up', () => {
     test('keeps no strip while the keyboard is up, and has it again when it goes', () => {
         const vv = giveVisualViewport();
