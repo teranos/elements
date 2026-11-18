@@ -13,7 +13,7 @@
  * change it, and one that names none is not asking for the default.
  */
 
-import { DEFAULT_COLOR } from './element';
+import { DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from './element';
 import { getGlow, setGlow, getHeldGlow, setHeldGlow, getHeld } from './dataset';
 
 /**
@@ -55,6 +55,8 @@ export function rewearShadow(element: HTMLElement): void {
 export interface Paint {
     background: string;
     border: string;
+    /** The colour of its words, which its background is read against. */
+    text: string;
 }
 
 /** Read the paint off an element, before anything wipes it. */
@@ -62,6 +64,7 @@ export function readPaint(element: HTMLElement): Paint {
     return {
         background: element.style.backgroundColor,
         border: element.style.border,
+        text: element.style.color,
     };
 }
 
@@ -75,9 +78,10 @@ export function readPaint(element: HTMLElement): Paint {
 export function wearPaint(
     element: HTMLElement,
     was: Paint,
-    asked?: { color?: string; border?: string; glow?: string },
+    asked?: { color?: string; textColor?: string; border?: string; glow?: string },
 ): void {
     element.style.backgroundColor = asked?.color || was.background || DEFAULT_COLOR;
+    element.style.color = asked?.textColor || was.text || DEFAULT_TEXT_COLOR;
 
     const border = asked?.border || was.border;
     if (border) element.style.border = border;

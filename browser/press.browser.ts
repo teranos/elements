@@ -86,7 +86,7 @@ test('the irrevocable one wears the ax frame at rest, red armed, and the same si
     const nuke = press(page, 'nuke');
     expect(await nuke.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgba(220, 222, 221, 0.4)');
     await hit(nuke);
-    expect(await nuke.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(220, 38, 38)');
+    expect(await nuke.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgb(217, 54, 54)');
     await hit(nuke);
     await expect(nuke).toHaveAttribute('data-stage', 'rest');
     expect(await nuke.evaluate((el) => getComputedStyle(el).borderTopColor)).toBe('rgba(220, 222, 221, 0.4)');

@@ -7,8 +7,9 @@
 
 import { tray } from '../tray/tray';
 import type { Element } from '../element';
-import { createButton } from '../canvas/ui-primitives';
 import { sayFrom } from '../content/say';
+import { choicesFrom } from '../content/choices';
+import { outboxFrom } from './outbox';
 
 export function renderChatSpecimen(): void {
     const item: Element = {
@@ -27,19 +28,43 @@ export function renderChatSpecimen(): void {
                 line.textContent = `line ${i} · ${i % 2 ? 'you' : 'xenon'} said something`;
                 log.appendChild(line);
             }
-            // The row a chat says from: a choice beside the field and a button, as a host draws it.
+            // 「[Opus 5.5] The row a chat says from, as a host draws it.」
             const row = document.createElement('div');
             row.style.display = 'flex';
             row.style.gap = '4px';
-            const mode = document.createElement('select');
-            mode.appendChild(new Option('', ''));
+            // "Why not do it like anthropic does, where its a combined model+effort pill"
+            const choices = choicesFrom({
+                id: 'xenon-choices',
+                label: 'Model and effort',
+                choices: [
+                    { name: 'Model', options: ['Opus 5.5', 'Sonnet 5.5', 'Haiku 5.5'], value: 'Opus 5.5' },
+                    { name: 'Effort', options: ['low', 'medium', 'high', 'xhigh', 'max'], value: 'high' },
+                ],
+            });
+            // "add another inputfieldpillmenu for attached repositories": any of them, none or all.
+            const repositories = choicesFrom({
+                id: 'xenon-repositories',
+                label: 'Attached repositories',
+                choices: [
+                    { name: 'Repositories', options: ['QNTX', 'QNTX-Web', 'elements', 'ground'], chosen: ['QNTX', 'elements'], many: true },
+                ],
+            });
+            // "I want you to use the pills for it instead": what waits to be said, seen whether or not anything is.
+            const outbox = outboxFrom();
             // "the inputfield take up the entire bottom of the screen for chat elements"
             // The package's chat field, which takes that bottom (#40).
             // 「[Opus 5.5] Its presses in its box: the + at its start, the → at its end.」
-            const attach = createButton({ label: '+', onClick: () => {} });
-            const send = createButton({ label: '→', onClick: () => {} });
-            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send });
-            row.append(mode, says, attach, send);
+            // 「[Opus 5.5] Drawn, as a host's are: a press in the pill is SAY_PRESS square whatever it holds.」
+            const icon = (label: string, path: string) => {
+                const press = document.createElement('button');
+                press.setAttribute('aria-label', label);
+                press.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="${path}"/></svg>`;
+                return press;
+            };
+            const attach = icon('Picture', 'M12 5v14M5 12h14');
+            const send = icon('Say', 'M12 19V5M6 11l6-6 6 6');
+            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send, waiting: [outbox], pills: [choices, repositories] });
+            row.append(outbox, choices, repositories, says, attach, send);
             body.append(log, row);
             return body;
         },

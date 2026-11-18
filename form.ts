@@ -103,14 +103,24 @@ export interface FormTable {
      */
     readonly button: { readonly opensFromTray: false };
 
+
     /**
-     * Resting over one other element, bottom left, slightly transparent, moved
-     * by a drag and no further than that element. forms/overlay.ts: a press
-     * opens it fullscreen, a panel, the same element, and every way out of that
-     * brings it back over its element. Never in the tray, and never without the
-     * element it is over.
+     * "a generalised 'pills above inputfields' form". forms/pill.ts: resting as a pill above an input field, saying
+     * 「[Opus 5.5] what it is. Never in the tray.」
      */
-    readonly overlay: { readonly opensFromTray: false };
+    readonly pill: { readonly opensFromTray: false };
+
+    /**
+     * 「[Opus 5.5] The pill pressed: the same element in its field's place, what it holds in it, "we would not be using the」
+     * 「[Opus 5.5] inputfield while in the pill choosing something". forms/pill.ts; let go, it is the pill again.」
+     */
+    readonly pillOpen: { readonly opensFromTray: false };
+
+    /**
+     * "Inputfield an element yes, new form, inputfield": the field something is said from, with its presses and its
+     * 「[Opus 5.5] pills, one element. content/say.ts. Never in the tray.」
+     */
+    readonly inputfield: { readonly opensFromTray: false };
 }
 
 // Annotated here rather than only on FORMS: a literal assigned straight
@@ -127,7 +137,9 @@ const TABLE: FormTable = {
     cursor: { opensFromTray: false },
     tooltip: { opensFromTray: false },
     button: { opensFromTray: false },
-    overlay: { opensFromTray: false },
+    pill: { opensFromTray: false },
+    pillOpen: { opensFromTray: false },
+    inputfield: { opensFromTray: false },
 };
 
 export const FORMS: FormTable = Object.freeze(TABLE);

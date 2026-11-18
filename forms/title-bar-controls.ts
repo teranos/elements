@@ -6,7 +6,31 @@
  * and removeWindowControls() when returning to canvas-placed.
  */
 
+export { TITLE_PRESS, TITLE_INSET } from './title-sizes';
+
 const WINDOW_CONTROLS_CLASS = 'window-controls';
+
+/**
+ * 「[Opus 5.5] What each says, drawn: a glyph sits where its font puts it, above the middle of its square; a stroke is where it is」
+ * 「[Opus 5.5] drawn. "Those buttons are supposed to be square and equally sized and margin and alignment within the header".」
+ */
+const MARKS = {
+    down: 'M6 2v8M3 7l3 3 3-3',
+    minimize: 'M2 6h8',
+    close: 'M3 3l6 6M9 3l-6 6',
+} as const;
+
+/** A press in the title bar saying `mark`, named `label` for a screen reader and a pointer's title. */
+function pressOf(mark: keyof typeof MARKS, label: string, does: () => void): HTMLButtonElement {
+    const press = document.createElement('button');
+    press.type = 'button';
+    press.dataset.mark = mark;
+    press.title = label;
+    press.setAttribute('aria-label', label);
+    press.innerHTML = `<svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:block"><path d="${MARKS[mark]}"/></svg>`;
+    press.onclick = does;
+    return press;
+}
 
 export interface WindowControlsConfig {
     onMinimize: () => void;
@@ -23,34 +47,14 @@ export function addWindowControls(titleBar: HTMLElement, config: WindowControlsC
     const container = document.createElement('span');
     container.className = WINDOW_CONTROLS_CLASS;
     container.style.display = 'inline-flex';
-    container.style.gap = '2px';
+    // 「[Opus 5.5] TITLE_INSET apart, as the package's rule says (fit.ts).」
+    container.style.gap = '4px';
     container.style.flexShrink = '0';
     container.style.marginLeft = 'auto';
 
-    if (config.onReturn) {
-        const downBtn = document.createElement('button');
-        downBtn.textContent = '\u2193'; // ↓
-        downBtn.title = 'Back to its place';
-        downBtn.setAttribute('aria-label', 'Back to its place');
-        downBtn.onclick = config.onReturn;
-        container.appendChild(downBtn);
-    }
-
-    const minimizeBtn = document.createElement('button');
-    minimizeBtn.textContent = '\u2212'; // −
-    minimizeBtn.title = 'Minimize';
-    minimizeBtn.setAttribute('aria-label', 'Minimize');
-    minimizeBtn.onclick = config.onMinimize;
-    container.appendChild(minimizeBtn);
-
-    if (config.onClose) {
-        const closeBtn = document.createElement('button');
-        closeBtn.textContent = '\u00d7'; // ×
-        closeBtn.title = 'Close';
-        closeBtn.setAttribute('aria-label', 'Close');
-        closeBtn.onclick = config.onClose;
-        container.appendChild(closeBtn);
-    }
+    if (config.onReturn) container.appendChild(pressOf('down', 'Back to its place', config.onReturn));
+    container.appendChild(pressOf('minimize', 'Minimize', config.onMinimize));
+    if (config.onClose) container.appendChild(pressOf('close', 'Close', config.onClose));
 
     titleBar.appendChild(container);
 }

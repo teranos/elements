@@ -2,24 +2,24 @@
  * Approvals — a panel's list of things that wait on a human, to go through.
  *
  * "Do you hear how little it matters what the 'thing' is to approve?"
- * An approval is something to look at, options to choose between, maybe a
- * confidence on each, maybe something to open that chooses nothing.
+ * 「[Opus 5.5] An approval is something to look at, options to choose between, maybe」
+ * 「[Opus 5.5] something to open that chooses nothing.」
  *
  * "A YES or NO is a final choice. I already sent it. And i can send yes again,
  * and no again." Every press is handed to the host, and pressing the other
  * option hands it another, until nothing more can be sent: a step that settles
  * now, the host saying what stood took effect, or the time running out.
  *
- * The package shows and sends; what a press does is the host's. Where there is
- * a fast classifier it answers the confidence, where there are checks the host says their
- * state, and where a merge waits on main's CI the host says when it passed.
+ * 「[Opus 5.5] The package shows and sends; what a press does is the host's. Where there are」
+ * 「[Opus 5.5] checks the host says their state, and where a merge waits on main's CI the」
+ * 「[Opus 5.5] host says when it passed.」
  */
 
 import { shatter } from './shatter';
 import { growInPlace } from './grow';
 import { paintSegment, segmentStrip, type SegmentState } from './segments';
 import { sizeText } from '../text';
-import { MEANS } from '../forms/press';
+import { MEANS, HELD } from '../forms/press';
 
 /** What one press says. The same option pressed again says its next step. */
 export interface ApprovalStep {
@@ -32,15 +32,21 @@ export interface ApprovalOption {
     label: string;
     /** Left out, a press says the label and pressing it again says nothing more. */
     steps?: ApprovalStep[];
-    /**
-     * 0–100, from the fast classifier. A promise is the fast classifier still answering:
-     * the card is there first and the number arrives. Left out where a
-     * percentage makes no sense, as on a merge.
-     */
-    confidence?: number | Promise<number>;
     /** Red is no and green is yes; an option that is neither stays white. */
     means?: 'yes' | 'no';
+    /**
+     * 「[Opus 5.5] Drawn in place of its label, which a screen reader still says: "I don't like how constantly meaning is」
+     * 「[Opus 5.5] conveyed with words while visually you could use standard stuff". Left out, it says its label.」
+     */
+    mark?: keyof typeof MARKS;
 }
+
+/** The standard marks an option can be drawn as: ✓, ✗, a merge. */
+export const MARKS = {
+    yes: 'M3 8.5l3.5 3.5L13 4.5',
+    no: 'M4 4l8 8M12 4l-8 8',
+    merge: 'M5 3v10M5 5c0 4 6 2 6 6M11 13a1.5 1.5 0 1 0 0 .01M5 3a1.5 1.5 0 1 0 0 .01M5 13a1.5 1.5 0 1 0 0 .01',
+} as const;
 
 /** Something to open that chooses nothing: the mail and the CV, the agent's table. */
 export interface ApprovalAside {
@@ -109,12 +115,19 @@ const COLOR = MEANS;
 
 const stepsOf = (option: ApprovalOption): ApprovalStep[] => option.steps ?? [{ says: option.label }];
 
-function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: HTMLElement } {
+/** Notes numbered, each one's own name, for the button that says it. */
+let notes = 0;
+
+function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: HTMLElement; waiting: HTMLElement; left: HTMLElement; status: HTMLElement } {
     const btn = document.createElement('button');
     btn.type = 'button';
+    btn.setAttribute('aria-label', option.label);
+    // 「[Opus 5.5] Its box is its own: it shares its row with the others, whatever each says (fit.ts).」
+    btn.dataset.ownBox = '';
     btn.style.flex = '1 1 0';
     btn.style.minWidth = '0';
-    btn.style.minHeight = '64px';
+    // 「[Opus 5.5] Every option one height, a label on two lines or one, a mark or words.」
+    btn.style.minHeight = '72px';
     btn.style.padding = '8px';
     btn.style.border = `2px solid ${COLOR[option.means ?? 'neither']}`;
     btn.style.borderRadius = '0';
@@ -127,30 +140,35 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     btn.style.position = 'relative';
 
     const label = document.createElement('span');
-    label.textContent = option.label;
-    sizeText(label, 'lg');
+    label.setAttribute('aria-hidden', 'true');
+    if (option.mark) {
+        label.innerHTML = `<svg data-mark="${option.mark}" viewBox="0 0 16 16" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto"><path d="${MARKS[option.mark]}"/></svg>`;
+    } else {
+        label.textContent = option.label;
+        sizeText(label, 'lg');
+    }
     btn.appendChild(label);
 
-    if (option.confidence !== undefined) {
-        const pct = document.createElement('span');
-        pct.title = 'fast classifier';
-        pct.style.fontFamily = 'var(--font-mono)';
-        sizeText(pct, 'lg');
-        pct.style.fontVariantNumeric = 'tabular-nums';
-        const answered = (n: number) => {
-            pct.textContent = `${n}%`;
-            pct.style.opacity = '1';
-        };
-        if (typeof option.confidence === 'number') {
-            answered(option.confidence);
-        } else {
-            // The fast classifier has not answered yet: the place is kept, so nothing moves when it does.
-            pct.textContent = '··%';
-            pct.style.opacity = '0.4';
-            option.confidence.then(answered, () => { pct.textContent = ''; });
-        }
-        btn.appendChild(pct);
-    }
+    // 「[Opus 5.5] Waiting (on checks, on main's CI) is a spinner, as everywhere.」
+    const waiting = document.createElement('span');
+    waiting.dataset.waiting = '';
+    waiting.setAttribute('aria-hidden', 'true');
+    Object.assign(waiting.style, {
+        width: '14px', height: '14px', margin: '0 auto', boxSizing: 'border-box', borderRadius: '50%',
+        border: '2px solid currentColor', borderRightColor: 'transparent', display: 'none',
+    });
+    waiting.animate?.([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 900, iterations: Infinity });
+    btn.appendChild(waiting);
+
+    // 「[Opus 5.5] The time left is a bar along its foot that drains: --left from 1 to 0.」
+    const left = document.createElement('span');
+    left.dataset.timeLeft = '';
+    left.setAttribute('aria-hidden', 'true');
+    Object.assign(left.style, {
+        position: 'absolute', left: '0', bottom: '0', height: '3px', width: 'calc(var(--left, 0) * 100%)',
+        background: 'currentColor', transition: 'width 1s linear', display: 'none',
+    });
+    btn.appendChild(left);
 
     // What this button has said, and what pressing it again would say.
     const note = document.createElement('span');
@@ -159,7 +177,16 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     sizeText(note, 'sm');
     note.style.lineHeight = '1.3';
     btn.appendChild(note);
-    return { btn, note };
+    // 「[Opus 5.5] Named by its label, what it says under it is read out only when the button points at it.」
+    note.id = `elements-approval-note-${++notes}`;
+    // 「[Opus 5.5] What the spinner and the bar say, read out with the note: drawn, not written.」
+    const status = document.createElement('span');
+    status.dataset.status = '';
+    status.id = `elements-approval-status-${notes}`;
+    Object.assign(status.style, { position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clipPath: 'inset(50%)', whiteSpace: 'nowrap' });
+    btn.appendChild(status);
+    btn.setAttribute('aria-describedby', `${note.id} ${status.id}`);
+    return { btn, note, waiting, left, status };
 }
 
 interface Rendered {
@@ -374,7 +401,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
     };
 
     const buttons = approval.options.map((option, i) => {
-        const { btn, note } = optionButton(option);
+        const { btn, note, waiting, left, status } = optionButton(option);
         btn.addEventListener('click', (e) => {
             if (locked || !presented()) return;
             if (current?.option === i) {
@@ -391,35 +418,45 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             changed(true);
         });
         row.appendChild(btn);
-        return { btn, note };
+        return { btn, note, waiting, left, status };
     });
 
     const show = () => {
         const notYet = !presented();
-        buttons.forEach(({ btn, note }, i) => {
+        buttons.forEach(({ btn, note, waiting, left, status }, i) => {
             const option = approval.options[i]!;
             const steps = stepsOf(option);
             const on = current?.option === i;
             const color = COLOR[option.means ?? 'neither'];
             // What was sent last fills with its colour; the others wear it as an outline.
+            // 「[Opus 5.5] Not to be chosen (not yet, or another stood): drawn in HELD, which reads, never faded.」
+            const dim = (locked && !on) || notYet;
             btn.style.background = on ? color : '#000';
-            btn.style.color = on ? (option.means ? '#fff' : '#000') : color;
+            btn.style.color = on ? (option.means ? '#fff' : '#000') : dim ? HELD : color;
+            btn.style.borderColor = dim ? HELD : color;
             btn.disabled = !!locked || notYet;
-            btn.style.opacity = (locked && !on) || notYet ? '0.4' : '1';
+            btn.style.opacity = '1';
             const next = on ? steps[current!.step + 1] : steps[0];
             const said = on ? steps[current!.step]!.says : null;
-            // "The countdown, why not IN THE button." In the one that stands, how long
-            // until it takes effect or can no longer change; before anything is sent,
-            // in each, how long to choose.
-            const count = locked || notYet ? null
-                : on && merging !== null ? (merging === Infinity ? approval.merges!.label : `${approval.merges!.label} ${merging}s`)
-                : approval.openForSeconds && (on || current === null) ? `${remaining}s` : null;
+            // "The countdown, why not IN THE button." In the one that stands, how long until it takes effect or can no
+            // 「[Opus 5.5] longer change; before anything is sent, in each, how long to choose. Drawn, not counted: a bar that drains.」
+            const merge = approval.merges;
+            const timing = locked || notYet ? null
+                : on && merging !== null ? (merging === Infinity ? null : { left: merging / (merge!.seconds ?? 1), says: `${merge!.label} in ${merging}s` })
+                : approval.openForSeconds && (on || current === null) ? { left: remaining / approval.openForSeconds, says: `${remaining}s left` } : null;
+            left.style.display = timing ? 'block' : 'none';
+            left.style.setProperty('--left', timing ? String(Math.max(0, Math.min(1, timing.left))) : '0');
+            const spins = !locked && ((notYet && !failed()) || (on && merging === Infinity));
+            waiting.style.display = spins ? 'block' : 'none';
+            btn.title = notYet ? (failed() ? 'checks failed' : 'checks running')
+                : spins ? `waiting on ${merge!.label}`
+                : timing?.says ?? '';
+            status.textContent = btn.title;
             const lines = notYet
-                ? [failed() ? 'checks failed' : 'checks running']
+                ? []
                 : [
                     said && said !== option.label ? said : null,
                     !locked && next && next.says !== option.label ? `${on ? 'again' : 'press'}: ${next.says}` : null,
-                    count,
                 ].filter(Boolean);
             note.textContent = lines.join('\n');
             note.style.whiteSpace = 'pre-line';

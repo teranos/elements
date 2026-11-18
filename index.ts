@@ -115,6 +115,8 @@ export { stashContent, restoreContent, hasStash } from './content/stash';
 export { declareScroller, watchScroll, expectScroll, expectFits } from './content/scroll';
 // A chat's field takes the bottom of its element, the whole width (content/say.ts)
 export { declareSay, sayFrom } from './content/say';
+export { choicesFrom, type Choice, type ChoiceOfOne, type ChoiceOfMany, type Choices } from './content/choices';
+export { pillFrom, pillIn, PILL_RESTED, type PillHandle } from './forms/pill';
 
 export { renderContent } from './content/render';
 export type { RenderContentResult } from './content/render';
@@ -157,11 +159,8 @@ export { morphDotToPanel, morphPanelToDot } from './forms/panel';
 export { tooltipFrom } from './forms/tooltip';
 export { buttonFrom } from './forms/button';
 export type { ButtonOptions } from './forms/button';
-// An overlay: over one other element, pressed open fullscreen, back over it again
-export { overlayFrom, OVERLAY_OPACITY, OVERLAY_INSET } from './forms/overlay';
-export type { OverlayOptions, OverlayHandle } from './forms/overlay';
 // A press: button form that does what it says, once or in two stages; the same size at every stage
-export { pressFrom, pressSizeFor, AtField, MEANS, CREATES, ARMED_FOR_MS, PRESS_SIZES } from './forms/press';
+export { pressFrom, pressSizeFor, AtField, MEANS, HELD, CREATES, ARMED_FOR_MS, PRESS_SIZES } from './forms/press';
 // A field: one line of text with its label, the package's only field but the chat's
 export { fieldFrom, KEYBOARDS } from './forms/field';
 export { flowFrom } from './forms/flow';

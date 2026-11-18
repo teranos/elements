@@ -459,26 +459,24 @@ describe('Jenny: what else happens while the keyboard is up', () => {
     });
 });
 
-// 「[Opus 5.5] Qodo on #114: "Chat buttons stay raised above the keyboard". A panel gives the home bar's strip to its chat field」
-// 「[Opus 5.5] (forms/panel.ts); the keyboard covers the home bar, so while it is up the strip is nobody's, and the field's + and →」
-// 「[Opus 5.5] stand on the keyboard, not 34px above it.」
-describe('Jenny: a panel whose chat field holds the home bar\'s strip', () => {
-    test('the strip is nobody\'s while the keyboard is up, and the field\'s again when it goes', () => {
+// 「[Opus 5.5] Gemini's, ChatGPT's, Manus's and Claude's composers stand on the keyboard. The home bar's strip is under the panel」
+// 「[Opus 5.5] (forms/panel.ts); the keyboard covers the home bar, so while it is up the panel keeps nothing under its chat.」
+describe('Jenny: a panel with its chat field, the keyboard up', () => {
+    test('keeps no strip while the keyboard is up, and has it again when it goes', () => {
         const vv = giveVisualViewport();
         const { el, field } = windowWithField(0, SCREEN.height, 'xenon');
         setForm(el, 'panel');
-        // 「[Opus 5.5] The strip is a chat field's (forms/panel.ts): there is one.」
         const say = document.createElement('textarea');
         say.dataset.say = '';
         el.appendChild(say);
-        el.style.setProperty('--elements-say-strip', '34px');
+        el.style.paddingBottom = '34px';
 
         field.focus();
         keyboardUp(vv);
-        expect(el.style.getPropertyValue('--elements-say-strip')).toBe('0px');
+        expect(el.style.paddingBottom).toBe('0px');
 
         keyboardDown(vv);
-        expect(el.style.getPropertyValue('--elements-say-strip')).toBe('34px');
+        expect(el.style.paddingBottom).toBe('34px');
     });
 });
 

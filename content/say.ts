@@ -8,6 +8,9 @@
  * beside the field wraps above it. Written important: no host stylesheet squeezes it.
  */
 
+import { pillIn, pillAway, PILL_RESTED } from '../forms/pill';
+import { setForm, setElementId } from '../dataset';
+
 const FIELD: Record<string, string> = {
     flex: '1 1 100%', width: '100%', 'min-width': '0', 'max-width': 'none',
     order: '99', 'box-sizing': 'border-box', margin: '0',
@@ -20,27 +23,110 @@ const ROW: Record<string, string> = {
 /**
  * 「[Opus 5.5] The presses a field says with: the + at its start, the → at its end.」
  *
- * 「[Opus 5.5] Purple arrows on a screenshot: the + into the field's bottom-left corner, the → into its bottom-right. "And how」
- * 「[Opus 5.5] often do you want me to complain about the positions of these buttons". They are in the field's box, at its」
- * 「[Opus 5.5] bottom corners, and what is typed leaves them their line.」
+ * "And how often do you want me to complain about the positions of these buttons". "This i want", "I want this
+ * 「[Opus 5.5] only": the Claude app's composer, one pill, the + at its start, what is typed, the → (■ while it answers) at its」
+ * 「[Opus 5.5] end, all on one line.」
  */
 export interface SayPresses {
     start?: HTMLElement;
     end?: HTMLElement;
+    /**
+     * 「[Opus 5.5] The pills in it, in order (pillFrom, forms/pill.ts; choicesFrom, content/choices.ts): only while something is」
+     * 「[Opus 5.5] being said. "add another inputfieldpillmenu for attached repositories".」
+     */
+    pills?: HTMLElement[];
+    /**
+     * 「[Opus 5.5] What waits to be said, a pill each (forms/pill.ts), in the row before the others and seen whether or not」
+     * 「[Opus 5.5] anything is being said: "IF THERE ARE MESSAGES PENDING TO BE SENT, AS A COLLECTED BATCH, I SEE IT". Pressed, it is」
+     * 「[Opus 5.5] across its row, the field and the keyboard where they were, not an overlay "taking over everything for no good」
+     * 「[Opus 5.5] reason". When nothing waits, the host hides it.」
+     */
+    waiting?: HTMLElement[];
 }
+
+/**
+ * "The pills should be above, and outside of inputfield area": their strip, above the input field in its row, one line
+ * 「[Opus 5.5] dragged sideways: "normally you're able to drag pills sideways in most applications". Never wrapped.」
+ */
+const STRIP: Record<string, string> = {
+    display: 'flex', 'flex-wrap': 'nowrap', 'align-items': 'center', gap: '8px',
+    flex: '1 1 100%', width: '100%', 'min-width': '0', order: '98', 'box-sizing': 'border-box', margin: '0',
+    'overflow-x': 'auto', 'overflow-y': 'hidden', 'scrollbar-width': 'none', 'overscroll-behavior-x': 'contain',
+};
+
+/** The pills in a field's strip, in order: what waits, then the others. */
+const pillsOf = (own: SayPresses): HTMLElement[] => [...(own.waiting ?? []), ...(own.pills ?? [])];
 
 const presses = new WeakMap<HTMLElement, SayPresses>();
 
-/** Where a press stands in the field's box: at its bottom corner, above the home bar's strip (forms/panel.ts). */
-const PRESS: Record<string, string> = {
-    position: 'absolute', bottom: 'calc(6px + var(--elements-say-strip, 0px))', margin: '0', 'z-index': '1',
+
+export { SAY_PRESS, SAY_INSET } from './say-sizes';
+
+/** The input field the field and its presses are: one line, rounded whole, its presses SAY_INSET in. Literals: a const made of another is undefined in a Bun bundle. */
+const PILL: Record<string, string> = {
+    display: 'flex', 'align-items': 'center', gap: '8px', padding: '8px', 'border-radius': '9999px',
+};
+
+/**
+ * 「[Opus 5.5] Moves what holds the field, the field keeping the focus and where the caret was: moved in the page, a field loses」
+ * 「[Opus 5.5] the focus in a browser.」
+ */
+function keeping(field: HTMLElement, move: () => void): void {
+    const doc = field.ownerDocument;
+    const had = doc.activeElement === field;
+    const text = field as HTMLTextAreaElement;
+    const caret = had && typeof text.selectionStart === 'number'
+        ? [text.selectionStart, text.selectionEnd, text.selectionDirection] as const : null;
+    move();
+    if (!had || doc.activeElement === field) return;
+    field.focus({ preventScroll: true });
+    if (caret) {
+        try { text.setSelectionRange(caret[0], caret[1], caret[2] ?? undefined); } catch { /* a field with no caret */ }
+    }
+}
+
+/** The strip of each input field's pills, above it. */
+const strips = new WeakMap<HTMLElement, HTMLElement>();
+
+/** Input fields with no name of their own, numbered. */
+let unnamed = 0;
+
+/** The field in the pill: the words, on the pill's surface. */
+const IN_PILL: Record<string, string> = {
+    flex: '1 1 auto', width: 'auto', 'min-width': '0', display: 'block', 'align-self': 'center', order: '0',
 };
 
 /** A host's word that this field is the one its element says from, with its presses. Callable before it is in an element. */
 export function declareSay(field: HTMLElement, with_?: SayPresses): void {
     field.dataset.say = '';
     for (const [name, value] of Object.entries(FIELD)) field.style.setProperty(name, value, 'important');
-    if (with_?.start || with_?.end) presses.set(field, with_);
+    if (with_?.start || with_?.end || (with_ && pillsOf(with_).length)) presses.set(field, with_);
+    for (const pill of with_?.waiting ?? []) pillIn(pill, field);
+    for (const pill of with_?.pills ?? []) {
+        pillIn(pill, field);
+        whileSaying(field, pill);
+    }
+}
+
+/**
+ * "We don't need to show the picker always": the choices show while something is being said, the field focused or
+ * 「[Opus 5.5] holding words, and while their own sheet is open; otherwise they are gone.」
+ */
+function whileSaying(field: HTMLElement, choices: HTMLElement): void {
+    const words = () => ((field as HTMLTextAreaElement).value ?? '').trim() !== '';
+    const look = () => {
+        const doc = field.ownerDocument;
+        choices.hidden = !(doc.activeElement === field || words() || pillAway(choices) || choices.contains(doc.activeElement));
+    };
+    field.addEventListener('focus', look);
+    field.addEventListener('input', look);
+    // 「[Opus 5.5] Left for the pill: the press lands before it is looked at again.」
+    field.addEventListener('blur', () => setTimeout(look, 0));
+    choices.addEventListener('focusout', () => setTimeout(look, 0));
+    // 「[Opus 5.5] Rested again, the field has the words (forms/pill.ts).」
+    choices.addEventListener(PILL_RESTED, look);
+    // 「[Opus 5.5] Declared with words in it, or while it has the focus, its pills show from the start.」
+    look();
 }
 
 // "i think chatfield soudl be considered different from regular inputfied"
@@ -59,11 +145,11 @@ export function sayFrom(say: { id: string; label: string } & SayPresses): HTMLTe
     return field;
 }
 
-/** What an element is told when the field it says from is held: a panel gives it the home bar's strip (forms/panel.ts). */
+/** What an element is told when the field it says from changes: a panel keeps nothing of its body under it (forms/panel.ts). */
 export const SAY_HELD = 'elements:say-held';
 
 /** The field each element is held to now, whichever it is. */
-const holding = new WeakMap<HTMLElement, { field: HTMLElement | null; row: HTMLElement | null }>();
+const holding = new WeakMap<HTMLElement, { field: HTMLElement | null; row: HTMLElement | null; box: HTMLElement | null }>();
 
 /**
  * 「[Opus 5.5] The field's box holds the field and its presses, nothing else. What a press says after itself (a two-stage press's」
@@ -93,7 +179,7 @@ function rowOf(field: HTMLElement): HTMLElement | null {
  */
 export function holdSay(element: HTMLElement): void {
     if (holding.has(element)) return;
-    const hold: { field: HTMLElement | null; row: HTMLElement | null } = { field: null, row: null };
+    const hold: { field: HTMLElement | null; row: HTMLElement | null; box: HTMLElement | null } = { field: null, row: null, box: null };
     holding.set(element, hold);
     const look = () => {
         const field = element.querySelector<HTMLElement>('[data-say]');
@@ -101,8 +187,16 @@ export function holdSay(element: HTMLElement): void {
         const row = field ? rowOf(field) : null;
         if (field === hold.field && row === hold.row) return;
         const changed = field !== hold.field;
+        // 「[Opus 5.5] Its input field taken away, its pills go with it: none stays that nothing can open.」
+        if (changed && hold.box && !hold.box.isConnected) {
+            const strip = strips.get(hold.box);
+            const together = strip?.parentElement;
+            strip?.remove();
+            if (together?.dataset.sayRow === '' && !together.firstElementChild) together.remove();
+        }
         hold.field = field;
         if (field) pinSay(element, field);
+        hold.box = field?.parentElement?.dataset.sayBox === '' ? field.parentElement : null;
         // 「[Opus 5.5] Its row, once pinned: the same field moved into another row is pinned there too.」
         hold.row = field ? rowOf(field) : null;
         if (changed) tell(element);
@@ -114,7 +208,7 @@ export function holdSay(element: HTMLElement): void {
     }
 }
 
-/** Tells the element its field changed: a panel gives it the home bar's strip, or takes it back (forms/panel.ts). */
+/** Tells the element its field changed (forms/panel.ts). */
 function tell(element: HTMLElement): void {
     // 「[Opus 5.5] The element's own window makes the event: a document's events are its window's.」
     const view = element.ownerDocument.defaultView ?? window;
@@ -125,68 +219,73 @@ function tell(element: HTMLElement): void {
 function pinSay(element: HTMLElement, field: HTMLElement): void {
     if (!field.parentElement) return;
     const box = boxOf(field);
-    const row = box.parentElement;
+    let row = box.parentElement;
     if (!row) return;
     const body = element.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
+    // 「[Opus 5.5] Straight in the body, with its pills: they and the input field are one row, pinned together, the pills above.」
+    const strip = strips.get(box);
+    if ((row === body || row === element) && strip) {
+        const together = field.ownerDocument.createElement('div');
+        together.dataset.sayRow = '';
+        keeping(field, () => {
+            box.before(together);
+            together.append(strip, box);
+        });
+        row = together;
+    }
     // Its own row only: the body or the element is not a row to pin.
     const pinned = row === body || row === element ? box : row;
     if (pinned === row) row.style.setProperty('display', 'flex', 'important');
     for (const [name, value] of Object.entries(ROW)) pinned.style.setProperty(name, value, 'important');
     // What scrolls under it is not seen through it.
     pinned.style.setProperty('background-color', element.style.backgroundColor || getComputedStyle(element).backgroundColor, 'important');
-    leaveRoom(field);
 }
 
-/** The field's box: the field itself, or, with presses, a box holding it and them, where the field stood. */
+/**
+ * 「[Opus 5.5] The field's box: the field itself, or, with presses or a pill, the input field holding it and them, where the field」
+ * 「[Opus 5.5] stood. "Inputfield an element yes, new form, inputfield": it is an element of its own, in the inputfield form.」
+ */
 function boxOf(field: HTMLElement): HTMLElement {
     const own = presses.get(field);
     if (!own) return field;
     const parent = field.parentElement!;
-    if (parent.dataset.sayBox === '') return parent;
+    if (parent.dataset.sayBox === '') {
+        // 「[Opus 5.5] Moved into another row, its pills go with it, above it.」
+        const strip = strips.get(parent);
+        if (strip && strip.nextElementSibling !== parent) parent.before(strip);
+        return parent;
+    }
     const box = field.ownerDocument.createElement('div');
     box.dataset.sayBox = '';
-    // 「[Opus 5.5] The box takes the field's line, as the field did; the field fills it.」
+    setElementId(box, field.dataset.sayId ? `${field.dataset.sayId}-input` : `say-input-${++unnamed}`);
+    setForm(box, 'inputfield');
+    // 「[Opus 5.5] It takes the field's line, as the field did.」
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
-    box.style.setProperty('position', 'relative', 'important');
-    parent.insertBefore(box, field);
-    box.appendChild(field);
-    // 「[Opus 5.5] A block in its box: an inline field keeps a descender's gap under itself.」
-    field.style.setProperty('flex', 'none', 'important');
-    field.style.setProperty('display', 'block', 'important');
-    for (const [side, press] of [['left', own.start], ['right', own.end]] as const) {
-        if (!press) continue;
-        box.appendChild(press);
-        for (const [name, value] of Object.entries(PRESS)) press.style.setProperty(name, value, 'important');
-        press.style.setProperty(side, '6px', 'important');
+    for (const [name, value] of Object.entries(PILL)) box.style.setProperty(name, value, 'important');
+    keeping(field, () => {
+        parent.insertBefore(box, field);
+        if (own.start) box.appendChild(own.start);
+        box.appendChild(field);
+        if (own.end) box.appendChild(own.end);
+    });
+    const pills = pillsOf(own);
+    if (pills.length) {
+        const strip = field.ownerDocument.createElement('div');
+        strip.dataset.sayPills = '';
+        // 「[Opus 5.5] Sideways only: not a second scroller of its element (content/scroll.ts).」
+        strip.dataset.scroller = 'sideways';
+        for (const [name, value] of Object.entries(STRIP)) strip.style.setProperty(name, value, 'important');
+        // 「[Opus 5.5] Each as wide as its words: the package's rule (fit.ts).」
+        for (const pill of pills) strip.appendChild(pill);
+        box.before(strip);
+        strips.set(box, strip);
     }
+    for (const [name, value] of Object.entries(IN_PILL)) field.style.setProperty(name, value, 'important');
+    // 「[Opus 5.5] The pill is its surface: the field draws none of its own.」
+    field.style.setProperty('border', 'none');
+    field.style.setProperty('background', 'transparent');
+    field.style.setProperty('resize', 'none');
+    // 「[Opus 5.5] Its presses are SAY_PRESS square and round, by the package's rule (fit.ts); what they look like is the host's.」
+    for (const press of [own.start, own.end]) if (press) press.dataset.sayPress = '';
     return box;
-}
-
-/** Fields whose presses are measured as they change. */
-const measured = new WeakSet<HTMLElement>();
-
-/**
- * 「[Opus 5.5] What is typed stays above the presses and above the home bar's strip: the field's own padding under it, the」
- * 「[Opus 5.5] presses' line, and the strip a panel gives it (forms/panel.ts).」
- */
-function leaveRoom(field: HTMLElement): void {
-    if (field.dataset.sayOwnPadding === undefined) {
-        const own = parseFloat(getComputedStyle(field).paddingBottom);
-        field.dataset.sayOwnPadding = `${Number.isFinite(own) ? own : 0}px`;
-    }
-    const own = presses.get(field);
-    if (own) {
-        const roomFor = () => {
-            const tallest = Math.max(...[own.start, own.end].map((press) => press?.getBoundingClientRect().height ?? 0));
-            field.style.setProperty('--elements-say-room', `${(tallest > 0 ? tallest : 32) + 6}px`);
-        };
-        roomFor();
-        // 「[Opus 5.5] A press that grows (its label changed) takes more of the line: the words keep above it.」
-        if (typeof ResizeObserver === 'function' && !measured.has(field)) {
-            measured.add(field);
-            const watch = new ResizeObserver(roomFor);
-            for (const press of [own.start, own.end]) if (press) watch.observe(press);
-        }
-    }
-    field.style.setProperty('padding-bottom', `calc(${field.dataset.sayOwnPadding} + var(--elements-say-room, 0px) + var(--elements-say-strip, 0px))`, 'important');
 }

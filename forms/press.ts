@@ -6,11 +6,16 @@ import { sizeText, TEXT_SIZES, type TextSize } from '../text';
 import type { Form } from '../form';
 
 /** What an outline says: yes is green, no is red, neither is white. The approvals' options wear it too. */
-export const MEANS: Readonly<{ yes: '#16a34a'; no: '#dc2626'; neither: '#fff' }> = Object.freeze({ yes: '#16a34a', no: '#dc2626', neither: '#fff' } as const);
+// 「[Opus 5.5] Each reads at 4.5 to 1 as words on black and as a fill under white words (forms/means-contrast.test.ts).」
+export const MEANS: Readonly<{ yes: '#16873c'; no: '#d93636'; neither: '#fff' }> = Object.freeze({ yes: '#16873c', no: '#d93636', neither: '#fff' } as const);
 
 import { AX } from './ax';
 import { getWindowBorderRadius } from '../config';
 export { AX };
+
+// 「[Opus 5.5] CodeRabbit on #115: faded to 0.4, a held press read 3.32 to 1. "A colour that fails it is fixed, never excused."」
+/** What a press held back, or an option not yet to be chosen, is drawn in: it reads at 4.5 to 1 on black and on AX.ground. */
+export const HELD = '#999999';
 
 /** How long an armed press waits for its second press before it is at rest again. */
 export const ARMED_FOR_MS = 5000;
@@ -117,7 +122,9 @@ const SIZE_IN: Readonly<Record<Form, PressSize>> = Object.freeze({
     cursor: 'sm',
     tooltip: 'sm',
     button: 'sm',
-    overlay: 'sm',
+    pill: 'sm',
+    pillOpen: 'sm',
+    inputfield: 'sm',
 });
 
 /** The box a press is in a form, or on the bare page. */
@@ -329,7 +336,7 @@ export function pressFrom(press: Press): PressHandle {
         }
         pin(element, {
             'border-color': red ? MEANS.no : green ? CREATES.green : lit ? AX.ink : AX.frame,
-            color: red ? MEANS.neither : green ? CREATES.ink : lit ? '#000' : AX.ink,
+            color: red ? MEANS.neither : green ? CREATES.ink : lit ? '#000' : held !== null ? HELD : AX.ink,
             'background-color': red ? MEANS.no : green ? CREATES.green : lit ? AX.ink : AX.ground,
             'background-image': shimmers ? `linear-gradient(110deg, ${CREATES.green} 0%, ${CREATES.light} 40%, ${CREATES.green} 60%, ${CREATES.light} 100%)` : 'none',
             'background-size': '200% 100%',
@@ -337,7 +344,7 @@ export function pressFrom(press: Press): PressHandle {
             'animation-duration': '1.2s',
             'animation-timing-function': 'linear',
             'animation-iteration-count': 'infinite',
-            opacity: held === null ? '1' : '0.4',
+            opacity: '1',
         });
         // Never disabled: a disabled button takes no focus, and says nothing of why.
         element.setAttribute('aria-disabled', String(held !== null));

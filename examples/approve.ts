@@ -2,9 +2,8 @@
  * Approve specimen — Rubidium, the next element after the panel's Krypton.
  *
  * The element is the package's (approvals/approvals.ts); this is a host
- * playing it: five made-up approvals, checks that run on a clock, a fast
- * classifier that answers after a moment, and a main CI that passes after
- * twenty seconds.
+ * 「[Opus 5.5] playing it: five made-up approvals, checks that run on a clock, and a main」
+ * 「[Opus 5.5] CI that passes after twenty seconds.」
  */
 
 import { tray } from '../tray/tray';
@@ -12,12 +11,6 @@ import type { Element } from '../element';
 import { renderApprovals, type Approval, type ApprovalHandle } from '../approvals/approvals';
 import { table } from '../approvals/grow';
 import type { SegmentState } from '../approvals/segments';
-
-// How long the fast classifier takes to classify, in this example.
-const CLASSIFIER_ANSWERS_MS = 400;
-
-/** The fast classifier, answering after a moment: the card is there first and the number arrives. */
-const classified = (n: number): Promise<number> => new Promise((answer) => setTimeout(() => answer(n), CLASSIFIER_ANSWERS_MS));
 
 /** One of the checks a wait is made of, simulated: when it starts and how long it takes, in seconds. */
 interface Run {
@@ -42,13 +35,13 @@ function text(lines: string[], mono = false): HTMLElement {
 // wait for CI, the NO will cancel the yes. Press NO again and it's definitely NO."
 const MERGE_OPTIONS: Approval['options'] = [
     {
-        label: 'Merge', means: 'yes', steps: [
+        label: 'Merge', means: 'yes', mark: 'merge', steps: [
             { says: 'merge when main CI passes', settles: 'when-ready' },
             { says: 'force merge', settles: 'now' },
         ],
     },
     {
-        label: 'Don’t merge', means: 'no', steps: [
+        label: 'Don’t merge', means: 'no', mark: 'no', steps: [
             { says: 'cancel the merge' },
             { says: 'definitely no' },
         ],
@@ -62,7 +55,7 @@ const APPROVALS: { approval: Approval; runs?: Run[] }[] = [
             title: 'Raise the schedule interval',
             arrivedMinutesAgo: 12,
             context: () => text(['every 1m → every 5m on schedule 12', 'cuts runs from 1440 to 288 a day']),
-            options: [{ label: 'Yes', confidence: classified(82), means: 'yes' }, { label: 'No', confidence: classified(18), means: 'no' }],
+            options: [{ label: 'Yes', means: 'yes', mark: 'yes' }, { label: 'No', means: 'no', mark: 'no' }],
             openForSeconds: 60,
         },
     },
@@ -111,9 +104,9 @@ const APPROVALS: { approval: Approval; runs?: Run[] }[] = [
                 + 'backfill them from the signup table, or stop and leave the table as it is.”',
             ]),
             options: [
-                { label: 'Skip and log', confidence: classified(54) },
-                { label: 'Backfill', confidence: classified(38) },
-                { label: 'Stop', confidence: classified(8) },
+                { label: 'Skip and log' },
+                { label: 'Backfill' },
+                { label: 'Stop' },
             ],
             // "I know agents sometimes like to put a table in their response."
             asides: [{
@@ -135,7 +128,7 @@ const APPROVALS: { approval: Approval; runs?: Run[] }[] = [
             title: 'Create an account for a cleaner',
             arrivedMinutesAgo: 40,
             context: () => text(['Applicant · example', 'applied 9 Oct · 3 years experience · Utrecht']),
-            options: [{ label: 'Yes', means: 'yes' }, { label: 'No', means: 'no' }],
+            options: [{ label: 'Yes', means: 'yes', mark: 'yes' }, { label: 'No', means: 'no', mark: 'no' }],
             asides: [{
                 label: 'Open mail & CV',
                 open: () => text([

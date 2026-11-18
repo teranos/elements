@@ -1,5 +1,7 @@
+import { TITLE_PRESS, TITLE_INSET } from './forms/title-sizes';
 import { AX } from './forms/ax';
 import { COMPACT_WIDTH } from './compact';
+import { SAY_PRESS, SAY_INSET } from './content/say-sizes';
 
 // "no element should have content that isnt accesible"
 // Nothing in an element is wider than what holds it: text wraps even where a host said nowrap,
@@ -16,8 +18,8 @@ const BUTTON_PROPERTIES = ['width', 'flex', 'flex-grow', 'flex-basis'];
 /** Inside an element, an important style attribute saying how wide is taken off; the element's own box is the form's. */
 export function takeOffFit(node: Element): void {
     if (!(node instanceof HTMLElement) || node.dataset.elementId !== undefined) return;
-    // A press's box is PRESS_SIZES' (forms/press.ts), not what it says.
-    if (node.tagName === 'BUTTON' && node.dataset.press === undefined) {
+    // 「[Opus 5.5] A press's box is PRESS_SIZES' (forms/press.ts), a say press's SAY_PRESS (content/say.ts), not what it says.」
+    if (node.tagName === 'BUTTON' && node.dataset.press === undefined && node.dataset.sayPress === undefined) {
         for (const name of BUTTON_PROPERTIES) {
             if (node.style.getPropertyPriority(name) === 'important') node.style.removeProperty(name);
         }
@@ -36,8 +38,22 @@ export function takeOffFit(node: Element): void {
 export function fitRule(element: string): string {
     return `${element} * { text-wrap-mode: wrap !important; max-width: 100% !important; min-width: 0 !important; }
 ${element} [data-fit-wrapped] { flex-wrap: wrap !important; }
-${element} button:not([data-element-id]):not([data-press]) { width: fit-content !important; flex: 0 0 auto !important; }
-${element} button[data-fit-even]:not([data-element-id]):not([data-press]) { min-width: var(--fit-even) !important; }
+${element} button:not([data-element-id]):not([data-press]):not([data-say-press]):not([data-own-box]):not(.title-bar *) { width: fit-content !important; flex: 0 0 auto !important; }
+${element} .title-bar:has(button) { padding-right: ${TITLE_INSET}px !important; }
+${element} .title-bar button { box-sizing: border-box !important; width: ${TITLE_PRESS}px !important; height: ${TITLE_PRESS}px !important; min-width: ${TITLE_PRESS}px !important; padding: 0 !important; margin: 0 !important; flex: none !important; display: inline-grid !important; place-items: center !important; line-height: 1 !important; }
+${element} .title-bar .title-bar-presses, ${element} .title-bar .window-controls { display: inline-flex !important; align-items: center !important; gap: ${TITLE_INSET}px !important; flex: none !important; margin-left: auto !important; }
+${element} .title-bar .title-bar-presses + .window-controls { margin-left: ${TITLE_INSET}px !important; }
+${element} :is([data-scroller="body"], [data-scroller="declared"]) button:not([data-element-id]):not([data-press]):not([data-say-press]):not([data-own-box]) { box-sizing: border-box !important; padding: 0.5em 1em !important; }
+${element} [data-say-box] [data-say] { color: inherit; }
+${element} [data-say-box] [data-say] { outline: none; }
+${element} [data-say-box]:focus-within { outline: 2px solid currentColor; outline-offset: 2px; }
+${element} :is(input, textarea)::placeholder { color: color-mix(in srgb, currentColor 65%, transparent); }
+${element} [data-pill-moving] { box-sizing: border-box !important; border-radius: ${SAY_PRESS / 2 + SAY_INSET}px !important; padding: ${SAY_INSET}px !important; }
+${element} [data-form="pill"]:not([hidden]):not([data-pill-moving]) { display: inline-flex !important; align-items: center !important; box-sizing: border-box !important; border-radius: 9999px !important; padding: 0.5em 1em !important; cursor: pointer; }
+${element} [data-say-pills] > [data-form="pill"] { flex: 0 0 auto !important; }
+${element} [data-form="pillOpen"]:not([data-pill-moving]) { display: block !important; box-sizing: border-box !important; width: 100% !important; border-radius: ${SAY_PRESS / 2 + SAY_INSET}px !important; padding: ${SAY_INSET}px !important; }
+${element} [data-say-press] { box-sizing: border-box !important; width: ${SAY_PRESS}px !important; height: ${SAY_PRESS}px !important; padding: 0 !important; border-radius: 50% !important; flex: none !important; margin: 0 !important; display: inline-grid !important; place-items: center !important; }
+${element} button[data-fit-even]:not([data-element-id]):not([data-press]):not([data-say-press]) { min-width: var(--fit-even) !important; }
 ${element} table:not(.element-table) { table-layout: fixed !important; width: 100% !important; }
 ${element} .element-table, ${element} .element-table * { overflow-wrap: break-word !important; }
 @media ${COMPACT_WIDTH} {
@@ -52,6 +68,8 @@ export function wrapRows(scroller: HTMLElement): void {
     for (const node of Array.from(scroller.querySelectorAll<HTMLElement>('*'))) {
         // Once: a wrapped row would measure as fitting, and unwrapped it would not.
         if (node.dataset.fitWrapped !== undefined) continue;
+        // 「[Opus 5.5] What the package says scrolls sideways (a strip of pills, a table) is dragged, not wrapped.」
+        if (node.closest('[data-scroller="sideways"]')) continue;
         const style = getComputedStyle(node);
         if (!style.display.includes('flex') || !style.flexDirection.startsWith('row')) continue;
         const squeezed = Array.from(node.children).some((child) => child.scrollWidth > child.clientWidth + 1);
@@ -69,7 +87,7 @@ export function wrapRows(scroller: HTMLElement): void {
 /** The presses of one list are as wide as its widest says: buttons stacked in one holder, or the one button of each row. Measured, so only on a page. */
 export function evenButtons(scroller: HTMLElement): void {
     const lists = new Map<HTMLElement, HTMLButtonElement[]>();
-    for (const button of Array.from(scroller.querySelectorAll<HTMLButtonElement>('button:not([data-element-id]):not([data-press])'))) {
+    for (const button of Array.from(scroller.querySelectorAll<HTMLButtonElement>('button:not([data-element-id]):not([data-press]):not([data-say-press])'))) {
         const list = listOf(button);
         if (!list) continue;
         lists.set(list, [...(lists.get(list) ?? []), button]);

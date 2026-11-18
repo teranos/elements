@@ -20,7 +20,7 @@ import { describe, test, expect, beforeEach } from 'bun:test';
 import { configureElements } from '../config';
 import { renderContent } from './render';
 import { holdBody } from './body';
-import { watchScroll, declareScroller, expectScroll, expectFits } from './scroll';
+import { watchScroll, declareScroller, expectScroll, expectFits, ownDeclared } from './scroll';
 
 let warnings: { message: string; metadata?: Record<string, unknown> }[] = [];
 let errors: { message: string; metadata?: Record<string, unknown> }[] = [];
@@ -208,6 +208,24 @@ describe('Spike: what is a second scroller, and what is not', () => {
         opened(column);
 
         expect(column.dataset.scroller).toBe('undeclared');
+    });
+
+    // 「[Opus 5.5] Seen in xenon: what waits, a pill in its input field, holds a list scrolled in itself. The pill is an element of」
+    // 「[Opus 5.5] its own: its scroller is its own, and the chat's body still scrolls what was said.」
+    test('a scroller declared in an element it holds is that element\'s: the body still scrolls', () => {
+        const content = div('chat');
+        content.appendChild(div('log', 'what was said'));
+        const pill = div('pill');
+        pill.dataset.elementId = 'xenon-outbox';
+        const list = div('waits');
+        list.style.overflowY = 'auto';
+        declareScroller(list);
+        pill.appendChild(list);
+        content.appendChild(pill);
+        const { body } = opened(content, 'xenon', 'Xenon');
+
+        expect(scrollsVertically(body)).toBe(true);
+        expect(warnings).toEqual([]);
     });
 
     test('a vertical scroller inside a declared one is a second scroller', () => {
@@ -512,5 +530,19 @@ describe('Jenny: dead while too wide, alive once it fits', () => {
 
         expect(body.dataset.tooWide).toBe('900px in 390px');
         expect(wideErrors()).toHaveLength(2);
+    });
+});
+
+// 「[Opus 5.5] CodeRabbit on #115: "Include the declared node in the ownership lookup." An element held in another, which is itself」
+// 「[Opus 5.5] its declared scroller, is that element's: not the one that holds it.」
+describe('Spike: an element held in another that is its own scroller', () => {
+    test('is not the scroller of the element that holds it', () => {
+        const outer = document.createElement('div');
+        outer.dataset.elementId = 'xenon';
+        const held = document.createElement('div');
+        held.dataset.elementId = 'xenon-outbox';
+        held.dataset.scroller = 'declared';
+        outer.appendChild(held);
+        expect(ownDeclared(outer, outer)).toBeNull();
     });
 });

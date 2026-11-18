@@ -135,20 +135,13 @@
       color: #fff;
     }
 
+    /* A press in the title bar: its size and place are the package's (fit.ts); how it looks is the page's. */
     .title-bar button {
-      width: 22px;
-      height: 22px;
-      padding: 1px 2px;
       background: #000;
       color: #fff;
       border: 1px solid #fff;
       border-radius: var(--border-radius);
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      margin-left: 2px;
     }
 
     .title-bar button:hover { background: #fff; color: #000; }
@@ -158,6 +151,19 @@
       overflow: auto;
       padding: 8px;
     }
+
+    /* The pill's look, as a host gives it: its shape and sizes are the package's. */
+    [data-say-box] { border: 1px solid #fff; }
+    [data-say-press] { border: 1px solid #fff; background: #000; color: #fff; }
+    /* The choices' look, at rest and open: their shape is the package's (Pill Form). */
+    [data-choices] { border: 1px solid #fff; background: #000; color: #fff; }
+    [data-choices] button { border: 1px solid #fff; background: #000; color: #fff; font: inherit; }
+    [data-choices] button[aria-pressed="true"] { background: #fff; color: #000; }
+    [data-outbox] { border: 1px solid #fff; background: #000; color: #fff; }
+    [data-outbox] [data-press] { border: 1px solid #fff; background: #000; color: #fff; }
+    [data-outbox] [data-waits] { display: block; width: 100%; text-align: left; padding: 6px 8px; border: 1px solid #fff; border-radius: 12px; background: #000; color: #fff; font: inherit; }
+    [data-outbox] [data-waits][aria-pressed="true"] { background: #fff; color: #000; }
+    [data-outbox] [data-waits-from] { opacity: 0.75; }
 
     .content {
       font-family: var(--font-mono);

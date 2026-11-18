@@ -11,7 +11,8 @@
 
 export type SegmentState = 'waiting' | 'running' | 'done' | 'failed';
 
-const FAILED = '#dc2626';
+/** MEANS.no (forms/press.ts), as a literal: a const made of another is undefined in a Bun bundle. */
+export const FAILED = '#d93636';
 
 /** Paints one segment, or anything drawn the way a segment is, in a state. */
 export function paintSegment(el: HTMLElement, state: SegmentState): void {

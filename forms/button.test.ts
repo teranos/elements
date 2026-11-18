@@ -202,7 +202,8 @@ describe('Tim: button, window, gap, button again', () => {
         expectAxiom('bismuth', button);
         const arrow = down(button);
         expect(arrow).not.toBeNull();
-        expect(arrow!.textContent).toBe('↓');
+        expect(arrow!.getAttribute('aria-label')).toBe('Back to its place');
+        expect(arrow!.dataset.mark).toBe('down');
         arrow!.click();
         await wait(SETTLED);
         expectAxiom('bismuth', button);

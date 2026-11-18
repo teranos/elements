@@ -22,7 +22,7 @@ import { applyRestingDotGeometry } from '../tray/proximity';
 import { type Element, DEFAULT_COLOR, DEFAULT_TEXT_COLOR } from '../element';
 import { wearIdentity, wearShadow } from '../paint';
 import { addWindowControls } from './title-bar-controls';
-import { homeOf, onlyHomeOf } from './home';
+import { homeOf } from './home';
 import { disarmContentWatch } from '../content/watch';
 import { stashContent } from '../content/stash';
 import { renderContent } from '../content/render';
@@ -229,7 +229,8 @@ function keepInsideSafeArea(panel: HTMLElement): void {
     const bottom = Math.max(0, at.bottom - (window.innerHeight - insets.bottom));
     panel.style.boxSizing = 'border-box';
     panel.style.paddingTop = `${top}px`;
-    panel.style.paddingBottom = giveStripToSay(panel, bottom) ? '0px' : `${bottom}px`;
+    panel.style.paddingBottom = `${bottom}px`;
+    nothingUnderSay(panel);
     panel.style.paddingLeft = `${insets.left}px`;
     panel.style.paddingRight = `${insets.right}px`;
     const handle = panel.querySelector<HTMLElement>(':scope > .panel-resize-handle');
@@ -238,31 +239,22 @@ function keepInsideSafeArea(panel: HTMLElement): void {
 }
 
 /**
- * "missed opportunity", in red, under a chat's field, five times: the panel kept
- * 「[Opus 5.5] the home bar's strip below the field, and the strip was nothing. A panel that」
- * 「[Opus 5.5] says from a field (content/say.ts) gives the strip to the field: the field's box」
- * 「[Opus 5.5] reaches the screen's edge, and what is typed in it stays above the bar. The」
- * 「[Opus 5.5] body's own padding under it goes too. Answers whether the strip was given.」
+ * "missed opportunity", in red, under a chat's field; then "This i want", "I want this only": the Claude app's
+ * 「[Opus 5.5] composer, a pill, and under it the home bar's strip and nothing else (measured: 34.7pt on a 34pt home bar). A panel」
+ * 「[Opus 5.5] that says from a field keeps the strip under it, and its body keeps nothing of its own there.」
  */
-function giveStripToSay(panel: HTMLElement, strip: number): boolean {
+function nothingUnderSay(panel: HTMLElement): void {
     const field = panel.querySelector<HTMLElement>('[data-say]');
     const body = panel.querySelector<HTMLElement>(':scope > [data-scroller="body"]');
-    if (!field || strip <= 0) {
-        panel.style.removeProperty('--elements-say-strip');
-        // 「[Opus 5.5] The body has its own padding under it again, as it was before (render.ts writes it as a shorthand).」
-        if (body?.dataset.sayOwnPadding !== undefined) {
-            body.style.paddingBottom = body.dataset.sayOwnPadding;
-            delete body.dataset.sayOwnPadding;
-        }
-        return false;
-    }
-    // 「[Opus 5.5] The field adds the strip to what it keeps under its words (content/say.ts), and its presses stand above it.」
-    panel.style.setProperty('--elements-say-strip', `${strip}px`);
-    if (body) {
+    if (!body) return;
+    if (field) {
         body.dataset.sayOwnPadding ??= body.style.paddingBottom;
         body.style.setProperty('padding-bottom', '0px');
+    } else if (body.dataset.sayOwnPadding !== undefined) {
+        // 「[Opus 5.5] The body has its own padding under it again, as it was before (render.ts writes it as a shorthand).」
+        body.style.paddingBottom = body.dataset.sayOwnPadding;
+        delete body.dataset.sayOwnPadding;
     }
-    return true;
 }
 
 /**
@@ -380,13 +372,8 @@ export function morphDotToPanel(
     const targetX = 0;
     const targetY = direction === 'from-top' ? 0 : window.innerHeight - panelHeight;
 
-    // Where it goes when it is minimized, swiped away or left by Escape: the
-    // tray, or the only place it rests (forms/home.ts).
-    const toRest = () => {
-        const home = onlyHomeOf(element);
-        if (home) home();
-        else morphPanelToDot(element, item, verifyElement, onMinimize);
-    };
+    // 「[Opus 5.5] Where it goes when it is minimized, swiped away or left by Escape: the tray.」
+    const toRest = () => morphPanelToDot(element, item, verifyElement, onMinimize);
 
     // Close on Escape
     const escapeHandler = (e: KeyboardEvent) => {
@@ -459,7 +446,7 @@ export function morphDotToPanel(
         const cleanupFn = attachResizeHandle(element, direction);
         resizeCleanups.set(element, cleanupFn);
         keepInsideSafeArea(element);
-        // 「[Opus 5.5] A field the host draws later is given the strip when it arrives (content/say.ts).」
+        // 「[Opus 5.5] A field the host draws later, or takes away, is answered when it does (content/say.ts).」
         if (!heldSays.has(element)) {
             heldSays.add(element);
             // 「[Opus 5.5] Only while it is a panel: the same element told about its field as a window or a dot is not a panel's.」
@@ -481,12 +468,6 @@ export function morphDotToPanel(
         if (handler) {
             document.removeEventListener('keydown', handler);
             escapeHandlers.delete(element);
-        }
-        // One that rests only at its place (forms/home.ts) is on its way there, or is put there: never a dot.
-        if (onlyHomeOf(element)) {
-            morph.rollbackClass();
-            onMinimize(element, item);
-            return;
         }
         // Reattach to tray so the element isn't orphaned — with the classes it had
         setForm(element, 'dot');
