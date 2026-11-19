@@ -7,11 +7,16 @@
  * - Jenny: the paths that used to be blind — generic title bars, canvas-placed
  */
 
-import { describe, test, expect, beforeEach } from 'bun:test';
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { createSymbolSpan, settleSymbolSpan } from './symbol-span';
 import { canvasPlaced } from './canvas/placed';
 import { renderContent } from './content/render';
+import { disarmContentWatch } from './content/watch';
 import type { Element } from './element';
+
+// 「[Opus 5.5] What drew nothing would say so in 10s, in whatever test runs then: every watch is let go after each test.」
+const rendered: HTMLElement[] = [];
+afterEach(() => { for (const element of rendered.splice(0)) disarmContentWatch(element); });
 
 beforeEach(() => {
     document.body.innerHTML = '';
@@ -100,6 +105,7 @@ describe('Jenny: native renderers display item.symbol', () => {
         document.body.appendChild(element);
 
         const { titleBar } = renderContent(element, makeElement({ symbol: '●' }), 'Test');
+        rendered.push(element);
 
         const symbol = titleBar.querySelector('.symbol');
         expect(symbol).not.toBeNull();
@@ -112,6 +118,7 @@ describe('Jenny: native renderers display item.symbol', () => {
         document.body.appendChild(element);
 
         const { titleBar } = renderContent(element, makeElement(), 'Test');
+        rendered.push(element);
 
         expect(titleBar.querySelector('.symbol')).toBeNull();
         expect(titleBar.textContent).toContain('Self');

@@ -11,6 +11,7 @@
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { holdBody } from './body';
 import { renderContent } from './render';
+import { disarmContentWatch } from './watch';
 
 beforeEach(() => {
     document.body.innerHTML = '';
@@ -36,6 +37,8 @@ describe('Tim: a rendered body scrolls', () => {
         }, 'Window');
 
         scrolls(contentElement!);
+        // 「[Opus 5.5] It draws nothing, so its watch would say so in 10s, in whatever test runs then (canvas/canvas-id.test.ts on #116).」
+        disarmContentWatch(el);
     });
 });
 

@@ -16,9 +16,10 @@
  *   or comes from the canvas; the test that fails a host
  */
 
-import { describe, test, expect, beforeEach } from 'bun:test';
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { configureElements } from '../config';
 import { renderContent } from './render';
+import { disarmContentWatch } from './watch';
 import { holdBody } from './body';
 import { watchScroll, declareScroller, expectScroll, expectFits, ownDeclared } from './scroll';
 
@@ -60,12 +61,17 @@ function stylesheet(css: string): void {
     document.head.appendChild(style);
 }
 
+// 「[Opus 5.5] What drew nothing would say so in 10s, in whatever test runs then: every watch is let go after each test.」
+const rendered: HTMLElement[] = [];
+afterEach(() => { for (const element of rendered.splice(0)) disarmContentWatch(element); });
+
 /** A window opened the way a tray dot opens one. */
 function opened(content: HTMLElement, id = 'claude', title = 'Claude'): { element: HTMLElement; body: HTMLElement } {
     const element = document.createElement('div');
     element.dataset.elementId = id;
     document.body.appendChild(element);
     const { contentElement } = renderContent(element, { id, title, renderContent: () => content }, 'Window');
+    rendered.push(element);
     return { element, body: contentElement! };
 }
 
@@ -154,6 +160,7 @@ describe('Spike: what is a second scroller, and what is not', () => {
             title: 'Broken',
             renderContent: () => { throw new Error('no data'); },
         }, 'Window');
+        rendered.push(element);
 
         expect(contentElement!.dataset.scroller).toBe('body');
     });
