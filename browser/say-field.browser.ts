@@ -216,6 +216,103 @@ test.describe('Jenny: scrolled up to the start', () => {
     });
 });
 
+// "It's static and doesn't allow anything to move behind it, like you see in all other chat apps": the conversation
+// scrolls under the field's row and is seen there, around the pill; only the pill itself covers what is under it.
+test.describe('Jenny: what was said moves behind the field', () => {
+    /** What the page shows at each point of the field's row that no pill of it covers: the topmost element there. */
+    const seenThroughRow = (page: Page) => page.locator(`${XENON} [data-say]`).evaluate((field) => {
+        const box = field.closest('[data-say-box]')!;
+        const row = box.parentElement!;
+        const r = row.getBoundingClientRect();
+        const covering = Array.from(row.querySelectorAll<HTMLElement>('[data-say-box], [data-form="pill"]')).filter(p => !p.hidden);
+        const seen: string[] = [];
+        for (let y = Math.ceil(r.top) + 1; y < r.bottom - 1; y += 3) {
+            for (let x = Math.ceil(r.left) + 1; x < r.right - 1; x += 7) {
+                if (covering.some(p => { const b = p.getBoundingClientRect(); return x >= b.left && x <= b.right && y >= b.top && y <= b.bottom; })) continue;
+                const at = document.elementFromPoint(x, y);
+                // 「[Opus 5.5] A line itself, one of the conversation's: not the scroller or the log that hold them all.」
+                const line = !!at && at.parentElement?.classList.contains('content') === true && /^line \d+ /.test(at.textContent ?? '');
+                if (at) seen.push(line ? 'line' : (row.contains(at) || at === row ? 'row' : 'other'));
+            }
+        }
+        return seen;
+    });
+
+    test('scrolled up, a line of the conversation is seen in the field\'s row, around the pill', async ({ page }) => {
+        await open(page);
+        // 「[Opus 5.5] Halfway between the start and the end: the scroller's own range, not its height.」
+        const at = await page.locator(`${XENON} [data-scroller="body"]`).evaluate((s) => { s.scrollTop = (s.scrollHeight - s.clientHeight) / 2; return [s.scrollTop, s.scrollHeight - s.clientHeight]; });
+        expect(at[0]).toBeGreaterThan(0);
+        expect(at[0]).toBeLessThan(at[1] - 1);
+        await page.waitForTimeout(100);
+        const seen = await seenThroughRow(page);
+
+        expect(seen.length).toBeGreaterThan(0);
+        expect(seen).toContain('line');
+        expect(seen).not.toContain('row');
+        // 「[Opus 5.5] Seen, not only reached: the row and its strip paint nothing over the lines under them.」
+        const painted = await page.locator(PILL).evaluate((pill) => {
+            const row = pill.parentElement!;
+            const strip = row.querySelector<HTMLElement>('[data-say-pills]');
+            return [row, strip].filter(Boolean).map(el => getComputedStyle(el!).backgroundColor);
+        });
+        for (const colour of painted) expect(colour).toBe('rgba(0, 0, 0, 0)');
+    });
+
+    // 「[Opus 5.5] CodeRabbit on #118: a field with no presses, straight in the body, is pinned itself, and is still pressed.」
+    test('a field with no presses, straight in the body, still takes a finger', async ({ page }) => {
+        await open(page);
+        const hit = await page.locator(XENON).evaluate(async (element) => {
+            const body = element.querySelector<HTMLElement>('[data-scroller="body"]')!;
+            const old = element.querySelector<HTMLElement>('[data-say]')!;
+            (old.closest('[data-say-box]')?.parentElement ?? old.parentElement!).remove();
+            const field = document.createElement('textarea');
+            field.dataset.say = '';
+            body.appendChild(field);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const b = field.getBoundingClientRect();
+            return { pinned: field.dataset.sayPinned !== undefined, at: document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2) === field };
+        });
+
+        expect(hit.pinned).toBe(true);
+        expect(hit.at).toBe(true);
+    });
+
+    test('the pill covers what is under it: its words are the pill\'s, not the conversation\'s', async ({ page }) => {
+        await open(page);
+        // 「[Opus 5.5] Halfway between the start and the end: the scroller's own range, not its height.」
+        const at = await page.locator(`${XENON} [data-scroller="body"]`).evaluate((s) => { s.scrollTop = (s.scrollHeight - s.clientHeight) / 2; return [s.scrollTop, s.scrollHeight - s.clientHeight]; });
+        expect(at[0]).toBeGreaterThan(0);
+        expect(at[0]).toBeLessThan(at[1] - 1);
+        await page.waitForTimeout(100);
+        const under = await page.locator(PILL).evaluate((pill) => {
+            const b = pill.getBoundingClientRect();
+            const at = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+            return !!at && pill.contains(at);
+        });
+
+        expect(under).toBe(true);
+        // 「[Opus 5.5] Covered, not only reached: the pill and the pills of its strip paint a surface of their own.」
+        const surfaces = await page.locator(PILL).evaluate((pill) => {
+            const strip = pill.parentElement!.querySelector<HTMLElement>('[data-say-pills]');
+            const pills = strip ? Array.from(strip.querySelectorAll<HTMLElement>(':scope > [data-form="pill"]')).filter(p => !p.hidden) : [];
+            return [pill, ...pills].map(el => getComputedStyle(el).backgroundColor);
+        });
+        expect(surfaces.length).toBeGreaterThan(1);
+        for (const colour of surfaces) expect(colour).not.toBe('rgba(0, 0, 0, 0)');
+    });
+
+    test('scrolled to the end, the last line is above the pill, read whole', async ({ page }) => {
+        await open(page);
+        await page.locator(`${XENON} [data-scroller="body"]`).evaluate((s) => { s.scrollTop = s.scrollHeight; });
+        await page.waitForTimeout(100);
+        const last = await page.locator(`${XENON} .content > div:last-child`).evaluate((line) => line.getBoundingClientRect().bottom);
+        const row = await page.locator(PILL).evaluate((pill) => pill.parentElement!.getBoundingClientRect().top);
+
+        expect(last).toBeLessThanOrEqual(row + 1);
+    });
+});
+
 // 「[Opus 5.5] Gemini's, ChatGPT's, Manus's and Claude's composers float above the home bar: the strip under it is the page's.」
 test.describe('Jenny: over the home bar', () => {
     test('the pill stands above the home bar\'s strip', async ({ page }, info) => {

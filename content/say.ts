@@ -237,8 +237,15 @@ function pinSay(element: HTMLElement, field: HTMLElement): void {
     const pinned = row === body || row === element ? box : row;
     if (pinned === row) row.style.setProperty('display', 'flex', 'important');
     for (const [name, value] of Object.entries(ROW)) pinned.style.setProperty(name, value, 'important');
-    // What scrolls under it is not seen through it.
-    pinned.style.setProperty('background-color', element.style.backgroundColor || getComputedStyle(element).backgroundColor, 'important');
+    // "It's static and doesn't allow anything to move behind it, like you see in all other chat apps": what was said
+    // 「[Opus 5.5] scrolls under the row and is seen there, and a finger there reaches it (fit.ts); the pill alone, in the」
+    // 「[Opus 5.5] element's own colour, covers what is under it.」
+    pinned.dataset.sayPinned = '';
+    pinned.style.setProperty('background-color', 'transparent', 'important');
+    // 「[Opus 5.5] The surface the pill and the pills of its strip are worn in, the element's own colour (fit.ts).」
+    const surface = element.style.backgroundColor || getComputedStyle(element).backgroundColor;
+    pinned.style.setProperty('--say-surface', surface);
+    if (box !== field || pinned === box) box.style.setProperty('background-color', surface, 'important');
 }
 
 /**

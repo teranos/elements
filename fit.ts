@@ -44,6 +44,8 @@ ${element} .title-bar button { box-sizing: border-box !important; width: ${TITLE
 ${element} .title-bar .title-bar-presses, ${element} .title-bar .window-controls { display: inline-flex !important; align-items: center !important; gap: ${TITLE_INSET}px !important; flex: none !important; margin-left: auto !important; }
 ${element} .title-bar .title-bar-presses + .window-controls { margin-left: ${TITLE_INSET}px !important; }
 ${element} :is([data-scroller="body"], [data-scroller="declared"]) button:not([data-element-id]):not([data-press]):not([data-say-press]):not([data-own-box]) { box-sizing: border-box !important; padding: 0.5em 1em !important; }
+${element} [data-say-pinned], ${element} [data-say-pinned] [data-say-pills] { pointer-events: none !important; }
+${element} [data-say-pinned] > :not([data-say-pills]), ${element} [data-say-pinned] [data-say-pills] > *, ${element} [data-say-pinned][data-say-box], ${element} [data-say-pinned][data-say] { pointer-events: auto !important; }
 ${element} [data-say-box] [data-say] { color: inherit; }
 ${element} [data-say-box] [data-say] { outline: none; }
 ${element} [data-say-box]:focus-within { outline: 2px solid currentColor; outline-offset: 2px; }
@@ -51,6 +53,7 @@ ${element} :is(input, textarea)::placeholder { color: color-mix(in srgb, current
 ${element} [data-pill-moving] { box-sizing: border-box !important; border-radius: ${SAY_PRESS / 2 + SAY_INSET}px !important; padding: ${SAY_INSET}px !important; }
 ${element} [data-form="pill"]:not([hidden]):not([data-pill-moving]) { display: inline-flex !important; align-items: center !important; box-sizing: border-box !important; border-radius: 9999px !important; padding: 0.5em 1em !important; cursor: pointer; }
 ${element} [data-say-pills] > [data-form="pill"] { flex: 0 0 auto !important; }
+${element} :where([data-say-pinned] [data-say-pills] > :is([data-form="pill"], [data-form="pillOpen"])) { background-color: var(--say-surface); }
 ${element} [data-form="pillOpen"]:not([data-pill-moving]) { display: block !important; box-sizing: border-box !important; width: 100% !important; border-radius: ${SAY_PRESS / 2 + SAY_INSET}px !important; padding: ${SAY_INSET}px !important; }
 ${element} [data-say-press] { box-sizing: border-box !important; width: ${SAY_PRESS}px !important; height: ${SAY_PRESS}px !important; padding: 0 !important; border-radius: 50% !important; flex: none !important; margin: 0 !important; display: inline-grid !important; place-items: center !important; }
 ${element} button[data-fit-even]:not([data-element-id]):not([data-press]):not([data-say-press]) { min-width: var(--fit-even) !important; }
