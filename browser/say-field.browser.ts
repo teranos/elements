@@ -259,6 +259,25 @@ test.describe('Jenny: what was said moves behind the field', () => {
         for (const colour of painted) expect(colour).toBe('rgba(0, 0, 0, 0)');
     });
 
+    // 「[Opus 5.5] CodeRabbit on #118: a field with no presses, straight in the body, is pinned itself, and is still pressed.」
+    test('a field with no presses, straight in the body, still takes a finger', async ({ page }) => {
+        await open(page);
+        const hit = await page.locator(XENON).evaluate(async (element) => {
+            const body = element.querySelector<HTMLElement>('[data-scroller="body"]')!;
+            const old = element.querySelector<HTMLElement>('[data-say]')!;
+            (old.closest('[data-say-box]')?.parentElement ?? old.parentElement!).remove();
+            const field = document.createElement('textarea');
+            field.dataset.say = '';
+            body.appendChild(field);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const b = field.getBoundingClientRect();
+            return { pinned: field.dataset.sayPinned !== undefined, at: document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2) === field };
+        });
+
+        expect(hit.pinned).toBe(true);
+        expect(hit.at).toBe(true);
+    });
+
     test('the pill covers what is under it: its words are the pill\'s, not the conversation\'s', async ({ page }) => {
         await open(page);
         // 「[Opus 5.5] Halfway between the start and the end: the scroller's own range, not its height.」
