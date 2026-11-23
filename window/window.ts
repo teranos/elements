@@ -14,7 +14,7 @@ import { wearIdentity } from '../paint';
 import { addWindowControls } from '../forms/title-bar-controls';
 import { homeOf } from '../forms/home';
 import { disarmContentWatch } from '../content/watch';
-import { stashContent } from '../content/stash';
+import { stashContent, stashedBody } from '../content/stash';
 import { renderContent } from '../content/render';
 import { setupWindowDrag, teardownWindowDrag } from './drag';
 import { setupWindowResize, teardownWindowResize, fillWithContent, stopFilling } from './resize';
@@ -61,10 +61,12 @@ export function morphDotToWindow(
     let measuredWidth = 0;
     let measuredHeight = 0;
     if (!given) {
+        // "lost my work"
         // A body the element already carries (forms/button.ts) is the one measured, and is never drawn twice.
-        const carried = carriedBody(element);
+        // A body waiting in the stash is the one measured too, and goes back into it.
+        const carried = carriedBody(element) ?? stashedBody(element);
         const body = carried ?? (preRenderedContent = item.renderContent());
-        const home = body.parentElement;
+        const home = body.parentNode;
         const next = body.nextSibling;
         const measurer = document.createElement('div');
         measurer.style.position = 'fixed';

@@ -59,6 +59,17 @@ export function restoreContent(element: HTMLElement): boolean {
     return true;
 }
 
+/**
+ * The body waiting in the stash, still in it: what a window coming back is measured by.
+ * Asking the element to render again instead hands back a body that may be this one
+ * (an element that builds its body once), pulled out of the stash and lost.
+ */
+export function stashedBody(element: HTMLElement): HTMLElement | null {
+    const fragment = stash.get(element);
+    if (!fragment) return null;
+    return (Array.from(fragment.children).find((child) => !child.classList.contains('title-bar')) as HTMLElement | undefined) ?? null;
+}
+
 /** Check whether a stash exists for this element. */
 export function hasStash(element: HTMLElement): boolean {
     return stash.has(element);
