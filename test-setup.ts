@@ -77,11 +77,11 @@ if (USE_JSDOM) {
     globalThis.HTMLElement = window.HTMLElement;
     // @ts-ignore
     globalThis.localStorage = window.localStorage;
-    // happy-dom 20.0.11 holds an observer's reporting function only through a WeakRef
-    // (MutationObserverListener: callback: new WeakRef((record) => this.report(record))): nothing else
-    // references it, so a garbage collection frees it and the observer is told nothing more, in silence.
-    // Each observer keeps the functions it observes with. (20.14 keeps them itself, but also brings the
-    // Web Animations API, a change of its own.)
+    // 「[Opus 5.5] happy-dom 20.0.11 holds an observer's reporting function only through a WeakRef」
+    // 「[Opus 5.5] (MutationObserverListener: callback: new WeakRef((record) => this.report(record))): nothing else」
+    // 「[Opus 5.5] references it, so a garbage collection frees it and the observer is told nothing more, in silence.」
+    // 「[Opus 5.5] Each observer keeps the functions it observes with. (20.14 keeps them itself, but also brings the」
+    // 「[Opus 5.5] Web Animations API, a change of its own.)」
     const HappyMutationObserver = window.MutationObserver as unknown as typeof MutationObserver;
     class KeptMutationObserver extends HappyMutationObserver {
         #kept = new Set<unknown>();
