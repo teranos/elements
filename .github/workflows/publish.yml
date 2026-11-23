@@ -35,6 +35,10 @@
           "run": "bun test"
         },
         {
+          "name": "The version stays on 1.x",
+          "run": "bun run .github/jsr-version-is-one.ts"
+        },
+        {
           "name": "The version must be new: a version JSR already has would be skipped in silence",
           "run": "bun run .github/jsr-version-is-new.ts"
         },
