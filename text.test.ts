@@ -62,10 +62,10 @@ describe('Tim: the set, and a node sized from it', () => {
         expect(css).toMatch(/\[contenteditable\]:not\(\[contenteditable="false"\]\)[^{]*\{ font-size: 16px !important; \}/);
     });
 
-    // "Be prepared for text-size changes" (Apple HIG, Accessibility): a size follows the person's text size, which is
-    // what `font-size: medium` is (the browser's own default), and is never smaller than the package's number. The
-    // scale is measured once and written into every size as a number: nothing in the page resolves it again, so no
-    // host's root, custom property or rule moves it.
+    // 「[Opus 5.5] "Be prepared for text-size changes" (Apple HIG, Accessibility): a size follows the person's text size, which is」
+    // 「[Opus 5.5] what `font-size: medium` is (the browser's own default), and is never smaller than the package's number. The」
+    // 「[Opus 5.5] scale is measured once and written into every size as a number: nothing in the page resolves it again, so no」
+    // 「[Opus 5.5] host's root, custom property or rule moves it.」
     function measuring(px: string): () => void {
         const had = window.getComputedStyle;
         (window as any).getComputedStyle = (node: Element) => {

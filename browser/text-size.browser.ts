@@ -9,8 +9,8 @@
  * Personas:
  * - Tim: Happy path — a panel's text is at the package's 11, whatever the page's own rules say
  * - Spike: Edge cases — a host's important rule and a style attribute, even important, change nothing
- * - Jenny: Complex scenarios — a node sized lg is at 14, and a dot's symbol is not the rule's;
- *   the person's larger text size makes it larger, and a host's smaller root makes nothing smaller
+ * 「[Opus 5.5] - Jenny: Complex scenarios — a node sized lg is at 14, and a dot's symbol is not the rule's;」
+ *   「[Opus 5.5] the person's larger text size makes it larger, and a host's smaller root makes nothing smaller」
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -106,8 +106,8 @@ test.describe('Jenny: sized from the set, and a dot', () => {
     });
 });
 
-// "Be prepared for text-size changes" (Apple HIG, Accessibility). The person's text size is the browser's own
-// default (Chromium's font-size setting, set here through the DevTools protocol); a host's root font-size is not it.
+// 「[Opus 5.5] "Be prepared for text-size changes" (Apple HIG, Accessibility). The person's text size is the browser's own」
+// 「[Opus 5.5] default (Chromium's font-size setting, set here through the DevTools protocol); a host's root font-size is not it.」
 test.describe('Jenny: the person\'s text size, and a host\'s root', () => {
     const field = (page: Page) => page.locator(`${KRYPTON} input`).first().evaluate((el) => getComputedStyle(el).fontSize);
 
@@ -132,7 +132,7 @@ test.describe('Jenny: the person\'s text size, and a host\'s root', () => {
     });
 
     test('a host\'s important rules on every span, there before the package measures, change nothing', async ({ page }) => {
-        // In the host's own page, in its head, before anything of the package's runs.
+        // 「[Opus 5.5] In the host's own page, in its head, before anything of the package's runs.」
         await page.route((url) => url.pathname === '/', async (route) => {
             const response = await route.fetch();
             const html = (await response.text()).replace('</head>', '<style>span { font-size: 24px !important; } * { font-family: monospace !important; }</style></head>');
