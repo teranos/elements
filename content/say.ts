@@ -10,6 +10,7 @@
 
 import { pillIn, pillAway, PILL_RESTED } from '../forms/pill';
 import { setForm, setElementId } from '../dataset';
+import { gapAt } from '../gap';
 
 const FIELD: Record<string, string> = {
     flex: '1 1 100%', width: '100%', 'min-width': '0', 'max-width': 'none',
@@ -49,7 +50,7 @@ export interface SayPresses {
  * 「[Opus 5.5] dragged sideways: "normally you're able to drag pills sideways in most applications". Never wrapped.」
  */
 const STRIP: Record<string, string> = {
-    display: 'flex', 'flex-wrap': 'nowrap', 'align-items': 'center', gap: '8px',
+    display: 'flex', 'flex-wrap': 'nowrap', 'align-items': 'center',
     flex: '1 1 100%', width: '100%', 'min-width': '0', order: '98', 'box-sizing': 'border-box', margin: '0',
     'overflow-x': 'auto', 'overflow-y': 'hidden', 'scrollbar-width': 'none', 'overscroll-behavior-x': 'contain',
 };
@@ -64,7 +65,7 @@ export { SAY_PRESS, SAY_INSET } from './say-sizes';
 
 /** The input field the field and its presses are: one line, rounded whole, its presses SAY_INSET in. Literals: a const made of another is undefined in a Bun bundle. */
 const PILL: Record<string, string> = {
-    display: 'flex', 'align-items': 'center', gap: '8px', padding: '8px', 'border-radius': '9999px',
+    display: 'flex', 'align-items': 'center', padding: '8px', 'border-radius': '9999px',
 };
 
 /**
@@ -269,6 +270,7 @@ function boxOf(field: HTMLElement): HTMLElement {
     // 「[Opus 5.5] It takes the field's line, as the field did.」
     for (const [name, value] of Object.entries(FIELD)) box.style.setProperty(name, value, 'important');
     for (const [name, value] of Object.entries(PILL)) box.style.setProperty(name, value, 'important');
+    gapAt(box, 'md');
     keeping(field, () => {
         parent.insertBefore(box, field);
         if (own.start) box.appendChild(own.start);
@@ -282,6 +284,7 @@ function boxOf(field: HTMLElement): HTMLElement {
         // 「[Opus 5.5] Sideways only: not a second scroller of its element (content/scroll.ts).」
         strip.dataset.scroller = 'sideways';
         for (const [name, value] of Object.entries(STRIP)) strip.style.setProperty(name, value, 'important');
+        gapAt(strip, 'md');
         // 「[Opus 5.5] Each as wide as its words: the package's rule (fit.ts).」
         for (const pill of pills) strip.appendChild(pill);
         box.before(strip);

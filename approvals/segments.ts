@@ -9,6 +9,8 @@
  * said to whoever reads the page aloud, not drawn on it.
  */
 
+import { gapAt } from '../gap';
+
 export type SegmentState = 'waiting' | 'running' | 'done' | 'failed';
 
 /** MEANS.no (forms/press.ts), as a literal: a const made of another is undefined in a Bun bundle. */
@@ -35,7 +37,7 @@ export function segmentStrip(text: string, count: number): { strip: HTMLElement;
     bar.style.position = 'absolute';
     bar.style.inset = '0';
     bar.style.display = 'flex';
-    bar.style.gap = '1px';
+    gapAt(bar, 'sm');
     const segments = Array.from({ length: count }, () => {
         const seg = document.createElement('span');
         seg.style.flex = '1';

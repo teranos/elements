@@ -10,6 +10,7 @@ import { tray } from '../tray/tray';
 import { fieldFrom } from '../forms/field';
 import { pressFrom, AtField } from '../forms/press';
 import type { Element } from '../element';
+import { gapAt } from '../gap';
 
 export function renderFieldSpecimen(): void {
     const item: Element = {
@@ -20,6 +21,10 @@ export function renderFieldSpecimen(): void {
         renderContent: () => {
             const body = document.createElement('div');
             body.className = 'content';
+            // "elements should own gaps right? So no consumers can disagree": the field and its presses a column, md apart.
+            body.style.display = 'flex';
+            body.style.flexDirection = 'column';
+            gapAt(body, 'md');
             const email = fieldFrom({ id: 'selenium-email', label: 'Email', placeholder: 'you@example.com', keyboard: 'email' });
             // The keyboard is the field's; what the browser may fill in is the autocomplete's.
             email.input.autocomplete = 'email';
@@ -33,8 +38,7 @@ export function renderFieldSpecimen(): void {
             const presses = document.createElement('div');
             presses.style.display = 'flex';
             presses.style.flexWrap = 'wrap';
-            presses.style.gap = '8px';
-            presses.style.marginTop = '12px';
+            gapAt(presses, 'md');
             presses.append(send.element, invite.element);
             body.append(email.element, presses);
             return body;

@@ -12,13 +12,14 @@ import { createInput } from '../canvas/ui-primitives';
 import { paintSegment, segmentStrip, type SegmentState } from '../approvals/segments';
 import { growInPlace } from '../approvals/grow';
 import { sizeText } from '../text';
+import { gapAt } from '../gap';
 
 /** What each colour of a run means, each drawn the way a segment is. */
 function runsKey(): HTMLElement {
     const key = document.createElement('div');
     key.style.display = 'flex';
     key.style.flexDirection = 'column';
-    key.style.gap = '6px';
+    gapAt(key, 'md');
     const said: [SegmentState, string][] = [
         ['done', 'passed'],
         ['running', 'running now'],
@@ -29,7 +30,7 @@ function runsKey(): HTMLElement {
         const line = document.createElement('div');
         line.style.display = 'flex';
         line.style.alignItems = 'center';
-        line.style.gap = '8px';
+        gapAt(line, 'md');
         const mark = document.createElement('span');
         mark.style.width = '12px';
         mark.style.height = '12px';
@@ -67,7 +68,7 @@ export function renderPanelSpecimen(): void {
                 const row = document.createElement('div');
                 row.style.display = 'flex';
                 row.style.alignItems = 'center';
-                row.style.gap = '8px';
+                gapAt(row, 'md');
                 const text = document.createElement('span');
                 text.textContent = `schedule ${i} · ACTIVE · every ${i}m`;
                 text.style.flex = '1';

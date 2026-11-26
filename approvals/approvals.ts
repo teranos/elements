@@ -20,6 +20,7 @@ import { growInPlace } from './grow';
 import { paintSegment, segmentStrip, type SegmentState } from './segments';
 import { sizeText } from '../text';
 import { MEANS, HELD } from '../forms/press';
+import { gapAt } from '../gap';
 
 /** What one press says. The same option pressed again says its next step. */
 export interface ApprovalStep {
@@ -136,13 +137,15 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     btn.style.display = 'flex';
     btn.style.flexDirection = 'column';
     btn.style.justifyContent = 'center';
-    btn.style.gap = '4px';
+    // 「[Opus 5.5] A mark and the spinner are centred by the column, not by a margin: inside an element a margin is none (gap.ts).」
+    btn.style.alignItems = 'center';
+    gapAt(btn, 'sm');
     btn.style.position = 'relative';
 
     const label = document.createElement('span');
     label.setAttribute('aria-hidden', 'true');
     if (option.mark) {
-        label.innerHTML = `<svg data-mark="${option.mark}" viewBox="0 0 16 16" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto"><path d="${MARKS[option.mark]}"/></svg>`;
+        label.innerHTML = `<svg data-mark="${option.mark}" viewBox="0 0 16 16" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="${MARKS[option.mark]}"/></svg>`;
     } else {
         label.textContent = option.label;
         sizeText(label, 'lg');
@@ -154,7 +157,7 @@ function optionButton(option: ApprovalOption): { btn: HTMLButtonElement; note: H
     waiting.dataset.waiting = '';
     waiting.setAttribute('aria-hidden', 'true');
     Object.assign(waiting.style, {
-        width: '14px', height: '14px', margin: '0 auto', boxSizing: 'border-box', borderRadius: '50%',
+        width: '14px', height: '14px', boxSizing: 'border-box', borderRadius: '50%',
         border: '2px solid currentColor', borderRightColor: 'transparent', display: 'none',
     });
     waiting.animate?.([{ transform: 'rotate(0turn)' }, { transform: 'rotate(1turn)' }], { duration: 900, iterations: Infinity });
@@ -208,12 +211,12 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
     card.style.padding = '16px 0';
     card.style.display = 'flex';
     card.style.flexDirection = 'column';
-    card.style.gap = '12px';
+    gapAt(card, 'md');
 
     const title = document.createElement('div');
     title.style.display = 'flex';
     title.style.justifyContent = 'space-between';
-    title.style.gap = '8px';
+    gapAt(title, 'md');
     const name = document.createElement('span');
     name.dataset.title = '';
     name.textContent = approval.title;
@@ -227,7 +230,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
     const end = document.createElement('span');
     end.style.display = 'flex';
     end.style.alignItems = 'center';
-    end.style.gap = '8px';
+    gapAt(end, 'md');
     end.appendChild(ago);
 
     const checks: SegmentState[] = (approval.checks ?? []).map((c) => c.state);
@@ -290,7 +293,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
         const list = document.createElement('div');
         list.style.display = 'flex';
         list.style.flexDirection = 'column';
-        list.style.gap = '6px';
+        gapAt(list, 'md');
         list.style.padding = '10px 8px';
         list.style.borderTop = '1px solid #fff';
         list.style.color = '#fff';
@@ -298,7 +301,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
             const row = document.createElement('div');
             row.style.display = 'flex';
             row.style.alignItems = 'center';
-            row.style.gap = '8px';
+            gapAt(row, 'md');
             const mark = document.createElement('span');
             mark.style.width = '12px';
             mark.style.height = '12px';
@@ -378,7 +381,7 @@ function renderApproval(approval: Approval, host: ApprovalHost, changed: (presse
 
     const row = document.createElement('div');
     row.style.display = 'flex';
-    row.style.gap = '8px';
+    gapAt(row, 'md');
 
     // Every press sends. The other option sends again; the same one says its
     // next step. What was sent last stands until it takes effect or the time

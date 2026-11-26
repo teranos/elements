@@ -10,7 +10,10 @@ import { SAY_PRESS, SAY_INSET } from './content/say-sizes';
 // what in it must not break does not), and a grid's tracks give way before the edge does.
 
 /** What the fit decides, which a style attribute written important would otherwise keep. */
-const FIT_PROPERTIES = ['white-space', 'text-wrap-mode', 'max-width', 'min-width', 'flex-wrap', 'table-layout'];
+const FIT_PROPERTIES = ['white-space', 'text-wrap-mode', 'max-width', 'min-width', 'flex-wrap', 'table-layout',
+    // "elements should own gaps right? So no consumers can disagree": the space between things is the package's (gap.ts).
+    'gap', 'row-gap', 'column-gap', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+    'margin-block', 'margin-block-start', 'margin-block-end', 'margin-inline', 'margin-inline-start', 'margin-inline-end'];
 
 /** What makes a button as wide as what it says, which a style attribute written important would otherwise keep. */
 const BUTTON_PROPERTIES = ['width', 'flex', 'flex-grow', 'flex-basis'];

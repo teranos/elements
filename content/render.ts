@@ -17,6 +17,7 @@ import { watchScroll } from './scroll';
 import { sizeText } from '../text';
 import { openAtEnd, stopFollowing } from './end';
 import { holdSay } from './say';
+import { gapAt } from '../gap';
 
 export interface RenderContentResult {
     titleBar: HTMLElement;
@@ -103,9 +104,11 @@ export function renderContent(
             holdBody(errorContent);
             errorContent.style.color = 'var(--color-error)';
             errorContent.style.fontFamily = 'var(--font-mono)';
+            errorContent.style.display = 'flex';
+            errorContent.style.flexDirection = 'column';
+            gapAt(errorContent, 'md');
 
             const errorTitle = document.createElement('div');
-            errorTitle.style.marginBottom = '8px';
             errorTitle.style.fontWeight = 'bold';
             errorTitle.textContent = 'Error rendering content';
             errorContent.appendChild(errorTitle);
