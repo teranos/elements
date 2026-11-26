@@ -6,6 +6,7 @@
 import { preventDrag } from '../canvas/drag';
 import { sizeText } from '../text';
 import { AX } from './ax';
+import { gapAt } from '../gap';
 
 /** The keyboard a phone brings up for it: the one thing a field varies by. */
 export const KEYBOARDS: readonly ['text', 'email', 'tel'] = Object.freeze(['text', 'email', 'tel'] as const);
@@ -62,7 +63,8 @@ export function fieldFrom(field: Field): FieldHandle {
     refuse(field);
     const element = document.createElement('div');
     element.dataset.field = field.id;
-    pin(element, { display: 'flex', 'flex-direction': 'column', gap: '4px', 'min-width': '0' });
+    pin(element, { display: 'flex', 'flex-direction': 'column', 'min-width': '0' });
+    gapAt(element, 'sm');
 
     const lines = field.lines !== undefined;
     const input = lines ? document.createElement('textarea') : document.createElement('input');

@@ -6,6 +6,8 @@
  * and removeWindowControls() when returning to canvas-placed.
  */
 
+import { gapAt } from '../gap';
+
 export { TITLE_PRESS, TITLE_INSET } from './title-sizes';
 
 const WINDOW_CONTROLS_CLASS = 'window-controls';
@@ -47,8 +49,8 @@ export function addWindowControls(titleBar: HTMLElement, config: WindowControlsC
     const container = document.createElement('span');
     container.className = WINDOW_CONTROLS_CLASS;
     container.style.display = 'inline-flex';
-    // 「[Opus 5.5] TITLE_INSET apart, as the package's rule says (fit.ts).」
-    container.style.gap = '4px';
+    // 「[Opus 5.5] TITLE_INSET apart, as the package's rule says (fit.ts): sm of the set.」
+    gapAt(container, 'sm');
     container.style.flexShrink = '0';
     container.style.marginLeft = 'auto';
 

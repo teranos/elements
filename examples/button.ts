@@ -14,6 +14,7 @@ import { declareScroller } from '../content/scroll';
 import { buttonFrom } from '../forms/button';
 import { pressFrom } from '../forms/press';
 import type { Element } from '../element';
+import { gapAt } from '../gap';
 
 export function renderButtonSpecimen(): void {
     const root = document.getElementById('root');
@@ -63,8 +64,7 @@ export function renderButtonSpecimen(): void {
     presses.style.display = 'flex';
     presses.style.flexWrap = 'wrap';
     presses.style.alignItems = 'flex-start';
-    presses.style.gap = '8px';
-    presses.style.marginTop = '12px';
+    gapAt(presses, 'md');
     presses.append(
         pressFrom({ id: 'germanium-save', title: 'Save', does: moment }).element,
         pressFrom({ id: 'germanium-unbind', title: 'Unbind', again: 'it is unbound', does: moment }).element,

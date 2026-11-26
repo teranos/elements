@@ -6,6 +6,7 @@ import { canvasPlaced } from '../canvas/placed';
 import { declareScroller } from '../content/scroll';
 import { renderSparkline, wireLineTooltips } from '../sparkline';
 import type { Element } from '../element';
+import { gapAt } from '../gap';
 
 const HOURS = Array.from({ length: 12 }, (_, i) => `2026-09-29 ${String(8 + i).padStart(2, '0')}`);
 
@@ -47,7 +48,8 @@ export function renderSparklineSpecimen(): void {
     declareScroller(body);
     for (const [name, data, style] of ROWS) {
         const row = document.createElement('div');
-        row.style.cssText = `display: flex; justify-content: space-between; align-items: center; gap: 10px; ${style}`;
+        row.style.cssText = `display: flex; justify-content: space-between; align-items: center; ${style}`;
+        gapAt(row, 'md');
         const label = document.createElement('span');
         label.textContent = name;
         const spark = document.createElement('span');

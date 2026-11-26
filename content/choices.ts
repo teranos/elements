@@ -10,6 +10,7 @@
  */
 
 import { pillFrom } from '../forms/pill';
+import { gapAt } from '../gap';
 
 /** One of its options chosen: a model, an effort. */
 export interface ChoiceOfOne {
@@ -42,7 +43,7 @@ export interface Choices {
     onChoose?: (name: string, value: string, chosen: readonly string[]) => void;
 }
 
-const OPTIONS: Record<string, string> = { display: 'flex', 'flex-wrap': 'wrap', gap: '4px' };
+const OPTIONS: Record<string, string> = { display: 'flex', 'flex-wrap': 'wrap' };
 
 const ROUND: Record<string, string> = { 'border-radius': '9999px' };
 
@@ -81,13 +82,15 @@ export function choicesFrom(c: Choices): HTMLElement {
         title: words(),
         renderContent: () => {
             const all = document.createElement('div');
-            pin(all, { display: 'flex', 'flex-direction': 'column', gap: '4px' });
+            pin(all, { display: 'flex', 'flex-direction': 'column' });
+            gapAt(all, 'sm');
             for (const choice of c.choices) {
                 // 「[Opus 5.5] No words over its options: they say what they are. Named for a screen reader.」
                 const options = document.createElement('div');
                 options.setAttribute('role', 'group');
                 options.setAttribute('aria-label', choice.name);
                 pin(options, OPTIONS);
+                gapAt(options, 'sm');
                 for (const value of choice.options) {
                     const press = document.createElement('button');
                     press.type = 'button';

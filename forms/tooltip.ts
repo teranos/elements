@@ -20,6 +20,7 @@ import { stashContent } from '../content/stash';
 import { morphDotToWindow } from '../window/window';
 import { tray } from '../tray/tray';
 import { raise } from '../window/z-order';
+import { gapAt } from '../gap';
 
 export interface TooltipTiming {
     /** Hover in ms before the tooltip is said (default 300). */
@@ -113,7 +114,7 @@ function sayBeside(anchor: Anchor, item: Element, text?: string): HTMLElement {
     const said = document.createElement('div');
     said.className = 'tooltip-said';
     said.style.display = 'flex';
-    said.style.gap = '6px';
+    gapAt(said, 'md');
     said.style.alignItems = 'center';
     if (item.symbol) said.appendChild(createSymbolSpan(item.symbol));
     const title = document.createElement('span');

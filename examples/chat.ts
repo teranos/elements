@@ -10,6 +10,7 @@ import type { Element } from '../element';
 import { sayFrom } from '../content/say';
 import { choicesFrom } from '../content/choices';
 import { outboxFrom } from './outbox';
+import { gapAt } from '../gap';
 
 export function renderChatSpecimen(): void {
     const item: Element = {
@@ -31,7 +32,7 @@ export function renderChatSpecimen(): void {
             // 「[Opus 5.5] The row a chat says from, as a host draws it.」
             const row = document.createElement('div');
             row.style.display = 'flex';
-            row.style.gap = '4px';
+            gapAt(row, 'sm');
             // "Why not do it like anthropic does, where its a combined model+effort pill"
             const choices = choicesFrom({
                 id: 'xenon-choices',

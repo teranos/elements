@@ -4,6 +4,7 @@
 
 import type { Element } from './element';
 import { tooltipFrom, type TooltipTiming } from './forms/tooltip';
+import { gapAt } from './gap';
 
 // No space after the comma: happy-dom drops a var() whose fallback has one.
 const STROKE = 'var(--elements-sparkline-stroke,#64748b)';
@@ -97,7 +98,6 @@ function wholeLine(steps: Step[]): HTMLElement {
 
     const moments = document.createElement('div');
     moments.className = 'sparkline-whole-moments';
-    moments.style.marginTop = '6px';
     for (const [at, value] of steps) {
         if (value === 0) continue;
         const moment = document.createElement('div');
@@ -105,6 +105,10 @@ function wholeLine(steps: Step[]): HTMLElement {
         moments.appendChild(moment);
     }
     picture.appendChild(moments);
+    // 「[Opus 5.5] The line, its axis and its moments, a gap of the set apart, never a margin (gap.ts).」
+    picture.style.display = 'flex';
+    picture.style.flexDirection = 'column';
+    gapAt(picture, 'md');
     return picture;
 }
 

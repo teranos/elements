@@ -101,7 +101,7 @@ const STRIP_HEIGHT = GRABBER_INSET * 2 + GRABBER_HEIGHT + 1;
 
 // Hidden from sight and kept for a screen reader: the minimize button is still what one is given.
 const UNSEEN: Record<string, string> = {
-    position: 'absolute', width: '1px', height: '1px', margin: '-1px', padding: '0',
+    position: 'absolute', width: '1px', height: '1px', margin: '0', padding: '0',
     border: '0', overflow: 'hidden', clip: 'rect(0 0 0 0)', 'white-space': 'nowrap',
 };
 

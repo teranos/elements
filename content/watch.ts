@@ -28,6 +28,7 @@ import { CONTENT_DEADLINE_MS } from '../element';
 import { setContentState, getContentState } from '../dataset';
 import { isSettled, type ContentState } from './state';
 import { sizeText } from '../text';
+import { gapAt } from '../gap';
 
 /**
  * Who the body belongs to. A `Element` satisfies it, and so does a path that has
@@ -201,11 +202,13 @@ function refuse(contentArea: HTMLElement, item: ContentSubject, logLabel: string
     box.style.color = 'var(--color-warning)';
     box.style.fontFamily = 'var(--font-mono)';
     box.style.padding = '8px';
+    box.style.display = 'flex';
+    box.style.flexDirection = 'column';
+    gapAt(box, 'md');
     box.style.wordBreak = 'break-word';
     box.style.overflowWrap = 'break-word';
 
     const what = document.createElement('div');
-    what.style.marginBottom = '8px';
     what.style.fontWeight = 'bold';
     what.textContent = 'nothing was drawn, and nothing said why';
     box.appendChild(what);

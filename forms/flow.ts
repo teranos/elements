@@ -5,6 +5,7 @@
 import { PANEL_OVERLAY_BG } from '../element';
 import { sizeText } from '../text';
 import { MEANS, pressFrom } from './press';
+import { gapAt } from '../gap';
 
 /** One step: its name, what it is, and its panel, drawn when it is reached. */
 export interface FlowStep {
@@ -43,18 +44,23 @@ export function flowFrom(flow: Flow): FlowHandle {
     element.dataset.flow = flow.id;
     // A row, not a grid: the fit loosens a grid's tracks, and the steps were squeezed to a letter a line.
     // One height for every step: the window does not change size under the person going through it.
-    pin(element, { display: 'flex', 'align-items': 'stretch', gap: '16px', 'min-width': '0', height: '36em', 'max-height': '60vh' });
+    pin(element, { display: 'flex', 'align-items': 'stretch', 'min-width': '0', height: '36em', 'max-height': '60vh' });
+    gapAt(element, 'lg');
 
     const rail = document.createElement('ol');
-    pin(rail, { 'list-style': 'none', margin: '0', padding: '0', display: 'flex', 'flex-direction': 'column', gap: '12px', flex: '0 0 11em', width: '11em', 'align-self': 'flex-start' });
+    pin(rail, { 'list-style': 'none', margin: '0', padding: '0', display: 'flex', 'flex-direction': 'column', flex: '0 0 11em', width: '11em', 'align-self': 'flex-start' });
+    gapAt(rail, 'md');
     const main = document.createElement('div');
-    pin(main, { display: 'flex', 'flex-direction': 'column', gap: '12px', 'min-width': '0', 'min-height': '0', 'max-height': '100%', flex: '1 1 0' });
+    pin(main, { display: 'flex', 'flex-direction': 'column', 'min-width': '0', 'min-height': '0', 'max-height': '100%', flex: '1 1 0' });
+    gapAt(main, 'md');
     const panel = document.createElement('div');
     panel.dataset.flowPanel = '';
     // A step taller than the flow scrolls in its panel; Back and Continue stay in sight.
-    pin(panel, { display: 'flex', 'flex-direction': 'column', gap: '8px', 'min-width': '0', 'min-height': '0', flex: '1 1 auto', 'overflow-y': 'auto' });
+    pin(panel, { display: 'flex', 'flex-direction': 'column', 'min-width': '0', 'min-height': '0', flex: '1 1 auto', 'overflow-y': 'auto' });
+    gapAt(panel, 'md');
     const foot = document.createElement('div');
-    pin(foot, { flex: '0 0 auto', display: 'flex', 'justify-content': 'space-between', 'align-items': 'flex-start', gap: '8px' });
+    pin(foot, { flex: '0 0 auto', display: 'flex', 'justify-content': 'space-between', 'align-items': 'flex-start' });
+    gapAt(foot, 'md');
     main.append(panel, foot);
     element.append(rail, main);
 
@@ -74,7 +80,9 @@ export function flowFrom(flow: Flow): FlowHandle {
         flow.steps.forEach((step, n) => {
             const item = document.createElement('li');
             item.dataset.flowStep = String(n);
-            pin(item, { display: 'grid', 'grid-template-columns': '1.6em minmax(0, 1fr)', 'column-gap': '8px', opacity: n > at ? '0.5' : '1' });
+            pin(item, { display: 'grid', 'grid-template-columns': '1.6em minmax(0, 1fr)', opacity: n > at ? '0.5' : '1' });
+            // A step's mark labels its title.
+            gapAt(item, 'sm');
             const mark = document.createElement('span');
             const done = n < at;
             if (done) item.dataset.done = '';

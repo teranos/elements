@@ -11,6 +11,7 @@
 import { pillFrom, PILL_RESTED } from '../forms/pill';
 import { pressFrom } from '../forms/press';
 import { declareScroller } from '../content/scroll';
+import { gapAt } from '../gap';
 
 /** Who said it, when, and what. */
 const WAITING: [string, string, string][] = [
@@ -49,7 +50,8 @@ export function outboxFrom(): HTMLElement {
 
     // 「[Opus 5.5] What is done with what waits, said once, on one line.」
     const actions = document.createElement('div');
-    pin(actions, { display: 'flex', 'flex-wrap': 'wrap', gap: '8px' });
+    pin(actions, { display: 'flex', 'flex-wrap': 'wrap' });
+    gapAt(actions, 'md');
     actions.append(
         pressFrom({ id: `${id}-now`, title: 'Send now', does: async () => { await moment(); away(rows.slice()); told(); } }).element,
         pressFrom({ id: `${id}-later`, title: 'Later', does: async () => { await moment(); due = '01:10'; sayWhen(); told(); } }).element,
@@ -65,7 +67,8 @@ export function outboxFrom(): HTMLElement {
     const list = document.createElement('div');
     list.setAttribute('role', 'group');
     list.setAttribute('aria-label', 'What waits');
-    pin(list, { display: 'flex', 'flex-direction': 'column', gap: '4px', 'max-height': '30vh', 'overflow-y': 'auto' });
+    pin(list, { display: 'flex', 'flex-direction': 'column', 'max-height': '30vh', 'overflow-y': 'auto' });
+    gapAt(list, 'sm');
     declareScroller(list);
     for (const [who, at, what] of WAITING) {
         const row = document.createElement('button');
@@ -85,7 +88,8 @@ export function outboxFrom(): HTMLElement {
 
     // 「[Opus 5.5] Drawn once, before it is first pressed: it says how many wait from the start.」
     const whole = document.createElement('div');
-    pin(whole, { display: 'flex', 'flex-direction': 'column', gap: '8px', width: '100%' });
+    pin(whole, { display: 'flex', 'flex-direction': 'column', width: '100%' });
+    gapAt(whole, 'md');
     whole.append(when, actions, list);
 
     const pill = pillFrom({ id, title: says(), renderContent: () => whole });

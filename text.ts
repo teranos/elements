@@ -3,6 +3,7 @@
 // set, and nothing else: a host's stylesheet, a style attribute or an em has no say there.
 
 import { fitRule, takeOffFit } from './fit';
+import { GAPS } from './gap-sizes';
 
 /** px: the sizes text inside an element is read at, hand-tuned. */
 export const TEXT_SIZES: Readonly<{ xs: 10; sm: 11; md: 13; lg: 14 }> = Object.freeze({ xs: 10, sm: 11, md: 13, lg: 14 } as const);
@@ -68,8 +69,20 @@ const ELEMENT = '[data-element-id]:not(.dot)';
 // An editor is a field that is not a tag (CodeMirror's surface is a div): the same 16, and what is written in it.
 const EDITOR = '[contenteditable]:not([contenteditable="false"])';
 
+// "elements should own gaps right? So no consumers can disagree": the sizes on the page's root, for what a host draws
+// outside any element, said by the package and by no host (an important rule in a layer outranks the host's).
+const ROOT = (): string => `:root { ${Object.entries(GAPS).map(([name, px]) => `--gap-${name}: ${px}px !important;`).join(' ')} ${
+    Object.entries(TEXT_SIZES).map(([name, px]) => `--font-size-${name}: ${written(px)} !important;`).join(' ')} --font-size-field: ${written(FIELD_TEXT_SIZE)} !important; }`;
+
+// What a host puts in an element's body stands md apart, one under the other: a margin there is a host's and none,
+// so the package spaces what the body holds itself (a body is a block, and a field pinned in it is laid out by its row). Deeper, what a host lays out it spaces by a gap of the set (gapAt): CSS cannot tell a host's row
+// from its column, and a margin added there would move a row's things down.
 const rule = (): string => `@layer elements {
+${ROOT()}
 ${ELEMENT} { font-size: ${written(TEXT_SIZES[DEFAULT])} !important; }
+${ELEMENT} * { gap: ${GAPS.md}px !important; margin: 0 !important; }
+${ELEMENT} [data-scroller="body"]:not([data-gap]) > * + * { margin-block-start: ${GAPS.md}px !important; }
+${Object.entries(GAPS).map(([name, px]) => `${ELEMENT} [data-gap="${name}"], ${ELEMENT}[data-gap="${name}"] { gap: ${px}px !important; }`).join('\n')}
 ${ELEMENT} * { font-size: inherit !important; }
 ${ELEMENT}, ${ELEMENT} * { overflow-wrap: anywhere !important; word-break: normal !important; }
 ${fitRule(ELEMENT)}

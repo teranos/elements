@@ -20,6 +20,7 @@ import { getRestDuration } from '../element';
 import { sizeText } from '../text';
 import { attachCursorToMouse, prepareCursorForPlacement, commitCursorPlacement } from './cursor';
 import { onTouchHold, type TouchHold } from './touch-hold';
+import { GAPS } from '../gap-sizes';
 
 /** One thing a canvas can spawn. Plain text throughout. */
 export interface SpawnEntry {
@@ -470,9 +471,9 @@ function putStylesheetInPage(): void {
 .elements-spawn-item:focus-visible{outline:2px solid #4a9eff;outline-offset:2px}
 .elements-spawn-reveal{position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%) translateZ(0);background:rgba(30,30,30,.95);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:12px 16px;color:rgba(255,255,255,.85);max-width:240px;pointer-events:none;opacity:0;transition:opacity .2s ease;text-align:left}
 .elements-spawn-item:hover .elements-spawn-reveal{opacity:1;pointer-events:auto}
-.elements-spawn-reveal strong{display:block;margin-bottom:4px}
+.elements-spawn-reveal strong{display:block;margin-bottom:${GAPS.sm}px}
 .elements-spawn-desc{color:rgba(255,255,255,.65);line-height:1.4}
-.elements-spawn-hint{color:rgba(255,255,255,.4);margin-top:4px;font-style:italic}
+.elements-spawn-hint{color:rgba(255,255,255,.4);margin-top:${GAPS.sm}px;font-style:italic}
 .cursor{position:fixed;pointer-events:none;z-index:10003;color:rgba(255,255,255,.95);background:none;border:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%)}
 @media (pointer:coarse){.elements-spawn-item{padding:12px}}
 `;

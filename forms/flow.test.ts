@@ -28,6 +28,12 @@ function press(flow: HTMLElement, id: string): void {
 const shown = (flow: HTMLElement) => flow.querySelector('[data-flow-panel]')!.textContent;
 
 describe('Tim: a flow is its steps, one at a time', () => {
+    // A step's mark labels its title: sm apart, inside an element or not.
+    test('a step\'s mark stands sm from its title', () => {
+        const flow = flowFrom({ id: 'connect', steps: [step('Issuer', ''), step('Test', '')], onDone: () => {} });
+        for (const item of Array.from(flow.element.querySelectorAll<HTMLElement>('[data-flow-step]'))) expect(item.dataset.gap).toBe('sm');
+    });
+
     test('each step is named, numbered, with what it is, the first one current', () => {
         const flow = flowFrom({ id: 'connect', steps: [step('Issuer', 'Select or register the provider'), step('Test', 'Verify end-to-end')], onDone: () => {} });
         const rail = Array.from(flow.element.querySelectorAll('[data-flow-step]'));
