@@ -21,7 +21,8 @@ export function paintSegment(el: HTMLElement, state: SegmentState): void {
     ensureStyle();
     el.dataset.state = state;
     el.className = state === 'running' ? 'segment-running' : '';
-    el.style.background = { done: '#fff', failed: FAILED, waiting: '#000', running: '' }[state];
+    // Its colour alone: the background shorthand would put a segment's clip back to its border, over its hairline.
+    el.style.backgroundColor = { done: '#fff', failed: FAILED, waiting: '#000', running: '' }[state];
 }
 
 export function segmentStrip(text: string, count: number): { strip: HTMLElement; segments: HTMLElement[] } {

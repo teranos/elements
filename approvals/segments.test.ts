@@ -18,6 +18,15 @@ describe('Tim: a strip is its segments, and its name is not written on it', () =
         for (const seg of segments.slice(1)) expect(seg.style.borderLeftWidth).toBe('1px');
     });
 
+    // 「[Opus 5.5] The background shorthand puts its clip back to the border: a segment repainted would cover its hairline.」
+    test('a segment repainted, in every state, keeps its hairline', () => {
+        const { segments } = segmentStrip('checks', 3);
+        for (const state of ['done', 'failed', 'running', 'waiting'] as const) {
+            paintSegment(segments[1]!, state);
+            expect(segments[1]!.style.backgroundClip).toBe('padding-box');
+        }
+    });
+
     test('nothing is written over the segments', () => {
         const { strip } = segmentStrip('codevault', 3);
         expect(strip.textContent).toBe('');
