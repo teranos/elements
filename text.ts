@@ -81,8 +81,8 @@ const rule = (): string => `@layer elements {
 ${ROOT()}
 ${ELEMENT} { font-size: ${written(TEXT_SIZES[DEFAULT])} !important; }
 ${ELEMENT} * { gap: ${GAPS.md}px !important; margin: 0 !important; }
-${ELEMENT} [data-scroller="body"] > * + * { margin-block-start: ${GAPS.md}px !important; }
-${Object.entries(GAPS).map(([name, px]) => `${ELEMENT} [data-gap="${name}"] { gap: ${px}px !important; }`).join('\n')}
+${ELEMENT} [data-scroller="body"]:not([data-gap]) > * + * { margin-block-start: ${GAPS.md}px !important; }
+${Object.entries(GAPS).map(([name, px]) => `${ELEMENT} [data-gap="${name}"], ${ELEMENT}[data-gap="${name}"] { gap: ${px}px !important; }`).join('\n')}
 ${ELEMENT} * { font-size: inherit !important; }
 ${ELEMENT}, ${ELEMENT} * { overflow-wrap: anywhere !important; word-break: normal !important; }
 ${fitRule(ELEMENT)}

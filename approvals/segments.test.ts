@@ -8,6 +8,16 @@ import { describe, test, expect } from 'bun:test';
 import { paintSegment, segmentStrip } from './segments';
 
 describe('Tim: a strip is its segments, and its name is not written on it', () => {
+    // 「[Opus 5.5] Twenty checks in a strip 70 wide: a gap between them would leave the segments no width. They touch, and a」
+    // 「[Opus 5.5] hairline of the strip's own between them tells them apart (none of the set's gaps).」
+    test('its segments touch, a hairline between them', () => {
+        const { strip, segments } = segmentStrip('checks', 20);
+        const bar = strip.firstElementChild as HTMLElement;
+        expect(bar.dataset.gap).toBe('none');
+        expect(segments[0]!.style.borderLeftWidth).toBe('');
+        for (const seg of segments.slice(1)) expect(seg.style.borderLeftWidth).toBe('1px');
+    });
+
     test('nothing is written over the segments', () => {
         const { strip } = segmentStrip('codevault', 3);
         expect(strip.textContent).toBe('');

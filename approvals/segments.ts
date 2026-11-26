@@ -37,10 +37,16 @@ export function segmentStrip(text: string, count: number): { strip: HTMLElement;
     bar.style.position = 'absolute';
     bar.style.inset = '0';
     bar.style.display = 'flex';
-    gapAt(bar, 'sm');
-    const segments = Array.from({ length: count }, () => {
+    // 「[Opus 5.5] The segments of one strip touch: twenty checks in a strip 70 wide leave no width to a gap between them. A」
+    // 「[Opus 5.5] hairline of the strip's own tells them apart, the colour under it showing through.」
+    gapAt(bar, 'none');
+    const segments = Array.from({ length: count }, (_, n) => {
         const seg = document.createElement('span');
         seg.style.flex = '1';
+        if (n > 0) {
+            seg.style.borderLeft = '1px solid transparent';
+            seg.style.backgroundClip = 'padding-box';
+        }
         bar.appendChild(seg);
         paintSegment(seg, 'waiting');
         return seg;

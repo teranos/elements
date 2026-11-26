@@ -102,6 +102,27 @@ test('Tim: a host\'s root laid out as a column at md stands md apart, its own ma
     expect(apart).toBe(8);
 });
 
+// A body a host lays out itself, a column spaced by gapAt: spaced once, by its gap, not its gap and the body's spacing.
+test('Spike: a body spaced by a gap of its own stands md apart, not twice that', async ({ page }) => {
+    await page.goto('/');
+    await page.locator(GERMANIUM).waitFor();
+    await opened(page);
+    const apart = await page.locator(`${GERMANIUM} [data-scroller="body"]`).evaluate(async (body) => {
+        body.replaceChildren();
+        body.style.display = 'flex';
+        body.style.flexDirection = 'column';
+        body.dataset.gap = 'md';
+        const first = document.createElement('div');
+        first.textContent = 'what went wrong';
+        const second = document.createElement('div');
+        second.textContent = 'and why';
+        body.append(first, second);
+        await new Promise((done) => requestAnimationFrame(() => done(null)));
+        return Math.round(second.getBoundingClientRect().top - first.getBoundingClientRect().bottom);
+    });
+    expect(apart).toBe(8);
+});
+
 test('Spike: a block of rows spaced by margins alone has none', async ({ page }) => {
     expect(await spaced(page, COLUMN('', 'style="margin-top: 10px; margin-bottom: 6px"'))).toEqual([0, 0]);
 });

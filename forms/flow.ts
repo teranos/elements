@@ -81,6 +81,8 @@ export function flowFrom(flow: Flow): FlowHandle {
             const item = document.createElement('li');
             item.dataset.flowStep = String(n);
             pin(item, { display: 'grid', 'grid-template-columns': '1.6em minmax(0, 1fr)', opacity: n > at ? '0.5' : '1' });
+            // A step's mark labels its title.
+            gapAt(item, 'sm');
             const mark = document.createElement('span');
             const done = n < at;
             if (done) item.dataset.done = '';

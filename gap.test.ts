@@ -36,8 +36,8 @@ beforeEach(() => {
 });
 
 describe('Tim: the set, and a node spaced from it', () => {
-    test('the gaps are sm 4, md 8, lg 16', () => {
-        expect(GAPS).toEqual({ sm: 4, md: 8, lg: 16 });
+    test('the gaps are none 0, sm 4, md 8, lg 16', () => {
+        expect(GAPS).toEqual({ none: 0, sm: 4, md: 8, lg: 16 });
     });
 
     test('a node spaced lg says so, and the rule is in the page', () => {
@@ -59,7 +59,8 @@ describe('Tim: the set, and a node spaced from it', () => {
         holdTextSize();
         const css = rule()!.textContent!;
 
-        expect(css).toContain(`[data-element-id]:not(.dot) [data-scroller="body"] > * + * { margin-block-start: ${GAPS.md}px !important; }`);
+        // A body spaced by a gap of its own (gapAt) is not spaced twice: margins add to a flex gap.
+        expect(css).toContain(`[data-element-id]:not(.dot) [data-scroller="body"]:not([data-gap]) > * + * { margin-block-start: ${GAPS.md}px !important; }`);
     });
 
     test('each size of the set is a rule of its own', () => {
@@ -68,6 +69,8 @@ describe('Tim: the set, and a node spaced from it', () => {
 
         for (const [name, px] of Object.entries(GAPS)) {
             expect(css).toContain(`[data-gap="${name}"] { gap: ${px}px !important; }`);
+            // An element's own root spaced by gapAt, not only what is inside it.
+            expect(css).toContain(`[data-element-id]:not(.dot)[data-gap="${name}"]`);
         }
     });
 
