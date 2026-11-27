@@ -553,6 +553,14 @@ function sortApprovals(body: HTMLElement, rendered: Rendered[], end: HTMLElement
     }
 }
 
+/**
+ * 「[Fable 5.2] One approval on its own, with no roll around it: for what holds a single one, a pill an agent's surface is in」
+ * 「[Fable 5.2] (content/surface.ts). Drawn and sent as every approval is.」
+ */
+export function approvalFrom(approval: Approval, host: ApprovalHost): ApprovalHandle {
+    return renderApproval(approval, host, () => {});
+}
+
 /** The element's scroller: the nearest one up from the list that scrolls. */
 function scrollerOf(el: HTMLElement): HTMLElement | null {
     for (let n = el.parentElement; n; n = n.parentElement) {

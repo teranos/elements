@@ -59,6 +59,8 @@ Tests live with the package source and pin the package. Host behavior (persisten
 
 Where this package ends and a host begins. The test that settles each line is in [CLAUDE.md](CLAUDE.md).
 
+- **A surface's drawing is the package's; what an agent says on it, and where a press on it goes, are the host's.**
+  「[Fable 5.2] `surfaceFrom` draws A2UI v1.0 messages as one node, with the package's own press, field, approval and pill. An `action` is handed to the host (`onAction`). A component it does not draw is said in place (`content/surface.ts`). The package's own catalog is the basic one and what the basic one has no word for (`catalog/v1/catalog.json`). A surface whose root is the catalog's Pill stands as a pill in a chat's input field for as long as it lasts (`surfacePillFrom`). Xenon is the specimen.」
 - 「[Sonnet 5.5] **Canvas workspace orchestration is the host's.** Pan, zoom, selection, and what has been spawned are the host's to wire to its own persistence and sync. The package owns the interaction layer the workspace consumes: drag, resize, meld, placement, z-order, touch browse, the spawn menu.」
 - **The spawn menu is the package's; what can be spawned and what becomes of it are the host's.**
   "on mobile, can't get into spawn menu"
