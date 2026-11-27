@@ -102,7 +102,7 @@ export function judge(before: PageState, up: PageState, gone: PageState): string
     return failed;
 }
 
-// ── The pill of what one agent said, in xenon ───────────────────────────
+// 「[Fable 5.2] ── The pill of what one agent said, in xenon ───────────────────────────」
 //
 // 「[Fable 5.2] The same question, asked of a pill in a chat's field: a finger on edit brings the keyboard and nothing else,」
 // 「[Fable 5.2] and a finger on delay reaches the device's own date and time setter.」
@@ -161,8 +161,8 @@ export interface PillState {
 }
 
 /**
- * What a real finger on the pill must leave true: `open` is the pill pressed open, `setter` after a tap on delay, `up`
- * after a tap on edit. Returns what failed, empty when nothing did.
+ * 「[Fable 5.2] What a real finger on the pill must leave true: `open` is the pill pressed open, `setter` after a tap on delay, `up`」
+ * 「[Fable 5.2] after a tap on edit. Returns what failed, empty when nothing did.」
  */
 export function judgePill(open: PillState, setter: PillState, up: PillState): string[] {
     const failed: string[] = [];
