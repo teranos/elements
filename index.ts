@@ -117,7 +117,7 @@ export { declareScroller, watchScroll, expectScroll, expectFits } from './conten
 export { declareSay, sayFrom } from './content/say';
 export { choicesFrom, type Choice, type ChoiceOfOne, type ChoiceOfMany, type Choices } from './content/choices';
 export { pillFrom, pillIn, PILL_RESTED, type PillHandle } from './forms/pill';
-// A surface an agent says, drawn: A2UI v1.0 (content/surface.ts)
+// 「[Fable 5.2] A surface an agent says, drawn: A2UI v1.0 (content/surface.ts)」
 export { surfaceFrom, surfacePillFrom, SURFACE_CATALOG, ELEMENTS_CATALOG, type Surface, type SurfaceAction, type SurfaceHandle, type SurfacePill } from './content/surface';
 
 export { renderContent } from './content/render';
