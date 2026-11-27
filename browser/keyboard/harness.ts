@@ -35,7 +35,7 @@ Bun.serve({
         }
         if (path === '/reports') return Response.json(reports);
         const html = await Bun.file(join(root, 'examples/index.html')).text();
-        // The pill of what one agent said has a page of its own: /pill.
+        // 「[Fable 5.2] The pill of what one agent said has a page of its own: /pill.」
         const page = path === '/pill' ? '/pill-page.js' : '/page.js';
         return new Response(html.replace('</body>', `  <script type="module" src="${page}"></script>\n</body>`), {
             headers: { 'Content-Type': 'text/html' },
