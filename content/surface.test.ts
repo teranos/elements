@@ -76,7 +76,7 @@ describe('Tim: a question with a choice of one', () => {
         for (const one of Array.from(group.querySelectorAll<HTMLElement>('[data-surface-option]'))) {
             expect(one.style.getPropertyValue('width')).toBe('100%');
             expect(one.style.getPropertyValue('text-align')).toBe('left');
-            // Its box is its own: the package's fit does not make it as narrow as its words (fit.ts).
+            // 「[Fable 5.2] Its box is its own: the package's fit does not make it as narrow as its words (fit.ts).」
             expect(one.dataset.ownBox).toBe('');
         }
     });
