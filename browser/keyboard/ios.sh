@@ -37,11 +37,11 @@ for i in 1 2 3 4 5; do
   sleep 10
 done
 
-# Both scenes run, whichever fails: each says what it found.
+# 「[Fable 5.2] Both scenes run, whichever fails: each says what it found.」
 status=0
 UDID="$UDID" bun browser/keyboard/ios.ts || status=1
 
-# The pill of what one agent said, in xenon: its own page.
+# 「[Fable 5.2] The pill of what one agent said, in xenon: its own page.」
 for i in 1 2 3 4 5; do
   xcrun simctl openurl "$UDID" http://localhost:5181/pill && break
   echo "openurl of the pill's page failed ($i), trying again"
