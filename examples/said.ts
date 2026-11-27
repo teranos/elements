@@ -41,8 +41,8 @@ export function whenOf(at: Date, now: Date): string {
 }
 
 /**
- * A time said short, as the phone says its months: the hour and minute today; on another day the month in three letters
- * and the day before them. Never the year.
+ * 「[Fable 5.2] A time said short, as the phone says its months: the hour and minute today; on another day the month in three letters」
+ * 「[Fable 5.2] and the day before them. Never the year.」
  */
 export function shortOf(at: Date, now: Date): string {
     const clock = `${two(at.getHours())}:${two(at.getMinutes())}`;
@@ -81,7 +81,7 @@ const MARKS = {
 function shaped(node: HTMLElement, act: string): void {
     node.dataset.saidAct = '';
     node.dataset.act = act;
-    // Its box is its own: it shares its row with the others (fit.ts).
+    // 「[Fable 5.2] Its box is its own: it shares its row with the others (fit.ts).」
     node.dataset.ownBox = '';
     for (const [name, value] of Object.entries({
         display: 'grid', 'place-items': 'center', 'box-sizing': 'border-box', width: '100%', height: '44px',
@@ -90,8 +90,8 @@ function shaped(node: HTMLElement, act: string): void {
 }
 
 /**
- * A press that wears a mark. With `armed`, it takes two presses: the first fills it, the second does it, and left alone
- * it is at rest again.
+ * 「[Fable 5.2] A press that wears a mark. With `armed`, it takes two presses: the first fills it, the second does it, and left alone」
+ * 「[Fable 5.2] it is at rest again.」
  */
 function round(act: 'send' | 'edit' | 'cancel', says: string, does: () => void, armed?: 'yes' | 'no'): HTMLButtonElement {
     const press = document.createElement('button');
@@ -175,7 +175,7 @@ function pilled(said: Said): HTMLElement {
             field.setAttribute('aria-label', `What is said to ${said.who}`);
             field.rows = Math.min(8, Math.max(2, says.split('\n').length + 1));
             field.value = says;
-            // A line of its own under the name, the whole width, in the words' own font.
+            // 「[Fable 5.2] A line of its own under the name, the whole width, in the words' own font.」
             for (const [name, value] of Object.entries({ display: 'block', width: '100%', 'box-sizing': 'border-box', 'font-family': 'inherit', margin: '4px 0 0' })) {
                 field.style.setProperty(name, value);
             }
