@@ -4,7 +4,7 @@
  * 「[Fable 5.2] The finger is idb's, as in ios.ts: it opens the pill, presses delay, and presses edit. The page is the harness's」
  * 「[Fable 5.2] at /pill (pill-page.ts), which reports what it sees. The screen — setter, keyboard and all — is taken by simctl.」
  *
- *   UDID=<booted simulator> bun browser/keyboard/ios-pill.ts   (with harness.ts running and Safari open on /pill)
+ *   「[Fable 5.2] UDID=<booted simulator> bun browser/keyboard/ios-pill.ts   (with harness.ts running and Safari open on /pill)」
  */
 
 import { mkdirSync, writeFileSync } from 'fs';
@@ -65,7 +65,7 @@ const tap = (x: number, y: number) => idb('ui', 'tap', String(Math.round(x)), St
 const report: Record<string, unknown> = {};
 let failed: string[] = [];
 try {
-    // The page opens xenon, and says so.
+    // 「[Fable 5.2] The page opens xenon, and says so.」
     let ready: Report | undefined;
     for (let i = 0; i < 90 && !ready; i++) {
         ready = (await reports()).find((r) => r.event === 'ready');
@@ -76,7 +76,7 @@ try {
     await sleep(1000);
     shot('0-start');
 
-    // Where the page sits on the screen: tap what was said, and ask where it landed.
+    // 「[Fable 5.2] Where the page sits on the screen: tap what was said, and ask where it landed.」
     const spot = { x: 6, y: Math.round(ready.screen.height * 0.35) };
     let offset: { x: number; y: number } | undefined;
     for (let i = 0; i < 4 && !offset; i++) {
@@ -100,25 +100,25 @@ try {
         return until((s) => s.pill.form === 'pillOpen' && !s.pill.moving);
     };
 
-    // The finger on the pill.
+    // 「[Fable 5.2] The finger on the pill.」
     const open = await opened();
     report.open = open;
     shot('1-open');
 
-    // The finger on delay: the device's own date and time setter.
+    // 「[Fable 5.2] The finger on delay: the device's own date and time setter.」
     if (!open.delay) throw new Error('the open pill has no delay to press');
     on(open.delay);
     const setter = await until((s) => s.setterFocused, 10000);
     report.setter = setter;
     shot('2-setter');
 
-    // A tap on what was said puts the setter away. It may let the pill go too: a finger opens it again.
+    // 「[Fable 5.2] A tap on what was said puts the setter away. It may let the pill go too: a finger opens it again.」
     tap(spot.x, spot.y);
     await sleep(2000);
     const again = await opened();
     report.again = again;
 
-    // The finger on edit: what was said is a field, and the keyboard comes.
+    // 「[Fable 5.2] The finger on edit: what was said is a field, and the keyboard comes.」
     if (!again.edit) throw new Error('the open pill has no edit to press');
     on(again.edit);
     const up = await until((s) => s.field !== null && s.visualViewport.height < again.visualViewport.height - 100);
