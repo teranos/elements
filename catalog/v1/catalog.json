@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/teranos/elements/blob/main/catalog/v1/catalog.json",
+  "protocolVersion": "1.0",
+  "title": "elements",
+  "description": "What @teranos/elements draws of an A2UI surface: every component of A2UI's basic catalog it draws, and its own.",
+  "catalogId": "https://github.com/teranos/elements/blob/main/catalog/v1/catalog.json",
+  "instructions": "Everything in A2UI's basic catalog is said as it is there.\n\nA surface is not a message. Create one for a thing that lasts (a pull request being worked on, a question that waits, a run), keep it up to date with updateDataModel as the thing changes, and delete it when the thing is done. Make its root a Pill: it then stands as a pill in the person's chat for as long as it lasts, saying its `title`, and opens to what it holds. Bind the title to the data model and change it as the thing moves on ('PR #27 · 2 of 3 checks').\n\nWhat waits on a person is one thing, not many: keep one surface for it, its root a Pill that holds a Roll, and put each thing that waits in that Roll as an Approval. Add an Approval to the Roll when something starts to wait and take it out when it is done; say in the Pill's title how many wait. Do not make a surface per thing.\n\nFor each thing that waits (merge or not, how to proceed, yes or no), use Approval. Say `means` on the option that means yes and on the one that means no. Give `asides` for what the person may open to decide, which chooses nothing. Give an option `steps` when pressing it again means more ('merge when main CI passes', then 'force merge'). Bind `value` and name that path in the action's context: every press is told to you with what now stands.\n\nFor anything else that does something, use Press, not Button. When what it does should not happen by one stray press, give it `again`.",
+  "components": {
+    "Pill": {
+      "type": "object",
+      "description": "The root of a surface that stands as a pill in a chat's input field for as long as the surface lasts. At rest it says its title; pressed, it is across its row and holds its child.",
+      "allowedParents": [
+        "Surface"
+      ],
+      "properties": {
+        "component": {
+          "const": "Pill"
+        },
+        "title": {
+          "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/DynamicString",
+          "description": "What the pill says at rest: a few words, where the thing stands now. Bind it to the data model so it changes as the thing does."
+        },
+        "child": {
+          "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/Child",
+          "description": "What the pill holds when pressed open."
+        }
+      },
+      "required": [
+        "component",
+        "title",
+        "child"
+      ]
+    },
+    "Roll": {
+      "type": "object",
+      "description": "Everything that waits on one person, as one. Its approvals stand in the roll's own order: the most recent undecided first, those still waiting on checks after. After a press everything moves up to the next undecided one. Decided ones stay above, to go back to.",
+      "allowedChildren": [
+        "Approval"
+      ],
+      "properties": {
+        "component": {
+          "const": "Roll"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/ComponentId"
+          },
+          "description": "The approvals it holds, by id."
+        }
+      },
+      "required": [
+        "component",
+        "children"
+      ]
+    },
+    "Approval": {
+      "type": "object",
+      "description": "Something that waits on a person: something to look at, options to choose between, maybe something to open that chooses nothing. Every press is sent: another option sends again, the same option says its next step. What was sent last stands until it takes effect.",
+      "properties": {
+        "component": {
+          "const": "Approval"
+        },
+        "title": {
+          "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/DynamicString",
+          "description": "What is decided ('Merge PR #27')."
+        },
+        "says": {
+          "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/DynamicString",
+          "description": "What the person looks at to decide: a line or two about the thing itself."
+        },
+        "link": {
+          "type": "object",
+          "description": "Where the thing itself lives. With checks, it is drawn as a strip of them, one segment each.",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "href": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "label",
+            "href"
+          ],
+          "additionalProperties": false
+        },
+        "checks": {
+          "type": "array",
+          "description": "The checks on the thing itself. Until every one is 'done' nothing can be decided; one 'failed', it is not ready to decide at all.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "state": {
+                "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/DynamicString",
+                "description": "One of 'waiting', 'running', 'done', 'failed'. Bind it to the data model and change it as the check runs."
+              }
+            },
+            "required": [
+              "name",
+              "state"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "options": {
+          "type": "array",
+          "description": "What can be chosen. Say `means` on the one that means yes and on the one that means no; an option that is neither has none.",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "means": {
+                "enum": [
+                  "yes",
+                  "no"
+                ]
+              },
+              "mark": {
+                "enum": [
+                  "yes",
+                  "no",
+                  "merge"
+                ],
+                "description": "Drawn in place of the label, which a screen reader still says."
+              },
+              "steps": {
+                "type": "array",
+                "minItems": 1,
+                "description": "What each press of this option says, in order. Left out, a press says the label.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "says": {
+                      "type": "string"
+                    },
+                    "settles": {
+                      "enum": [
+                        "now",
+                        "when-ready"
+                      ],
+                      "description": "'now' takes effect at once and nothing more can be sent; 'when-ready' waits on what `merges` names, until you set `settled`."
+                    }
+                  },
+                  "required": [
+                    "says"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "asides": {
+          "type": "array",
+          "description": "What a person may open to decide, which chooses nothing: a table, a mail. Each grows in place when pressed.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "child": {
+                "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/Child",
+                "description": "What it holds when opened."
+              }
+            },
+            "required": [
+              "label",
+              "child"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "merges": {
+          "type": "object",
+          "description": "What a step that settles 'when-ready' waits on once it is sent ('main CI'). With seconds it is counted down; without, it waits until `settled` is true.",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "seconds": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "label"
+          ],
+          "additionalProperties": false
+        },
+        "openForSeconds": {
+          "type": "number",
+          "description": "How long it can be decided. Time running out locks it, where nothing else does."
+        },
+        "arrivedMinutesAgo": {
+          "type": "number",
+          "description": "Minutes since it came in."
+        },
+        "value": {
+          "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/DataBinding",
+          "description": "Where what now stands is written at each press: { option, says, settles }. Name this path in the action's context to be told it."
+        },
+        "settled": {
+          "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/DynamicBoolean",
+          "description": "True once what stood took effect: nothing more can be sent."
+        },
+        "action": {
+          "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/Action",
+          "description": "What you are told at every press."
+        }
+      },
+      "required": [
+        "component",
+        "title",
+        "options",
+        "action"
+      ]
+    },
+    "Table": {
+      "type": "object",
+      "description": "A small table of rows, scrolling sideways in its own box when wider than its place.",
+      "properties": {
+        "component": {
+          "const": "Table"
+        },
+        "heads": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "component",
+        "heads",
+        "rows"
+      ]
+    },
+    "Press": {
+      "type": "object",
+      "description": "Something a person presses to have it done. With `again`, it takes two presses: the first arms it and says beside it what the second does; the second sends the action. Armed, it waits a few seconds and is at rest again.",
+      "properties": {
+        "component": {
+          "const": "Press"
+        },
+        "text": {
+          "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/DynamicString",
+          "description": "What it says: one or two words."
+        },
+        "action": {
+          "$ref": "https://a2ui.org/specification/v1_0/common_types.json#/$defs/Action",
+          "description": "What the agent is told: once pressed, or, with `again`, once pressed a second time."
+        },
+        "again": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the second press does, said beside the press once it is armed (e.g. 'PR #27 is merged'). Its presence makes this a press of two stages."
+        },
+        "irrevocable": {
+          "const": true,
+          "description": "The second press cannot be undone: armed, it is red."
+        },
+        "creates": {
+          "const": true,
+          "description": "The second press creates something: armed, it is green."
+        }
+      },
+      "required": [
+        "component",
+        "text",
+        "action"
+      ],
+      "dependentRequired": {
+        "irrevocable": [
+          "again"
+        ],
+        "creates": [
+          "again"
+        ]
+      },
+      "not": {
+        "required": [
+          "irrevocable",
+          "creates"
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "anyComponent": {
+      "oneOf": [
+        {
+          "$ref": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json#/$defs/anyComponent"
+        },
+        {
+          "$ref": "#/components/Pill"
+        },
+        {
+          "$ref": "#/components/Roll"
+        },
+        {
+          "$ref": "#/components/Approval"
+        },
+        {
+          "$ref": "#/components/Table"
+        },
+        {
+          "$ref": "#/components/Press"
+        }
+      ]
+    },
+    "anyFunction": {
+      "$ref": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json#/$defs/anyFunction"
+    }
+  }
+}

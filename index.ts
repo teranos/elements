@@ -117,6 +117,8 @@ export { declareScroller, watchScroll, expectScroll, expectFits } from './conten
 export { declareSay, sayFrom } from './content/say';
 export { choicesFrom, type Choice, type ChoiceOfOne, type ChoiceOfMany, type Choices } from './content/choices';
 export { pillFrom, pillIn, PILL_RESTED, type PillHandle } from './forms/pill';
+// 「[Fable 5.2] A surface an agent says, drawn: A2UI v1.0 (content/surface.ts)」
+export { surfaceFrom, surfacePillFrom, SURFACE_CATALOG, ELEMENTS_CATALOG, type Surface, type SurfaceAction, type SurfaceHandle, type SurfacePill } from './content/surface';
 
 export { renderContent } from './content/render';
 export type { RenderContentResult } from './content/render';
@@ -277,7 +279,7 @@ export type { SizeClass } from './compact';
 export type { TableCell, TableRow, TableHeads, TableCells, TableShow, TableShows } from './table';
 
 // Approvals — a list of what waits on a human; every press is handed to the host
-export { renderApprovals } from './approvals/approvals';
+export { renderApprovals, approvalFrom } from './approvals/approvals';
 export type { Approval, ApprovalOption, ApprovalStep, ApprovalAside, ApprovalCheck, ApprovalHost, ApprovalHandle, ApprovalRoll } from './approvals/approvals';
 // What approvals are made of, for any element that has more to show than it wants on screen,
 // or something that runs in parts

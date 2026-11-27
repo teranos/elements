@@ -10,6 +10,9 @@ import type { Element } from '../element';
 import { sayFrom } from '../content/say';
 import { choicesFrom } from '../content/choices';
 import { outboxFrom } from './outbox';
+import { exchangeFrom } from './exchange';
+import { waitingFrom } from './waiting';
+import { saidFrom } from './said';
 
 export function renderChatSpecimen(): void {
     const item: Element = {
@@ -21,13 +24,8 @@ export function renderChatSpecimen(): void {
         color: '#000',
         renderContent: () => {
             const body = document.createElement('div');
-            const log = document.createElement('div');
-            log.className = 'content';
-            for (let i = 1; i <= 60; i++) {
-                const line = document.createElement('div');
-                line.textContent = `line ${i} · ${i % 2 ? 'you' : 'xenon'} said something`;
-                log.appendChild(line);
-            }
+            // 「[Fable 5.2] What was said: a person and an agent, as words.」
+            const log = exchangeFrom();
             // 「[Opus 5.5] The row a chat says from, as a host draws it.」
             const row = document.createElement('div');
             row.style.display = 'flex';
@@ -51,6 +49,10 @@ export function renderChatSpecimen(): void {
             });
             // "I want you to use the pills for it instead": what waits to be said, seen whether or not anything is.
             const outbox = outboxFrom();
+            // 「[Fable 5.2] What waits on the person: one thing, one pill, each a surface of its own.」
+            const waits = waitingFrom();
+            // 「[Fable 5.2] What agents said that waits to go: one pill for what one said to one other, as ag has it.」
+            const said = saidFrom();
             // "the inputfield take up the entire bottom of the screen for chat elements"
             // The package's chat field, which takes that bottom (#40).
             // 「[Opus 5.5] Its presses in its box: the + at its start, the → at its end.」
@@ -63,8 +65,8 @@ export function renderChatSpecimen(): void {
             };
             const attach = icon('Picture', 'M12 5v14M5 12h14');
             const send = icon('Say', 'M12 19V5M6 11l6-6 6 6');
-            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send, waiting: [outbox], pills: [choices, repositories] });
-            row.append(outbox, choices, repositories, says, attach, send);
+            const says = sayFrom({ id: 'xenon-says', label: 'say something', start: attach, end: send, waiting: [outbox, ...said, ...waits], pills: [choices, repositories] });
+            row.append(outbox, ...said, ...waits, choices, repositories, says, attach, send);
             body.append(log, row);
             return body;
         },

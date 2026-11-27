@@ -59,4 +59,8 @@ curl -s http://localhost:9222/json || echo "no answer on the DevTools socket"
 decline
 adb exec-out screencap -p > keyboard-shots/android-0-ready.png
 
-bun browser/keyboard/android.ts
+# 「[Fable 5.2] Both scenes run, whichever fails: each says what it found.」
+status=0
+bun browser/keyboard/android.ts || status=1
+bun browser/keyboard/android-pill.ts || status=1
+exit $status

@@ -101,3 +101,87 @@ export function judge(before: PageState, up: PageState, gone: PageState): string
     }
     return failed;
 }
+
+// 「[Fable 5.2] ── The pill of what one agent said, in xenon ───────────────────────────」
+//
+// 「[Fable 5.2] The same question, asked of a pill in a chat's field: a finger on edit brings the keyboard and nothing else,」
+// 「[Fable 5.2] and a finger on delay reaches the device's own date and time setter.」
+
+/** Xenon opens from the tray and settles as a panel. */
+export async function openXenon(): Promise<boolean> {
+    const el = document.querySelector('[data-element-id="chat-specimen"]') as HTMLElement;
+    el.click();
+    for (let i = 0; i < 100; i++) {
+        if (el.dataset.form === 'panel' && !el.classList.contains('morphing')) return true;
+        await new Promise((r) => setTimeout(r, 50));
+    }
+    return false;
+}
+
+/** What the page can say about the pill: where a finger finds it and its presses, and what has the focus. */
+export function pillState(): Record<string, unknown> {
+    const pill = document.querySelector('[data-said="rowan"]') as HTMLElement | null;
+    const vv = window.visualViewport!;
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position: fixed; top: 0; left: 0; width: 1px; height: 1px; visibility: hidden';
+    document.body.appendChild(probe);
+    const shift = probe.getBoundingClientRect().top;
+    probe.remove();
+    const middle = (node: Element | null | undefined) => {
+        if (!node) return null;
+        const r = node.getBoundingClientRect();
+        return { x: (r.left + r.right) / 2, y: (r.top + r.bottom) / 2 };
+    };
+    const field = pill?.querySelector('textarea') ?? null;
+    const setter = pill?.querySelector('input[type="datetime-local"]') ?? null;
+    const f = field?.getBoundingClientRect();
+    return {
+        innerHeight: window.innerHeight,
+        visualViewport: { height: vv.height, offsetTop: vv.offsetTop, scale: vv.scale },
+        pill: { form: pill?.dataset.form ?? null, moving: pill?.dataset.pillMoving !== undefined, at: middle(pill) },
+        edit: middle(pill?.querySelector('[data-act="edit"]')),
+        delay: middle(pill?.querySelector('[data-act="delay"]')),
+        field: f ? { top: f.top - shift, bottom: f.bottom - shift } : null,
+        fieldFocused: field !== null && document.activeElement === field,
+        setterFocused: setter !== null && document.activeElement === setter,
+        devicePixelRatio: window.devicePixelRatio,
+    };
+}
+
+export interface PillState {
+    innerHeight: number;
+    visualViewport: { height: number; offsetTop: number; scale: number };
+    pill: { form: string | null; moving: boolean; at: { x: number; y: number } | null };
+    edit: { x: number; y: number } | null;
+    delay: { x: number; y: number } | null;
+    field: { top: number; bottom: number } | null;
+    fieldFocused: boolean;
+    setterFocused: boolean;
+    devicePixelRatio: number;
+}
+
+/**
+ * 「[Fable 5.2] What a real finger on the pill must leave true: `open` is the pill pressed open, `setter` after a tap on delay, `up`」
+ * 「[Fable 5.2] after a tap on edit. Returns what failed, empty when nothing did.」
+ */
+export function judgePill(open: PillState, setter: PillState, up: PillState): string[] {
+    const failed: string[] = [];
+    if (open.pill.form !== 'pillOpen') failed.push(`a tap on the pill did not open it: it is ${open.pill.form}`);
+    if (!setter.setterFocused) failed.push('a tap on delay did not reach the date and time setter');
+    if (!up.field) {
+        failed.push('a tap on edit made no field of what was said');
+        return failed;
+    }
+    const seenBottom = up.visualViewport.offsetTop + up.visualViewport.height;
+    if (!(up.visualViewport.height < open.visualViewport.height - 100)) {
+        failed.push(`no keyboard came: the visual viewport stayed ${up.visualViewport.height} tall (was ${open.visualViewport.height})`);
+    }
+    if (up.visualViewport.scale !== open.visualViewport.scale) {
+        failed.push(`the page zoomed: scale ${open.visualViewport.scale} before the tap, ${up.visualViewport.scale} with the keyboard up`);
+    }
+    if (!up.fieldFocused) failed.push('the field did not take the cursor');
+    if (!(up.field.bottom <= seenBottom + 1)) {
+        failed.push(`the field ends at ${up.field.bottom}, under the keyboard, which begins at ${seenBottom}`);
+    }
+    return failed;
+}

@@ -319,6 +319,9 @@ export function pressFrom(press: Press): PressHandle {
         if (stage === 'armed' && again === null) {
             again = beside(`again: ${(press as TwoPress).again}`, MEANS.neither);
             again.dataset.pressAgain = press.id;
+            // 「[Fable 5.2] Armed, a press is filled and its bar runs out: that a second press confirms is seen. What it does is」
+            // 「[Fable 5.2] said to a screen reader and written nowhere.」
+            pin(again, { position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', 'clip-path': 'inset(50%)', 'white-space': 'nowrap' });
         } else if (stage !== 'armed' && again !== null) {
             again.remove();
             again = null;

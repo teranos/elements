@@ -40,7 +40,7 @@ test.describe('Tim: a chat', () => {
         const xenon = await open(page, XENON);
 
         await expect.poll(() => fromEnd(page, XENON)).toBeLessThanOrEqual(1);
-        await expect(xenon.getByText('line 60 ·')).toBeInViewport();
+        await expect(xenon.getByText('One PR left for you')).toBeInViewport();
     });
 });
 

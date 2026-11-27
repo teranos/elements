@@ -98,7 +98,8 @@ test.describe('Tim: the pill', () => {
         expect(at.attach.right).toBeLessThanOrEqual(at.field.left);
         expect(at.field.right).toBeLessThanOrEqual(at.send.left);
         expect(at.strip.bottom).toBeLessThanOrEqual(at.pill.top + 1);
-        expect(at.pills.length).toBe(3);
+        // 「[Fable 5.2] What waits to be said, what two agents said, two pull requests, the model and effort, the repositories.」
+        expect(at.pills.length).toBe(7);
         for (let i = 1; i < at.pills.length; i++) {
             expect(middle(at.pills[i]!.box)).toBeCloseTo(middle(at.pills[0]!.box), 0);
             expect(at.pills[i - 1]!.box.right).toBeLessThanOrEqual(at.pills[i]!.box.left);
@@ -128,11 +129,15 @@ test.describe('Tim: the pill', () => {
         const b = (await strip.boundingBox())!;
         const y = Math.round(b.y + b.height / 2);
         const cdp = await page.context().newCDPSession(page);
-        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: Math.round(b.x + b.width - 10), y }] });
-        for (let x = Math.round(b.x + b.width - 20); x >= b.x - 200; x -= 10) {
-            await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: Math.max(1, x), y }] });
+        // 「[Fable 5.2] Seven pills are wider than one drag across a strip this narrow reaches: a finger drags it again.」
+        for (let drag = 0; drag < 7 && !(await seen()); drag++) {
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: Math.round(b.x + b.width - 10), y }] });
+            for (let x = Math.round(b.x + b.width - 20); x >= b.x - 200; x -= 10) {
+                await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: Math.max(1, x), y }] });
+            }
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+            await page.waitForTimeout(400);
         }
-        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
         await expect.poll(seen).toBe(true);
         expect(await page.evaluate(() => document.activeElement?.hasAttribute('data-say') ?? false)).toBe(true);
     });
@@ -179,7 +184,7 @@ test.describe('Spike: its choices', () => {
             range.selectNodeContents(label);
             return new Set(Array.from(range.getClientRects()).map((r) => Math.round(r.top))).size;
         }));
-        expect(lines).toEqual([1, 1, 1]);
+        expect(lines).toEqual([1, 1, 1, 1, 1, 1, 1]);
         // 「[Opus 5.5] One element all the way (Element Axioma).」
         expect(await node!.evaluate((el) => el === document.querySelector('[data-choices="xenon-choices"]'))).toBe(true);
     });
@@ -228,10 +233,11 @@ test.describe('Jenny: what was said moves behind the field', () => {
         const seen: string[] = [];
         for (let y = Math.ceil(r.top) + 1; y < r.bottom - 1; y += 3) {
             for (let x = Math.ceil(r.left) + 1; x < r.right - 1; x += 7) {
-                if (covering.some(p => { const b = p.getBoundingClientRect(); return x >= b.left && x <= b.right && y >= b.top && y <= b.bottom; })) continue;
+                // 「[Fable 5.2] A point on a pill's very edge is the pill's: WebKit gives it the pill, whose left is a fraction past it.」
+                if (covering.some(p => { const b = p.getBoundingClientRect(); return x >= b.left - 1 && x <= b.right + 1 && y >= b.top - 1 && y <= b.bottom + 1; })) continue;
                 const at = document.elementFromPoint(x, y);
                 // 「[Opus 5.5] A line itself, one of the conversation's: not the scroller or the log that hold them all.」
-                const line = !!at && at.parentElement?.classList.contains('content') === true && /^line \d+ /.test(at.textContent ?? '');
+                const line = !!at && at.closest('[data-said]') !== null && at.closest('.content') !== null;
                 if (at) seen.push(line ? 'line' : (row.contains(at) || at === row ? 'row' : 'other'));
             }
         }
