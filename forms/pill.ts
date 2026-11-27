@@ -229,7 +229,12 @@ export function pillFrom(item: Element): PillHandle {
     }
 
     // "it taking focus should let kb stay in place": a press on it, or on what it holds, takes no focus from the field.
-    const keepFocus = (e: Event) => { if (fields.has(element)) e.preventDefault(); };
+    // 「[Fable 5.2] But for a field it holds itself: a press on that is a press to type in it, or to open its picker, and takes the focus.」
+    const keepFocus = (e: Event) => {
+        if (!fields.has(element)) return;
+        if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
+        e.preventDefault();
+    };
     element.addEventListener('pointerdown', keepFocus);
     element.addEventListener('mousedown', keepFocus);
     element.addEventListener('click', (e) => {
