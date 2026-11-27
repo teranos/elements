@@ -28,13 +28,16 @@ Bun.serve({
         const path = new URL(req.url).pathname;
         if (path === '/main.js') return bundle('examples/main.ts');
         if (path === '/page.js') return bundle('browser/keyboard/page.ts');
+        if (path === '/pill-page.js') return bundle('browser/keyboard/pill-page.ts');
         if (path === '/report' && req.method === 'POST') {
             reports.push(await req.json());
             return new Response('ok');
         }
         if (path === '/reports') return Response.json(reports);
         const html = await Bun.file(join(root, 'examples/index.html')).text();
-        return new Response(html.replace('</body>', '  <script type="module" src="/page.js"></script>\n</body>'), {
+        // The pill of what one agent said has a page of its own: /pill.
+        const page = path === '/pill' ? '/pill-page.js' : '/page.js';
+        return new Response(html.replace('</body>', `  <script type="module" src="${page}"></script>\n</body>`), {
             headers: { 'Content-Type': 'text/html' },
         });
     },
