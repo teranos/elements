@@ -164,6 +164,20 @@
     [data-outbox] [data-waits] { display: block; width: 100%; text-align: left; padding: 6px 8px; border: 1px solid #fff; border-radius: 12px; background: #000; color: #fff; font: inherit; }
     [data-outbox] [data-waits][aria-pressed="true"] { background: #fff; color: #000; }
     [data-outbox] [data-waits-from] { opacity: 0.75; }
+    /* A surface an agent keeps standing as a pill: dressed as the other pills are. What it holds is the package's. */
+    [data-surface-pill] { border: 1px solid #fff; background: #000; color: #fff; }
+    /* What was said and waits to go, a pill each, said as ag says it: dressed as the other pills are. */
+    [data-element-id][data-said] { border: 1px solid #fff; background: #000; color: #fff; }
+    [data-element-id][data-said] [data-said-act] { border: 1px solid #fff; background: #000; color: #fff; }
+    [data-element-id][data-said] [data-said-act][aria-pressed="true"] { background: #fff; color: #000; }
+    [data-element-id][data-said] input { color-scheme: dark; }
+    /* What was said, as QNTX-Web draws a chat: a prompt line for a person, a ● line for an agent, what it did small. */
+    .chat-row { margin: 3px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .chat-you { display: flex; gap: 6px; align-items: baseline; margin: 8px 0 4px; padding: 2px 8px; background: #222; color: #fff; }
+    .chat-you::before { content: '❯'; color: #aaa; flex-shrink: 0; }
+    .chat-you > * { min-width: 0; }
+    .chat-said::before { content: '● '; color: #4ade80; }
+    .chat-did { border-left: 2px solid #fff; padding-left: 6px; color: #aaa; }
 
     .content {
       font-family: var(--font-mono);
