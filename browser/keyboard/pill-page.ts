@@ -27,7 +27,7 @@ document.addEventListener('touchstart', (e) => {
 document.addEventListener('focusin', () => post('focusin'));
 document.addEventListener('focusout', () => setTimeout(() => post('focusout'), 0));
 
-// The keyboard animates in; say where things settled, not where they passed.
+// 「[Fable 5.2] The keyboard animates in; say where things settled, not where they passed.」
 let settling: ReturnType<typeof setTimeout> | undefined;
 const settle = () => {
     clearTimeout(settling);
@@ -40,6 +40,6 @@ void (async () => {
     await new Promise((r) => setTimeout(r, 500));
     const opened = await openXenon();
     setTimeout(() => post('ready', { opened }), 300);
-    // A pill moves across its row with no event the page hears: where it stands is said as it goes.
+    // 「[Fable 5.2] A pill moves across its row with no event the page hears: where it stands is said as it goes.」
     setInterval(() => post('tick'), 500);
 })();
