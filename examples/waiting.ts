@@ -5,7 +5,7 @@
  *
  * "Do you hear how little it matters what the 'thing' is to approve?"
  * "Click 1 means merge after CI passes, press again to force merge. If we still wait for CI, the NO will cancel the yes.
- * Press NO again and it's definitely NO."
+ * 「[Fable 5.2] Press NO again and it's definitely NO."」
  *
  * 「[Fable 5.2] These are the two pull requests of the five things Rubidium holds as its roll (examples/approve.ts). A pill is one」
  * 「[Fable 5.2] of them; Rubidium is all of them, and no pill leads there. What an agent said is another thing, with its own pill (examples/said.ts).」
