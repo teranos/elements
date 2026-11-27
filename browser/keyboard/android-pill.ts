@@ -4,10 +4,10 @@
  * 「[Fable 5.2] The finger is adb's, as in android.ts: it opens the pill, presses delay, and presses edit. The page is read」
  * 「[Fable 5.2] through Chrome's DevTools socket, and the screen — setter, keyboard and all — is from screencap.」
  *
- * Expects Chrome open on the specimens page, `adb reverse tcp:5180 tcp:5180`
- * and `adb forward tcp:9222 localabstract:chrome_devtools_remote` (android.sh).
+ * 「[Fable 5.2] Expects Chrome open on the specimens page, `adb reverse tcp:5180 tcp:5180`」
+ * 「[Fable 5.2] and `adb forward tcp:9222 localabstract:chrome_devtools_remote` (android.sh).」
  *
- *   bun browser/keyboard/android-pill.ts
+ *   「[Fable 5.2] bun browser/keyboard/android-pill.ts」
  */
 
 import { mkdirSync, writeFileSync } from 'fs';
@@ -28,7 +28,7 @@ function shot(name: string): void {
     writeFileSync(`${OUT}/android-pill-${name}.png`, adb('exec-out', 'screencap', '-p'));
 }
 
-// ── The page, through Chrome's DevTools socket ──────────────────────────
+// 「[Fable 5.2] ── The page, through Chrome's DevTools socket ──────────────────────────」
 
 const targets = await (await fetch('http://localhost:9222/json')).json() as { type: string; url: string; webSocketDebuggerUrl: string }[];
 const target = targets.find((t) => t.type === 'page' && t.url.startsWith('http://localhost:5180'));
@@ -70,12 +70,12 @@ async function until(done: (s: PillState) => boolean, ms = 20000): Promise<PillS
     return await run(pillState) as PillState;
 }
 
-// ── The scene ───────────────────────────────────────────────────────────
+// 「[Fable 5.2] ── The scene ───────────────────────────────────────────────────────────」
 
 const report: Record<string, unknown> = {};
 let failed: string[] = [];
 try {
-    // The page as it first was: the scene before this one left a window open on it.
+    // 「[Fable 5.2] The page as it first was: the scene before this one left a window open on it.」
     await send('Page.reload');
     await sleep(4000);
     report.opened = await run(openXenon);
@@ -83,7 +83,7 @@ try {
     report.start = start;
     shot('0-start');
 
-    // Where the page sits on the screen: tap what was said, and ask where it landed.
+    // 「[Fable 5.2] Where the page sits on the screen: tap what was said, and ask where it landed.」
     const dpr = start.devicePixelRatio;
     await run(listenForTouch);
     const probe = { x: Math.round(6 * dpr), y: Math.round(start.innerHeight * dpr * 0.35) };
@@ -104,25 +104,25 @@ try {
         return until((s) => s.pill.form === 'pillOpen' && !s.pill.moving);
     };
 
-    // The finger on the pill.
+    // 「[Fable 5.2] The finger on the pill.」
     const open = await opened();
     report.open = open;
     shot('1-open');
 
-    // The finger on delay: the device's own date and time setter.
+    // 「[Fable 5.2] The finger on delay: the device's own date and time setter.」
     if (!open.delay) throw new Error('the open pill has no delay to press');
     on(open.delay);
     const setter = await until((s) => s.setterFocused, 10000);
     report.setter = setter;
     shot('2-setter');
 
-    // Back puts the setter away. It may let the pill go too: a finger opens it again.
+    // 「[Fable 5.2] Back puts the setter away. It may let the pill go too: a finger opens it again.」
     adb('shell', 'input', 'keyevent', '4');
     await sleep(2000);
     const again = await opened();
     report.again = again;
 
-    // The finger on edit: what was said is a field, and the keyboard comes.
+    // 「[Fable 5.2] The finger on edit: what was said is a field, and the keyboard comes.」
     if (!again.edit) throw new Error('the open pill has no edit to press');
     on(again.edit);
     const up = await until((s) => s.field !== null && s.visualViewport.height < again.visualViewport.height - 100);
